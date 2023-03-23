@@ -6,6 +6,7 @@ import Image24 from './Image24.js';
 import CanvasFrameBuffer from './CanvasFrameBuffer.js';
 import { decompressBz2, downloadUrl, sleep } from './Util.js';
 import { playMidi } from './Audio.js';
+import Font from './Font.js';
 
 class Client {
     static HOST = 'https://world2.runewiki.org';
@@ -43,6 +44,11 @@ class Client {
     titleRightSpace = null;
     imageTitleBox = null;
     imageTitleButton = null;
+
+    p11 = null;
+    p12 = null;
+    b12 = null;
+    q8 = null;
 
     async main() {
         this.canvas = document.getElementById('canvas');
@@ -134,16 +140,21 @@ class Client {
         this.alreadyStarted = true;
 
         try {
-            this.showProgress(10, 'Connecting to fileserver');
+            await this.showProgress(10, 'Connecting to fileserver');
 
             let checksums = await downloadUrl(`${Client.HOST}/crc`);
             for (let i = 0; i < checksums.length / 4; i++) {
                 this.archiveChecksums[i] = checksums.g4();
             }
 
-            this.setMidi('scape_main', 12345678);
+            await this.setMidi('scape_main', 12345678);
 
             this.titleArchive = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
+
+            this.p11 = Font.fromArchive(this.titleArchive, 'p11');
+            this.p12 = Font.fromArchive(this.titleArchive, 'p12');
+            this.b12 = Font.fromArchive(this.titleArchive, 'b12');
+            this.q8 = Font.fromArchive(this.titleArchive, 'q8');
 
             await this.loadTitleBackground();
             this.loadTitleForeground();
@@ -156,13 +167,13 @@ class Client {
             let wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
             let sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
-            this.showProgress(75, 'Unpacking media');
-            this.showProgress(80, 'Unpacking textures');
-            this.showProgress(83, 'Unpacking models');
-            this.showProgress(86, 'Unpacking config');
-            this.showProgress(90, 'Unpacking sounds');
-            this.showProgress(92, 'Unpacking interfaces');
-            this.showProgress(97, 'Preparing game engine');
+            await this.showProgress(75, 'Unpacking media');
+            await this.showProgress(80, 'Unpacking textures');
+            await this.showProgress(83, 'Unpacking models');
+            await this.showProgress(86, 'Unpacking config');
+            await this.showProgress(90, 'Unpacking sounds');
+            await this.showProgress(92, 'Unpacking interfaces');
+            await this.showProgress(97, 'Preparing game engine');
         } catch (err) {
             console.error(err);
             this.errorLoading = true;
@@ -231,7 +242,7 @@ class Client {
             // draw text
             this.ctx.font = 'bold 13px helvetica, sans-serif';
             this.ctx.textAlign = 'center';
-            this.ctx.fillStyle = '#white';
+            this.ctx.fillStyle = 'white';
             this.ctx.fillText(str, this.canvas.width / 2, y + 22);
 
             return;
@@ -243,15 +254,15 @@ class Client {
         let y = 200;
 
         let offsetY = 20;
-        // TODO: RuneScape is loading - please wait...
+        this.b12.drawCentered(x / 2, (y / 2) - offsetY - 26, 'RuneScape is loading - please wait...', 0xFFFFFF, false);
         let midY = (y / 2) - 18 - offsetY;
 
-        Draw2D.drawRect((x / 2) - 152, midY, 304, 34, 0xFF8c1111);
-        Draw2D.drawRect((x / 2) - 151, midY + 1, 302, 32, 0xFF000000);
-        Draw2D.fillRect((x / 2) - 150, midY + 2, progress * 3, 30, 0xFF8c1111);
-        Draw2D.fillRect(((x / 2) - 150) + (progress * 3), midY + 2, 300 - (progress * 3), 30, 0xFF000000);
+        Draw2D.drawRect((x / 2) - 152, midY, 304, 34, 0x8c1111);
+        Draw2D.drawRect((x / 2) - 151, midY + 1, 302, 32, 0x000000);
+        Draw2D.fillRect((x / 2) - 150, midY + 2, progress * 3, 30, 0x8c1111);
+        Draw2D.fillRect(((x / 2) - 150) + (progress * 3), midY + 2, 300 - (progress * 3), 30, 0x000000);
 
-        // TODO: draw string
+        this.b12.drawCentered(x / 2, (y / 2) + 5 - offsetY, str, 0xFFFFFF, false);
         this.titleCenter.draw(214, 186);
 
         if (this.redrawBackground) {
@@ -386,6 +397,25 @@ class Client {
         if (this.titleArchive != null) {
             this.titleCenter.bind();
             this.imageTitleBox.draw(0, 0);
+
+            let x = 360;
+            let y = 200;
+
+            if (this.titleState == 0) {
+                let offsetX = x / 2;
+                let offsetY = (y / 2) - 20;
+                this.b12.drawCentered(offsetX, offsetY, 'Welcome to RuneScape', 0xFFFFFF00);
+
+                // y += 30;
+                offsetX = (x / 2) - 80;
+                offsetY = (y / 2) + 20;
+                this.imageTitleButton.draw(offsetX - 73, offsetY - 20);
+                this.b12.drawCentered(offsetX, offsetY + 5, 'New user', 0xFFFFFFFF);
+
+                offsetX = (x / 2) + 80;
+                this.imageTitleButton.draw(offsetX - 73, offsetY - 20);
+                this.b12.drawCentered(offsetX, offsetY + 5, 'Existing User', 0xFFFFFFFF);
+            }
         }
 
         this.titleCenter.draw(214, 186);
@@ -406,9 +436,9 @@ class Client {
         // TODO: caching
         // TODO: download progress, retry
 
-        this.showProgress(progress, `Requesting ${displayName}`);
+        await this.showProgress(progress, `Requesting ${displayName}`);
         let data = await Archive.loadUrl(`${Client.HOST}/${filename}`);
-        this.showProgress(progress, `Loading ${displayName} - 100%`);
+        await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
     }
 
@@ -467,6 +497,7 @@ class Client {
         }
 
         if (this.errorStarted) {
+            this.ctx.font = 'bold 13px helvetica, sans-serif';
             this.ctx.textAlign = 'left';
             this.ctx.fillStyle = 'yellow';
 

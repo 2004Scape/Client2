@@ -55,11 +55,6 @@ export default class Image24 {
             if (palette[i + 1] === 0) {
                 palette[i + 1] = 1;
             }
-
-            // add alpha channel
-            if (palette[i + 1] > 0) {
-                palette[i + 1] |= 0xFF000000;
-            }
         }
 
         // advance to sprite

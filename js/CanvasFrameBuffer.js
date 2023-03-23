@@ -39,7 +39,7 @@ export default class CanvasFrameBuffer {
             data[index + 0] = (pixel >> 16) & 0xff;
             data[index + 1] = (pixel >> 8) & 0xff;
             data[index + 2] = (pixel >> 0) & 0xff;
-            data[index + 3] = (pixel >> 24) & 0xff;
+            data[index + 3] = 255;
         }
     }
 }
