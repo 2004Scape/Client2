@@ -4,7 +4,8 @@ import Draw2D from './Draw2D.js';
 import Image8 from './Image8.js';
 import Image24 from './Image24.js';
 import CanvasFrameBuffer from './CanvasFrameBuffer.js';
-import { downloadUrl, sleep } from './Util.js';
+import { decompressBz2, downloadUrl, sleep } from './Util.js';
+import { playMidi } from './Audio.js';
 
 class Client {
     static HOST = 'https://world2.runewiki.org';
@@ -140,6 +141,8 @@ class Client {
                 this.archiveChecksums[i] = checksums.g4();
             }
 
+            this.setMidi('scape_main', 12345678);
+
             this.titleArchive = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
 
             await this.loadTitleBackground();
@@ -152,6 +155,14 @@ class Client {
             let textures = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
             let wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
             let sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
+
+            this.showProgress(75, 'Unpacking media');
+            this.showProgress(80, 'Unpacking textures');
+            this.showProgress(83, 'Unpacking models');
+            this.showProgress(86, 'Unpacking config');
+            this.showProgress(90, 'Unpacking sounds');
+            this.showProgress(92, 'Unpacking interfaces');
+            this.showProgress(97, 'Preparing game engine');
         } catch (err) {
             console.error(err);
             this.errorLoading = true;
@@ -354,6 +365,10 @@ class Client {
 
         this.titleRightSpace.bind();
         background.draw(-180, -186);
+
+        let logo = Image24.fromArchive(this.titleArchive, 'logo');
+        this.titleTop.bind();
+        logo.draw((this.canvas.width / 2) - (logo.width / 2) - 128, 18);
     }
 
     loadTitleForeground() {
@@ -394,6 +409,11 @@ class Client {
         let data = await Archive.loadUrl(`${Client.HOST}/${filename}`);
         this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
+    }
+
+    async setMidi(name, crc) {
+        let file = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
+        playMidi(decompressBz2(file.data, true, false), 192);
     }
 }
 

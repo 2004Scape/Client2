@@ -98,6 +98,9 @@ export default class Image24 {
     }
 
     draw(x, y) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+
         x += this.cropX;
         y += this.cropY;
 
@@ -148,7 +151,11 @@ export default class Image24 {
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 let off = x + (y * w);
-                dst[dstOff + off] = src[srcOff + off];
+                let rgb = src[srcOff + off];
+
+                if (rgb !== 0) {
+                    dst[dstOff + off] = src[srcOff + off];
+                }
             }
 
             srcOff += srcStep;

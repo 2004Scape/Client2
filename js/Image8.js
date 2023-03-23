@@ -84,6 +84,9 @@ export default class Image8 {
     }
 
     draw(x, y) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+
         x += this.cropX;
         y += this.cropY;
 
