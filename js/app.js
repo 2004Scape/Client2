@@ -195,6 +195,7 @@ class Client {
 
     async draw() {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
+            this.drawErrorScreen();
             return;
         }
 
@@ -211,7 +212,7 @@ class Client {
         await this.prepareTitleScreen();
         if (this.titleArchive === null) {
             if (this.redrawScreen) {
-                this.ctx.fillStyle = '#000';
+                this.ctx.fillStyle = 'black';
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.redrawScreen = false;
             }
@@ -224,13 +225,13 @@ class Client {
             this.ctx.fillRect((this.canvas.width / 2) - 150, y + 2, progress * 3, 30);
 
             // cover up progress bar
-            this.ctx.fillStyle = '#000';
+            this.ctx.fillStyle = 'black';
             this.ctx.fillRect(((this.canvas.width / 2) - 150) + (progress * 3), y + 2, 300 - (progress * 3), 30);
 
             // draw text
-            this.ctx.font = 'bold 13px helvetica, sans-serif ';
+            this.ctx.font = 'bold 13px helvetica, sans-serif';
             this.ctx.textAlign = 'center';
-            this.ctx.fillStyle = '#fff';
+            this.ctx.fillStyle = '#white';
             this.ctx.fillText(str, this.canvas.width / 2, y + 22);
 
             return;
@@ -414,6 +415,75 @@ class Client {
     async setMidi(name, crc) {
         let file = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
         playMidi(decompressBz2(file.data, true, false), 192);
+    }
+
+    setLoopRate(rate) {
+        this.deltime = 1000 / rate;
+    }
+
+    drawErrorScreen() {
+        this.ctx.fillStyle = 'black';
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.setLoopRate(1);
+
+        if (this.errorLoading) {
+            this.ctx.font = 'bold 16px helvetica, sans-serif';
+            this.ctx.textAlign = 'left';
+            this.ctx.fillStyle = 'yellow';
+
+            let y = 35;
+            this.ctx.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
+
+            y += 50;
+            this.ctx.fillStyle = 'white';
+            this.ctx.fillText('To fix this try the following (in order):', 30, y);
+
+            y += 50;
+            this.ctx.font = 'bold 12px helvetica, sans-serif';
+            this.ctx.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
+
+            y += 30;
+            this.ctx.fillText('2: Try clearing your web-browsers cache from tools->internet options', 30, y);
+
+            y += 30;
+            this.ctx.fillText('3: Try using a different game-world', 30, y);
+
+            y += 30;
+            this.ctx.fillText('4: Try rebooting your computer', 30, y);
+
+            y += 30;
+            this.ctx.fillText('5: Try selecting a different version of Java from the play-game menu', 30, y);
+        }
+
+        if (this.errorHost) {
+            this.ctx.font = 'bold 20px helvetica, sans-serif';
+            this.ctx.textAlign = 'left';
+            this.ctx.fillStyle = 'white';
+
+            this.ctx.fillText('Error - unable to load game!', 50, 50);
+            this.ctx.fillText('To play RuneScape make sure you play from', 50, 100);
+            this.ctx.fillText('https://2004scape.org', 50, 150);
+        }
+
+        if (this.errorStarted) {
+            this.ctx.textAlign = 'left';
+            this.ctx.fillStyle = 'yellow';
+
+            let y = 35;
+            this.ctx.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
+
+            y += 50;
+            this.ctx.fillStyle = 'white';
+            this.ctx.fillText('To fix this try the following (in order):', 30, y);
+
+            y += 50;
+            this.ctx.font = 'bold 12px helvetica, sans-serif';
+            this.ctx.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
+
+            y += 30;
+            this.ctx.fillText('2: Try rebooting your computer, and reloading', 30, y);
+        }
     }
 }
 
