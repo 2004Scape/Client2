@@ -144,10 +144,18 @@ export default class Font {
 
     drawCentered(x, y, str, color, shadowed = true) {
         if (shadowed) {
-            this.draw(x - (this.getTextWidth(str) / 2) + 1, y +1, str, 0);
+            this.draw(x - (this.getTextWidth(str) / 2) + 1, y + 1, str, 0);
         }
 
         this.draw(x - (this.getTextWidth(str) / 2), y, str, color);
+    }
+
+    drawRight(x, y, str, color, shadowed = true) {
+        if (shadowed) {
+            this.draw(x - this.getTextWidth(str) + 1, y + 1, str, 0);
+        }
+
+        this.draw(x - this.getTextWidth(str), y, str, color);
     }
 
     copyCharacter(x, y, w, h, pixels, color) {

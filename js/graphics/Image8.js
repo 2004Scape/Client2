@@ -79,7 +79,7 @@ export default class Image8 {
         return image;
     }
 
-    draw(x, y) {
+    draw(x, y, newW = -1, newH = -1) {
         x = Math.trunc(x);
         y = Math.trunc(y);
 
@@ -91,6 +91,14 @@ export default class Image8 {
 
         let h = this.height;
         let w = this.width;
+
+        if (newW !== -1) {
+            w = newW;
+        }
+
+        if (newH !== -1) {
+            h = newH;
+        }
 
         let dstStep = Draw2D.width - w;
         let srcStep = 0;

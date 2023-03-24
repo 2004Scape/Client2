@@ -57,4 +57,18 @@ export default class Buffer {
         let value = this.data[this.pos];
         return value < 128 ? this.g1() - 64 : this.g2() - 49152;
     }
+
+    gjstr() {
+        let start = this.pos;
+        while (this.data[this.pos++] !== '\n'.charCodeAt(0)) {
+        }
+
+        // TODO: switch to use TextDecoder
+        let raw = this.data.slice(start, this.pos - 1);
+        let str = '';
+        for (let i = 0; i < raw.length; i++) {
+            str += String.fromCharCode(raw[i]);
+        }
+        return str;
+    }
 }

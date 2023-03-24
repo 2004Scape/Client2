@@ -22,6 +22,7 @@ import Archive from './io/Archive.js';
 
 import Censor from './util/Censor.js';
 import { downloadUrl } from './util/JsUtil.js';
+import Draw2D from './graphics/Draw2D.js';
 
 class Playground extends GameShell {
     static HOST = 'https://world2.runewiki.org';
@@ -95,19 +96,42 @@ class Playground extends GameShell {
     async draw() {
         this.drawArea.clear();
 
+        /// draw all textures
+        // let x = 0;
+        // let y = 0;
+        // for (let i = 0; i < Draw3D.textureCount; i++) {
+        //     if (x > this.width) {
+        //         x = 0;
+        //         y += 128;
+        //     }
+
+        //     Draw3D.textures[i].draw(x, y);
+        //     x += 128;
+        // }
+
+        /// draw all flotypes
         let x = 0;
-        let y = 0;
-        for (let i = 0; i < Draw3D.textureCount; i++) {
-            if (x > this.width) {
-                x = 0;
-                y += 128;
+        let y = this.b12.fontHeight;
+        for (let i = 0; i < FloType.count; i++) {
+            let flo = FloType.get(i);
+            this.b12.draw(x, y, `${i}: ${flo.name}`, 0xFFFF00);
+
+            let textSize = this.b12.getTextWidth(`${i}: ${flo.name}`);
+            
+            if (flo.texture != -1) {
+                Draw3D.textures[flo.texture].draw(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight);
+            } else {
+                Draw2D.fillRect(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight, flo.rgb);
             }
 
-            Draw3D.textures[i].draw(x, y);
-            x += 128;
+            y += this.b12.fontHeight;
+            if (y > this.height) {
+                x += 200;
+                y = this.b12.fontHeight;
+            }
         }
 
-        this.b12.draw(0, 12, `FPS: ${this.fps}`, 0xFFFFFF);
+        this.b12.drawRight(this.width, this.b12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
         this.drawArea.draw(0, 0);
     }
 
