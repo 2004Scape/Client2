@@ -774,7 +774,7 @@ export default class Model {
             }
         }
 
-        // if (!this.facePriority) {
+        if (!this.facePriority) {
             for (let i = this.maxDepth - 1; i >= 0; i--) {
                 let count = Model.tmpDepthFaceCount[i];
                 if (count <= 0) {
@@ -788,7 +788,7 @@ export default class Model {
             }
 
             return;
-        // }
+        }
 
         for (let i = 0; i < 12; i++) {
             Model.tmpPriorityFaceCount[i] = 0;
@@ -854,10 +854,10 @@ export default class Model {
         }
 
         for (let i = 0; i < 10; i++) {
-            while ((i === 0) && (priorityDepth > averagePriorityDepth1_2)) {
+            while (i === 0 && priorityDepth > averagePriorityDepth1_2) {
                 this.drawFace(priorityFaces[priorityFace++]);
 
-                if ((priorityFace == priorityFaceCount) && (priorityFaces != Model.tmpPriorityFaces[11])) {
+                if (priorityFace == priorityFaceCount && priorityFaces != Model.tmpPriorityFaces[11]) {
                     priorityFace = 0;
                     priorityFaceCount = Model.tmpPriorityFaceCount[11];
                     priorityFaces = Model.tmpPriorityFaces[11];
@@ -871,10 +871,10 @@ export default class Model {
                 }
             }
 
-            while ((i === 3) && (priorityDepth > averagePriorityDepth3_4)) {
+            while (i === 3 && priorityDepth > averagePriorityDepth3_4) {
                 this.drawFace(priorityFaces[priorityFace++]);
 
-                if ((priorityFace == priorityFaceCount) && (priorityFaces != Model.tmpPriorityFaces[11])) {
+                if (priorityFace == priorityFaceCount && priorityFaces != Model.tmpPriorityFaces[11]) {
                     priorityFace = 0;
                     priorityFaceCount = Model.tmpPriorityFaceCount[11];
                     priorityFaces = Model.tmpPriorityFaces[11];
@@ -888,10 +888,10 @@ export default class Model {
                 }
             }
 
-            while ((i === 5) && (priorityDepth > averagePriorityDepth6_8)) {
+            while (i === 5 && priorityDepth > averagePriorityDepth6_8) {
                 this.drawFace(priorityFaces[priorityFace++]);
 
-                if ((priorityFace == priorityFaceCount) && (priorityFaces != Model.tmpPriorityFaces[11])) {
+                if (priorityFace == priorityFaceCount && priorityFaces != Model.tmpPriorityFaces[11]) {
                     priorityFace = 0;
                     priorityFaceCount = Model.tmpPriorityFaceCount[11];
                     priorityFaces = Model.tmpPriorityFaces[11];
@@ -909,14 +909,14 @@ export default class Model {
             let faces = Model.tmpPriorityFaces[i];
 
             for (let j = 0; j < count; j++) {
-                this.drawFace(faces[i]);
+                this.drawFace(faces[j]);
             }
         }
 
         while (priorityDepth != -1000) {
             this.drawFace(priorityFaces[priorityFace++]);
 
-            if ((priorityFace == priorityFaceCount) && (priorityFaces != Model.tmpPriorityFaces[11])) {
+            if (priorityFace == priorityFaceCount && priorityFaces != Model.tmpPriorityFaces[11]) {
                 priorityFace = 0;
                 priorityFaces = Model.tmpPriorityFaces[11];
                 priorityFaceCount = Model.tmpPriorityFaceCount[11];

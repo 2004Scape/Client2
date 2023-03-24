@@ -11,6 +11,14 @@ export default class Draw3D {
     static textures = [];
     static textureCount = 0;
 
+    static lineOffset = null;
+    static centerX = 0;
+    static centerY = 0;
+
+    static jagged = true;
+    static clipX = 0;
+    static alpha = 0;
+
     static {
         for (let i = 1; i < 512; i++) {
             Draw3D.reciprocal15[i] = 32768 / i;
@@ -113,10 +121,6 @@ export default class Draw3D {
             }
         }
     }
-
-    static lineOffset = null;
-    static centerX = 0;
-    static centerY = 0;
 
     static init2D() {
         Draw3D.lineOffset = new Int32Array(Draw2D.height);
@@ -552,7 +556,7 @@ export default class Draw3D {
                 length = (x1 - x0) >> 2;
 
                 if (length > 0) {
-                    colorStep = ((color1 - color0) * reciprocal15[length]) >> 15;
+                    colorStep = ((color1 - color0) * Draw3D.reciprocal15[length]) >> 15;
                 } else {
                     colorStep = 0;
                 }
