@@ -757,7 +757,7 @@ export default class Model {
                     picking = false;
                 }
 
-                let dxAB = xB - xA;
+                let dxAB = xA - xB;
                 let dyAB = Model.vertexScreenY[a] - Model.vertexScreenY[b];
                 let dxCB = xC - xB;
                 let dyCB = Model.vertexScreenY[c] - Model.vertexScreenY[b];
@@ -774,7 +774,7 @@ export default class Model {
             }
         }
 
-        if (!this.facePriority) {
+        // if (!this.facePriority) {
             for (let i = this.maxDepth - 1; i >= 0; i--) {
                 let count = Model.tmpDepthFaceCount[i];
                 if (count <= 0) {
@@ -788,7 +788,7 @@ export default class Model {
             }
 
             return;
-        }
+        // }
 
         for (let i = 0; i < 12; i++) {
             Model.tmpPriorityFaceCount[i] = 0;
@@ -937,6 +937,7 @@ export default class Model {
 
     drawFace(face) {
         if (Model.faceNearClipped[face]) {
+            this.drawNearClippedFace(face);
             return;
         }
 
@@ -975,5 +976,8 @@ export default class Model {
             let tc = this.texturedVertexC[texturedFace];
             Draw3D.fillTexturedTriangle(Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], this.faceColorA[face], this.faceColorA[face], this.faceColorA[face],this. vertexViewSpaceSpaceX[ta], Model.vertexViewSpaceSpaceX[tb], Model.vertexViewSpaceSpaceX[tc], Model.vertexViewSpaceSpaceY[ta], Model.vertexViewSpaceSpaceY[tb], Model.vertexViewSpaceSpaceY[tc], Model.vertexViewSpaceSpaceZ[ta], Model.vertexViewSpaceSpaceZ[tb], Model.vertexViewSpaceSpaceZ[tc], this.faceColor[face]);
         }
+    }
+
+    drawNearClippedFace(face) {
     }
 }
