@@ -88,6 +88,9 @@ class Playground extends GameShell {
 
         await this.showProgress(97, 'Preparing game engine');
         Censor.unpack(wordenc);
+
+        this.setLoopRate(1);
+        Draw3D.init2D();
     }
 
     update() {
