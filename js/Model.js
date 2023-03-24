@@ -1,4 +1,5 @@
 import Buffer from './Buffer.js';
+import Draw3D from './Draw3D.js';
 
 class Metadata {
     vertexCount = -1;
@@ -22,20 +23,20 @@ class Metadata {
 export default class Model {
     static metadata = null;
 
-    static head;
-    static face1;
-    static face2;
-    static face3;
-    static face4;
-    static face5;
-    static point1;
-    static point2;
-    static point3;
-    static point4;
-    static point5;
-    static vertex1;
-    static vertex2;
-    static axis;
+    static head = null;
+    static face1 = null;
+    static face2 = null;
+    static face3 = null;
+    static face4 = null;
+    static face5 = null;
+    static point1 = null;
+    static point2 = null;
+    static point3 = null;
+    static point4 = null;
+    static point5 = null;
+    static vertex1 = null;
+    static vertex2 = null;
+    static axis = null;
 
     static unpack(archive) {
         try {
@@ -152,6 +153,24 @@ export default class Model {
     }
 
     vertexCount = null;
+    faceCount = null;
+    texturedFaceCount = null;
+    vertexX = null;
+    vertexY = null;
+    vertexZ = null;
+    faceVertexA = null;
+    faceVertexB = null;
+    faceVertexC = null;
+    texturedVertexA = null;
+    texturedVertexB = null;
+    texturedVertexC = null;
+    vertexLabels = null;
+    faceInfos = null;
+    facePriorities = null;
+    priority = 0;
+    faceAlphas = null;
+    faceLabels = null;
+    faceColors = null;
 
     constructor(id) {
         if (Model.metadata == null) {
@@ -167,39 +186,39 @@ export default class Model {
         this.vertexCount = metadata.vertexCount;
         this.faceCount = metadata.faceCount;
         this.texturedFaceCount = metadata.texturedFaceCount;
-        this.vertexX = [];
-        this.vertexY = [];
-        this.vertexZ = [];
-        this.faceVertexA = [];
-        this.faceVertexB = [];
-        this.faceVertexC = [];
-        this.texturedVertexA = [];
-        this.texturedVertexB = [];
-        this.texturedVertexC = [];
+        this.vertexX = new Int32Array(this.vertexCount);
+        this.vertexY = new Int32Array(this.vertexCount);
+        this.vertexZ = new Int32Array(this.vertexCount);
+        this.faceVertexA = new Int32Array(this.faceCount);
+        this.faceVertexB = new Int32Array(this.faceCount);
+        this.faceVertexC = new Int32Array(this.faceCount);
+        this.texturedVertexA = new Int32Array(this.texturedFaceCount);
+        this.texturedVertexB = new Int32Array(this.texturedFaceCount);
+        this.texturedVertexC = new Int32Array(this.texturedFaceCount);
 
         if (metadata.vertexLabelsOffset != -1) {
-            this.vertexLabels = [];
+            this.vertexLabels = new Int32Array(this.vertexCount);
         }
 
         if (metadata.faceInfosOffset != -1) {
-            this.faceInfos = [];
+            this.faceInfos = new Int32Array(this.faceCount);
         }
 
         if (metadata.facePrioritiesOffset != -1) {
-            this.facePriorities = [];
+            this.facePriorities = new Int32Array(this.faceCount);
         } else {
             this.priority = -metadata.facePrioritiesOffset - 1;
         }
 
         if (metadata.faceAlphasOffset != -1) {
-            this.faceAlphas = [];
+            this.faceAlphas = new Int32Array(this.faceCount);
         }
 
         if (metadata.faceLabelsOffset != -1) {
-            this.faceLabels = [];
+            this.faceLabels = new Int32Array(this.faceCount);
         }
 
-        this.faceColor = [];
+        this.faceColors = new Int32Array(this.faceCount);
 
         Model.point1.pos = metadata.vertexFlagsOffset;
         Model.point2.pos = metadata.vertexXOffset;
@@ -250,7 +269,7 @@ export default class Model {
         Model.face5.pos = metadata.faceLabelsOffset;
 
         for (let i = 0; i < metadata.faceCount; i++) {
-            this.faceColor[i] = Model.face1.g2();
+            this.faceColors[i] = Model.face1.g2();
 
             if (metadata.faceInfosOffset != -1) {
                 this.faceInfos[i] = Model.face2.g1();
@@ -325,6 +344,33 @@ export default class Model {
             this.texturedVertexA[i] = Model.axis.g2();
             this.texturedVertexB[i] = Model.axis.g2();
             this.texturedVertexC[i] = Model.axis.g2();
+        }
+    }
+
+    rotateX(angle) {
+        let sin = Model.SINE[angle];
+        let cos = Model.COSINE[angle];
+
+        for (let i = 0; i < this.vertexCount; i++) {
+            let tmp = ((this.vertexY[i] * cos) - (this.vertexZ[i] * sin)) >>> 16;
+            this.vertexZ[i] = ((this.vertexY[i] * sin) + (this.vertexZ[i] * cos)) >>> 16;
+            this.vertexY[i] = tmp;
+        }
+    }
+
+    translate(x, y, z) {
+        for (let i = 0; i < this.vertexCount; i++) {
+            this.vertexX[i] += x;
+            this.vertexY[i] += y;
+            this.vertexZ[i] += z;
+        }
+    }
+
+    scale(x, y, z) {
+        for (let i = 0; i < this.vertexCount; i++) {
+            this.vertexX[i] = (this.vertexX[i] * x) / 128;
+            this.vertexY[i] = (this.vertexY[i] * y) / 128;
+            this.vertexZ[i] = (this.vertexZ[i] * z) / 128;
         }
     }
 }

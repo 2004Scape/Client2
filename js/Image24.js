@@ -93,8 +93,8 @@ export default class Image24 {
     }
 
     draw(x, y) {
-        x = Math.floor(x);
-        y = Math.floor(y);
+        x = Math.trunc(x);
+        y = Math.trunc(y);
 
         x += this.cropX;
         y += this.cropY;

@@ -8,17 +8,10 @@ import { decompressBz2, downloadUrl, sleep } from './Util.js';
 import { playMidi } from './Audio.js';
 import Font from './Font.js';
 import Model from './Model.js';
+import GameShell from './GameShell.js';
 
-class Client {
+class Client extends GameShell {
     static HOST = 'https://world2.runewiki.org';
-    canvas = null;
-    ctx = null;
-
-    state = 0;
-    deltime = 20;
-    mindel = 1;
-    otim = [];
-    fps = 0;
 
     alreadyStarted = false;
     errorStarted = false;
@@ -27,8 +20,7 @@ class Client {
 
     clientClock = 0;
     ingame = false;
-    redrawScreen = false;
-    redrawBackground = false;
+    redrawBackground = true;
     archiveChecksums = [];
 
     titleState = 0;
@@ -50,87 +42,6 @@ class Client {
     p12 = null;
     b12 = null;
     q8 = null;
-
-    async main() {
-        this.canvas = document.getElementById('canvas');
-        this.ctx = this.canvas.getContext('2d');
-
-        this.refresh();
-        await this.showProgress(0, 'Loading...');
-        await this.load();
-
-        let opos = 0;
-        let ratio = 256;
-        let delta = 1;
-        let count = 0;
-        for (let i = 0; i < 10; i++) {
-            this.otim[i] = Date.now();
-        }
-
-        while (this.state >= 0) {
-            if (this.state > 0) {
-                this.state--;
-
-                if (this.state === 0) {
-                    this.shutdown();
-                    return;
-                }
-            }
-
-            let lastRatio = ratio;
-            let lastDelta = delta;
-            ratio = 300;
-            delta = 1;
-
-            let ntime = Date.now();
-            if (this.otim[opos] === 0) {
-                ratio = lastRatio;
-                delta = lastDelta;
-            } else if (ntime > this.otim[opos]) {
-                ratio = (2560 * delta) / (ntime - this.otim[opos]);
-            }
-
-            if (ratio < 25) {
-                ratio = 25;
-            } else if (ratio > 256) {
-                ratio = 256;
-                delta = (ntime - this.otim[opos]) / 10;
-            }
-
-            this.otim[opos] = ntime;
-            opos = (opos + 1) % 10;
-            
-            if (delta > 1) {
-                for (let i = 0; i < 10; i++) {
-                    if (this.otim[i] !== 0) {
-                        this.otim[i] += delta;
-                    }
-                }
-            }
-
-            if (delta < this.mindel) {
-                delta = this.mindel;
-            }
-
-            await sleep(delta);
-
-            for (; count < 256; count += ratio) {
-                this.update();
-            }
-
-            count &= 0xFF;
-
-            if (this.deltime > 0) {
-                this.fps = (1000 * ratio) / (this.deltime * 256);
-            }
-
-            await this.draw();
-        }
-
-        if (state == -1) {
-            this.shutdown();
-        }
-    }
 
     async load() {
         if (this.alreadyStarted) {
@@ -188,18 +99,6 @@ class Client {
         }
     }
 
-    unload() {
-    }
-
-    shutdown() {
-        state = -2;
-        this.unload();
-    }
-
-    refresh() {
-        this.redrawBackground = true;
-    }
-
     update() {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             return;
@@ -230,29 +129,7 @@ class Client {
 
         await this.prepareTitleScreen();
         if (this.titleArchive === null) {
-            if (this.redrawScreen) {
-                this.ctx.fillStyle = 'black';
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                this.redrawScreen = false;
-            }
-
-            let y = this.canvas.height / 2 - 18;
-
-            // draw full progress bar
-            this.ctx.fillStyle = 'rgb(140, 17, 17)';
-            this.ctx.rect((this.canvas.width / 2) - 152, y, 304, 34);
-            this.ctx.fillRect((this.canvas.width / 2) - 150, y + 2, progress * 3, 30);
-
-            // cover up progress bar
-            this.ctx.fillStyle = 'black';
-            this.ctx.fillRect(((this.canvas.width / 2) - 150) + (progress * 3), y + 2, 300 - (progress * 3), 30);
-
-            // draw text
-            this.ctx.font = 'bold 13px helvetica, sans-serif';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillStyle = 'white';
-            this.ctx.fillText(str, this.canvas.width / 2, y + 22);
-
+            super.showProgress(progress, str);
             return;
         }
 
@@ -288,6 +165,8 @@ class Client {
             this.titleLeftSpace.draw(128, 186);
             this.titleRightSpace.draw(574, 186);
         }
+
+        await sleep(1); // return a slice of time to the main loop so it can update the progress bar
     }
 
     //
@@ -455,10 +334,6 @@ class Client {
         playMidi(decompressBz2(file.data, true, false), 192);
     }
 
-    setLoopRate(rate) {
-        this.deltime = 1000 / rate;
-    }
-
     drawErrorScreen() {
         this.ctx.fillStyle = 'black';
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -527,4 +402,4 @@ class Client {
 }
 
 let client = new Client();
-client.main();
+client.run();

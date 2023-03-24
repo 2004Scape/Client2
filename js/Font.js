@@ -108,8 +108,8 @@ export default class Font {
             return;
         }
 
-        x = Math.floor(x);
-        y = Math.floor(y);
+        x = Math.trunc(x);
+        y = Math.trunc(y);
 
         y -= this.fontHeight;
         for (let i = 0; i < str.length; i++) {
@@ -150,10 +150,10 @@ export default class Font {
     }
 
     copyCharacter(x, y, w, h, pixels, color) {
-        x = Math.floor(x);
-        y = Math.floor(y);
-        w = Math.floor(w);
-        h = Math.floor(h);
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+        w = Math.trunc(w);
+        h = Math.trunc(h);
 
         let dstOff = x + (y * Draw2D.width);
         let srcOff = 0;
