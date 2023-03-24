@@ -21,6 +21,10 @@ export default class CanvasFrameBuffer {
         this.bind();
     }
 
+    clear() {
+        this.pixels.fill(0);
+    }
+
     bind() {
         Draw2D.prepare(this.pixels, this.width, this.height);
     }

@@ -168,7 +168,7 @@ class Client extends GameShell {
             this.titleRightSpace.draw(574, 186);
         }
 
-        await sleep(1); // return a slice of time to the main loop so it can update the progress bar
+        await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
 
     //

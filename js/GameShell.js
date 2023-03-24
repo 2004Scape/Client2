@@ -1,3 +1,5 @@
+import CanvasFrameBuffer from './graphics/CanvasFrameBuffer.js';
+
 import { sleep } from './util/JsUtil.js';
 
 export default class GameShell {
@@ -11,6 +13,7 @@ export default class GameShell {
     fps = 0;
     width = -1;
     height = -1;
+    drawArea = null;
     redrawScreen = true;
 
     idleCycles = 0;
@@ -31,6 +34,8 @@ export default class GameShell {
 
         this.width = this.canvas.width;
         this.height = this.canvas.height;
+
+        this.drawArea = new CanvasFrameBuffer(this.canvas, this.width, this.height);
     }
 
     async run() {
@@ -65,14 +70,14 @@ export default class GameShell {
                 ratio = lastRatio;
                 delta = lastDelta;
             } else if (ntime > this.otim[opos]) {
-                ratio = (2560 * delta) / (ntime - this.otim[opos]);
+                ratio = (this.deltime * 256 * 10) / (ntime - this.otim[opos]);
             }
 
             if (ratio < 25) {
                 ratio = 25;
             } else if (ratio > 256) {
                 ratio = 256;
-                delta = (ntime - this.otim[opos]) / 10;
+                delta = this.deltime - ((ntime - this.otim[opos]) / 10);
             }
 
             this.otim[opos] = ntime;
@@ -174,5 +179,7 @@ export default class GameShell {
         this.ctx.textAlign = 'center';
         this.ctx.fillStyle = 'white';
         this.ctx.fillText(message, this.canvas.width / 2, y + 22);
+
+        await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
 }
