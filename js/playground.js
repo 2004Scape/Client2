@@ -110,26 +110,31 @@ class Playground extends GameShell {
         // }
 
         /// draw all flotypes
-        let x = 0;
-        let y = this.b12.fontHeight;
-        for (let i = 0; i < FloType.count; i++) {
-            let flo = FloType.get(i);
-            this.b12.draw(x, y, `${i}: ${flo.name}`, 0xFFFF00);
+        // let x = 0;
+        // let y = this.b12.fontHeight;
+        // for (let i = 0; i < FloType.count; i++) {
+        //     let flo = FloType.get(i);
+        //     this.b12.draw(x, y, `${i}: ${flo.name}`, 0xFFFF00);
 
-            let textSize = this.b12.getTextWidth(`${i}: ${flo.name}`);
+        //     let textSize = this.b12.getTextWidth(`${i}: ${flo.name}`);
             
-            if (flo.texture != -1) {
-                Draw3D.textures[flo.texture].draw(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight);
-            } else {
-                Draw2D.fillRect(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight, flo.rgb);
-            }
+        //     if (flo.texture != -1) {
+        //         Draw3D.textures[flo.texture].draw(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight);
+        //     } else {
+        //         Draw2D.fillRect(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight, flo.rgb);
+        //     }
 
-            y += this.b12.fontHeight;
-            if (y > this.height) {
-                x += 200;
-                y = this.b12.fontHeight;
-            }
-        }
+        //     y += this.b12.fontHeight;
+        //     if (y > this.height) {
+        //         x += 200;
+        //         y = this.b12.fontHeight;
+        //     }
+        // }
+
+        // draw a model
+        let model = new Model(0);
+        model.calculateNormals(64, 768, -50, -10, -50, true);
+        model.draw(0, 0, 0, 0, 0, 0, 420);
 
         this.b12.drawRight(this.width, this.b12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
         this.drawArea.draw(0, 0);

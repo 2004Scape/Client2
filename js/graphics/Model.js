@@ -10,15 +10,22 @@ class Metadata {
     vertexXOffset = -1;
     vertexYOffset = -1;
     vertexZOffset = -1;
-    vertexLabelsOffset = -1;
+    vertexLabelOffset = -1;
     faceVerticesOffset = -1;
     faceOrientationsOffset = -1;
-    faceColorsOffset = -1;
-    faceInfosOffset = -1;
-    facePrioritiesOffset = -1;
-    faceAlphasOffset = -1;
-    faceLabelsOffset = -1;
+    faceColorOffset = -1;
+    faceInfoOffset = -1;
+    facePriorityOffset = -1;
+    faceAlphaOffset = -1;
+    faceLabelOffset = -1;
     faceTextureAxisOffset = -1;
+}
+
+class VertexNormal {
+    x = -1;
+    y = -1;
+    z = -1;
+    w = -1;
 }
 
 export default class Model {
@@ -57,18 +64,19 @@ export default class Model {
             Model.axis = new Buffer(archive.read('ob_axis.dat'));
 
             Model.metadata = [];
-            let faceColorsOffset = 0;
-            let faceInfosOffset = 0;
-            let facePrioritiesOffset = 0;
-            let faceAlphasOffset = 0;
-            let faceLabelsOffset = 0;
-            let vertexLabelsOffset = 0;
+            let faceColorOffset = 0;
+            let faceInfoOffset = 0;
+            let facePriorityOffset = 0;
+            let faceAlphaOffset = 0;
+            let faceLabelOffset = 0;
+            let vertexLabelOffset = 0;
             let faceTextureAxisOffset = 0;
 
             let count = Model.head.g2();
             for (let i = 0; i < count; i++) {
                 let id = Model.head.g2();
-                let metadata = new Metadata();
+                let metadata = Model.metadata[id] = new Metadata();
+
                 metadata.vertexCount = Model.head.g2();
                 metadata.faceCount = Model.head.g2();
                 metadata.texturedFaceCount = Model.head.g1();
@@ -82,12 +90,42 @@ export default class Model {
                 let hasInfo = Model.head.g1();
                 let priority = Model.head.g1();
                 let hasAlpha = Model.head.g1();
-                let hasFaceLabels = Model.head.g1();
-                let hasVertexLabels = Model.head.g1();
+                let hasFaceLabel = Model.head.g1();
+                let hasVertexLabel = Model.head.g1();
+
+                metadata.faceColorOffset = faceColorOffset;
+                faceColorOffset += metadata.faceCount * 2;
+
+                if (hasInfo == 1) {
+                    metadata.faceInfoOffset = faceInfoOffset;
+                    faceInfoOffset += metadata.faceCount;
+                }
+
+                if (priority == 255) {
+                    metadata.facePriorityOffset = facePriorityOffset;
+                    facePriorityOffset += metadata.faceCount;
+                } else {
+                    metadata.facePriorityOffset = -priority - 1;
+                }
+
+                if (hasAlpha == 1) {
+                    metadata.faceAlphaOffset = faceAlphaOffset;
+                    faceAlphaOffset += metadata.faceCount;
+                }
+
+                if (hasFaceLabel == 1) {
+                    metadata.faceLabelOffset = faceLabelOffset;
+                    faceLabelOffset += metadata.faceCount;
+                }
+
+                if (hasVertexLabel == 1) {
+                    metadata.vertexLabelOffset = vertexLabelOffset;
+                    vertexLabelOffset += metadata.vertexCount;
+                }
 
                 for (let j = 0; j < metadata.vertexCount; j++) {
                     let flags = Model.point1.g1();
-
+                    
                     if (flags & 0x1) {
                         Model.point2.gsmarts();
                     }
@@ -101,51 +139,19 @@ export default class Model {
                     }
                 }
 
-                for (let j = 0; j < metadata.vertexCount; j++) {
-                    let flags = Model.vertex2.g1();
+                for (let j = 0; j < metadata.faceCount; j++) {
+                    let type = Model.vertex2.g1();
 
-                    if (flags == 1) {
-                        Model.vertex1.gsmart();
-                        Model.vertex1.gsmart();
+                    if (type == 1) {
+                        Model.vertex1.gsmarts();
+                        Model.vertex1.gsmarts();
                     }
 
-                    Model.vertex1.gsmart();
-                }
-
-                metadata.faceColorsOffset = faceColorsOffset;
-                faceColorsOffset += metadata.faceCount * 2;
-
-                if (hasInfo == 1) {
-                    metadata.faceInfosOffset = faceInfosOffset;
-                    faceInfosOffset += metadata.faceCount;
-                }
-
-                if (priority == 255) {
-                    metadata.facePrioritiesOffset = facePrioritiesOffset;
-                    facePrioritiesOffset += metadata.faceCount;
-                } else {
-                    metadata.facePrioritiesOffset = -priority - 1;
-                }
-
-                if (hasAlpha == 1) {
-                    metadata.faceAlphasOffset = faceAlphasOffset;
-                    faceAlphasOffset += metadata.faceCount;
-                }
-
-                if (hasFaceLabels == 1) {
-                    metadata.faceLabelsOffset = faceLabelsOffset;
-                    faceLabelsOffset += metadata.faceCount;
-                }
-
-                if (hasVertexLabels == 1) {
-                    metadata.vertexLabelsOffset = vertexLabelsOffset;
-                    vertexLabelsOffset += metadata.vertexCount;
+                    Model.vertex1.gsmarts();
                 }
 
                 metadata.faceTextureAxisOffset = faceTextureAxisOffset;
                 faceTextureAxisOffset += metadata.texturedFaceCount;
-
-                Model.metadata[id] = metadata;
             }
         } catch (err) {
             console.log('Error loading model index');
@@ -165,73 +171,76 @@ export default class Model {
     texturedVertexA = null;
     texturedVertexB = null;
     texturedVertexC = null;
-    vertexLabels = null;
-    faceInfos = null;
-    facePriorities = null;
+    vertexLabel = null;
+    faceInfo = null;
+    facePriority = null;
     priority = 0;
-    faceAlphas = null;
-    faceLabels = null;
-    faceColors = null;
+    faceAlpha = null;
+    faceLabel = null;
+    faceColor = null;
 
     constructor(id) {
-        if (Model.metadata == null) {
+        if (!Model.metadata) {
             return;
         }
 
         let metadata = Model.metadata[id];
         if (!metadata) {
-            console.log(`Error model:${id} not found`);
+            console.log(`Error model:${id} not found!`);
             return;
         }
 
         this.vertexCount = metadata.vertexCount;
         this.faceCount = metadata.faceCount;
         this.texturedFaceCount = metadata.texturedFaceCount;
+
         this.vertexX = new Int32Array(this.vertexCount);
         this.vertexY = new Int32Array(this.vertexCount);
         this.vertexZ = new Int32Array(this.vertexCount);
+
         this.faceVertexA = new Int32Array(this.faceCount);
         this.faceVertexB = new Int32Array(this.faceCount);
         this.faceVertexC = new Int32Array(this.faceCount);
+
         this.texturedVertexA = new Int32Array(this.texturedFaceCount);
         this.texturedVertexB = new Int32Array(this.texturedFaceCount);
         this.texturedVertexC = new Int32Array(this.texturedFaceCount);
 
-        if (metadata.vertexLabelsOffset != -1) {
-            this.vertexLabels = new Int32Array(this.vertexCount);
+        if (metadata.vertexLabelOffset >= 0) {
+            this.vertexLabel = new Int32Array(this.vertexCount);
         }
 
-        if (metadata.faceInfosOffset != -1) {
-            this.faceInfos = new Int32Array(this.faceCount);
+        if (metadata.faceInfoOffset >= 0) {
+            this.faceInfo = new Int32Array(this.faceCount);
         }
 
-        if (metadata.facePrioritiesOffset != -1) {
-            this.facePriorities = new Int32Array(this.faceCount);
+        if (metadata.facePriorityOffset >= 0) {
+            this.facePriority = new Int32Array(this.faceCount);
         } else {
-            this.priority = -metadata.facePrioritiesOffset - 1;
+            this.priority = -metadata.facePriorityOffset - 1;
         }
 
-        if (metadata.faceAlphasOffset != -1) {
-            this.faceAlphas = new Int32Array(this.faceCount);
+        if (metadata.faceAlphaOffset >= 0) {
+            this.faceAlpha = new Int32Array(this.faceCount);
         }
 
-        if (metadata.faceLabelsOffset != -1) {
-            this.faceLabels = new Int32Array(this.faceCount);
+        if (metadata.faceLabelOffset >= 0) {
+            this.faceLabel = new Int32Array(this.faceCount);
         }
 
-        this.faceColors = new Int32Array(this.faceCount);
+        this.faceColor = new Int32Array(this.faceCount);
 
         Model.point1.pos = metadata.vertexFlagsOffset;
         Model.point2.pos = metadata.vertexXOffset;
         Model.point3.pos = metadata.vertexYOffset;
         Model.point4.pos = metadata.vertexZOffset;
-        Model.point5.pos = metadata.vertexLabelsOffset;
+        Model.point5.pos = metadata.vertexLabelOffset;
 
         let x = 0;
         let y = 0;
         let z = 0;
 
-        for (let i = 0; i < metadata.vertexCount; i++) {
+        for (let i = 0; i < this.vertexCount; i++) {
             let flags = Model.point1.g1();
 
             let dx = 0;
@@ -258,34 +267,34 @@ export default class Model {
             y = this.vertexY[i];
             z = this.vertexZ[i];
 
-            if (metadata.vertexLabelsOffset != -1) {
-                this.vertexLabels[i] = Model.point5.g1();
+            if (this.vertexLabel) {
+                this.vertexLabel[i] = Model.point5.g1();
             }
         }
 
-        Model.face1.pos = metadata.faceColorsOffset;
-        Model.face2.pos = metadata.faceInfosOffset;
-        Model.face3.pos = metadata.facePrioritiesOffset;
-        Model.face4.pos = metadata.faceAlphasOffset;
-        Model.face5.pos = metadata.faceLabelsOffset;
+        Model.face1.pos = metadata.faceColorOffset;
+        Model.face2.pos = metadata.faceInfoOffset;
+        Model.face3.pos = metadata.facePriorityOffset;
+        Model.face4.pos = metadata.faceAlphaOffset;
+        Model.face5.pos = metadata.faceLabelOffset;
 
-        for (let i = 0; i < metadata.faceCount; i++) {
-            this.faceColors[i] = Model.face1.g2();
+        for (let i = 0; i < this.faceCount; i++) {
+            this.faceColor[i] = Model.face1.g2();
 
-            if (metadata.faceInfosOffset != -1) {
-                this.faceInfos[i] = Model.face2.g1();
+            if (this.faceInfo) {
+                this.faceInfo[i] = Model.face2.g1();
             }
 
-            if (metadata.facePrioritiesOffset != -1) {
-                this.facePriorities[i] = Model.face3.g1();
+            if (this.facePriority) {
+                this.facePriority[i] = Model.face3.g1();
             }
 
-            if (metadata.faceAlphasOffset != -1) {
-                this.faceAlphas[i] = Model.face4.g1();
+            if (this.faceAlpha) {
+                this.faceAlpha[i] = Model.face4.g1();
             }
 
-            if (metadata.faceLabelsOffset != -1) {
-                this.faceLabels[i] = Model.face5.g1();
+            if (this.faceLabel) {
+                this.faceLabel[i] = Model.face5.g1();
             }
         }
 
@@ -297,51 +306,39 @@ export default class Model {
         let c = 0;
         let last = 0;
 
-        for (let i = 0; i < metadata.faceCount; i++) {
+        for (let i = 0; i < this.faceCount; i++) {
             let orientation = Model.vertex2.g1();
 
-            if (orientation == 1) {
-                // new a, b, c
-                a = Model.vertex1.gsmart() + last;
+            if (orientation === 1) {
+                a = Model.vertex1.gsmarts() + last;
                 last = a;
-                b = Model.vertex1.gsmart() + last;
+                b = Model.vertex1.gsmarts() + last;
                 last = b;
-                c = Model.vertex1.gsmart() + last;
+                c = Model.vertex1.gsmarts() + last;
                 last = c;
-                this.faceVertexA[i] = a;
-                this.faceVertexB[i] = b;
-                this.faceVertexC[i] = c;
-            } else if (orientation == 2) {
-                // reuse a, c, new b
+            } else if (orientation === 2) {
                 b = c;
-                c = Model.vertex1.gsmart() + last;
+                c = Model.vertex1.gsmarts() + last;
                 last = c;
-                this.faceVertexA[i] = a;
-                this.faceVertexB[i] = b;
-                this.faceVertexC[i] = c;
-            } else if (orientation == 3) {
-                // reuse b, c, new a
+            } else if (orientation === 3) {
                 a = c;
-                c = Model.vertex1.gsmart() + last;
+                c = Model.vertex1.gsmarts() + last;
                 last = c;
-                this.faceVertexA[i] = a;
-                this.faceVertexB[i] = b;
-                this.faceVertexC[i] = c;
-            } else if (orientation == 4) {
-                // reuse a, b, new c
+            } else if (orientation === 4) {
                 let temp = a;
                 a = b;
                 b = temp;
-                c = Model.vertex1.gsmart() + last;
+                c = Model.vertex1.gsmarts() + last;
                 last = c;
-                this.faceVertexA[i] = a;
-                this.faceVertexB[i] = b;
-                this.faceVertexC[i] = c;
             }
+
+            this.faceVertexA[i] = a;
+            this.faceVertexB[i] = b;
+            this.faceVertexC[i] = c;
         }
 
         Model.axis.pos = metadata.faceTextureAxisOffset * 6;
-        for (let i = 0; i < metadata.texturedFaceCount; i++) {
+        for (let i = 0; i < this.texturedFaceCount; i++) {
             this.texturedVertexA[i] = Model.axis.g2();
             this.texturedVertexB[i] = Model.axis.g2();
             this.texturedVertexC[i] = Model.axis.g2();
@@ -373,5 +370,95 @@ export default class Model {
             this.vertexY[i] = (this.vertexY[i] * y) / 128;
             this.vertexZ[i] = (this.vertexZ[i] * z) / 128;
         }
+    }
+
+    calculateNormals(baseLightness, intensity, x, y, z, apply) {
+        let lightLength = Math.sqrt((x * x) + (y * y) + (z * z));
+        let lightIntensity = intensity * lightLength >>> 8;
+
+        if (!this.faceColorA) {
+            this.faceColorA = new Uint32Array(this.faceCount);
+            this.faceColorB = new Uint32Array(this.faceCount);
+            this.faceColorC = new Uint32Array(this.faceCount);
+        }
+
+        if (!this.vertexNormal) {
+            this.vertexNormal = [];
+
+            for (let i = 0; i < this.vertexCount; i++) {
+                this.vertexNormal[i] = new VertexNormal();
+            }
+        }
+
+        for (let i = 0; i < this.faceCount; i++) {
+            let a = this.faceVertexA[i];
+            let b = this.faceVertexB[i];
+            let c = this.faceVertexC[i];
+
+            let dxAB = this.vertexX[b] - this.vertexX[a];
+            let dyAB = this.vertexY[b] - this.vertexY[a];
+            let dzAB = this.vertexZ[b] - this.vertexZ[a];
+
+            let dxAC = this.vertexX[c] - this.vertexX[a];
+            let dyAC = this.vertexY[c] - this.vertexY[a];
+            let dzAC = this.vertexZ[c] - this.vertexZ[a];
+
+            let nx = (dyAB * dzAC) - (dyAC * dzAB);
+            let ny = (dzAB * dxAC) - (dzAC * dxAB);
+            let nz = (dxAB * dyAC) - (dxAC * dyAB);
+
+            while (nx > 8192 || ny > 8192 || nz > 8192 || nx < -8192 || ny < -8192 || nz < -8192) {
+                nx >>= 1;
+                ny >>= 1;
+                nz >>= 1;
+            }
+
+            let length = Math.sqrt((nx * nx) + (ny * ny) + (nz * nz));
+            if (length <= 0) {
+                length = 1;
+            }
+
+            nx = (nx * 256) / length;
+            ny = (ny * 256) / length;
+            nz = (nz * 256) / length;
+
+            if (!this.faceInfo || (this.faceInfo[i] & 0x1) == 0) {
+                let n = this.vertexNormal[a];
+                n.x += nx;
+                n.y += ny;
+                n.z += nz;
+                n.w++;
+
+                n = this.vertexNormal[b];
+                n.x += nx;
+                n.y += ny;
+                n.z += nz;
+                n.w++;
+
+                n = this.vertexNormal[c];
+                n.x += nx;
+                n.y += ny;
+                n.z += nz;
+                n.w++;
+            } else {
+                let lightness = baseLightness + (x * nx + y * ny + z * nz) / (lightIntensity + lightIntensity / 2);
+                // this.faceColorA[i] = mulColorLightness(this.faceColor[local50], local355, this.faceInfo[local50]);
+            }
+        }
+
+        if (apply) {
+            // applyLighting
+        } else {
+            // ?
+        }
+
+        if (apply) {
+            // calculateBoundsCylinder
+        } else {
+            // calculateBoundsAABB
+        }
+    }
+
+    draw() {
     }
 }

@@ -160,7 +160,7 @@ class Client extends GameShell {
         console.log(`${progress}%: ${str}`);
 
         await this.prepareTitleScreen();
-        if (this.titleArchive === null) {
+        if (!this.titleArchive) {
             super.showProgress(progress, str);
             return;
         }
