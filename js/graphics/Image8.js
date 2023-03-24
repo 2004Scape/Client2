@@ -1,9 +1,11 @@
-import Buffer from './Buffer.js';
 import Draw2D from './Draw2D.js';
-import { decodeJpeg } from './Util.js';
 
-export default class Image24 {
+import Buffer from '../io/Buffer.js';
+
+// identical to Image24 except the image is indexed by a palette
+export default class Image8 {
     pixels = null;
+    palette = null;
 
     width = -1;
     height = -1;
@@ -13,26 +15,10 @@ export default class Image24 {
     cropH = -1;
 
     constructor(width, height) {
-        this.pixels = new Uint32Array(width * height);
+        this.pixels = new Uint8Array(width * height);
         this.width = this.cropW = width;
         this.height = this.cropH = height;
         this.cropX = this.cropY = 0;
-    }
-
-    static async fromJpeg(archive, name) {
-        let dat = archive.read(name + '.dat');
-        let jpeg = await decodeJpeg(dat);
-        let image = new Image24(jpeg.width, jpeg.height);
-
-        // copy pixels (uint32) to imageData (uint8)
-        let pixels = image.pixels;
-        let data = jpeg.data;
-        for (let i = 0; i < pixels.length; i++) {
-            let index = i * 4;
-            pixels[i] = (data[index + 3] << 24) | (data[index + 0] << 16) | (data[index + 1] << 8) | (data[index + 2] << 0);
-        }
-
-        return image;
     }
 
     static fromArchive(archive, name, sprite = 0) {
@@ -70,21 +56,22 @@ export default class Image24 {
         let width = index.g2();
         let height = index.g2();
 
-        let image = new Image24(width, height);
+        let image = new Image8(width, height);
         image.cropX = cropX;
         image.cropY = cropY;
         image.cropW = cropW;
         image.cropH = cropH;
+        image.palette = palette;
 
         let pixelOrder = index.g1();
         if (pixelOrder === 0) {
             for (let i = 0; i < image.width * image.height; i++) {
-                image.pixels[i] = palette[dat.g1()];
+                image.pixels[i] = dat.g1();
             }
         } else if (pixelOrder === 1) {
             for (let x = 0; x < image.width; x++) {
                 for (let y = 0; y < image.height; y++) {
-                    image.pixels[x + (y * image.width)] = palette[dat.g1()];
+                    image.pixels[x + (y * image.width)] = dat.g1();
                 }
             }
         }
@@ -146,49 +133,15 @@ export default class Image24 {
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 let off = x + (y * w);
-                let rgb = src[srcOff + off];
 
-                if (rgb !== 0) {
-                    dst[dstOff + off] = src[srcOff + off];
+                let p = src[srcOff + off];
+                if (p != 0) {
+                    dst[dstOff + off] = this.palette[p];
                 }
             }
 
             srcOff += srcStep;
             dstOff += dstStep;
-        }
-    }
-
-    flipHorizontally() {
-        let pixels = this.pixels;
-        let width = this.width;
-        let height = this.height;
-
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width / 2; x++) {
-                let off1 = x + (y * width);
-                let off2 = width - x - 1 + (y * width);
-
-                let tmp = pixels[off1];
-                pixels[off1] = pixels[off2];
-                pixels[off2] = tmp;
-            }
-        }
-    }
-
-    flipVertically() {
-        let pixels = this.pixels;
-        let width = this.width;
-        let height = this.height;
-
-        for (let y = 0; y < height / 2; y++) {
-            for (let x = 0; x < width; x++) {
-                let off1 = x + (y * width);
-                let off2 = x + ((height - y - 1) * width);
-
-                let tmp = pixels[off1];
-                pixels[off1] = pixels[off2];
-                pixels[off2] = tmp;
-            }
         }
     }
 }

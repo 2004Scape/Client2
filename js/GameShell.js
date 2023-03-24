@@ -1,4 +1,4 @@
-import { sleep } from './Util.js';
+import { sleep } from './util/JsUtil.js';
 
 export default class GameShell {
     canvas = null;

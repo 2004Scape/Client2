@@ -1,5 +1,6 @@
-import Buffer from './Buffer.js';
 import Draw3D from './Draw3D.js';
+
+import Buffer from '../io/Buffer.js';
 
 class Metadata {
     vertexCount = -1;

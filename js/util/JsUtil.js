@@ -1,5 +1,6 @@
-import Buffer from './Buffer.js';
-import { decompress } from './vendor/bz2.js';
+import Buffer from '../io/Buffer.js';
+
+import { decompress } from '../vendor/bz2.js';
 
 export async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

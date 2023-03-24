@@ -1,14 +1,16 @@
-import Buffer from './Buffer.js';
-import Archive from './Archive.js';
-import Draw2D from './Draw2D.js';
-import Image8 from './Image8.js';
-import Image24 from './Image24.js';
-import CanvasFrameBuffer from './CanvasFrameBuffer.js';
-import { decompressBz2, downloadUrl, sleep } from './Util.js';
-import { playMidi } from './Audio.js';
-import Font from './Font.js';
-import Model from './Model.js';
 import GameShell from './GameShell.js';
+
+import Archive from './io/Archive.js';
+
+import Draw2D from './graphics/Draw2D.js';
+import Image8 from './graphics/Image8.js';
+import Image24 from './graphics/Image24.js';
+import Font from './graphics/Font.js';
+import Model from './graphics/Model.js';
+import CanvasFrameBuffer from './graphics/CanvasFrameBuffer.js';
+
+import { decompressBz2, downloadUrl, sleep } from './util/JsUtil.js';
+import { playMidi } from './util/AudioUtil.js';
 
 class Client extends GameShell {
     static HOST = 'https://world2.runewiki.org';

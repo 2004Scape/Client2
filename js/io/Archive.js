@@ -1,5 +1,6 @@
 import Buffer from './Buffer.js';
-import { decompressBz2, downloadUrl } from './Util.js';
+
+import { decompressBz2, downloadUrl } from '../util/JsUtil.js';
 
 export default class Archive {
     static async loadUrl(url) {

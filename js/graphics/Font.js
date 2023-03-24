@@ -1,5 +1,6 @@
-import Buffer from './Buffer.js';
 import Draw2D from './Draw2D.js';
+
+import Buffer from '../io/Buffer.js';
 
 export default class Font {
     static CHARSET = [];
