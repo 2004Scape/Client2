@@ -45,4 +45,16 @@ export default class Buffer {
     gdata(offset, length) {
         return this.data.subarray(offset, offset + length);
     }
+
+    // 0 to 32767
+    gsmart() {
+        let value = this.data[this.pos];
+        return value < 128 ? this.g1() : this.g2() - 32768;
+    }
+
+    // -16384 to 16383
+    gsmarts() {
+        let value = this.data[this.pos];
+        return value < 128 ? this.g1() - 64 : this.g2() - 49152;
+    }
 }

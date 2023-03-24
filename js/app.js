@@ -7,6 +7,7 @@ import CanvasFrameBuffer from './CanvasFrameBuffer.js';
 import { decompressBz2, downloadUrl, sleep } from './Util.js';
 import { playMidi } from './Audio.js';
 import Font from './Font.js';
+import Model from './Model.js';
 
 class Client {
     static HOST = 'https://world2.runewiki.org';
@@ -168,11 +169,18 @@ class Client {
             let sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
             await this.showProgress(75, 'Unpacking media');
+
             await this.showProgress(80, 'Unpacking textures');
+
             await this.showProgress(83, 'Unpacking models');
+            Model.unpack(models);
+
             await this.showProgress(86, 'Unpacking config');
+
             await this.showProgress(90, 'Unpacking sounds');
+
             await this.showProgress(92, 'Unpacking interfaces');
+
             await this.showProgress(97, 'Preparing game engine');
         } catch (err) {
             console.error(err);
