@@ -89,7 +89,8 @@ class Playground extends GameShell {
         await this.showProgress(97, 'Preparing game engine');
         Censor.unpack(wordenc);
 
-        this.setLoopRate(1);
+        // this.setLoopRate(1);
+        this.drawArea.bind();
         Draw3D.init2D();
     }
 
@@ -97,7 +98,8 @@ class Playground extends GameShell {
     }
 
     async draw() {
-        this.drawArea.clear();
+        Draw2D.clear();
+        Draw2D.fillRect(0, 0, this.width, this.height, 0x555555);
 
         /// draw all textures
         // let x = 0;

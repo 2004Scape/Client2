@@ -968,13 +968,13 @@ export default class Model {
             let ta = this.texturedVertexA[texturedFace];
             let tb = this.texturedVertexB[texturedFace];
             let tc = this.texturedVertexC[texturedFace];
-            Draw3D.fillTexturedTriangle(Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], this.faceColorA[face], this.faceColorB[face], this.faceColorC[face], Model.vertexViewSpaceSpaceX[ta], Model.vertexViewSpaceSpaceX[tb], Model.vertexViewSpaceSpaceX[tc], Model.vertexViewSpaceSpaceY[ta], Model.vertexViewSpaceSpaceY[tb], Model.vertexViewSpaceSpaceY[tc], Model.vertexViewSpaceSpaceZ[ta], Model.vertexViewSpaceSpaceZ[tb], Model.vertexViewSpaceSpaceZ[tc], this.faceColor[face]);
+            Draw3D.fillTexturedTriangle(Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], this.faceColorA[face], this.faceColorB[face], this.faceColorC[face], Model.vertexViewSpaceX[ta], Model.vertexViewSpaceX[tb], Model.vertexViewSpaceX[tc], Model.vertexViewSpaceY[ta], Model.vertexViewSpaceY[tb], Model.vertexViewSpaceY[tc], Model.vertexViewSpaceZ[ta], Model.vertexViewSpaceZ[tb], Model.vertexViewSpaceZ[tc], this.faceColor[face]);
         } else if (type == 3) {
             let texturedFace = this.faceInfo[face] >> 2;
             let ta = this.texturedVertexA[texturedFace];
             let tb = this.texturedVertexB[texturedFace];
             let tc = this.texturedVertexC[texturedFace];
-            Draw3D.fillTexturedTriangle(Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], this.faceColorA[face], this.faceColorA[face], this.faceColorA[face],this. vertexViewSpaceSpaceX[ta], Model.vertexViewSpaceSpaceX[tb], Model.vertexViewSpaceSpaceX[tc], Model.vertexViewSpaceSpaceY[ta], Model.vertexViewSpaceSpaceY[tb], Model.vertexViewSpaceSpaceY[tc], Model.vertexViewSpaceSpaceZ[ta], Model.vertexViewSpaceSpaceZ[tb], Model.vertexViewSpaceSpaceZ[tc], this.faceColor[face]);
+            Draw3D.fillTexturedTriangle(Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], this.faceColorA[face], this.faceColorA[face], this.faceColorA[face],this. vertexViewSpaceX[ta], Model.vertexViewSpaceX[tb], Model.vertexViewSpaceX[tc], Model.vertexViewSpaceY[ta], Model.vertexViewSpaceY[tb], Model.vertexViewSpaceY[tc], Model.vertexViewSpaceZ[ta], Model.vertexViewSpaceZ[tb], Model.vertexViewSpaceZ[tc], this.faceColor[face]);
         }
     }
 
