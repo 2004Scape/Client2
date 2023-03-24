@@ -34,6 +34,31 @@ export default class Draw3D {
             Draw3D.sin[i] = Math.trunc(Math.sin(i * 0.0030679615757712823) * 65536);
             Draw3D.cos[i] = Math.trunc(Math.cos(i * 0.0030679615757712823) * 65536);
         }
+    }
+
+    static init2D() {
+        Draw3D.lineOffset = new Int32Array(Draw2D.height);
+        for (let i = 0; i < Draw2D.height; i++) {
+            Draw3D.lineOffset[i] = Draw2D.width * i;
+        }
+        this.centerX = Draw2D.width / 2;
+        this.centerY = Draw2D.height / 2;
+    }
+
+    static unpackTextures(textures) {
+        Draw3D.textureCount = 0;
+
+        for (let i = 0; i < 50; i++) {
+            try {
+                Draw3D.textures[i] = Image8.fromArchive(textures, i.toString());
+                Draw3D.textureCount++;
+            } catch (err) {
+            }
+        }
+    }
+
+    static setBrightness(brightness) {
+        brightness += (Math.random() * 0.3) - 0.15;
 
         let offset = 0;
         for (let y = 0; y < 512; y++) {
@@ -100,35 +125,31 @@ export default class Draw3D {
                 let intR = Math.trunc(r * 256);
                 let intG = Math.trunc(g * 256);
                 let intB = Math.trunc(b * 256);
-
                 let rgb = (intR << 16) | (intG << 8) | intB;
+                rgb = Draw3D.setGamma(rgb, brightness);
                 if (rgb === 0) {
                     rgb = 1;
                 }
+
                 Draw3D.palette[offset++] = rgb;
             }
         }
     }
 
-    static unpackTextures(textures) {
-        Draw3D.textureCount = 0;
-
-        for (let i = 0; i < 50; i++) {
-            try {
-                Draw3D.textures[i] = Image8.fromArchive(textures, i.toString());
-                Draw3D.textureCount++;
-            } catch (err) {
-            }
-        }
+    static setGamma(rgb, gamma) {
+        let r = (rgb >> 16) / 256;
+        let g = (rgb >> 8 & 255) / 256;
+        let b = (rgb & 255) / 256;
+        r = Math.pow(r, gamma);
+        g = Math.pow(g, gamma);
+        b = Math.pow(b, gamma);
+        let intR = Math.trunc(r * 256);
+        let intG = Math.trunc(g * 256);
+        let intB = Math.trunc(b * 256);
+        return (intR << 16) | (intG << 8) | intB;
     }
 
-    static init2D() {
-        Draw3D.lineOffset = new Int32Array(Draw2D.height);
-        for (let i = 0; i < Draw2D.height; i++) {
-            Draw3D.lineOffset[i] = Draw2D.width * i;
-        }
-        this.centerX = Draw2D.width / 2;
-        this.centerY = Draw2D.height / 2;
+    static initPool() {
     }
 
     static fillGouraudTriangle(yA, yB, yC, xA, xB, xC, colorA, colorB, colorC) {

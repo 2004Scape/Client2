@@ -214,6 +214,10 @@ export default class Model {
         }
     }
 
+    static get count() {
+        return Model.metadata.length;
+    }
+
     vertexCount = null;
     faceCount = null;
     texturedFaceCount = null;
@@ -861,7 +865,7 @@ export default class Model {
                     priorityFace = 0;
                     priorityFaceCount = Model.tmpPriorityFaceCount[11];
                     priorityFaces = Model.tmpPriorityFaces[11];
-                    priorityFaceDepths = tmpPriority11FaceDepth;
+                    priorityFaceDepths = Model.tmpPriority11FaceDepth;
                 }
 
                 if (priorityFace < priorityFaceCount) {
@@ -878,7 +882,7 @@ export default class Model {
                     priorityFace = 0;
                     priorityFaceCount = Model.tmpPriorityFaceCount[11];
                     priorityFaces = Model.tmpPriorityFaces[11];
-                    priorityFaceDepths = tmpPriority11FaceDepth;
+                    priorityFaceDepths = Model.tmpPriority11FaceDepth;
                 }
 
                 if (priorityFace < priorityFaceCount) {
@@ -895,7 +899,7 @@ export default class Model {
                     priorityFace = 0;
                     priorityFaceCount = Model.tmpPriorityFaceCount[11];
                     priorityFaces = Model.tmpPriorityFaces[11];
-                    priorityFaceDepths = tmpPriority11FaceDepth;
+                    priorityFaceDepths = Model.tmpPriority11FaceDepth;
                 }
 
                 if (priorityFace < priorityFaceCount) {
@@ -920,7 +924,7 @@ export default class Model {
                 priorityFace = 0;
                 priorityFaces = Model.tmpPriorityFaces[11];
                 priorityFaceCount = Model.tmpPriorityFaceCount[11];
-                priorityFaceDepths = tmpPriority11FaceDepth;
+                priorityFaceDepths = Model.tmpPriority11FaceDepth;
             }
 
             if (priorityFace < priorityFaceCount) {
@@ -974,7 +978,7 @@ export default class Model {
             let ta = this.texturedVertexA[texturedFace];
             let tb = this.texturedVertexB[texturedFace];
             let tc = this.texturedVertexC[texturedFace];
-            Draw3D.fillTexturedTriangle(Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], this.faceColorA[face], this.faceColorA[face], this.faceColorA[face],this. vertexViewSpaceX[ta], Model.vertexViewSpaceX[tb], Model.vertexViewSpaceX[tc], Model.vertexViewSpaceY[ta], Model.vertexViewSpaceY[tb], Model.vertexViewSpaceY[tc], Model.vertexViewSpaceZ[ta], Model.vertexViewSpaceZ[tb], Model.vertexViewSpaceZ[tc], this.faceColor[face]);
+            Draw3D.fillTexturedTriangle(Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], this.faceColorA[face], this.faceColorA[face], this.faceColorA[face], Model.vertexViewSpaceX[ta], Model.vertexViewSpaceX[tb], Model.vertexViewSpaceX[tc], Model.vertexViewSpaceY[ta], Model.vertexViewSpaceY[tb], Model.vertexViewSpaceY[tc], Model.vertexViewSpaceZ[ta], Model.vertexViewSpaceZ[tb], Model.vertexViewSpaceZ[tc], this.faceColor[face]);
         }
     }
 

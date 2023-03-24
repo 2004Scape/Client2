@@ -64,6 +64,8 @@ class Playground extends GameShell {
 
         await this.showProgress(80, 'Unpacking textures');
         Draw3D.unpackTextures(textures);
+        Draw3D.setBrightness(0.8);
+        Draw3D.initPool(20);
 
         await this.showProgress(83, 'Unpacking models');
         Model.unpack(models);
@@ -95,6 +97,7 @@ class Playground extends GameShell {
     }
 
     update() {
+        this.updateKeyboardInput();
     }
 
     async draw() {
@@ -137,11 +140,14 @@ class Playground extends GameShell {
         // }
 
         // draw a model
-        let model = new Model(0);
+        let model = new Model(this.model.id);
         model.calculateNormals(64, 768, -50, -10, -50, true);
-        model.draw(0, 0, 0, 0, 0, 0, 420);
+        model.draw(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
+        this.b12.draw(0, this.b12.fontHeight, `Model: ${this.model.id}`, 0xFFFF00);
         this.b12.drawRight(this.width, this.b12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
+        this.b12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, 0xFFFF00);
+
         this.drawArea.draw(0, 0);
     }
 
@@ -152,6 +158,91 @@ class Playground extends GameShell {
         let data = await Archive.loadUrl(`${Playground.HOST}/${filename}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
+    }
+
+    modifier = 2;
+    model = {
+        id: 0,
+        pitch: 0,
+        yaw: 0,
+        roll: 0
+    };
+    camera = {
+        x: 0,
+        y: 0,
+        z: 420,
+        pitch: 0
+    };
+
+    updateKeyboardInput() {
+        while (true) {
+            let key = this.pollKey();
+            if (key == -1) {
+                break;
+            }
+
+            if (key == '['.charCodeAt(0)) {
+                this.modifier--;
+            } else if (key == ']'.charCodeAt(0)) {
+                this.modifier++;
+            } else if (key == 1) {
+                // left arrow
+                this.model.yaw += this.modifier;
+            } else if (key == 2) {
+                // right arrow
+                this.model.yaw -= this.modifier;
+            } else if (key == 3) {
+                // up arrow
+                this.model.pitch -= this.modifier;
+            } else if (key == 4) {
+                // down arrow
+                this.model.pitch += this.modifier;
+            } else if (key == '.'.charCodeAt(0)) {
+                this.model.roll += this.modifier;
+            } else if (key == '/'.charCodeAt(0)) {
+                this.model.roll -= this.modifier;
+            } else if (key == 'w'.charCodeAt(0)) {
+                this.camera.z -= this.modifier;
+            } else if (key == 's'.charCodeAt(0)) {
+                this.camera.z += this.modifier;
+            } else if (key == 'a'.charCodeAt(0)) {
+                this.camera.x -= this.modifier;
+            } else if (key == 'd'.charCodeAt(0)) {
+                this.camera.x += this.modifier;
+            } else if (key == 'q'.charCodeAt(0)) {
+                this.camera.y -= this.modifier;
+            } else if (key == 'e'.charCodeAt(0)) {
+                this.camera.y += this.modifier;
+            } else if (key == '1'.charCodeAt(0)) {
+                this.model.id--;
+                if (this.model.id < 0) {
+                    this.model.id = Model.count - 1;
+                }
+            } else if (key == '2'.charCodeAt(0)) {
+                this.model.id++;
+                if (this.model.id >= Model.count) {
+                    this.model.id = 0;
+                }
+            } else if (key == 'r'.charCodeAt(0)) {
+                this.modifier = 2;
+                this.model = {
+                    id: this.model.id,
+                    pitch: 0,
+                    yaw: 0,
+                    roll: 0
+                };
+                this.camera = {
+                    x: 0,
+                    y: 0,
+                    z: 420,
+                    pitch: 0
+                };
+            }
+
+            this.model.pitch = this.model.pitch & 2047;
+            this.model.yaw = this.model.yaw & 2047;
+            this.model.roll = this.model.roll & 2047;
+        }
     }
 }
 

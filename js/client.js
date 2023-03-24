@@ -101,6 +101,8 @@ class Client extends GameShell {
 
             await this.showProgress(80, 'Unpacking textures');
             Draw3D.unpackTextures(textures);
+            Draw3D.setBrightness(0.8);
+            Draw3D.initPool(20);
     
             await this.showProgress(83, 'Unpacking models');
             Model.unpack(models);

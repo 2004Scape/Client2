@@ -62,6 +62,14 @@ export default class GameShell {
             }
         }, false);
 
+        window.addEventListener('keydown', (e) => {
+            this.keyDown(e);
+        });
+
+        window.addEventListener('keyup', (e) => {
+            this.keyUp(e);
+        });
+
         await this.showProgress(0, 'Loading...');
         await this.load();
 
@@ -123,6 +131,8 @@ export default class GameShell {
 
             while (count < 256) {
                 this.update();
+                this.mouseClickButton = 0;
+                this.keyQueueReadPos = this.keyQueueWritePos;
                 count += ratio;
             }
 
@@ -205,5 +215,51 @@ export default class GameShell {
         this.ctx.fillText(message, this.canvas.width / 2, y + 22);
 
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
+    }
+
+    keyDown(e) {
+        this.idleCycles = 0;
+
+        let ch = e.key.charCodeAt(0);
+        if (e.key == 'ArrowLeft') {
+            ch = 1;
+        } else if (e.key == 'ArrowRight') {
+            ch = 2;
+        } else if (e.key == 'ArrowUp') {
+            ch = 3;
+        } else if (e.key == 'ArrowDown') {
+            ch = 4;
+        }
+
+        // console.log(e.key, ch);
+        this.actionKey[ch] = 1;
+        this.keyQueue[this.keyQueueWritePos] = ch;
+        this.keyQueueWritePos = (this.keyQueueWritePos + 1) % 128;
+    }
+
+    keyUp(e) {
+        this.idleCycles = 0;
+
+        let ch = e.key.charCodeAt(0);
+        if (e.key == 'ArrowLeft') {
+            ch = 1;
+        } else if (e.key == 'ArrowRight') {
+            ch = 2;
+        } else if (e.key == 'ArrowUp') {
+            ch = 3;
+        } else if (e.key == 'ArrowDown') {
+            ch = 4;
+        }
+
+        this.actionKey[ch] = 0;
+    }
+
+    pollKey() {
+        let key = -1;
+        if (this.keyQueueWritePos != this.keyQueueReadPos) {
+            key = this.keyQueue[this.keyQueueReadPos];
+            this.keyQueueReadPos = (this.keyQueueReadPos + 1) % 128;
+        }
+        return key;
     }
 }
