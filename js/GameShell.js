@@ -1,4 +1,5 @@
 import CanvasFrameBuffer from './graphics/CanvasFrameBuffer.js';
+import Draw3D from './graphics/Draw3D.js';
 
 import { sleep } from './util/JsUtil.js';
 
@@ -11,10 +12,9 @@ export default class GameShell {
     mindel = 1;
     otim = [];
     fps = 0;
-    width = -1;
-    height = -1;
     drawArea = null;
     redrawScreen = true;
+    resizeToFit = false;
 
     idleCycles = 0;
     mouseButton = 0;
@@ -28,17 +28,40 @@ export default class GameShell {
     keyQueueReadPos = 0;
     keyQueueWritePos = 0;
 
-    constructor() {
+    constructor(resizetoFit = false) {
         this.canvas = document.getElementById('canvas');
         this.ctx = this.canvas.getContext('2d');
 
-        this.width = this.canvas.width;
-        this.height = this.canvas.height;
+        this.resizeToFit = resizetoFit;
+        if (this.resizeToFit) {
+            this.resize(window.innerWidth, window.innerHeight);
+        } else {
+            this.resize(canvas.width, canvas.height);
+        }
+    }
 
+    get width() {
+        return this.canvas.width;
+    }
+
+    get height() {
+        return this.canvas.height;
+    }
+
+    resize(width, height) {
+        this.canvas.width = width;
+        this.canvas.height = height;
         this.drawArea = new CanvasFrameBuffer(this.canvas, this.width, this.height);
+        Draw3D.init2D();
     }
 
     async run() {
+        window.addEventListener('resize', () => {
+            if (this.resizeToFit) {
+                this.resize(window.innerWidth, window.innerHeight);
+            }
+        }, false);
+
         await this.showProgress(0, 'Loading...');
         await this.load();
 
@@ -66,18 +89,19 @@ export default class GameShell {
             delta = 1;
 
             let ntime = Date.now();
+
             if (this.otim[opos] === 0) {
                 ratio = lastRatio;
                 delta = lastDelta;
             } else if (ntime > this.otim[opos]) {
-                ratio = (this.deltime * 256 * 10) / (ntime - this.otim[opos]);
+                ratio = Math.trunc((this.deltime * 256 * 10) / (ntime - this.otim[opos]));
             }
 
             if (ratio < 25) {
                 ratio = 25;
             } else if (ratio > 256) {
                 ratio = 256;
-                delta = this.deltime - ((ntime - this.otim[opos]) / 10);
+                delta = Math.trunc(this.deltime - ((ntime - this.otim[opos]) / 10));
             }
 
             this.otim[opos] = ntime;
@@ -105,7 +129,7 @@ export default class GameShell {
             count &= 0xFF;
 
             if (this.deltime > 0) {
-                this.fps = (1000 * ratio) / (this.deltime * 256);
+                this.fps = Math.trunc((1000 * ratio) / (this.deltime * 256));
             }
 
             await this.draw();

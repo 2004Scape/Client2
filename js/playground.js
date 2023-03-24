@@ -33,7 +33,7 @@ class Playground extends GameShell {
     q8 = null;
 
     constructor() {
-        super();
+        super(true);
     }
 
     async load() {
