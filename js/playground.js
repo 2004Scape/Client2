@@ -97,7 +97,8 @@ class Playground extends GameShell {
     }
 
     update() {
-        this.updateKeyboardInput();
+        this.updateKeysPressed();
+        this.updateKeysHeld();
     }
 
     async draw() {
@@ -174,56 +175,14 @@ class Playground extends GameShell {
         pitch: 0
     };
 
-    updateKeyboardInput() {
+    updateKeysPressed() {
         while (true) {
             let key = this.pollKey();
             if (key == -1) {
                 break;
             }
 
-            if (key == '['.charCodeAt(0)) {
-                this.modifier--;
-            } else if (key == ']'.charCodeAt(0)) {
-                this.modifier++;
-            } else if (key == 1) {
-                // left arrow
-                this.model.yaw += this.modifier;
-            } else if (key == 2) {
-                // right arrow
-                this.model.yaw -= this.modifier;
-            } else if (key == 3) {
-                // up arrow
-                this.model.pitch -= this.modifier;
-            } else if (key == 4) {
-                // down arrow
-                this.model.pitch += this.modifier;
-            } else if (key == '.'.charCodeAt(0)) {
-                this.model.roll += this.modifier;
-            } else if (key == '/'.charCodeAt(0)) {
-                this.model.roll -= this.modifier;
-            } else if (key == 'w'.charCodeAt(0)) {
-                this.camera.z -= this.modifier;
-            } else if (key == 's'.charCodeAt(0)) {
-                this.camera.z += this.modifier;
-            } else if (key == 'a'.charCodeAt(0)) {
-                this.camera.x -= this.modifier;
-            } else if (key == 'd'.charCodeAt(0)) {
-                this.camera.x += this.modifier;
-            } else if (key == 'q'.charCodeAt(0)) {
-                this.camera.y -= this.modifier;
-            } else if (key == 'e'.charCodeAt(0)) {
-                this.camera.y += this.modifier;
-            } else if (key == '1'.charCodeAt(0)) {
-                this.model.id--;
-                if (this.model.id < 0) {
-                    this.model.id = Model.count - 1;
-                }
-            } else if (key == '2'.charCodeAt(0)) {
-                this.model.id++;
-                if (this.model.id >= Model.count) {
-                    this.model.id = 0;
-                }
-            } else if (key == 'r'.charCodeAt(0)) {
+            if (key == 'r'.charCodeAt(0)) {
                 this.modifier = 2;
                 this.model = {
                     id: this.model.id,
@@ -237,12 +196,70 @@ class Playground extends GameShell {
                     z: 420,
                     pitch: 0
                 };
+            } else if (key == '1'.charCodeAt(0)) {
+                this.model.id--;
+                if (this.model.id < 0) {
+                    this.model.id = Model.count - 1;
+                }
+            } else if (key == '2'.charCodeAt(0)) {
+                this.model.id++;
+                if (this.model.id >= Model.count) {
+                    this.model.id = 0;
+                }
             }
-
-            this.model.pitch = this.model.pitch & 2047;
-            this.model.yaw = this.model.yaw & 2047;
-            this.model.roll = this.model.roll & 2047;
         }
+    }
+
+    updateKeysHeld() {
+        if (this.actionKey['['.charCodeAt(0)]) {
+            this.modifier--;
+        } else if (this.actionKey[']'.charCodeAt(0)]) {
+            this.modifier++;
+        }
+
+        if (this.actionKey[1]) {
+            // left arrow
+            this.model.yaw += this.modifier;
+        } else if (this.actionKey[2]) {
+            // right arrow
+            this.model.yaw -= this.modifier;
+        }
+
+        if (this.actionKey[3]) {
+            // up arrow
+            this.model.pitch -= this.modifier;
+        } else if (this.actionKey[4]) {
+            // down arrow
+            this.model.pitch += this.modifier;
+        }
+
+        if (this.actionKey['.'.charCodeAt(0)]) {
+            this.model.roll += this.modifier;
+        } else if (this.actionKey['/'.charCodeAt(0)]) {
+            this.model.roll -= this.modifier;
+        }
+
+        if (this.actionKey['w'.charCodeAt(0)]) {
+            this.camera.z -= this.modifier;
+        } else if (this.actionKey['s'.charCodeAt(0)]) {
+            this.camera.z += this.modifier;
+        }
+
+        if (this.actionKey['a'.charCodeAt(0)]) {
+            this.camera.x -= this.modifier;
+        } else if (this.actionKey['d'.charCodeAt(0)]) {
+            this.camera.x += this.modifier;
+        }
+
+        if (this.actionKey['q'.charCodeAt(0)]) {
+            this.camera.y -= this.modifier;
+        } else if (this.actionKey['e'.charCodeAt(0)]) {
+            this.camera.y += this.modifier;
+        }
+
+        this.model.pitch = this.model.pitch & 2047;
+        this.model.yaw = this.model.yaw & 2047;
+        this.model.roll = this.model.roll & 2047;
     }
 }
 
