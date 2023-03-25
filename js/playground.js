@@ -145,9 +145,33 @@ class Playground extends GameShell {
         model.calculateNormals(64, 768, -50, -10, -50, true);
         model.draw(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
-        this.b12.draw(0, this.b12.fontHeight, `Model: ${this.model.id}`, 0xFFFF00);
+        // debug
         this.b12.drawRight(this.width, this.b12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
         this.b12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, 0xFFFF00);
+
+        // controls
+        let leftY = this.b12.fontHeight;
+        this.b12.draw(0, leftY, `Model: ${this.model.id}`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `Controls:`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `r - reset camera and model rotation + movement speed`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `1 and 2 - change model`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `[ and ] - adjust movement speed`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `left and right - adjust model yaw`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `up and down - adjust model pitch`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `. and / - adjust model roll`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `w and s - move camera along z axis`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `a and d - move camera along x axis`, 0xFFFF00);
+        leftY += this.b12.fontHeight;
+        this.b12.draw(0, leftY, `q and e - move camera along y axis`, 0xFFFF00);
 
         this.drawArea.draw(0, 0);
     }
