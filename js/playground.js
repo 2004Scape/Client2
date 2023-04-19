@@ -180,7 +180,7 @@ class Playground extends GameShell {
 
     async loadArchive(filename, displayName, crc, progress) {
         await this.showProgress(progress, `Requesting ${displayName}`);
-        let data = await Archive.loadUrl(`${Playground.HOST}/${filename}`);
+        let data = await Archive.loadUrl(`${Playground.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
     }
