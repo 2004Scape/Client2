@@ -25,7 +25,7 @@ import { downloadUrl } from './util/JsUtil.js';
 import Draw2D from './graphics/Draw2D.js';
 
 class Playground extends GameShell {
-    static HOST = 'https://world2.runewiki.org';
+    static HOST = 'http://w2.225.2004scape.org';
 
     p11 = null;
     p12 = null;

@@ -29,7 +29,7 @@ import { decompressBz2, downloadUrl, sleep } from './util/JsUtil.js';
 import { playMidi } from './util/AudioUtil.js';
 
 class Client extends GameShell {
-    static HOST = 'https://world2.runewiki.org';
+    static HOST = 'http://w2.225.2004scape.org';
 
     alreadyStarted = false;
     errorStarted = false;
