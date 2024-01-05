@@ -2,14 +2,14 @@ import Draw2D from './Draw2D.js';
 import Buffer from '../io/Buffer.js';
 // identical to Image24 except the image is indexed by a palette
 export default class Image8 {
-    pixels = null;
+    pixels;
+    width;
+    height;
+    cropX;
+    cropY;
+    cropW;
+    cropH;
     palette = null;
-    width = -1;
-    height = -1;
-    cropX = -1;
-    cropY = -1;
-    cropW = -1;
-    cropH = -1;
     constructor(width, height) {
         this.pixels = new Uint8Array(width * height);
         this.width = this.cropW = width;
@@ -17,8 +17,8 @@ export default class Image8 {
         this.cropX = this.cropY = 0;
     }
     static fromArchive(archive, name, sprite = 0) {
-        let dat = new Buffer(archive.read(name + '.dat'));
-        let index = new Buffer(archive.read('index.dat'));
+        let dat = new Buffer(archive?.read(name + '.dat'));
+        let index = new Buffer(archive?.read('index.dat'));
         // cropW/cropH are shared across all sprites in a single image
         index.pos = dat.g2();
         let cropW = index.g2();
@@ -113,6 +113,9 @@ export default class Image8 {
         }
     }
     copyImage(w, h, src, srcOff, srcStep, dst, dstOff, dstStep) {
+        if (src === null || dst === null || this.palette === null) {
+            return;
+        }
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 let off = x + (y * w);

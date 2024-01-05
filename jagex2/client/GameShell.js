@@ -11,14 +11,14 @@ export default class GameShell {
         url.searchParams.set(name, value);
         window.history.pushState(null, '', url.toString());
     }
-    canvas = null;
-    ctx = null;
+    canvas;
+    ctx;
+    drawArea;
     state = 0;
     deltime = 20;
     mindel = 1;
     otim = [];
     fps = 0;
-    drawArea = null;
     redrawScreen = true;
     resizeToFit = false;
     idleCycles = 0;
@@ -33,8 +33,16 @@ export default class GameShell {
     keyQueueReadPos = 0;
     keyQueueWritePos = 0;
     constructor(resizetoFit = false) {
-        this.canvas = document.getElementById('canvas');
-        this.ctx = this.canvas.getContext('2d');
+        const canvas = document.getElementById('canvas');
+        if (!canvas) {
+            throw new Error("Canvas not found!!!!!!!!");
+        }
+        const canvas2d = canvas.getContext('2d');
+        if (!canvas2d) {
+            throw new Error("Canvas 2d not found!!!!!!!!");
+        }
+        this.canvas = canvas;
+        this.ctx = canvas2d;
         this.resizeToFit = resizetoFit;
         if (this.resizeToFit) {
             this.resize(window.innerWidth, window.innerHeight);
@@ -42,6 +50,7 @@ export default class GameShell {
         else {
             this.resize(this.canvas.width, this.canvas.height);
         }
+        this.drawArea = new CanvasFrameBuffer(this.canvas, this.width, this.height);
     }
     get width() {
         return this.canvas.width;
@@ -168,22 +177,22 @@ export default class GameShell {
     async showProgress(progress, message) {
         if (this.redrawScreen) {
             this.ctx.fillStyle = 'black';
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.clearRect(0, 0, this.width, this.height);
             this.redrawScreen = false;
         }
-        let y = this.canvas.height / 2 - 18;
+        let y = this.height / 2 - 18;
         // draw full progress bar
         this.ctx.fillStyle = 'rgb(140, 17, 17)';
-        this.ctx.rect((this.canvas.width / 2) - 152, y, 304, 34);
-        this.ctx.fillRect((this.canvas.width / 2) - 150, y + 2, progress * 3, 30);
+        this.ctx.rect((this.width / 2) - 152, y, 304, 34);
+        this.ctx.fillRect((this.width / 2) - 150, y + 2, progress * 3, 30);
         // cover up progress bar
         this.ctx.fillStyle = 'black';
-        this.ctx.fillRect(((this.canvas.width / 2) - 150) + (progress * 3), y + 2, 300 - (progress * 3), 30);
+        this.ctx.fillRect(((this.width / 2) - 150) + (progress * 3), y + 2, 300 - (progress * 3), 30);
         // draw text
         this.ctx.font = 'bold 13px helvetica, sans-serif';
         this.ctx.textAlign = 'center';
         this.ctx.fillStyle = 'white';
-        this.ctx.fillText(message, this.canvas.width / 2, y + 22);
+        this.ctx.fillText(message, this.width / 2, y + 22);
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
     keyDown(e) {

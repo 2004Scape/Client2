@@ -1,15 +1,19 @@
 import Draw2D from './Draw2D.js';
 export default class CanvasFrameBuffer {
-    canvas = null;
-    ctx = null;
-    image = null;
-    pixels = null;
-    width = -1;
-    height = -1;
+    canvas;
+    ctx;
+    image;
+    pixels;
+    width;
+    height;
     constructor(canvas, width, height) {
+        const canvas2d = canvas.getContext('2d');
+        if (!canvas2d) {
+            throw new Error("Canvas 2d not found!!!!!!!!");
+        }
         this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
-        this.imageData = this.ctx.getImageData(0, 0, width, height);
+        this.ctx = canvas2d;
+        this.image = canvas2d.getImageData(0, 0, width, height);
         this.pixels = new Uint32Array(width * height);
         this.width = width;
         this.height = height;
@@ -23,11 +27,11 @@ export default class CanvasFrameBuffer {
     }
     draw(x, y) {
         this.#setPixels();
-        this.ctx.putImageData(this.imageData, x, y);
+        this.ctx.putImageData(this.image, x, y);
     }
     #setPixels() {
         // copy pixels (uint32) to imageData (uint8)
-        const data = this.imageData.data;
+        const data = this.image.data;
         for (let i = 0; i < this.pixels.length; i++) {
             const pixel = this.pixels[i];
             const index = i * 4;

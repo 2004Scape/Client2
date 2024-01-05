@@ -37,11 +37,14 @@ class Draw2D {
         this.centerY = this.bottom / 2;
     }
     clear() {
-        this.pixels.fill(0);
+        this.pixels?.fill(0);
     }
     // draw a 1px border rectangle
     drawRect(x, y, w, h, color) {
         let pixels = this.pixels;
+        if (pixels === null) {
+            return;
+        }
         let x0 = x;
         let y0 = y;
         let x1 = x + w;
@@ -75,6 +78,9 @@ class Draw2D {
     // fill in a rectangle area
     fillRect(x, y, w, h, color) {
         let pixels = this.pixels;
+        if (pixels === null) {
+            return;
+        }
         let x0 = x;
         let y0 = y;
         let x1 = x + w;

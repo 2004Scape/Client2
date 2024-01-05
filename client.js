@@ -22,7 +22,7 @@ import Censor from './jagex2/util/Censor.js';
 import { decompressBz2, downloadUrl, sleep } from './jagex2/util/JsUtil.js';
 import { playMidi } from './jagex2/util/AudioUtil.js';
 import GameShell from "./jagex2/client/GameShell.js";
-export default class Client extends GameShell {
+class Client extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
     static CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
     alreadyStarted = false;
@@ -417,9 +417,6 @@ export default class Client extends GameShell {
         playMidi(decompressBz2(file.data, true, false), 192);
     }
     drawErrorScreen() {
-        if (!this.ctx || !this.canvas) {
-            return;
-        }
         this.ctx.fillStyle = 'black';
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.setLoopRate(1);
