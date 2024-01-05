@@ -297,6 +297,7 @@ export default class Client extends GameShell {
                     }
                 }
                 if (this.titleLoginField == 0) {
+                    console.log(key);
                     if (key == 8 && this.username.length > 0) {
                         this.username = this.username.substring(0, this.username.length - 1);
                     }

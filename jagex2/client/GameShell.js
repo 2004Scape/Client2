@@ -179,23 +179,64 @@ export default class GameShell {
     }
     keyDown(e) {
         this.idleCycles = 0;
+        let code = e.keyCode;
         let ch = e.key.charCodeAt(0);
-        if (e.key == 'ArrowLeft') {
+        if (ch === 83) {
+            return; // Custom for shift key.
+        }
+        if (ch < 30) {
+            ch = 0;
+        }
+        if (code == 37) {
             ch = 1;
         }
-        else if (e.key == 'ArrowRight') {
+        else if (code == 39) {
             ch = 2;
         }
-        else if (e.key == 'ArrowUp') {
+        else if (code == 38) {
             ch = 3;
         }
-        else if (e.key == 'ArrowDown') {
+        else if (code == 40) {
             ch = 4;
         }
-        // console.log(e.key, ch);
-        this.actionKey[ch] = 1;
-        this.keyQueue[this.keyQueueWritePos] = ch;
-        this.keyQueueWritePos = (this.keyQueueWritePos + 1) % 128;
+        else if (code == 17) {
+            ch = 5;
+        }
+        else if (code == 8) {
+            ch = 8;
+        }
+        else if (code == 127) {
+            ch = 8;
+        }
+        else if (code == 9) {
+            ch = 9;
+        }
+        else if (code == 10) {
+            ch = 10;
+        }
+        else if (code >= 112 && code <= 123) {
+            ch = code + 1008 - 112;
+        }
+        else if (code == 36) {
+            ch = 1000;
+        }
+        else if (code == 35) {
+            ch = 1001;
+        }
+        else if (code == 33) {
+            ch = 1002;
+        }
+        else if (code == 34) {
+            ch = 1003;
+        }
+        if (ch > 0 && ch < 128) {
+            this.actionKey[ch] = 1;
+        }
+        if (ch > 4) {
+            this.keyQueue[this.keyQueueWritePos] = ch;
+            this.keyQueueWritePos = this.keyQueueWritePos + 1 & 0x7F;
+        }
+        // TODO input tracking
     }
     keyUp(e) {
         this.idleCycles = 0;
@@ -218,7 +259,7 @@ export default class GameShell {
         let key = -1;
         if (this.keyQueueWritePos != this.keyQueueReadPos) {
             key = this.keyQueue[this.keyQueueReadPos];
-            this.keyQueueReadPos = (this.keyQueueReadPos + 1) % 128;
+            this.keyQueueReadPos = (this.keyQueueReadPos + 1) & 0x7F;
         }
         return key;
     }
