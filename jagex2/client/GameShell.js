@@ -2,6 +2,15 @@ import CanvasFrameBuffer from '../graphics/CanvasFrameBuffer.js';
 import Draw3D from '../graphics/Draw3D.js';
 import { sleep } from '../util/JsUtil.js';
 export default class GameShell {
+    static getParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+    static setParameter(name, value) {
+        const url = new URL(window.location.toString());
+        url.searchParams.set(name, value);
+        window.history.pushState(null, '', url.toString());
+    }
     canvas = null;
     ctx = null;
     state = 0;
