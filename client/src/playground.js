@@ -32,6 +32,8 @@ class Playground extends GameShell {
     b12 = null;
     q8 = null;
 
+    lastHistoryRefresh = 0;
+
     constructor() {
         super(true);
     }
@@ -99,6 +101,21 @@ class Playground extends GameShell {
     update() {
         this.updateKeysPressed();
         this.updateKeysHeld();
+
+        this.lastHistoryRefresh++;
+
+        if (this.lastHistoryRefresh > 50) {
+            GameShell.setParameter('model', this.model.id.toString());
+            GameShell.setParameter('x', this.model.pitch.toString());
+            GameShell.setParameter('y', this.model.yaw.toString());
+            GameShell.setParameter('z', this.model.roll.toString());
+            GameShell.setParameter('eyeX', this.camera.x.toString());
+            GameShell.setParameter('eyeY', this.camera.y.toString());
+            GameShell.setParameter('eyeZ', this.camera.z.toString());
+            GameShell.setParameter('eyePitch', this.camera.pitch.toString());
+
+            this.lastHistoryRefresh = 0;
+        }
     }
 
     async draw() {
@@ -187,16 +204,16 @@ class Playground extends GameShell {
 
     modifier = 2;
     model = {
-        id: 0,
-        pitch: 0,
-        yaw: 0,
-        roll: 0
+        id: parseInt(GameShell.getParameter('model')) || 0,
+        pitch: parseInt(GameShell.getParameter('x')) || 0,
+        yaw: parseInt(GameShell.getParameter('y')) || 0,
+        roll: parseInt(GameShell.getParameter('z')) || 0,
     };
     camera = {
-        x: 0,
-        y: 0,
-        z: 420,
-        pitch: 0
+        x: parseInt(GameShell.getParameter('eyeX')) || 0,
+        y: parseInt(GameShell.getParameter('eyeY')) || 0,
+        z: parseInt(GameShell.getParameter('eyeZ')) || 420,
+        pitch: parseInt(GameShell.getParameter('eyePitch')) || 0,
     };
 
     updateKeysPressed() {
