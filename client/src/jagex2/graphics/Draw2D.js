@@ -8,6 +8,7 @@ class Draw2D {
     bottom = -1;
     left = -1;
     right = -1;
+    boundX = -1;
 
     centerX = -1;
     centerY = -1;
@@ -40,6 +41,7 @@ class Draw2D {
         this.bottom = y1;
         this.left = x0;
         this.right = x1;
+        this.boundX = this.right - 1;
         this.centerX = this.right / 2;
         this.centerY = this.bottom / 2;
     }

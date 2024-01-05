@@ -142,8 +142,8 @@ class Playground extends GameShell {
 
         // draw a model
         let model = new Model(this.model.id);
-        model.calculateNormals(64, 768, -50, -10, -50, true);
-        model.draw(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
+        model.calculateNormals(64, 850, -30, -50, -30, true);
+        model.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
         // debug
         this.b12.drawRight(this.width, this.b12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
@@ -223,11 +223,11 @@ class Playground extends GameShell {
             } else if (key === '1'.charCodeAt(0)) {
                 this.model.id--;
                 if (this.model.id < 0) {
-                    this.model.id = Model.count - 1;
+                    this.model.id = Model.metadata.length - 100 - 1;
                 }
             } else if (key === '2'.charCodeAt(0)) {
                 this.model.id++;
-                if (this.model.id >= Model.count) {
+                if (this.model.id >= Model.metadata.length - 100) {
                     this.model.id = 0;
                 }
             }

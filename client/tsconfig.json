@@ -1,22 +1,14 @@
 {
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "../js",
+    "outDir": "../public",
     "target": "ESNext",
     "lib": [
       "ESNext",
       "DOM"
     ],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "baseUrl": "..",
-    "paths": {
-    },
-    "types": [
-      "node",
-      "jest"
-    ],
-    "sourceMap": true,
+    "sourceMap": false,
     "allowJs": true,
     "checkJs": false,
     "strict": true,
@@ -32,9 +24,5 @@
   "exclude": [
     "../node_modules",
     "<node_internals>/**"
-  ],
-  "ts-node": {
-    "swc": true,
-    "esm": true
-  }
+  ]
 }
