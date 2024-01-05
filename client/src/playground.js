@@ -33,6 +33,7 @@ class Playground extends GameShell {
     q8 = null;
 
     lastHistoryRefresh = 0;
+    historyRefresh = true;
 
     constructor() {
         super(true);
@@ -105,14 +106,18 @@ class Playground extends GameShell {
         this.lastHistoryRefresh++;
 
         if (this.lastHistoryRefresh > 50) {
-            GameShell.setParameter('model', this.model.id.toString());
-            GameShell.setParameter('x', this.model.pitch.toString());
-            GameShell.setParameter('y', this.model.yaw.toString());
-            GameShell.setParameter('z', this.model.roll.toString());
-            GameShell.setParameter('eyeX', this.camera.x.toString());
-            GameShell.setParameter('eyeY', this.camera.y.toString());
-            GameShell.setParameter('eyeZ', this.camera.z.toString());
-            GameShell.setParameter('eyePitch', this.camera.pitch.toString());
+            if (this.historyRefresh) {
+                GameShell.setParameter('model', this.model.id.toString());
+                GameShell.setParameter('x', this.model.pitch.toString());
+                GameShell.setParameter('y', this.model.yaw.toString());
+                GameShell.setParameter('z', this.model.roll.toString());
+                GameShell.setParameter('eyeX', this.camera.x.toString());
+                GameShell.setParameter('eyeY', this.camera.y.toString());
+                GameShell.setParameter('eyeZ', this.camera.z.toString());
+                GameShell.setParameter('eyePitch', this.camera.pitch.toString());
+
+                this.historyRefresh = false;
+            }
 
             this.lastHistoryRefresh = 0;
         }
@@ -237,16 +242,19 @@ class Playground extends GameShell {
                     z: 420,
                     pitch: 0
                 };
+                this.historyRefresh = true;
             } else if (key === '1'.charCodeAt(0)) {
                 this.model.id--;
                 if (this.model.id < 0) {
                     this.model.id = Model.metadata.length - 100 - 1;
                 }
+                this.historyRefresh = true;
             } else if (key === '2'.charCodeAt(0)) {
                 this.model.id++;
                 if (this.model.id >= Model.metadata.length - 100) {
                     this.model.id = 0;
                 }
+                this.historyRefresh = true;
             }
         }
     }
@@ -261,41 +269,53 @@ class Playground extends GameShell {
         if (this.actionKey[1]) {
             // left arrow
             this.model.yaw += this.modifier;
+            this.historyRefresh = true;
         } else if (this.actionKey[2]) {
             // right arrow
             this.model.yaw -= this.modifier;
+            this.historyRefresh = true;
         }
 
         if (this.actionKey[3]) {
             // up arrow
             this.model.pitch -= this.modifier;
+            this.historyRefresh = true;
         } else if (this.actionKey[4]) {
             // down arrow
             this.model.pitch += this.modifier;
+            this.historyRefresh = true;
         }
 
         if (this.actionKey['.'.charCodeAt(0)]) {
             this.model.roll += this.modifier;
+            this.historyRefresh = true;
         } else if (this.actionKey['/'.charCodeAt(0)]) {
             this.model.roll -= this.modifier;
+            this.historyRefresh = true;
         }
 
         if (this.actionKey['w'.charCodeAt(0)]) {
             this.camera.z -= this.modifier;
+            this.historyRefresh = true;
         } else if (this.actionKey['s'.charCodeAt(0)]) {
             this.camera.z += this.modifier;
+            this.historyRefresh = true;
         }
 
         if (this.actionKey['a'.charCodeAt(0)]) {
             this.camera.x -= this.modifier;
+            this.historyRefresh = true;
         } else if (this.actionKey['d'.charCodeAt(0)]) {
             this.camera.x += this.modifier;
+            this.historyRefresh = true;
         }
 
         if (this.actionKey['q'.charCodeAt(0)]) {
             this.camera.y -= this.modifier;
+            this.historyRefresh = true;
         } else if (this.actionKey['e'.charCodeAt(0)]) {
             this.camera.y += this.modifier;
+            this.historyRefresh = true;
         }
 
         this.model.pitch = this.model.pitch & 2047;
