@@ -28,7 +28,7 @@ import { playMidi } from './jagex2/util/AudioUtil.js';
 import GameShell from "./jagex2/client/GameShell.js";
 
 export default class Client extends GameShell {
-    static HOST = 'https://w2.225.2004scape.org ';
+    static HOST = 'https://w2.225.2004scape.org';
 
     alreadyStarted = false;
     errorStarted = false;
