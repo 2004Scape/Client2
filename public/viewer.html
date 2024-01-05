@@ -1,0 +1,130 @@
+<!doctype html>
+<html class="no-js" lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2004Scape Tools - Cache Viewer</title>
+
+    <link rel="stylesheet" href="css/foundation.min.css">
+
+    <style>
+        canvas {
+            image-rendering: pixelated;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            outline: none;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+            z-index: -1;
+        }
+
+        #leftPanel {
+            height: 334px;
+            overflow: auto;
+        }
+
+        #rightPanel {
+            height: 334px;
+            overflow: auto;
+        }
+
+        .list-group {
+            margin-bottom: 1rem;
+            border: 1px solid #e6e6e6;
+            border-radius: 0;
+            background: #fefefe;
+            box-shadow: none;
+            overflow: hidden;
+            color: #0a0a0a;
+        }
+
+        .list-group> :last-child {
+            margin-bottom: 0;
+        }
+
+        .list-group-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e6e6e6;
+        }
+
+        .list-group-item> :last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+
+        .list-group-item.active {
+            color: #fefefe;
+            background-color: #1779ba;
+            border-color: 1px solid #1779ba;
+        }
+
+        .list-group-item:hover,
+        .list-group-item:focus {
+            cursor: pointer;
+            background-color: #e6e6e6;
+        }
+
+        .list-group-item:hover.active,
+        .list-group-item:focus.active {
+            background-color: #1779ba;
+        }
+
+        .list-group-item.disabled,
+        .list-group-item.disabled:hover,
+        .list-group-item.disabled:focus,
+        .list-group-item[disabled],
+        .list-group-item[disabled]:hover,
+        .list-group-item[disabled]:focus {
+            color: #8a8a8a;
+            cursor: not-allowed;
+            background-color: #fefefe;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-container">
+        <div class="grid-x grid-padding-x">
+            <div class="large-12 cell">
+                <h1>Cache Viewer</h1>
+            </div>
+        </div>
+
+        <div class="grid-x grid-padding-x">
+            <div class="large-12 cell">
+                <div class="callout">
+                    <div class="grid-x grid-padding-x">
+                        <div class="small-3 cell">
+                            <div id="leftPanel"></div>
+                        </div>
+
+                        <div class="small-6 cell">
+                            <canvas id="canvas" width="512" height="334"></canvas>
+                        </div>
+
+                        <div class="small-3 cell">
+                            <div id="rightPanel">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/vendor/jquery-3.7.1.min.js"></script>
+        <script src="js/vendor/what-input.js"></script>
+        <script src="js/vendor/foundation.min.js"></script>
+
+        <script>$(document).foundation()</script>
+
+        <script type="module" src="js/vendor/midi.js"></script>
+        <script type="module" src="js/viewer.js"></script>
+</body>
+
+</html>

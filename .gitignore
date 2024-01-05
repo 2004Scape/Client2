@@ -1,7 +1,7 @@
-/node_modules
+/node_modules/
 /.idea/
+
 /public/*
 !/public/favicon.ico
 !/public/SCC1_Florestan.sf2
-!/public/index.html
-!/public/playground.html
+!/public/*.html

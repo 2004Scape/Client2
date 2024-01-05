@@ -6,7 +6,7 @@ import { sleep } from '../util/JsUtil.js';
 export default class GameShell {
     static getParameter(name: string): string | null {
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(name);
+        return urlParams.get(name) ?? '';
     }
 
     static setParameter(name: string, value: string): void {
