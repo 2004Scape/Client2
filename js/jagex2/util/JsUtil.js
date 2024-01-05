@@ -6,6 +6,9 @@ export async function sleep(ms) {
 export async function downloadUrl(url) {
     return new Buffer(await (await fetch(url)).arrayBuffer());
 }
+export async function downloadText(url) {
+    return (await fetch(url)).text();
+}
 export function decompressBz2(data, addMagic = true, prepend = true) {
     if (addMagic) {
         let magic = Uint8Array.from(['B'.charCodeAt(0), 'Z'.charCodeAt(0), 'h'.charCodeAt(0), '1'.charCodeAt(0)]);
