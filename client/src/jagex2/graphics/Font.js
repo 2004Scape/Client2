@@ -116,11 +116,40 @@ export default class Font {
         for (let i = 0; i < str.length; i++) {
             let c = Font.CHARSET[str.charCodeAt(i)];
 
-            if (c != 94) {
+            if (c !== 94) {
                 this.copyCharacter(x + this.clipX[c], y + this.clipY[c], this.charWidth[c], this.charHeight[c], this.pixels[c], color);
             }
 
             x += this.charSpace[c];
+        }
+
+    }
+
+    drawStringTaggable(x, y, str, color, shadowed) {
+        if (!str) {
+            return;
+        }
+
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+
+        y -= this.fontHeight;
+        for (let i = 0; i < str.length; i++) {
+            if (str.charAt(i) === '@' && i + 4 < str.length && str.charAt(i + 4) === '@') {
+                color = this.evaluateTag(str.substring(i + 1, i + 4));
+                i += 4;
+            } else {
+                let c = Font.CHARSET[str.charCodeAt(i)];
+
+                if (c !== 94) {
+                    if (shadowed) {
+                        this.copyCharacter(x + this.clipX[c] + 1, y + this.clipY[c] + 1, this.charWidth[c], this.charHeight[c], this.pixels[c], 0);
+                    }
+                    this.copyCharacter(x + this.clipX[c], y + this.clipY[c], this.charWidth[c], this.charHeight[c], this.pixels[c], color);
+                }
+
+                x += this.charSpace[c];
+            }
         }
 
     }
@@ -142,11 +171,11 @@ export default class Font {
         return w;
     }
 
-    drawCentered(x, y, str, color, shadowed = true) {
-        if (shadowed) {
-            this.draw(x - (this.getTextWidth(str) / 2) + 1, y + 1, str, 0);
-        }
+    drawStringTaggableCenter(x, y, str, color, shadowed) {
+        this.drawStringTaggable(x - (this.getTextWidth(str) / 2), y, str, color, shadowed);
+    }
 
+    drawStringCenter(x, y, str, color) {
         this.draw(x - (this.getTextWidth(str) / 2), y, str, color);
     }
 
@@ -216,6 +245,47 @@ export default class Font {
 
             srcOff += srcStep;
             dstOff += dstStep;
+        }
+    }
+
+    evaluateTag(tag) {
+        switch (tag) {
+            case "red":
+                return 0xff0000;
+            case "gre":
+                return 0xff00;
+            case "blu":
+                return 0xff;
+            case "yel":
+                return 0xffff00;
+            case "cya":
+                return 0xffff;
+            case "mag":
+                return 0xff00ff;
+            case "whi":
+                return 0xffffff;
+            case "bla":
+                return 0;
+            case "lre":
+                return 0xff9040;
+            case "dre":
+                return 0x800000;
+            case "dbl":
+                return 0x80;
+            case "or1":
+                return 0xffb000;
+            case "or2":
+                return 0xff7000;
+            case "or3":
+                return 0xff3000;
+            case "gr1":
+                return 0xc0ff00;
+            case "gr2":
+                return 0x80ff00;
+            case "gr3":
+                return 0x40ff00;
+            default:
+                return 0;
         }
     }
 }
