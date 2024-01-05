@@ -29,7 +29,7 @@ import { decompressBz2, downloadUrl, sleep } from './util/JsUtil.js';
 import { playMidi } from './util/AudioUtil.js';
 
 class Client extends GameShell {
-    static HOST = 'http://w2.225.2004scape.org';
+    static HOST = 'https://w2.225.2004scape.org';
 
     alreadyStarted = false;
     errorStarted = false;
@@ -163,7 +163,7 @@ class Client extends GameShell {
 
         await this.prepareTitleScreen();
         if (!this.titleArchive) {
-            super.showProgress(progress, str);
+            await super.showProgress(progress, str);
             return;
         }
 
@@ -322,7 +322,7 @@ class Client extends GameShell {
             let x = 360;
             let y = 200;
 
-            if (this.titleState == 0) {
+            if (this.titleState === 0) {
                 let offsetX = x / 2;
                 let offsetY = (y / 2) - 20;
                 this.b12.drawCentered(offsetX, offsetY, 'Welcome to RuneScape', 0xFFFFFF00);
@@ -358,7 +358,7 @@ class Client extends GameShell {
         // TODO: download progress, retry
 
         await this.showProgress(progress, `Requesting ${displayName}`);
-        let data = await Archive.loadUrl(`${Client.HOST}/${filename}`);
+        let data = await Archive.loadUrl(`${Client.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
     }
@@ -436,4 +436,4 @@ class Client extends GameShell {
 }
 
 let client = new Client();
-client.run();
+client.run().then(() => {});

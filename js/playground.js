@@ -25,7 +25,7 @@ import { downloadUrl } from './util/JsUtil.js';
 import Draw2D from './graphics/Draw2D.js';
 
 class Playground extends GameShell {
-    static HOST = 'http://w2.225.2004scape.org';
+    static HOST = 'https://w2.225.2004scape.org';
 
     p11 = null;
     p12 = null;
@@ -202,11 +202,11 @@ class Playground extends GameShell {
     updateKeysPressed() {
         while (true) {
             let key = this.pollKey();
-            if (key == -1) {
+            if (key === -1) {
                 break;
             }
 
-            if (key == 'r'.charCodeAt(0)) {
+            if (key === 'r'.charCodeAt(0)) {
                 this.modifier = 2;
                 this.model = {
                     id: this.model.id,
@@ -220,12 +220,12 @@ class Playground extends GameShell {
                     z: 420,
                     pitch: 0
                 };
-            } else if (key == '1'.charCodeAt(0)) {
+            } else if (key === '1'.charCodeAt(0)) {
                 this.model.id--;
                 if (this.model.id < 0) {
                     this.model.id = Model.count - 1;
                 }
-            } else if (key == '2'.charCodeAt(0)) {
+            } else if (key === '2'.charCodeAt(0)) {
                 this.model.id++;
                 if (this.model.id >= Model.count) {
                     this.model.id = 0;
@@ -288,4 +288,4 @@ class Playground extends GameShell {
 }
 
 const playground = new Playground();
-playground.run();
+playground.run().then(() => {});
