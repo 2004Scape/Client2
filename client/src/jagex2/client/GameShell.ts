@@ -4,7 +4,7 @@ import Draw3D from '../graphics/Draw3D.js';
 import { sleep } from '../util/JsUtil.js';
 
 export default class GameShell {
-    static getParameter(name: string): string | null {
+    static getParameter(name: string): string {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name) ?? '';
     }
