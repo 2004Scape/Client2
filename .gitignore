@@ -1,4 +1,6 @@
 /node_modules
 /.idea/
 /js/
+!/js/index.html
+!/js/playground.html
 !/js/jagex2/vendor/tinymidipcm/tinymidipcm.wasm
