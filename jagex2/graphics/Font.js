@@ -240,4 +240,3 @@ export default class Font {
         }
     }
 }
-//# sourceMappingURL=Font.js.map

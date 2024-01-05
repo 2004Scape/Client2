@@ -106,4 +106,3 @@ class TinyMidiPCM {
     }
 }
 export default TinyMidiPCM;
-//# sourceMappingURL=index.js.map

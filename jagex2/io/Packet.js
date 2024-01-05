@@ -1,10 +1,12 @@
-export default class Buffer {
+export default class Packet {
+    data;
+    pos;
     constructor(src) {
         this.data = new Uint8Array(src);
         this.pos = 0;
     }
     static alloc(size) {
-        return new Buffer(new Uint8Array(size));
+        return new Packet(new Uint8Array(size));
     }
     get length() {
         return this.data.length;

@@ -34,4 +34,3 @@ export function stopMidi() {
         window._tinyMidiStop();
     }
 }
-//# sourceMappingURL=AudioUtil.js.map

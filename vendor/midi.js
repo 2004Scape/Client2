@@ -140,4 +140,3 @@ import TinyMidiPCM from './tinymidipcm/index.js';
         tinyMidiPCM.render(midiBuffer);
     };
 })();
-//# sourceMappingURL=midi.js.map

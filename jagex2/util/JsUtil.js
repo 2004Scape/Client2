@@ -1,5 +1,5 @@
 import Buffer from '../io/Buffer.js';
-import { decompress } from '../vendor/bz2.js';
+import { decompress } from '../../vendor/bz2.js';
 export async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -36,4 +36,3 @@ export async function decodeJpeg(data) {
     ctx.drawImage(img, 0, 0);
     return ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
-//# sourceMappingURL=JsUtil.js.map

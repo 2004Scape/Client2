@@ -126,4 +126,3 @@ export default class Image8 {
         }
     }
 }
-//# sourceMappingURL=Image8.js.map

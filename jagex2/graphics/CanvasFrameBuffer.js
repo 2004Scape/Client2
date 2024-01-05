@@ -38,4 +38,3 @@ export default class CanvasFrameBuffer {
         }
     }
 }
-//# sourceMappingURL=CanvasFrameBuffer.js.map

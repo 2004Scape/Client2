@@ -70,4 +70,3 @@ export default class Archive {
         }
     }
 }
-//# sourceMappingURL=Archive.js.map

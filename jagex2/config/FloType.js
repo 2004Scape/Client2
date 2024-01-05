@@ -45,4 +45,3 @@ export default class FloType {
         }
     }
 }
-//# sourceMappingURL=FloType.js.map

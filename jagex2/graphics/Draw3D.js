@@ -12,7 +12,7 @@ export default class Draw3D {
     static centerX = 0;
     static centerY = 0;
     static jagged = true;
-    static clipX = 0;
+    static clipX = false;
     static alpha = 0;
     static {
         for (let i = 1; i < 512; i++) {
@@ -138,7 +138,7 @@ export default class Draw3D {
     }
     static initPool() {
     }
-    static fillGouraudTriangle(yA, yB, yC, xA, xB, xC, colorA, colorB, colorC) {
+    static fillGouraudTriangle(xA, xB, xC, yA, yB, yC, colorA, colorB, colorC) {
         let xStepAB = 0;
         let xStepBC = 0;
         let xStepAC = 0;
@@ -637,4 +637,3 @@ export default class Draw3D {
     static fillTexturedTriangle() {
     }
 }
-//# sourceMappingURL=Draw3D.js.map

@@ -294,4 +294,3 @@ export default class GameShell {
         return { top, left };
     }
 }
-//# sourceMappingURL=GameShell.js.map

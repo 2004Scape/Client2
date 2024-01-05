@@ -472,4 +472,3 @@ export default class Client extends GameShell {
 const client = new Client();
 client.run().then(() => {
 });
-//# sourceMappingURL=client.js.map

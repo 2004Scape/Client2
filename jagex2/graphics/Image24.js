@@ -159,4 +159,3 @@ export default class Image24 {
         }
     }
 }
-//# sourceMappingURL=Image24.js.map
