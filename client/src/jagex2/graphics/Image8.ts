@@ -1,29 +1,30 @@
 import Draw2D from './Draw2D.js';
 
 import Buffer from '../io/Buffer.js';
+import Archive from "../io/Archive";
 
 // identical to Image24 except the image is indexed by a palette
 export default class Image8 {
-    pixels = null;
-    palette = null;
+    pixels: Uint8Array;
+    width: number;
+    height: number;
+    cropX: number;
+    cropY: number;
+    cropW: number;
+    cropH: number;
 
-    width = -1;
-    height = -1;
-    cropX = -1;
-    cropY = -1;
-    cropW = -1;
-    cropH = -1;
+    palette: Uint32Array | null = null;
 
-    constructor(width, height) {
+    constructor(width: number, height: number) {
         this.pixels = new Uint8Array(width * height);
         this.width = this.cropW = width;
         this.height = this.cropH = height;
         this.cropX = this.cropY = 0;
     }
 
-    static fromArchive(archive, name, sprite = 0) {
-        let dat = new Buffer(archive.read(name + '.dat'));
-        let index = new Buffer(archive.read('index.dat'));
+    static fromArchive(archive: Archive | null, name: string, sprite = 0) {
+        let dat = new Buffer(archive?.read(name + '.dat'));
+        let index = new Buffer(archive?.read('index.dat'));
 
         // cropW/cropH are shared across all sprites in a single image
         index.pos = dat.g2();
@@ -79,7 +80,7 @@ export default class Image8 {
         return image;
     }
 
-    draw(x, y, newW = -1, newH = -1) {
+    draw(x: number, y: number, newW = -1, newH = -1) {
         x = Math.trunc(x);
         y = Math.trunc(y);
 
@@ -137,7 +138,11 @@ export default class Image8 {
         }
     }
 
-    copyImage(w, h, src, srcOff, srcStep, dst, dstOff, dstStep) {
+    copyImage(w: number, h: number, src: Uint8Array | null, srcOff: number, srcStep: number, dst: Uint32Array | null, dstOff: number, dstStep: number) {
+        if (src === null || dst === null || this.palette === null) {
+            return;
+        }
+
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 let off = x + (y * w);

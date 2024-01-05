@@ -1,26 +1,26 @@
 class Draw2D {
-    pixels = null;
+    pixels: Uint32Array | null = null;
 
-    width = -1;
-    height = -1;
+    width: number = -1;
+    height: number = -1;
 
-    top = -1;
-    bottom = -1;
-    left = -1;
-    right = -1;
-    boundX = -1;
+    top: number = -1;
+    bottom: number = -1;
+    left: number = -1;
+    right: number = -1;
+    boundX: number = -1;
 
-    centerX = -1;
-    centerY = -1;
+    centerX: number = -1;
+    centerY: number = -1;
  
-    prepare(pixels, width, height) {
+    prepare(pixels: Uint32Array, width: number, height: number): void {
         this.pixels = pixels;
         this.width = width;
         this.height = height;
         this.setBounds(0, 0, width, height);
     }
 
-    setBounds(x0, y0, x1, y1) {
+    setBounds(x0: number, y0: number, x1: number, y1: number): void {
         if (x0 < 0) {
             x0 = 0;
         }
@@ -47,12 +47,15 @@ class Draw2D {
     }
 
     clear() {
-        this.pixels.fill(0);
+        this.pixels?.fill(0);
     }
 
     // draw a 1px border rectangle
-    drawRect(x, y, w, h, color) {
+    drawRect(x: number, y: number, w: number, h: number, color: number): void {
         let pixels = this.pixels;
+        if (pixels === null) {
+            return;
+        }
 
         let x0 = x;
         let y0 = y;
@@ -93,8 +96,11 @@ class Draw2D {
     }
 
     // fill in a rectangle area
-    fillRect(x, y, w, h, color) {
+    fillRect(x: number, y: number, w: number, h: number, color: number): void {
         let pixels = this.pixels;
+        if (pixels === null) {
+            return;
+        }
 
         let x0 = x;
         let y0 = y;

@@ -1,42 +1,43 @@
 import Draw2D from './Draw2D.js';
 
 export default class CanvasFrameBuffer {
-    canvas = null;
-    ctx = null;
-    image = null;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    image: ImageData;
+    pixels: Uint32Array;
+    width: number;
+    height: number;
 
-    pixels = null;
-    width = -1;
-    height = -1;
-
-    constructor(canvas, width, height) {
+    constructor(canvas: HTMLCanvasElement, width: number, height: number) {
+        const canvas2d = canvas.getContext('2d');
+        if (!canvas2d) {
+            throw new Error("Canvas 2d not found!!!!!!!!");
+        }
         this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
-        this.imageData = this.ctx.getImageData(0, 0, width, height);
-
+        this.ctx = canvas2d;
+        this.image = canvas2d.getImageData(0, 0, width, height);
         this.pixels = new Uint32Array(width * height);
         this.width = width;
         this.height = height;
-
         this.bind();
     }
 
-    clear() {
+    clear(): void {
         this.pixels.fill(0);
     }
 
-    bind() {
+    bind(): void {
         Draw2D.prepare(this.pixels, this.width, this.height);
     }
 
-    draw(x, y) {
+    draw(x: number, y: number): void {
         this.#setPixels();
-        this.ctx.putImageData(this.imageData, x, y);
+        this.ctx.putImageData(this.image, x, y);
     }
 
-    #setPixels() {
+    #setPixels(): void {
         // copy pixels (uint32) to imageData (uint8)
-        const data = this.imageData.data;
+        const data = this.image.data;
         for (let i = 0; i < this.pixels.length; i++) {
             const pixel = this.pixels[i];
             const index = i * 4;

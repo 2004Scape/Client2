@@ -27,7 +27,7 @@ import {decompressBz2, downloadUrl, sleep} from './jagex2/util/JsUtil.js';
 import {playMidi} from './jagex2/util/AudioUtil.js';
 import GameShell from "./jagex2/client/GameShell.js";
 
-export default class Client extends GameShell {
+class Client extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
     static CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
 
@@ -520,10 +520,6 @@ export default class Client extends GameShell {
     }
 
     drawErrorScreen(): void {
-        if (!this.ctx || !this.canvas) {
-            return;
-        }
-
         this.ctx.fillStyle = 'black';
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
