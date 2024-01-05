@@ -1,1 +1,4 @@
+/node_modules
 /.idea/
+/js/
+!/js/jagex2/vendor/tinymidipcm/tinymidipcm.wasm

@@ -1,34 +1,33 @@
-import GameShell from './GameShell.js';
+import SoundTrack from './jagex2/audio/SoundTrack.js';
 
-import SoundTrack from './audio/SoundTrack.js';
+import SeqType from './jagex2/config/SeqType.js';
+import LocType from './jagex2/config/LocType.js';
+import FloType from './jagex2/config/FloType.js';
+import ObjType from './jagex2/config/ObjType.js';
+import NpcType from './jagex2/config/NpcType.js';
+import IdkType from './jagex2/config/IdkType.js';
+import SpotAnimType from './jagex2/config/SpotAnimType.js';
+import VarpType from './jagex2/config/VarpType.js';
+import IfType from './jagex2/config/IfType.js';
 
-import SeqType from './config/SeqType.js';
-import LocType from './config/LocType.js';
-import FloType from './config/FloType.js';
-import ObjType from './config/ObjType.js';
-import NpcType from './config/NpcType.js';
-import IdkType from './config/IdkType.js';
-import SpotAnimType from './config/SpotAnimType.js';
-import VarpType from './config/VarpType.js';
-import IfType from './config/IfType.js';
+import CanvasFrameBuffer from './jagex2/graphics/CanvasFrameBuffer.js';
+import Draw2D from './jagex2/graphics/Draw2D.js';
+import Draw3D from './jagex2/graphics/Draw3D.js';
+import Image8 from './jagex2/graphics/Image8.js';
+import Image24 from './jagex2/graphics/Image24.js';
+import Font from './jagex2/graphics/Font.js';
+import Model from './jagex2/graphics/Model.js';
+import SeqBase from './jagex2/graphics/SeqBase.js';
+import SeqFrame from './jagex2/graphics/SeqFrame.js';
 
-import CanvasFrameBuffer from './graphics/CanvasFrameBuffer.js';
-import Draw2D from './graphics/Draw2D.js';
-import Draw3D from './graphics/Draw3D.js';
-import Image8 from './graphics/Image8.js';
-import Image24 from './graphics/Image24.js';
-import Font from './graphics/Font.js';
-import Model from './graphics/Model.js';
-import SeqBase from './graphics/SeqBase.js';
-import SeqFrame from './graphics/SeqFrame.js';
+import Archive from './jagex2/io/Archive.js';
 
-import Archive from './io/Archive.js';
+import Censor from './jagex2/util/Censor.js';
+import { decompressBz2, downloadUrl, sleep } from './jagex2/util/JsUtil.js';
+import { playMidi } from './jagex2/util/AudioUtil.js';
+import GameShell from "./jagex2/client/GameShell.js";
 
-import Censor from './util/Censor.js';
-import { decompressBz2, downloadUrl, sleep } from './util/JsUtil.js';
-import { playMidi } from './util/AudioUtil.js';
-
-class Client extends GameShell {
+export default class Client extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
 
     alreadyStarted = false;
@@ -39,27 +38,27 @@ class Client extends GameShell {
     clientClock = 0;
     ingame = false;
     redrawBackground = true;
-    archiveChecksums = [];
+    archiveChecksums: number[] = [];
 
     titleState = 0;
-    titleArchive = null;
+    titleArchive: Archive | null = null;
     titleDrawn = false;
-    titleTop = null;
-    titleBottom = null;
-    titleCenter = null;
-    titleLeft = null;
-    titleRight = null;
-    titleBottomLeft = null;
-    titleBottomRight = null;
-    titleLeftSpace = null;
-    titleRightSpace = null;
-    imageTitleBox = null;
-    imageTitleButton = null;
+    titleTop: CanvasFrameBuffer | null = null;
+    titleBottom: CanvasFrameBuffer | null = null;
+    titleCenter: CanvasFrameBuffer | null = null;
+    titleLeft: CanvasFrameBuffer | null = null;
+    titleRight: CanvasFrameBuffer | null = null;
+    titleBottomLeft: CanvasFrameBuffer | null = null;
+    titleBottomRight: CanvasFrameBuffer | null = null;
+    titleLeftSpace: CanvasFrameBuffer | null = null;
+    titleRightSpace: CanvasFrameBuffer | null = null;
+    imageTitleBox: Image8 | null = null;
+    imageTitleButton: Image24 | null = null;
 
-    p11 = null;
-    p12 = null;
-    b12 = null;
-    q8 = null;
+    p11: Font | null = null;
+    p12: Font | null = null;
+    b12: Font | null = null;
+    q8: Font | null = null;
 
     async load() {
         if (this.alreadyStarted) {
@@ -102,7 +101,7 @@ class Client extends GameShell {
             await this.showProgress(80, 'Unpacking textures');
             Draw3D.unpackTextures(textures);
             Draw3D.setBrightness(0.8);
-            Draw3D.initPool(20);
+            // Draw3D.initPool(20);
     
             await this.showProgress(83, 'Unpacking models');
             Model.unpack(models);
@@ -158,7 +157,7 @@ class Client extends GameShell {
 
     //
 
-    async showProgress(progress, str) {
+    async showProgress(progress: number, str: string) {
         console.log(`${progress}%: ${str}`);
 
         await this.prepareTitleScreen();
@@ -167,13 +166,13 @@ class Client extends GameShell {
             return;
         }
 
-        this.titleCenter.bind();
+        this.titleCenter?.bind();
 
         let x = 360;
         let y = 200;
 
         let offsetY = 20;
-        this.b12.drawCentered(x / 2, (y / 2) - offsetY - 26, 'RuneScape is loading - please wait...', 0xFFFFFF, false);
+        this.b12?.drawCentered(x / 2, (y / 2) - offsetY - 26, 'RuneScape is loading - please wait...', 0xFFFFFF, false);
         let midY = (y / 2) - 18 - offsetY;
 
         Draw2D.drawRect((x / 2) - 152, midY, 304, 34, 0x8c1111);
@@ -181,23 +180,23 @@ class Client extends GameShell {
         Draw2D.fillRect((x / 2) - 150, midY + 2, progress * 3, 30, 0x8c1111);
         Draw2D.fillRect(((x / 2) - 150) + (progress * 3), midY + 2, 300 - (progress * 3), 30, 0x000000);
 
-        this.b12.drawCentered(x / 2, (y / 2) + 5 - offsetY, str, 0xFFFFFF, false);
-        this.titleCenter.draw(214, 186);
+        this.b12?.drawCentered(x / 2, (y / 2) + 5 - offsetY, str, 0xFFFFFF, false);
+        this.titleCenter?.draw(214, 186);
 
         if (this.redrawBackground) {
             this.redrawBackground = false;
             this.titleDrawn = true;
 
             // TODO: flame active logic
-            this.titleLeft.draw(0, 0);
-            this.titleRight.draw(661, 0);
+            this.titleLeft?.draw(0, 0);
+            this.titleRight?.draw(661, 0);
 
-            this.titleTop.draw(128, 0);
-            this.titleBottom.draw(214, 386);
-            this.titleBottomLeft.draw(0, 265);
-            this.titleBottomRight.draw(574, 265);
-            this.titleLeftSpace.draw(128, 186);
-            this.titleRightSpace.draw(574, 186);
+            this.titleTop?.draw(128, 0);
+            this.titleBottom?.draw(214, 386);
+            this.titleBottomLeft?.draw(0, 265);
+            this.titleBottomRight?.draw(574, 265);
+            this.titleLeftSpace?.draw(128, 186);
+            this.titleRightSpace?.draw(574, 186);
         }
 
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
@@ -242,66 +241,66 @@ class Client extends GameShell {
     async loadTitleBackground() {
         let background = await Image24.fromJpeg(this.titleArchive, 'title');
 
-        this.titleLeft.bind();
+        this.titleLeft?.bind();
         background.draw(0, 0);
 
-        this.titleRight.bind();
+        this.titleRight?.bind();
         background.draw(-661, 0);
 
-        this.titleTop.bind();
+        this.titleTop?.bind();
         background.draw(-128, 0);
 
-        this.titleBottom.bind();
+        this.titleBottom?.bind();
         background.draw(-214, -386);
 
-        this.titleCenter.bind();
+        this.titleCenter?.bind();
         background.draw(-214, -186);
 
-        this.titleBottomLeft.bind();
+        this.titleBottomLeft?.bind();
         background.draw(0, -265);
 
-        this.titleBottomRight.bind();
+        this.titleBottomRight?.bind();
         background.draw(-128, -186);
 
-        this.titleLeftSpace.bind();
+        this.titleLeftSpace?.bind();
         background.draw(-128, -186);
 
-        this.titleRightSpace.bind();
+        this.titleRightSpace?.bind();
         background.draw(-574, -186);
 
         // draw right side (mirror image)
         background.flipHorizontally();
 
-        this.titleLeft.bind();
+        this.titleLeft?.bind();
         background.draw(394, 0);
 
-        this.titleRight.bind();
+        this.titleRight?.bind();
         background.draw(-267, 0);
 
-        this.titleTop.bind();
+        this.titleTop?.bind();
         background.draw(266, 0);
 
-        this.titleBottom.bind();
+        this.titleBottom?.bind();
         background.draw(180, -386);
 
-        this.titleCenter.bind();
+        this.titleCenter?.bind();
         background.draw(180, -186);
 
-        this.titleBottomLeft.bind();
+        this.titleBottomLeft?.bind();
         background.draw(394, -265);
 
-        this.titleBottomRight.bind();
+        this.titleBottomRight?.bind();
         background.draw(-180, -265);
 
-        this.titleLeftSpace.bind();
+        this.titleLeftSpace?.bind();
         background.draw(212, -186);
 
-        this.titleRightSpace.bind();
+        this.titleRightSpace?.bind();
         background.draw(-180, -186);
 
         let logo = Image24.fromArchive(this.titleArchive, 'logo');
-        this.titleTop.bind();
-        logo.draw((this.canvas.width / 2) - (logo.width / 2) - 128, 18);
+        this.titleTop?.bind();
+        logo.draw((this.canvas!.width / 2) - (logo.width / 2) - 128, 18);
     }
 
     loadTitleForeground() {
@@ -316,8 +315,8 @@ class Client extends GameShell {
         await this.prepareTitleScreen();
 
         if (this.titleArchive != null) {
-            this.titleCenter.bind();
-            this.imageTitleBox.draw(0, 0);
+            this.titleCenter?.bind();
+            this.imageTitleBox?.draw(0, 0);
 
             let x = 360;
             let y = 200;
@@ -325,35 +324,35 @@ class Client extends GameShell {
             if (this.titleState === 0) {
                 let offsetX = x / 2;
                 let offsetY = (y / 2) - 20;
-                this.b12.drawCentered(offsetX, offsetY, 'Welcome to RuneScape', 0xFFFFFF00);
+                this.b12?.drawCentered(offsetX, offsetY, 'Welcome to RuneScape', 0xFFFFFF00);
 
                 // y += 30;
                 offsetX = (x / 2) - 80;
                 offsetY = (y / 2) + 20;
-                this.imageTitleButton.draw(offsetX - 73, offsetY - 20);
-                this.b12.drawCentered(offsetX, offsetY + 5, 'New user', 0xFFFFFFFF);
+                this.imageTitleButton?.draw(offsetX - 73, offsetY - 20);
+                this.b12?.drawCentered(offsetX, offsetY + 5, 'New user', 0xFFFFFFFF);
 
                 offsetX = (x / 2) + 80;
-                this.imageTitleButton.draw(offsetX - 73, offsetY - 20);
-                this.b12.drawCentered(offsetX, offsetY + 5, 'Existing User', 0xFFFFFFFF);
+                this.imageTitleButton?.draw(offsetX - 73, offsetY - 20);
+                this.b12?.drawCentered(offsetX, offsetY + 5, 'Existing User', 0xFFFFFFFF);
             }
         }
 
-        this.titleCenter.draw(214, 186);
+        this.titleCenter?.draw(214, 186);
         if (this.redrawBackground) {
             this.redrawBackground = false;
             this.titleDrawn = true;
 
-            this.titleTop.draw(128, 0);
-            this.titleBottom.draw(214, 386);
-            this.titleBottomLeft.draw(0, 265);
-            this.titleBottomRight.draw(574, 265);
-            this.titleLeftSpace.draw(128, 186);
-            this.titleRightSpace.draw(574, 186);
+            this.titleTop?.draw(128, 0);
+            this.titleBottom?.draw(214, 386);
+            this.titleBottomLeft?.draw(0, 265);
+            this.titleBottomRight?.draw(574, 265);
+            this.titleLeftSpace?.draw(128, 186);
+            this.titleRightSpace?.draw(574, 186);
         }
     }
 
-    async loadArchive(filename, displayName, crc, progress) {
+    async loadArchive(filename: string, displayName: string, crc: number, progress: number) {
         // TODO: caching
         // TODO: download progress, retry
 
@@ -363,12 +362,16 @@ class Client extends GameShell {
         return data;
     }
 
-    async setMidi(name, crc) {
+    async setMidi(name: string, crc: number) {
         let file = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
         playMidi(decompressBz2(file.data, true, false), 192);
     }
 
     drawErrorScreen() {
+        if (!this.ctx || !this.canvas) {
+            return;
+        }
+
         this.ctx.fillStyle = 'black';
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -435,5 +438,5 @@ class Client extends GameShell {
     }
 }
 
-let client = new Client();
+const client = new Client();
 client.run().then(() => {});

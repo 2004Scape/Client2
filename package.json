@@ -1,0 +1,17 @@
+{
+  "name": "20004scape-client",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "compile:client": "cd client && tsc",
+    "compile:loader": "cd loader && tsc",
+    "compile": "npm run compile:client && npm run compile:loader"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {}
+}

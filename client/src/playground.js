@@ -1,28 +1,28 @@
-import GameShell from './GameShell.js';
+import GameShell from './jagex2/client/GameShell.js';
 
-import SoundTrack from './audio/SoundTrack.js';
+import SoundTrack from './jagex2/audio/SoundTrack.js';
 
-import SeqType from './config/SeqType.js';
-import LocType from './config/LocType.js';
-import FloType from './config/FloType.js';
-import ObjType from './config/ObjType.js';
-import NpcType from './config/NpcType.js';
-import IdkType from './config/IdkType.js';
-import SpotAnimType from './config/SpotAnimType.js';
-import VarpType from './config/VarpType.js';
-import IfType from './config/IfType.js';
+import SeqType from './jagex2/config/SeqType.js';
+import LocType from './jagex2/config/LocType.js';
+import FloType from './jagex2/config/FloType.js';
+import ObjType from './jagex2/config/ObjType.js';
+import NpcType from './jagex2/config/NpcType.js';
+import IdkType from './jagex2/config/IdkType.js';
+import SpotAnimType from './jagex2/config/SpotAnimType.js';
+import VarpType from './jagex2/config/VarpType.js';
+import IfType from './jagex2/config/IfType.js';
 
-import Draw3D from './graphics/Draw3D.js';
-import Font from './graphics/Font.js';
-import Model from './graphics/Model.js';
-import SeqBase from './graphics/SeqBase.js';
-import SeqFrame from './graphics/SeqFrame.js';
+import Draw3D from './jagex2/graphics/Draw3D.js';
+import Font from './jagex2/graphics/Font.js';
+import Model from './jagex2/graphics/Model.js';
+import SeqBase from './jagex2/graphics/SeqBase.js';
+import SeqFrame from './jagex2/graphics/SeqFrame.js';
 
-import Archive from './io/Archive.js';
+import Archive from './jagex2/io/Archive.js';
 
-import Censor from './util/Censor.js';
-import { downloadUrl } from './util/JsUtil.js';
-import Draw2D from './graphics/Draw2D.js';
+import Censor from './jagex2/util/Censor.js';
+import { downloadUrl } from './jagex2/util/JsUtil.js';
+import Draw2D from './jagex2/graphics/Draw2D.js';
 
 class Playground extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';

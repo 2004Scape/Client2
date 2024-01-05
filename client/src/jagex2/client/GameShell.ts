@@ -1,61 +1,61 @@
-import CanvasFrameBuffer from './graphics/CanvasFrameBuffer.js';
-import Draw3D from './graphics/Draw3D.js';
+import CanvasFrameBuffer from '../graphics/CanvasFrameBuffer.js';
+import Draw3D from '../graphics/Draw3D.js';
 
-import { sleep } from './util/JsUtil.js';
+import { sleep } from '../util/JsUtil.js';
 
 export default class GameShell {
-    canvas = null;
-    ctx = null;
+    canvas: HTMLCanvasElement | null = null;
+    ctx: CanvasRenderingContext2D | null = null;
 
-    state = 0;
-    deltime = 20;
-    mindel = 1;
-    otim = [];
-    fps = 0;
-    drawArea = null;
-    redrawScreen = true;
-    resizeToFit = false;
+    state: number = 0;
+    deltime: number = 20;
+    mindel: number = 1;
+    otim: number[] = [];
+    fps: number = 0;
+    drawArea: CanvasFrameBuffer | null = null;
+    redrawScreen: boolean = true;
+    resizeToFit: boolean = false;
 
-    idleCycles = 0;
-    mouseButton = 0;
-    mouseX = 0;
-    mouseY = 0;
-    mouseClickButton = 0;
-    mouseClickX = 0;
-    mouseClickY = 0;
-    actionKey = [];
-    keyQueue = [];
-    keyQueueReadPos = 0;
-    keyQueueWritePos = 0;
+    idleCycles: number = 0;
+    mouseButton: number = 0;
+    mouseX: number = 0;
+    mouseY: number = 0;
+    mouseClickButton: number = 0;
+    mouseClickX: number = 0;
+    mouseClickY: number = 0;
+    actionKey: number[] = [];
+    keyQueue: number[] = [];
+    keyQueueReadPos: number = 0;
+    keyQueueWritePos: number = 0;
 
     constructor(resizetoFit = false) {
-        this.canvas = document.getElementById('canvas');
-        this.ctx = this.canvas.getContext('2d');
+        this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
+        this.ctx = this.canvas!.getContext('2d');
 
         this.resizeToFit = resizetoFit;
         if (this.resizeToFit) {
             this.resize(window.innerWidth, window.innerHeight);
         } else {
-            this.resize(canvas.width, canvas.height);
+            this.resize(this.canvas.width, this.canvas.height);
         }
     }
 
     get width() {
-        return this.canvas.width;
+        return this.canvas!.width;
     }
 
     get height() {
-        return this.canvas.height;
+        return this.canvas!.height;
     }
 
-    resize(width, height) {
-        this.canvas.width = width;
-        this.canvas.height = height;
+    resize(width: number, height: number): void {
+        this.canvas!.width = width;
+        this.canvas!.height = height;
         this.drawArea = new CanvasFrameBuffer(this.canvas, this.width, this.height);
         Draw3D.init2D();
     }
 
-    async run() {
+    async run(): Promise<void> {
         window.addEventListener('resize', () => {
             if (this.resizeToFit) {
                 this.resize(window.innerWidth, window.innerHeight);
@@ -145,17 +145,17 @@ export default class GameShell {
             await this.draw();
         }
 
-        if (state == -1) {
+        if (this.state == -1) {
             this.shutdown();
         }
     }
 
     shutdown() {
-        state = -2;
+        this.state = -2;
         this.unload();
     }
 
-    setLoopRate(rate) {
+    setLoopRate(rate: number) {
         this.deltime = 1000 / rate;
     }
 
@@ -190,34 +190,34 @@ export default class GameShell {
     refresh() {
     }
 
-    async showProgress(progress, message) {
+    async showProgress(progress: number, message: string) {
         if (this.redrawScreen) {
-            this.ctx.fillStyle = 'black';
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx!.fillStyle = 'black';
+            this.ctx!.clearRect(0, 0, this.canvas!.width, this.canvas!.height);
             this.redrawScreen = false;
         }
 
-        let y = this.canvas.height / 2 - 18;
+        let y = this.canvas!.height / 2 - 18;
 
         // draw full progress bar
-        this.ctx.fillStyle = 'rgb(140, 17, 17)';
-        this.ctx.rect((this.canvas.width / 2) - 152, y, 304, 34);
-        this.ctx.fillRect((this.canvas.width / 2) - 150, y + 2, progress * 3, 30);
+        this.ctx!.fillStyle = 'rgb(140, 17, 17)';
+        this.ctx!.rect((this.canvas!.width / 2) - 152, y, 304, 34);
+        this.ctx!.fillRect((this.canvas!.width / 2) - 150, y + 2, progress * 3, 30);
 
         // cover up progress bar
-        this.ctx.fillStyle = 'black';
-        this.ctx.fillRect(((this.canvas.width / 2) - 150) + (progress * 3), y + 2, 300 - (progress * 3), 30);
+        this.ctx!.fillStyle = 'black';
+        this.ctx!.fillRect(((this.canvas!.width / 2) - 150) + (progress * 3), y + 2, 300 - (progress * 3), 30);
 
         // draw text
-        this.ctx.font = 'bold 13px helvetica, sans-serif';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillText(message, this.canvas.width / 2, y + 22);
+        this.ctx!.font = 'bold 13px helvetica, sans-serif';
+        this.ctx!.textAlign = 'center';
+        this.ctx!.fillStyle = 'white';
+        this.ctx!.fillText(message, this.canvas!.width / 2, y + 22);
 
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
 
-    keyDown(e) {
+    keyDown(e: KeyboardEvent) {
         this.idleCycles = 0;
 
         let ch = e.key.charCodeAt(0);
@@ -237,7 +237,7 @@ export default class GameShell {
         this.keyQueueWritePos = (this.keyQueueWritePos + 1) % 128;
     }
 
-    keyUp(e) {
+    keyUp(e: KeyboardEvent) {
         this.idleCycles = 0;
 
         let ch = e.key.charCodeAt(0);
