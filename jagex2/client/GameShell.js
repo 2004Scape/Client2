@@ -58,6 +58,9 @@ export default class GameShell {
         window.addEventListener('keyup', (e) => {
             this.keyUp(e);
         });
+        window.addEventListener('mousedown', (e) => {
+            this.mousePressed(e);
+        });
         await this.showProgress(0, 'Loading...');
         await this.load();
         let opos = 0;
@@ -218,6 +221,36 @@ export default class GameShell {
             this.keyQueueReadPos = (this.keyQueueReadPos + 1) % 128;
         }
         return key;
+    }
+    mousePressed(e) {
+        let x = e.x;
+        let y = e.y;
+        const { top, left } = this.getInsets();
+        x -= left;
+        y -= top;
+        this.idleCycles = 0;
+        this.mouseClickX = x;
+        this.mouseClickY = y;
+        if (e.buttons === 2) {
+            this.mouseClickButton = 2;
+            this.mouseButton = 2;
+        }
+        else if (e.buttons === 1) {
+            this.mouseClickButton = 1;
+            this.mouseButton = 1;
+        }
+        // TODO input tracking
+    }
+    getInsets() {
+        const rect = this.canvas.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(this.canvas);
+        const paddingLeft = parseFloat(computedStyle.paddingLeft || '0');
+        const paddingTop = parseFloat(computedStyle.paddingTop || '0');
+        const borderLeft = parseFloat(computedStyle.borderLeftWidth || '0');
+        const borderTop = parseFloat(computedStyle.borderTopWidth || '0');
+        const left = rect.left + borderLeft + paddingLeft;
+        const top = rect.top + borderTop + paddingTop;
+        return { top, left };
     }
 }
 //# sourceMappingURL=GameShell.js.map

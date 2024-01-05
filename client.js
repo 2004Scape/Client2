@@ -24,32 +24,38 @@ import { playMidi } from './jagex2/util/AudioUtil.js';
 import GameShell from "./jagex2/client/GameShell.js";
 export default class Client extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
+    static CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
     alreadyStarted = false;
     errorStarted = false;
     errorLoading = false;
     errorHost = false;
-    clientClock = 0;
+    loopCycle = 0;
     ingame = false;
-    redrawBackground = true;
+    redrawTitleBackground = true;
     archiveChecksums = [];
-    titleState = 0;
+    titleScreenState = 0;
+    titleLoginField = 0;
     titleArchive = null;
-    titleDrawn = false;
-    titleTop = null;
-    titleBottom = null;
-    titleCenter = null;
-    titleLeft = null;
-    titleRight = null;
-    titleBottomLeft = null;
-    titleBottomRight = null;
-    titleLeftSpace = null;
-    titleRightSpace = null;
+    imageTitle2 = null;
+    imageTitle3 = null;
+    imageTitle4 = null;
+    imageTitle0 = null;
+    imageTitle1 = null;
+    imageTitle5 = null;
+    imageTitle6 = null;
+    imageTitle7 = null;
+    imageTitle8 = null;
     imageTitleBox = null;
     imageTitleButton = null;
-    p11 = null;
-    p12 = null;
-    b12 = null;
-    q8 = null;
+    fontPlain11 = null;
+    fontPlain12 = null;
+    fontBold12 = null;
+    fontQuill8 = null;
+    flameActive = false;
+    loginMessage0 = '';
+    loginMessage1 = '';
+    username = '';
+    password = '';
     async load() {
         if (this.alreadyStarted) {
             this.errorStarted = true;
@@ -64,12 +70,12 @@ export default class Client extends GameShell {
             }
             await this.setMidi('scape_main', 12345678);
             this.titleArchive = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
-            this.p11 = Font.fromArchive(this.titleArchive, 'p11');
-            this.p12 = Font.fromArchive(this.titleArchive, 'p12');
-            this.b12 = Font.fromArchive(this.titleArchive, 'b12');
-            this.q8 = Font.fromArchive(this.titleArchive, 'q8');
+            this.fontPlain11 = Font.fromArchive(this.titleArchive, 'p11');
+            this.fontPlain12 = Font.fromArchive(this.titleArchive, 'p12');
+            this.fontBold12 = Font.fromArchive(this.titleArchive, 'b12');
+            this.fontQuill8 = Font.fromArchive(this.titleArchive, 'q8');
             await this.loadTitleBackground();
-            this.loadTitleForeground();
+            this.loadTitleImages();
             let config = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
             let interfaces = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
             let media = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
@@ -111,8 +117,11 @@ export default class Client extends GameShell {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             return;
         }
-        this.clientClock++;
-        if (!this.ingame) {
+        this.loopCycle++;
+        if (this.ingame) {
+            // TODO
+        }
+        else {
             this.updateTitleScreen();
         }
     }
@@ -133,139 +142,265 @@ export default class Client extends GameShell {
             await super.showProgress(progress, str);
             return;
         }
-        this.titleCenter?.bind();
+        this.imageTitle4?.bind();
         let x = 360;
         let y = 200;
         let offsetY = 20;
-        this.b12?.drawCentered(x / 2, (y / 2) - offsetY - 26, 'RuneScape is loading - please wait...', 0xFFFFFF, false);
+        this.fontBold12?.drawStringCenter(x / 2, (y / 2) - offsetY - 26, 'RuneScape is loading - please wait...', 0xFFFFFF);
         let midY = (y / 2) - 18 - offsetY;
         Draw2D.drawRect((x / 2) - 152, midY, 304, 34, 0x8c1111);
         Draw2D.drawRect((x / 2) - 151, midY + 1, 302, 32, 0x000000);
         Draw2D.fillRect((x / 2) - 150, midY + 2, progress * 3, 30, 0x8c1111);
         Draw2D.fillRect(((x / 2) - 150) + (progress * 3), midY + 2, 300 - (progress * 3), 30, 0x000000);
-        this.b12?.drawCentered(x / 2, (y / 2) + 5 - offsetY, str, 0xFFFFFF, false);
-        this.titleCenter?.draw(214, 186);
-        if (this.redrawBackground) {
-            this.redrawBackground = false;
-            this.titleDrawn = true;
-            // TODO: flame active logic
-            this.titleLeft?.draw(0, 0);
-            this.titleRight?.draw(661, 0);
-            this.titleTop?.draw(128, 0);
-            this.titleBottom?.draw(214, 386);
-            this.titleBottomLeft?.draw(0, 265);
-            this.titleBottomRight?.draw(574, 265);
-            this.titleLeftSpace?.draw(128, 186);
-            this.titleRightSpace?.draw(574, 186);
+        this.fontBold12?.drawStringCenter(x / 2, (y / 2) + 5 - offsetY, str, 0xFFFFFF);
+        this.imageTitle4?.draw(214, 186);
+        if (this.redrawTitleBackground) {
+            this.redrawTitleBackground = false;
+            if (!this.flameActive) {
+                this.imageTitle0?.draw(0, 0);
+                this.imageTitle1?.draw(661, 0);
+            }
+            this.imageTitle2?.draw(128, 0);
+            this.imageTitle3?.draw(214, 386);
+            this.imageTitle5?.draw(0, 265);
+            this.imageTitle6?.draw(574, 265);
+            this.imageTitle7?.draw(128, 186);
+            this.imageTitle8?.draw(574, 186);
         }
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
     //
     async prepareTitleScreen() {
-        this.titleLeft = new CanvasFrameBuffer(this.canvas, 128, 265);
+        this.imageTitle0 = new CanvasFrameBuffer(this.canvas, 128, 265);
         Draw2D.clear();
-        this.titleRight = new CanvasFrameBuffer(this.canvas, 128, 265);
+        this.imageTitle1 = new CanvasFrameBuffer(this.canvas, 128, 265);
         Draw2D.clear();
-        this.titleTop = new CanvasFrameBuffer(this.canvas, 533, 186);
+        this.imageTitle2 = new CanvasFrameBuffer(this.canvas, 533, 186);
         Draw2D.clear();
-        this.titleBottom = new CanvasFrameBuffer(this.canvas, 360, 146);
+        this.imageTitle3 = new CanvasFrameBuffer(this.canvas, 360, 146);
         Draw2D.clear();
-        this.titleCenter = new CanvasFrameBuffer(this.canvas, 360, 200);
+        this.imageTitle4 = new CanvasFrameBuffer(this.canvas, 360, 200);
         Draw2D.clear();
-        this.titleBottomLeft = new CanvasFrameBuffer(this.canvas, 214, 267);
+        this.imageTitle5 = new CanvasFrameBuffer(this.canvas, 214, 267);
         Draw2D.clear();
-        this.titleBottomRight = new CanvasFrameBuffer(this.canvas, 215, 267);
+        this.imageTitle6 = new CanvasFrameBuffer(this.canvas, 215, 267);
         Draw2D.clear();
-        this.titleLeftSpace = new CanvasFrameBuffer(this.canvas, 86, 79);
+        this.imageTitle7 = new CanvasFrameBuffer(this.canvas, 86, 79);
         Draw2D.clear();
-        this.titleRightSpace = new CanvasFrameBuffer(this.canvas, 87, 79);
+        this.imageTitle8 = new CanvasFrameBuffer(this.canvas, 87, 79);
         Draw2D.clear();
         if (this.titleArchive != null) {
             await this.loadTitleBackground();
-            this.loadTitleForeground();
+            this.loadTitleImages();
         }
     }
     async loadTitleBackground() {
         let background = await Image24.fromJpeg(this.titleArchive, 'title');
-        this.titleLeft?.bind();
+        this.imageTitle0?.bind();
         background.draw(0, 0);
-        this.titleRight?.bind();
+        this.imageTitle1?.bind();
         background.draw(-661, 0);
-        this.titleTop?.bind();
+        this.imageTitle2?.bind();
         background.draw(-128, 0);
-        this.titleBottom?.bind();
+        this.imageTitle3?.bind();
         background.draw(-214, -386);
-        this.titleCenter?.bind();
+        this.imageTitle4?.bind();
         background.draw(-214, -186);
-        this.titleBottomLeft?.bind();
+        this.imageTitle5?.bind();
         background.draw(0, -265);
-        this.titleBottomRight?.bind();
+        this.imageTitle6?.bind();
         background.draw(-128, -186);
-        this.titleLeftSpace?.bind();
+        this.imageTitle7?.bind();
         background.draw(-128, -186);
-        this.titleRightSpace?.bind();
+        this.imageTitle8?.bind();
         background.draw(-574, -186);
         // draw right side (mirror image)
         background.flipHorizontally();
-        this.titleLeft?.bind();
+        this.imageTitle0?.bind();
         background.draw(394, 0);
-        this.titleRight?.bind();
+        this.imageTitle1?.bind();
         background.draw(-267, 0);
-        this.titleTop?.bind();
+        this.imageTitle2?.bind();
         background.draw(266, 0);
-        this.titleBottom?.bind();
+        this.imageTitle3?.bind();
         background.draw(180, -386);
-        this.titleCenter?.bind();
+        this.imageTitle4?.bind();
         background.draw(180, -186);
-        this.titleBottomLeft?.bind();
+        this.imageTitle5?.bind();
         background.draw(394, -265);
-        this.titleBottomRight?.bind();
+        this.imageTitle6?.bind();
         background.draw(-180, -265);
-        this.titleLeftSpace?.bind();
+        this.imageTitle7?.bind();
         background.draw(212, -186);
-        this.titleRightSpace?.bind();
+        this.imageTitle8?.bind();
         background.draw(-180, -186);
         let logo = Image24.fromArchive(this.titleArchive, 'logo');
-        this.titleTop?.bind();
-        logo.draw((this.canvas.width / 2) - (logo.width / 2) - 128, 18);
+        this.imageTitle2?.bind();
+        logo.draw((this.width / 2) - (logo.width / 2) - 128, 18);
     }
-    loadTitleForeground() {
+    loadTitleImages() {
         this.imageTitleBox = Image8.fromArchive(this.titleArchive, 'titlebox');
         this.imageTitleButton = Image24.fromArchive(this.titleArchive, 'titlebutton');
+        // TODO Flames
     }
     updateTitleScreen() {
+        if (this.titleScreenState === 0) {
+            let x = this.width / 2 - 80;
+            let y = this.height / 2 + 20;
+            y += 20;
+            if (this.mouseClickButton == 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
+                this.titleScreenState = 3;
+                this.titleLoginField = 0;
+            }
+            x = this.width / 2 + 80;
+            if (this.mouseClickButton == 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
+                this.loginMessage0 = '';
+                this.loginMessage1 = 'Enter your username & password.';
+                this.titleScreenState = 2;
+                this.titleLoginField = 0;
+            }
+        }
+        else if (this.titleScreenState == 2) {
+            let y = this.height / 2 - 40;
+            y += 30;
+            y += 25;
+            if (this.mouseClickButton == 1 && this.mouseClickY >= y - 15 && this.mouseClickY < y) {
+                this.titleLoginField = 0;
+            }
+            y += 15;
+            if (this.mouseClickButton == 1 && this.mouseClickY >= y - 15 && this.mouseClickY < y) {
+                this.titleLoginField = 1;
+            }
+            y += 15;
+            let buttonX = this.width / 2 - 80;
+            let buttonY = this.height / 2 + 50;
+            buttonY += 20;
+            if (this.mouseClickButton == 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
+                // this.login(this.username, this.password, false);
+            }
+            buttonX = this.width / 2 + 80;
+            if (this.mouseClickButton == 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
+                this.titleScreenState = 0;
+                this.username = '';
+                this.password = '';
+            }
+            while (true) {
+                let key = this.pollKey();
+                if (key == -1) {
+                    return;
+                }
+                let valid = false;
+                for (let i = 0; i < Client.CHARSET.length; i++) {
+                    if (String.fromCharCode(key) === Client.CHARSET.charAt(i)) {
+                        valid = true;
+                        break;
+                    }
+                }
+                if (this.titleLoginField == 0) {
+                    if (key == 8 && this.username.length > 0) {
+                        this.username = this.username.substring(0, this.username.length - 1);
+                    }
+                    if (key == 9 || key == 10 || key == 13) {
+                        this.titleLoginField = 1;
+                    }
+                    if (valid) {
+                        this.username = this.username + String.fromCharCode(key);
+                    }
+                    if (this.username.length > 12) {
+                        this.username = this.username.substring(0, 12);
+                    }
+                }
+                else if (this.titleLoginField == 1) {
+                    if (key == 8 && this.password.length > 0) {
+                        this.password = this.password.substring(0, this.password.length - 1);
+                    }
+                    if (key == 9 || key == 10 || key == 13) {
+                        this.titleLoginField = 0;
+                    }
+                    if (valid) {
+                        this.password = this.password + String.fromCharCode(key);
+                    }
+                    if (this.password.length > 20) {
+                        this.password = this.password.substring(0, 20);
+                    }
+                }
+            }
+        }
+        else if (this.titleScreenState == 3) {
+            let x = this.width / 2;
+            let y = this.height / 2 + 50;
+            y += 20;
+            if (this.mouseClickButton == 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
+                this.titleScreenState = 0;
+            }
+        }
     }
     async drawTitleScreen() {
         await this.prepareTitleScreen();
-        if (this.titleArchive != null) {
-            this.titleCenter?.bind();
-            this.imageTitleBox?.draw(0, 0);
-            let x = 360;
-            let y = 200;
-            if (this.titleState === 0) {
-                let offsetX = x / 2;
-                let offsetY = (y / 2) - 20;
-                this.b12?.drawCentered(offsetX, offsetY, 'Welcome to RuneScape', 0xFFFFFF00);
-                // y += 30;
-                offsetX = (x / 2) - 80;
-                offsetY = (y / 2) + 20;
-                this.imageTitleButton?.draw(offsetX - 73, offsetY - 20);
-                this.b12?.drawCentered(offsetX, offsetY + 5, 'New user', 0xFFFFFFFF);
-                offsetX = (x / 2) + 80;
-                this.imageTitleButton?.draw(offsetX - 73, offsetY - 20);
-                this.b12?.drawCentered(offsetX, offsetY + 5, 'Existing User', 0xFFFFFFFF);
-            }
+        this.imageTitle4?.bind();
+        this.imageTitleBox?.draw(0, 0);
+        let w = 360;
+        let h = 200;
+        if (this.titleScreenState === 0) {
+            let x = w / 2;
+            let y = (h / 2) - 20;
+            this.fontBold12?.drawStringTaggableCenter(x, y, 'Welcome to RuneScape', 0xFFFFFF00, true);
+            x = (w / 2) - 80;
+            y = (h / 2) + 20;
+            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'New user', 0xFFFFFFFF, true);
+            x = (w / 2) + 80;
+            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Existing User', 0xFFFFFFFF, true);
         }
-        this.titleCenter?.draw(214, 186);
-        if (this.redrawBackground) {
-            this.redrawBackground = false;
-            this.titleDrawn = true;
-            this.titleTop?.draw(128, 0);
-            this.titleBottom?.draw(214, 386);
-            this.titleBottomLeft?.draw(0, 265);
-            this.titleBottomRight?.draw(574, 265);
-            this.titleLeftSpace?.draw(128, 186);
-            this.titleRightSpace?.draw(574, 186);
+        else if (this.titleScreenState === 2) {
+            let x = w / 2 - 80;
+            let y = h / 2 - 40;
+            if (this.loginMessage0.length === 0) {
+                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 15, this.loginMessage0, 0xFFFF00, true);
+                this.fontBold12?.drawStringTaggableCenter(w / 2, y, this.loginMessage1, 0xFFFF00, true);
+                y += 30;
+            }
+            else {
+                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 7, this.loginMessage1, 0xFFFF00, true);
+                y += 30;
+            }
+            this.fontBold12?.drawStringTaggable(w / 2 - 90, y, `Username: ${this.username}${(this.titleLoginField == 0 && this.loopCycle % 40 < 20) ? '@yel@|' : ''}`, 0xFFFFFF, true);
+            y += 15;
+            this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${this.password}${(this.titleLoginField == 1 && this.loopCycle % 40 < 20) ? '@yel@|' : ''}`, 0xFFFFFF, true);
+            x = w / 2 - 80;
+            y = h / 2 + 50;
+            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Login', 0xFFFFFF, true);
+            x = w / 2 + 80;
+            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 0xFFFFFF, true);
+        }
+        else if (this.titleScreenState == 3) {
+            this.fontBold12?.drawStringTaggableCenter(w / 2, 16776960, true, h / 2 - 60, "Create a free account");
+            let x = w / 2;
+            let y = h / 2 - 35;
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "To create a new account you need to", 0xFFFFFF, true);
+            y += 15;
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "go back to the main RuneScape webpage", 0xFFFFFF, true);
+            y += 15;
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "and choose the red 'create account'", 0xFFFFFF, true);
+            y += 15;
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "button at the top right of that page.", 0xFFFFFF, true);
+            y += 15;
+            y = h / 2 + 50;
+            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, "Cancel", 16777215, true);
+        }
+        this.imageTitle4?.draw(214, 186);
+        if (this.redrawTitleBackground) {
+            this.redrawTitleBackground = false;
+            this.imageTitle2?.draw(128, 0);
+            this.imageTitle3?.draw(214, 386);
+            this.imageTitle5?.draw(0, 265);
+            this.imageTitle6?.draw(574, 265);
+            this.imageTitle7?.draw(128, 186);
+            this.imageTitle8?.draw(574, 186);
         }
     }
     async loadArchive(filename, displayName, crc, progress) {
@@ -334,5 +469,6 @@ export default class Client extends GameShell {
     }
 }
 const client = new Client();
-client.run().then(() => { });
+client.run().then(() => {
+});
 //# sourceMappingURL=client.js.map
