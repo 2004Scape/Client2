@@ -27,6 +27,8 @@ import {decompressBz2, downloadUrl, sleep} from './jagex2/util/JsUtil.js';
 import {playMidi} from './jagex2/util/AudioUtil.js';
 import GameShell from "./jagex2/client/GameShell.js";
 
+import './vendor/midi.js';
+
 class Client extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
     static CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';

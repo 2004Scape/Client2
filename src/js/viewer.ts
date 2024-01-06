@@ -1,3 +1,5 @@
+import 'style/viewer.scss';
+
 import SoundTrack from './jagex2/audio/SoundTrack.js';
 
 import SeqType from './jagex2/config/SeqType.js';

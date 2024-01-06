@@ -15,18 +15,24 @@
             }
 
             canvas {
-                /* image-rendering: pixelated; */
                 display: block;
                 margin: 0 auto;
+
+                image-rendering: pixelated;
+                touch-action: none;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
                 outline: none;
-                -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+                -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+                z-index: -1;
             }
         </style>
     </head>
     <body>
         <canvas id="canvas" width="789" height="532"></canvas>
-
-        <script type="module" src="js/vendor/midi.js"></script>
-        <script type="module" src="js/client.js"></script>
     </body>
 </html>

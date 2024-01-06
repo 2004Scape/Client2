@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "target": "ESNext",
+        "lib": [
+            "ESNext",
+            "DOM"
+        ],
+        "allowJs": true,
+        "checkJs": false,
+        "strict": true,
+        "alwaysStrict": true,
+        "allowSyntheticDefaultImports": true
+    },
+    "include": [
+        "src/js/**/*.ts",
+        "src/js/**/*.js"
+    ]
+}
