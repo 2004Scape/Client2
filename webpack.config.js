@@ -43,7 +43,7 @@ const config = {
 
     output: {
         path: path.resolve(__dirname, 'public'),
-        publicPath: '/Client2/' // used for GitHub Pages, maybe control via env var?
+        publicPath: isProduction ? '/Client2/' : '/' // used for GitHub Pages, maybe control via env var?
     },
 
     devServer: {

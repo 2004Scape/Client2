@@ -30,7 +30,7 @@ import GameShell from "./jagex2/client/GameShell.js";
 
 export default class Client extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
-    static REPO: string = 'https://raw.githubusercontent.com/2004scape/Server/main/';
+    static REPO: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
 
     alreadyStarted: boolean = false;
     errorStarted: boolean = false;
