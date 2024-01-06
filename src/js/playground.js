@@ -173,27 +173,27 @@ class Playground extends GameShell {
 
         // controls
         let leftY = this.b12.fontHeight;
-        this.b12.draw(0, leftY, `Model: ${this.model.id}`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `Model: ${this.model.id}`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `Controls:`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `Controls:`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `r - reset camera and model rotation + movement speed`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `r - reset camera and model rotation + movement speed`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `1 and 2 - change model`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `1 and 2 - change model`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `[ and ] - adjust movement speed`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `[ and ] - adjust movement speed`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `left and right - adjust model yaw`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `left and right - adjust model yaw`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `up and down - adjust model pitch`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `up and down - adjust model pitch`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `. and / - adjust model roll`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `. and / - adjust model roll`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `w and s - move camera along z axis`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `w and s - move camera along z axis`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `a and d - move camera along x axis`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `a and d - move camera along x axis`, 0xFFFF00);
         leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `q and e - move camera along y axis`, 0xFFFF00);
+        this.b12.blitOpaque(0, leftY, `q and e - move camera along y axis`, 0xFFFF00);
 
         this.drawArea.draw(0, 0);
     }

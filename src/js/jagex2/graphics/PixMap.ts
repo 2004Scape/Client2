@@ -1,12 +1,13 @@
 import Draw2D from './Draw2D.js';
 
-export default class CanvasFrameBuffer {
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D;
-    image: ImageData;
-    pixels: Uint32Array;
-    width: number;
-    height: number;
+export default class PixMap {
+    // constructor
+    readonly canvas: HTMLCanvasElement;
+    readonly ctx: CanvasRenderingContext2D;
+    readonly image: ImageData;
+    readonly pixels: Uint32Array;
+    readonly width: number;
+    readonly height: number;
 
     constructor(canvas: HTMLCanvasElement, width: number, height: number) {
         const canvas2d = canvas.getContext('2d');
@@ -30,9 +31,9 @@ export default class CanvasFrameBuffer {
         Draw2D.prepare(this.pixels, this.width, this.height);
     }
 
-    draw(x: number, y: number): void {
+    draw(width: number, height: number): void {
         this.#setPixels();
-        this.ctx.putImageData(this.image, x, y);
+        this.ctx.putImageData(this.image, width, height);
     }
 
     #setPixels(): void {

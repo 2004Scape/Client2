@@ -1,9 +1,9 @@
-import CanvasFrameBuffer from '../graphics/CanvasFrameBuffer.js';
+import PixMap from '../graphics/PixMap.js';
 import Draw3D from '../graphics/Draw3D.js';
 
 import { sleep } from '../util/JsUtil.js';
 
-export default class GameShell {
+export default abstract class GameShell {
     static getParameter(name: string): string {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name) ?? '';
@@ -15,29 +15,31 @@ export default class GameShell {
         window.history.pushState(null, '', url.toString());
     }
 
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D;
-    drawArea: CanvasFrameBuffer;
+    protected readonly canvas: HTMLCanvasElement;
+    protected readonly ctx: CanvasRenderingContext2D;
 
-    state: number = 0;
-    deltime: number = 20;
-    mindel: number = 1;
-    otim: number[] = [];
-    fps: number = 0;
-    redrawScreen: boolean = true;
-    resizeToFit: boolean = false;
+    protected drawArea: PixMap | null = null;
+    protected state: number = 0;
+    protected deltime: number = 20;
+    protected mindel: number = 1;
+    protected otim: number[] = [];
+    protected fps: number = 0;
+    protected fpos: number = 0;
+    protected frameTime: number[] = [];
+    protected redrawScreen: boolean = true;
+    protected resizeToFit: boolean = false;
 
-    idleCycles: number = 0;
-    mouseButton: number = 0;
-    mouseX: number = 0;
-    mouseY: number = 0;
-    mouseClickButton: number = 0;
-    mouseClickX: number = 0;
-    mouseClickY: number = 0;
-    actionKey: number[] = [];
-    keyQueue: number[] = [];
-    keyQueueReadPos: number = 0;
-    keyQueueWritePos: number = 0;
+    protected idleCycles: number = 0;
+    protected mouseButton: number = 0;
+    protected mouseX: number = 0;
+    protected mouseY: number = 0;
+    protected mouseClickButton: number = 0;
+    protected mouseClickX: number = 0;
+    protected mouseClickY: number = 0;
+    protected actionKey: number[] = [];
+    protected keyQueue: number[] = [];
+    protected keyQueueReadPos: number = 0;
+    protected keyQueueWritePos: number = 0;
 
     constructor(resizetoFit = false) {
         const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -50,14 +52,12 @@ export default class GameShell {
         }
         this.canvas = canvas;
         this.ctx = canvas2d;
-
         this.resizeToFit = resizetoFit;
         if (this.resizeToFit) {
             this.resize(window.innerWidth, window.innerHeight);
         } else {
-            this.resize(this.canvas.width, this.canvas.height);
+            this.resize(canvas.width, canvas.height);
         }
-        this.drawArea = new CanvasFrameBuffer(this.canvas, this.width, this.height);
     }
 
     get width(): number {
@@ -69,9 +69,10 @@ export default class GameShell {
     }
 
     resize(width: number, height: number): void {
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.drawArea = new CanvasFrameBuffer(this.canvas, this.width, this.height);
+        const canvas = this.canvas;
+        canvas.width = width;
+        canvas.height = height;
+        this.drawArea = new PixMap(canvas, width, height);
         Draw3D.init2D();
     }
 
@@ -82,28 +83,22 @@ export default class GameShell {
             }
         }, false);
 
-        window.addEventListener('keydown', (e) => {
-            this.keyDown(e);
-        });
-
-        window.addEventListener('keyup', (e) => {
-            this.keyUp(e);
-        });
-
-        window.addEventListener('mousedown', (e) => {
-            this.mousePressed(e)
-        });
+        window.addEventListener('keydown', this.keyDown.bind(this));
+        window.addEventListener('keyup', this.keyUp.bind(this));
+        window.addEventListener('mousedown', this.mousePressed.bind(this));
 
         await this.showProgress(0, 'Loading...');
         await this.load();
 
+        for (let i = 0; i < 10; i++) {
+            this.otim[i] = Date.now();
+        }
+
+        let ntime: number;
         let opos = 0;
         let ratio = 256;
         let delta = 1;
         let count = 0;
-        for (let i = 0; i < 10; i++) {
-            this.otim[i] = Date.now();
-        }
 
         while (this.state >= 0) {
             if (this.state > 0) {
@@ -115,30 +110,31 @@ export default class GameShell {
                 }
             }
 
-            let lastRatio = ratio;
-            let lastDelta = delta;
+            const lastRatio = ratio;
+            const lastDelta = delta;
             ratio = 300;
             delta = 1;
 
-            let ntime = Date.now();
+            ntime = Date.now();
+            const otim = this.otim[opos];
 
-            if (this.otim[opos] === 0) {
+            if (otim === 0) {
                 ratio = lastRatio;
                 delta = lastDelta;
-            } else if (ntime > this.otim[opos]) {
-                ratio = Math.trunc((this.deltime * 256 * 10) / (ntime - this.otim[opos]));
+            } else if (ntime > otim) {
+                ratio = Math.trunc((this.deltime * 2560) / (ntime - otim));
             }
 
             if (ratio < 25) {
                 ratio = 25;
             } else if (ratio > 256) {
                 ratio = 256;
-                delta = Math.trunc(this.deltime - ((ntime - this.otim[opos]) / 10));
+                delta = Math.trunc(this.deltime - (ntime - otim) / 10);
             }
 
             this.otim[opos] = ntime;
             opos = (opos + 1) % 10;
-            
+
             if (delta > 1) {
                 for (let i = 0; i < 10; i++) {
                     if (this.otim[i] !== 0) {
@@ -163,12 +159,19 @@ export default class GameShell {
             count &= 0xFF;
 
             if (this.deltime > 0) {
-                this.fps = Math.trunc((1000 * ratio) / (this.deltime * 256));
+                this.fps = Math.floor((ratio * 1000) / (this.deltime * 256));
             }
 
-            await this.draw();
-        }
+            const time = performance.now();
 
+            await this.draw();
+
+            this.frameTime[this.fpos] = (performance.now() - time) / 1000;
+            this.fpos = (this.fpos + 1) % this.frameTime.length;
+
+            console.log(`${this.fps} fps`);
+            console.log(`${this.ms.toFixed(4)} ms`);
+        }
         if (this.state == -1) {
             this.shutdown();
         }
@@ -215,28 +218,32 @@ export default class GameShell {
     }
 
     async showProgress(progress: number, message: string): Promise<void> {
+        const ctx = this.ctx;
+        const width = this.width;
+        const height = this.height;
+
         if (this.redrawScreen) {
-            this.ctx.fillStyle = 'black';
-            this.ctx.clearRect(0, 0, this.width, this.height);
+            ctx.fillStyle = 'black';
+            ctx.clearRect(0, 0, width,height);
             this.redrawScreen = false;
         }
 
-        let y = this.height / 2 - 18;
+        let y = height / 2 - 18;
 
         // draw full progress bar
-        this.ctx.fillStyle = 'rgb(140, 17, 17)';
-        this.ctx.rect((this.width / 2) - 152, y, 304, 34);
-        this.ctx.fillRect((this.width / 2) - 150, y + 2, progress * 3, 30);
+        ctx.fillStyle = 'rgb(140, 17, 17)';
+        ctx.rect((width / 2) - 152, y, 304, 34);
+        ctx.fillRect((width / 2) - 150, y + 2, progress * 3, 30);
 
         // cover up progress bar
-        this.ctx.fillStyle = 'black';
-        this.ctx.fillRect(((this.width / 2) - 150) + (progress * 3), y + 2, 300 - (progress * 3), 30);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(((width / 2) - 150) + (progress * 3), y + 2, 300 - (progress * 3), 30);
 
         // draw text
-        this.ctx.font = 'bold 13px helvetica, sans-serif';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillText(message, this.width / 2, y + 22);
+        ctx.font = 'bold 13px helvetica, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'white';
+        ctx.fillText(message, width / 2, y + 22);
 
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
@@ -326,7 +333,7 @@ export default class GameShell {
         let x = e.x;
         let y = e.y;
 
-        const {top, left} = this.getInsets();
+        const {top, left} = this.getInsets;
         x -= left;
         y -= top;
 
@@ -344,7 +351,7 @@ export default class GameShell {
         // TODO input tracking
     }
 
-    getInsets(): { top: number; left: number } {
+    private get getInsets(): { top: number; left: number } {
         const rect = this.canvas.getBoundingClientRect();
         const computedStyle = window.getComputedStyle(this.canvas);
         const paddingLeft = parseFloat(computedStyle.paddingLeft || '0');
@@ -356,5 +363,14 @@ export default class GameShell {
         const top = rect.top + borderTop + paddingTop;
 
         return { top, left };
+    }
+
+    private get ms(): number {
+        const length = this.frameTime.length;
+        let ft: number = 0;
+        for (let index = 0; index < length; index++) {
+            ft += this.frameTime[index];
+        }
+        return ft / length;
     }
 }

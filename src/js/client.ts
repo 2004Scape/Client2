@@ -10,11 +10,11 @@ import SpotAnimType from './jagex2/config/SpotAnimType.js';
 import VarpType from './jagex2/config/VarpType.js';
 import IfType from './jagex2/config/IfType.js';
 
-import CanvasFrameBuffer from './jagex2/graphics/CanvasFrameBuffer.js';
+import PixMap from './jagex2/graphics/PixMap.js';
 import Draw2D from './jagex2/graphics/Draw2D.js';
 import Draw3D from './jagex2/graphics/Draw3D.js';
-import Image8 from './jagex2/graphics/Image8.js';
-import Image24 from './jagex2/graphics/Image24.js';
+import Pix8 from './jagex2/graphics/Pix8.js';
+import Pix24 from './jagex2/graphics/Pix24.js';
 import Font from './jagex2/graphics/Font.js';
 import Model from './jagex2/graphics/Model.js';
 import SeqBase from './jagex2/graphics/SeqBase.js';
@@ -30,45 +30,53 @@ import GameShell from "./jagex2/client/GameShell.js";
 import './vendor/midi.js';
 
 class Client extends GameShell {
-    static HOST: string = 'https://w2.225.2004scape.org';
-    static CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
+    static readonly HOST: string = 'https://w2.225.2004scape.org';
+    static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
 
-    alreadyStarted: boolean = false;
-    errorStarted: boolean = false;
-    errorLoading: boolean = false;
-    errorHost: boolean = false;
+    private alreadyStarted: boolean = false;
+    private errorStarted: boolean = false;
+    private errorLoading: boolean = false;
+    private errorHost: boolean = false;
 
-    loopCycle: number = 0;
-    ingame: boolean = false;
-    redrawTitleBackground: boolean = true;
-    archiveChecksums: number[] = [];
+    private loopCycle: number = 0;
+    private ingame: boolean = false;
+    private redrawTitleBackground: boolean = true;
+    private archiveChecksums: number[] = [];
 
-    titleScreenState: number = 0;
-    titleLoginField: number = 0;
-    titleArchive: Archive | null = null;
-    imageTitle2: CanvasFrameBuffer | null = null;
-    imageTitle3: CanvasFrameBuffer | null = null;
-    imageTitle4: CanvasFrameBuffer | null = null;
-    imageTitle0: CanvasFrameBuffer | null = null;
-    imageTitle1: CanvasFrameBuffer | null = null;
-    imageTitle5: CanvasFrameBuffer | null = null;
-    imageTitle6: CanvasFrameBuffer | null = null;
-    imageTitle7: CanvasFrameBuffer | null = null;
-    imageTitle8: CanvasFrameBuffer | null = null;
-    imageTitleBox: Image8 | null = null;
-    imageTitleButton: Image24 | null = null;
+    private titleScreenState: number = 0;
+    private titleLoginField: number = 0;
+    private titleArchive: Archive | null = null;
+    private imageTitle2: PixMap | null = null;
+    private imageTitle3: PixMap | null = null;
+    private imageTitle4: PixMap | null = null;
+    private imageTitle0: PixMap | null = null;
+    private imageTitle1: PixMap | null = null;
+    private imageTitle5: PixMap | null = null;
+    private imageTitle6: PixMap | null = null;
+    private imageTitle7: PixMap | null = null;
+    private imageTitle8: PixMap | null = null;
+    private imageTitleBox: Pix8 | null = null;
+    private imageTitleButton: Pix24 | null = null;
 
-    fontPlain11: Font | null = null;
-    fontPlain12: Font | null = null;
-    fontBold12: Font | null = null;
-    fontQuill8: Font | null = null;
+    private fontPlain11: Font | null = null;
+    private fontPlain12: Font | null = null;
+    private fontBold12: Font | null = null;
+    private fontQuill8: Font | null = null;
 
-    flameActive: boolean = false;
+    private flameActive: boolean = false;
 
-    loginMessage0: string = '';
-    loginMessage1: string = '';
-    username: string = '';
-    password: string = '';
+    private loginMessage0: string = '';
+    private loginMessage1: string = '';
+    private username: string = '';
+    private password: string = '';
+
+    private areaSidebar: PixMap | null = null;
+    private areaMapback: PixMap | null = null;
+    private areaViewport: PixMap | null = null;
+    private areaChatback: PixMap | null = null;
+    private areaBackbase1: PixMap | null = null;
+    private areaBackbase2: PixMap | null = null;
+    private areaBackhmid1: PixMap | null = null;
 
     async load(): Promise<void> {
         if (this.alreadyStarted) {
@@ -156,13 +164,18 @@ class Client extends GameShell {
 
     async draw(): Promise<void> {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
-            this.drawErrorScreen();
+            this.drawError();
             return;
         }
-
-        if (!this.ingame) {
+        if (this.ingame) {
+            // TODO
+        } else {
             await this.drawTitleScreen();
         }
+    }
+
+    refresh(): void {
+        this.redrawTitleBackground = true;
     }
 
     //
@@ -170,7 +183,7 @@ class Client extends GameShell {
     async showProgress(progress: number, str: string): Promise<void> {
         console.log(`${progress}%: ${str}`);
 
-        await this.prepareTitleScreen();
+        await this.loadTitle();
         if (!this.titleArchive) {
             await super.showProgress(progress, str);
             return;
@@ -212,108 +225,121 @@ class Client extends GameShell {
 
     //
 
-    async prepareTitleScreen(): Promise<void> {
-        this.imageTitle0 = new CanvasFrameBuffer(this.canvas, 128, 265);
-        Draw2D.clear();
+    async loadTitle(): Promise<void> {
+        if (this.imageTitle2 === null) {
+            this.drawArea = null;
+            this.areaChatback = null;
+            this.areaMapback = null;
+            this.areaSidebar = null;
+            this.areaViewport = null;
+            this.areaBackbase1 = null;
+            this.areaBackbase2 = null;
+            this.areaBackhmid1 = null;
 
-        this.imageTitle1 = new CanvasFrameBuffer(this.canvas, 128, 265);
-        Draw2D.clear();
+            const canvas = this.canvas;
+            this.imageTitle0 = new PixMap(canvas, 128, 265);
+            Draw2D.clear();
 
-        this.imageTitle2 = new CanvasFrameBuffer(this.canvas, 533, 186);
-        Draw2D.clear();
+            this.imageTitle1 = new PixMap(canvas, 128, 265);
+            Draw2D.clear();
 
-        this.imageTitle3 = new CanvasFrameBuffer(this.canvas, 360, 146);
-        Draw2D.clear();
+            this.imageTitle2 = new PixMap(canvas, 533, 186);
+            Draw2D.clear();
 
-        this.imageTitle4 = new CanvasFrameBuffer(this.canvas, 360, 200);
-        Draw2D.clear();
+            this.imageTitle3 = new PixMap(canvas, 360, 146);
+            Draw2D.clear();
 
-        this.imageTitle5 = new CanvasFrameBuffer(this.canvas, 214, 267);
-        Draw2D.clear();
+            this.imageTitle4 = new PixMap(canvas, 360, 200);
+            Draw2D.clear();
 
-        this.imageTitle6 = new CanvasFrameBuffer(this.canvas, 215, 267);
-        Draw2D.clear();
+            this.imageTitle5 = new PixMap(canvas, 214, 267);
+            Draw2D.clear();
 
-        this.imageTitle7 = new CanvasFrameBuffer(this.canvas, 86, 79);
-        Draw2D.clear();
+            this.imageTitle6 = new PixMap(canvas, 215, 267);
+            Draw2D.clear();
 
-        this.imageTitle8 = new CanvasFrameBuffer(this.canvas, 87, 79);
-        Draw2D.clear();
+            this.imageTitle7 = new PixMap(canvas, 86, 79);
+            Draw2D.clear();
 
-        if (this.titleArchive != null) {
-            await this.loadTitleBackground();
-            this.loadTitleImages();
+            this.imageTitle8 = new PixMap(canvas, 87, 79);
+            Draw2D.clear();
+
+            if (this.titleArchive !== null) {
+                await this.loadTitleBackground();
+                this.loadTitleImages();
+            }
+            this.redrawTitleBackground = true;
         }
     }
 
     async loadTitleBackground(): Promise<void> {
-        let background: Image24 = await Image24.fromJpeg(this.titleArchive, 'title');
+        const background = await Pix24.fromJpeg(this.titleArchive, 'title');
 
         this.imageTitle0?.bind();
-        background.draw(0, 0);
+        background.blitOpaque(0, 0);
 
         this.imageTitle1?.bind();
-        background.draw(-661, 0);
+        background.blitOpaque(-661, 0);
 
         this.imageTitle2?.bind();
-        background.draw(-128, 0);
+        background.blitOpaque(-128, 0);
 
         this.imageTitle3?.bind();
-        background.draw(-214, -386);
+        background.blitOpaque(-214, -386);
 
         this.imageTitle4?.bind();
-        background.draw(-214, -186);
+        background.blitOpaque(-214, -186);
 
         this.imageTitle5?.bind();
-        background.draw(0, -265);
+        background.blitOpaque(0, -265);
 
         this.imageTitle6?.bind();
-        background.draw(-128, -186);
+        background.blitOpaque(-128, -186);
 
         this.imageTitle7?.bind();
-        background.draw(-128, -186);
+        background.blitOpaque(-128, -186);
 
         this.imageTitle8?.bind();
-        background.draw(-574, -186);
+        background.blitOpaque(-574, -186);
 
         // draw right side (mirror image)
         background.flipHorizontally();
 
         this.imageTitle0?.bind();
-        background.draw(394, 0);
+        background.blitOpaque(394, 0);
 
         this.imageTitle1?.bind();
-        background.draw(-267, 0);
+        background.blitOpaque(-267, 0);
 
         this.imageTitle2?.bind();
-        background.draw(266, 0);
+        background.blitOpaque(266, 0);
 
         this.imageTitle3?.bind();
-        background.draw(180, -386);
+        background.blitOpaque(180, -386);
 
         this.imageTitle4?.bind();
-        background.draw(180, -186);
+        background.blitOpaque(180, -186);
 
         this.imageTitle5?.bind();
-        background.draw(394, -265);
+        background.blitOpaque(394, -265);
 
         this.imageTitle6?.bind();
-        background.draw(-180, -265);
+        background.blitOpaque(-180, -265);
 
         this.imageTitle7?.bind();
-        background.draw(212, -186);
+        background.blitOpaque(212, -186);
 
         this.imageTitle8?.bind();
-        background.draw(-180, -186);
+        background.blitOpaque(-180, -186);
 
-        let logo: Image24 = Image24.fromArchive(this.titleArchive, 'logo');
+        const logo = Pix24.fromArchive(this.titleArchive, 'logo');
         this.imageTitle2?.bind();
         logo.draw((this.width / 2) - (logo.width / 2) - 128, 18);
     }
 
     loadTitleImages(): void {
-        this.imageTitleBox = Image8.fromArchive(this.titleArchive, 'titlebox');
-        this.imageTitleButton = Image24.fromArchive(this.titleArchive, 'titlebutton');
+        this.imageTitleBox = Pix8.fromArchive(this.titleArchive, 'titlebox');
+        this.imageTitleButton = Pix24.fromArchive(this.titleArchive, 'titlebutton');
         // TODO Flames
     }
 
@@ -380,7 +406,6 @@ class Client extends GameShell {
                 }
 
                 if (this.titleLoginField == 0) {
-                    console.log(key);
                     if (key == 8 && this.username.length > 0) {
                         this.username = this.username.substring(0, this.username.length - 1);
                     }
@@ -425,8 +450,8 @@ class Client extends GameShell {
         }
     }
 
-    async drawTitleScreen(): Promise<void> {
-        await this.prepareTitleScreen();
+    private async drawTitleScreen(): Promise<void> {
+        await this.loadTitle();
         this.imageTitle4?.bind();
         this.imageTitleBox?.draw(0, 0);
 
@@ -487,7 +512,7 @@ class Client extends GameShell {
             y += 15;
 
             this.fontBold12?.drawStringTaggableCenter(w / 2, y, "button at the top right of that page.", 0xFFFFFF, true);
-            y += 15;
+            // y += 15; dead code
 
             y = h / 2 + 50;
             this.imageTitleButton?.draw(x - 73, y - 20);
@@ -506,7 +531,7 @@ class Client extends GameShell {
         }
     }
 
-    async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Archive> {
+    private async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Archive> {
         // TODO: caching
         // TODO: download progress, retry
 
@@ -516,18 +541,20 @@ class Client extends GameShell {
         return data;
     }
 
-    async setMidi(name: string, crc: number): Promise<void> {
+    private async setMidi(name: string, crc: number): Promise<void> {
         let file = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
         playMidi(decompressBz2(file.data, true, false), 192);
     }
 
-    drawErrorScreen(): void {
+    private drawError(): void {
         this.ctx.fillStyle = 'black';
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.setLoopRate(1);
 
         if (this.errorLoading) {
+            this.flameActive = false;
+
             this.ctx.font = 'bold 16px helvetica, sans-serif';
             this.ctx.textAlign = 'left';
             this.ctx.fillStyle = 'yellow';
@@ -557,6 +584,8 @@ class Client extends GameShell {
         }
 
         if (this.errorHost) {
+            this.flameActive = false;
+
             this.ctx.font = 'bold 20px helvetica, sans-serif';
             this.ctx.textAlign = 'left';
             this.ctx.fillStyle = 'white';
@@ -567,6 +596,8 @@ class Client extends GameShell {
         }
 
         if (this.errorStarted) {
+            this.flameActive = false;
+
             this.ctx.font = 'bold 13px helvetica, sans-serif';
             this.ctx.textAlign = 'left';
             this.ctx.fillStyle = 'yellow';

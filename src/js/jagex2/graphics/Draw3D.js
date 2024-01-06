@@ -1,5 +1,5 @@
 import Draw2D from './Draw2D.js';
-import Image8 from './Image8.js';
+import Image8 from './Pix8.js';
 
 export default class Draw3D {
     static reciprocal15 = new Int32Array(512);

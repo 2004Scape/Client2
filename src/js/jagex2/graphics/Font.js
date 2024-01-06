@@ -6,12 +6,12 @@ export default class Font {
     static CHARSET = [];
 
     static {
-        let s = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:'@#~,<.>/?\\| ";
+        let s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
 
         for (let i = 0; i < 256; i++) {
             let c = s.indexOf(String.fromCharCode(i));
 
-            if (c == -1) {
+            if (c === -1) {
                 c = 74; // space
             }
 
@@ -112,8 +112,9 @@ export default class Font {
         x = Math.trunc(x);
         y = Math.trunc(y);
 
+        const length = str.length;
         y -= this.fontHeight;
-        for (let i = 0; i < str.length; i++) {
+        for (let i = 0; i < length; i++) {
             let c = Font.CHARSET[str.charCodeAt(i)];
 
             if (c !== 94) {
@@ -133,9 +134,10 @@ export default class Font {
         x = Math.trunc(x);
         y = Math.trunc(y);
 
+        const length = str.length;
         y -= this.fontHeight;
-        for (let i = 0; i < str.length; i++) {
-            if (str.charAt(i) === '@' && i + 4 < str.length && str.charAt(i + 4) === '@') {
+        for (let i = 0; i < length; i++) {
+            if (str.charAt(i) === '@' && i + 4 < length && str.charAt(i + 4) === '@') {
                 color = this.evaluateTag(str.substring(i + 1, i + 4));
                 i += 4;
             } else {
@@ -159,9 +161,10 @@ export default class Font {
             return 0;
         }
 
+        const length = str.length;
         let w = 0;
-        for (let i = 0; i < str.length; i++) {
-            if (str.charAt(i) === '@' && i + 4 < str.length && str.charAt(i + 4) === '@') {
+        for (let i = 0; i < length; i++) {
+            if (str.charAt(i) === '@' && i + 4 < length && str.charAt(i + 4) === '@') {
                 i += 4;
             } else {
                 w += this.drawWidth[str.charCodeAt(i)];
@@ -250,39 +253,39 @@ export default class Font {
 
     evaluateTag(tag) {
         switch (tag) {
-            case "red":
+            case 'red':
                 return 0xff0000;
-            case "gre":
+            case 'gre':
                 return 0xff00;
-            case "blu":
+            case 'blu':
                 return 0xff;
-            case "yel":
+            case 'yel':
                 return 0xffff00;
-            case "cya":
+            case 'cya':
                 return 0xffff;
-            case "mag":
+            case 'mag':
                 return 0xff00ff;
-            case "whi":
+            case 'whi':
                 return 0xffffff;
-            case "bla":
+            case 'bla':
                 return 0;
-            case "lre":
+            case 'lre':
                 return 0xff9040;
-            case "dre":
+            case 'dre':
                 return 0x800000;
-            case "dbl":
+            case 'dbl':
                 return 0x80;
-            case "or1":
+            case 'or1':
                 return 0xffb000;
-            case "or2":
+            case 'or2':
                 return 0xff7000;
-            case "or3":
+            case 'or3':
                 return 0xff3000;
-            case "gr1":
+            case 'gr1':
                 return 0xc0ff00;
-            case "gr2":
+            case 'gr2':
                 return 0x80ff00;
-            case "gr3":
+            case 'gr3':
                 return 0x40ff00;
             default:
                 return 0;

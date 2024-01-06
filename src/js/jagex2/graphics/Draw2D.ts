@@ -1,26 +1,26 @@
-class Draw2D {
-    pixels: Uint32Array | null = null;
+export default class Draw2D {
+    static pixels: Uint32Array | null = null;
 
-    width: number = -1;
-    height: number = -1;
+    static width: number = 0;
+    static height: number = 0;
 
-    top: number = -1;
-    bottom: number = -1;
-    left: number = -1;
-    right: number = -1;
-    boundX: number = -1;
+    static top: number = 0;
+    static bottom: number = 0;
+    static left: number = 0;
+    static right: number = 0;
+    static boundX: number = 0;
 
-    centerX: number = -1;
-    centerY: number = -1;
- 
-    prepare(pixels: Uint32Array, width: number, height: number): void {
+    static centerX: number = 0;
+    static centerY: number = 0;
+
+    static prepare(pixels: Uint32Array, width: number, height: number): void {
         this.pixels = pixels;
         this.width = width;
         this.height = height;
         this.setBounds(0, 0, width, height);
     }
 
-    setBounds(x0: number, y0: number, x1: number, y1: number): void {
+    static setBounds(x0: number, y0: number, x1: number, y1: number): void {
         if (x0 < 0) {
             x0 = 0;
         }
@@ -46,12 +46,12 @@ class Draw2D {
         this.centerY = this.bottom / 2;
     }
 
-    clear() {
+    static clear() {
         this.pixels?.fill(0);
     }
 
     // draw a 1px border rectangle
-    drawRect(x: number, y: number, w: number, h: number, color: number): void {
+    static drawRect(x: number, y: number, w: number, h: number, color: number): void {
         let pixels = this.pixels;
         if (pixels === null) {
             return;
@@ -96,7 +96,7 @@ class Draw2D {
     }
 
     // fill in a rectangle area
-    fillRect(x: number, y: number, w: number, h: number, color: number): void {
+    static fillRect(x: number, y: number, w: number, h: number, color: number): void {
         let pixels = this.pixels;
         if (pixels === null) {
             return;
@@ -131,5 +131,3 @@ class Draw2D {
         }
     }
 }
-
-export default new Draw2D();

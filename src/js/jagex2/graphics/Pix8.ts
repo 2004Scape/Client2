@@ -1,13 +1,14 @@
 import Draw2D from './Draw2D.js';
 
 import Buffer from '../io/Buffer.js';
-import Archive from "../io/Archive";
+import Archive from "../io/Archive.js";
 
 // identical to Image24 except the image is indexed by a palette
-export default class Image8 {
-    pixels: Uint8Array;
-    width: number;
-    height: number;
+export default class Pix8 {
+    // constructor
+    readonly pixels: Uint8Array;
+    readonly width: number;
+    readonly height: number;
     cropX: number;
     cropY: number;
     cropW: number;
@@ -22,7 +23,7 @@ export default class Image8 {
         this.cropX = this.cropY = 0;
     }
 
-    static fromArchive(archive: Archive | null, name: string, sprite = 0) {
+    static fromArchive(archive: Archive | null, name: string, sprite = 0): Pix8 {
         let dat = new Buffer(archive?.read(name + '.dat'));
         let index = new Buffer(archive?.read('index.dat'));
 
@@ -57,7 +58,7 @@ export default class Image8 {
         let width = index.g2();
         let height = index.g2();
 
-        let image = new Image8(width, height);
+        let image = new Pix8(width, height);
         image.cropX = cropX;
         image.cropY = cropY;
         image.cropW = cropW;
@@ -66,13 +67,16 @@ export default class Image8 {
 
         let pixelOrder = index.g1();
         if (pixelOrder === 0) {
-            for (let i = 0; i < image.width * image.height; i++) {
+            const length = image.width * image.height;
+            for (let i = 0; i < length; i++) {
                 image.pixels[i] = dat.g1();
             }
         } else if (pixelOrder === 1) {
-            for (let x = 0; x < image.width; x++) {
-                for (let y = 0; y < image.height; y++) {
-                    image.pixels[x + (y * image.width)] = dat.g1();
+            const width = image.width;
+            for (let x = 0; x < width; x++) {
+                const height = image.height;
+                for (let y = 0; y < height; y++) {
+                    image.pixels[x + (y * width)] = dat.g1();
                 }
             }
         }
@@ -80,7 +84,7 @@ export default class Image8 {
         return image;
     }
 
-    draw(x: number, y: number, newW = -1, newH = -1) {
+    draw(x: number, y: number, newW = -1, newH = -1): void {
         x = Math.trunc(x);
         y = Math.trunc(y);
 
@@ -138,7 +142,7 @@ export default class Image8 {
         }
     }
 
-    copyImage(w: number, h: number, src: Uint8Array | null, srcOff: number, srcStep: number, dst: Uint32Array | null, dstOff: number, dstStep: number) {
+    copyImage(w: number, h: number, src: Uint8Array | null, srcOff: number, srcStep: number, dst: Uint32Array | null, dstOff: number, dstStep: number): void {
         if (src === null || dst === null || this.palette === null) {
             return;
         }

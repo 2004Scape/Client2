@@ -12,11 +12,8 @@ import SpotAnimType from './jagex2/config/SpotAnimType.js';
 import VarpType from './jagex2/config/VarpType.js';
 import IfType from './jagex2/config/IfType.js';
 
-import CanvasFrameBuffer from './jagex2/graphics/CanvasFrameBuffer.js';
 import Draw2D from './jagex2/graphics/Draw2D.js';
 import Draw3D from './jagex2/graphics/Draw3D.js';
-import Image8 from './jagex2/graphics/Image8.js';
-import Image24 from './jagex2/graphics/Image24.js';
 import Font from './jagex2/graphics/Font.js';
 import Model from './jagex2/graphics/Model.js';
 import SeqBase from './jagex2/graphics/SeqBase.js';
