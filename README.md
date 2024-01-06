@@ -1,6 +1,6 @@
 # Client2
 
-This project is a complete source port of our [Client refactor](https://github.com/2004scape/Client) to TypeScript.
+This project is a comprehensive source port of our [Client refactor](https://github.com/2004scape/Client) to TypeScript.
 
 Local development should be done with: `npm run dev`
 
@@ -8,7 +8,7 @@ Local development should be done with: `npm run dev`
 
 ### Client
 
-Complete client ported to TypeScript - WIP.
+Client ported to TypeScript - WIP.
 
 https://2004scape.github.io/Client2/
 
