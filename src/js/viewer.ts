@@ -112,47 +112,6 @@ export default class Client extends GameShell {
             let wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
             let sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
-            this.packfiles[0] = await this.loadPack(`${Client.REPO}/data/pack/model.pack`);
-
-            const leftPanel = document.getElementById('leftPanel');
-            if (leftPanel) {
-                leftPanel.innerHTML = '';
-
-                // add header
-                const header = document.createElement('h3');
-                header.innerText = 'Models';
-                leftPanel.appendChild(header);
-
-                // create a clickable list of all the files in the pack, that sets this.model.id on click
-                const ul = document.createElement('ul');
-                ul.className = 'list-group';
-                leftPanel.appendChild(ul);
-
-                for (const [id, name] of this.packfiles[0]) {
-                    const li = document.createElement('li');
-                    li.id = name;
-                    li.className = 'list-group-item';
-                    if (id == 0) {
-                        li.className += ' active';
-                    }
-                    li.innerText = name;
-                    li.onclick = () => {
-                        // unmark the last selected item
-                        const last = ul.querySelector('.active');
-                        if (last) {
-                            last.className = 'list-group-item';
-                        }
-
-                        // mark the new selected item
-                        li.className = 'list-group-item active';
-
-                        this.model.id = id;
-                        this.model.built = new Model(this.model.id);
-                    };
-                    ul.appendChild(li);
-                }
-            }
-
             await this.showProgress(75, 'Unpacking media');
 
             await this.showProgress(80, 'Unpacking textures');
@@ -184,8 +143,12 @@ export default class Client extends GameShell {
             await this.showProgress(97, 'Preparing game engine');
             Censor.unpack(wordenc);
 
+            await this.showProgress(100, 'Getting ready to start...');
+
             this.drawArea?.bind();
             Draw3D.init2D();
+
+            await this.showModels();
         } catch (err) {
             this.errorLoading = true;
             console.error(err);
@@ -217,7 +180,8 @@ export default class Client extends GameShell {
         this.model.built.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
         // debug
-        this.fontBold12?.drawRight(this.width - 2, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
+        this.fontBold12?.drawRight(this.width - 1, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
+        this.fontBold12?.draw(1, this.fontBold12.fontHeight, `ID: ${this.model.id}`, 0xFFFF00);
 
         this.drawArea?.draw(0, 0);
     }
@@ -307,6 +271,64 @@ export default class Client extends GameShell {
 
             y += 30;
             this.ctx.fillText('2: Try rebooting your computer, and reloading', 30, y);
+        }
+    }
+
+    async showModels() {
+        this.packfiles[0] = await this.loadPack(`${Client.REPO}/data/pack/model.pack`);
+
+        const leftPanel = document.getElementById('leftPanel');
+        if (leftPanel) {
+            leftPanel.innerHTML = '';
+
+            {
+                const input = document.createElement('input');
+                input.type = 'search';
+                input.placeholder = 'Search';
+                input.oninput = () => {
+                    const filter = input.value.toLowerCase().replaceAll(' ', '_');
+
+                    for (let i = 0; i < ul.children.length; i++) {
+                        const child = ul.children[i] as HTMLElement;
+
+                        if (child.id.indexOf(filter) > -1) {
+                            child.style.display = '';
+                        } else {
+                            child.style.display = 'none';
+                        }
+                    }
+                };
+                leftPanel.appendChild(input);
+            }
+
+            // create a clickable list of all the files in the pack, that sets this.model.id on click
+            const ul = document.createElement('ul');
+            ul.className = 'list-group';
+            leftPanel.appendChild(ul);
+
+            for (const [id, name] of this.packfiles[0]) {
+                const li = document.createElement('li');
+                li.id = name;
+                li.className = 'list-group-item';
+                if (id == 0) {
+                    li.className += ' active';
+                }
+                li.innerText = name;
+                li.onclick = () => {
+                    // unmark the last selected item
+                    const last = ul.querySelector('.active');
+                    if (last) {
+                        last.className = 'list-group-item';
+                    }
+
+                    // mark the new selected item
+                    li.className = 'list-group-item active';
+
+                    this.model.id = id;
+                    this.model.built = new Model(this.model.id);
+                };
+                ul.appendChild(li);
+            }
         }
     }
 }
