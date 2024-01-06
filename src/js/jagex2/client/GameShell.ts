@@ -159,7 +159,7 @@ export default abstract class GameShell {
             count &= 0xFF;
 
             if (this.deltime > 0) {
-                this.fps = Math.floor((ratio * 1000) / (this.deltime * 256));
+                this.fps = Math.trunc((ratio * 1000) / (this.deltime * 256));
             }
 
             const time = performance.now();
@@ -169,8 +169,8 @@ export default abstract class GameShell {
             this.frameTime[this.fpos] = (performance.now() - time) / 1000;
             this.fpos = (this.fpos + 1) % this.frameTime.length;
 
-            console.log(`${this.fps} fps`);
-            console.log(`${this.ms.toFixed(4)} ms`);
+            // console.log(`${this.fps} fps`);
+            // console.log(`${this.ms.toFixed(4)} ms`);
         }
         if (this.state == -1) {
             this.shutdown();

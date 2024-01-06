@@ -3,7 +3,7 @@ import Draw2D from './Draw2D.js';
 import Buffer from '../io/Buffer.js';
 import Archive from "../io/Archive.js";
 
-// identical to Image24 except the image is indexed by a palette
+// identical to Pix24 except the image is indexed by a palette
 export default class Pix8 {
     // constructor
     readonly pixels: Uint8Array;
@@ -14,6 +14,7 @@ export default class Pix8 {
     cropW: number;
     cropH: number;
 
+    // runtime
     palette: Uint32Array | null = null;
 
     constructor(width: number, height: number) {
@@ -85,8 +86,8 @@ export default class Pix8 {
     }
 
     draw(x: number, y: number, newW = -1, newH = -1): void {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
+        x = x | 0;
+        y = y | 0;
 
         x += this.cropX;
         y += this.cropY;

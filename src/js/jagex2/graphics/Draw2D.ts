@@ -1,5 +1,5 @@
 export default class Draw2D {
-    static pixels: Uint32Array | null = null;
+    static pixels: Uint32Array = new Uint32Array;
 
     static width: number = 0;
     static height: number = 0;
@@ -47,15 +47,12 @@ export default class Draw2D {
     }
 
     static clear() {
-        this.pixels?.fill(0);
+        this.pixels.fill(0);
     }
 
     // draw a 1px border rectangle
     static drawRect(x: number, y: number, w: number, h: number, color: number): void {
         let pixels = this.pixels;
-        if (pixels === null) {
-            return;
-        }
 
         let x0 = x;
         let y0 = y;
@@ -98,9 +95,6 @@ export default class Draw2D {
     // fill in a rectangle area
     static fillRect(x: number, y: number, w: number, h: number, color: number): void {
         let pixels = this.pixels;
-        if (pixels === null) {
-            return;
-        }
 
         let x0 = x;
         let y0 = y;

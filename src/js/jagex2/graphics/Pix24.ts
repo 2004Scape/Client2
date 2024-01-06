@@ -3,26 +3,27 @@ import Draw2D from './Draw2D.js';
 import Buffer from '../io/Buffer.js';
 
 import { decodeJpeg } from '../util/JsUtil.js';
+import Archive from "../io/Archive";
 
 export default class Pix24 {
-    pixels = null;
+    // constructor
+    readonly pixels: Uint32Array;
+    readonly width: number;
+    readonly height: number;
+    cropX: number;
+    cropY: number;
+    cropW: number;
+    cropH: number;
 
-    width = -1;
-    height = -1;
-    cropX = -1;
-    cropY = -1;
-    cropW = -1;
-    cropH = -1;
-
-    constructor(width, height) {
+    constructor(width: number, height: number) {
         this.pixels = new Uint32Array(width * height);
         this.width = this.cropW = width;
         this.height = this.cropH = height;
         this.cropX = this.cropY = 0;
     }
 
-    static async fromJpeg(archive, name) {
-        let dat = archive.read(name + '.dat');
+    static async fromJpeg(archive: Archive | null, name: string): Promise<Pix24> {
+        let dat = archive?.read(name + '.dat');
         let jpeg = await decodeJpeg(dat);
         let image = new Pix24(jpeg.width, jpeg.height);
 
@@ -37,9 +38,9 @@ export default class Pix24 {
         return image;
     }
 
-    static fromArchive(archive, name, sprite = 0) {
-        let dat = new Buffer(archive.read(name + '.dat'));
-        let index = new Buffer(archive.read('index.dat'));
+    static fromArchive(archive: Archive | null, name: string, sprite = 0): Pix24 {
+        let dat = new Buffer(archive?.read(name + '.dat'));
+        let index = new Buffer(archive?.read('index.dat'));
 
         // cropW/cropH are shared across all sprites in a single image
         index.pos = dat.g2();
@@ -98,9 +99,9 @@ export default class Pix24 {
         return image;
     }
 
-    draw(x, y) {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
+    draw(x: number, y: number): void {
+        x = x | 0;
+        y = y | 0;
 
         x += this.cropX;
         y += this.cropY;
@@ -148,7 +149,7 @@ export default class Pix24 {
         }
     }
 
-    copyImageDraw(w, h, src, srcOff, srcStep, dst, dstOff, dstStep) {
+    copyImageDraw(w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void {
         let qw = -(w >> 2);
         w = -(w & 0x3);
 
@@ -197,9 +198,9 @@ export default class Pix24 {
         }
     }
 
-    blitOpaque(x, y) {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
+    blitOpaque(x: number, y: number): void {
+        x = x | 0;
+        y = y | 0;
 
         x += this.cropX;
         y += this.cropY;
@@ -247,7 +248,7 @@ export default class Pix24 {
         }
     }
 
-    copyImageBlitOpaque(w, h, src, srcOff, srcStep, dst, dstOff, dstStep) {
+    copyImageBlitOpaque(w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void {
         let qw = -(w >> 2);
         w = -(w & 0x3);
 
@@ -268,7 +269,7 @@ export default class Pix24 {
         }
     }
 
-    flipHorizontally() {
+    flipHorizontally(): void {
         let pixels = this.pixels;
         let width = this.width;
         let height = this.height;
@@ -286,7 +287,7 @@ export default class Pix24 {
         }
     }
 
-    flipVertically() {
+    flipVertically(): void {
         let pixels = this.pixels;
         let width = this.width;
         let height = this.height;
