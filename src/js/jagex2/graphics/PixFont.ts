@@ -106,8 +106,8 @@ export default class PixFont {
     };
 
     draw = (x: number, y: number, str: string, color: number): void => {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
+        x = x | 0;
+        y = y | 0;
 
         const length = str.length;
         y -= this.fontHeight;
@@ -165,15 +165,14 @@ export default class PixFont {
         this.drawStringTaggable(x - this.getTextWidth(str) / 2, y, str, color, shadowed);
     };
 
-    drawStringCenter = (x: number, y: number, str: string, color: number) => {
+    drawStringCenter = (x: number, y: number, str: string, color: number): void => {
         this.draw(x - this.getTextWidth(str) / 2, y, str, color);
     };
 
-    drawRight = (x: number, y: number, str: string, color: number, shadowed = true): void => {
+    drawRight = (x: number, y: number, str: string, color: number, shadowed: boolean = true): void => {
         if (shadowed) {
             this.draw(x - this.getTextWidth(str) + 1, y + 1, str, 0);
         }
-
         this.draw(x - this.getTextWidth(str), y, str, color);
     };
 
@@ -223,7 +222,7 @@ export default class PixFont {
         }
     };
 
-    copyImageMasked = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number, color: number): void => {
+    copyImageMasked = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, color: number): void => {
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 if (src[srcOff++] != 0) {

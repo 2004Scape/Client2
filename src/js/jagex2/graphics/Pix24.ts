@@ -6,7 +6,7 @@ import Packet from '../io/Packet';
 
 export default class Pix24 {
     // constructor
-    readonly pixels: Uint32Array;
+    readonly pixels: Int32Array;
     readonly width: number;
     readonly height: number;
     cropX: number;
@@ -15,7 +15,7 @@ export default class Pix24 {
     cropH: number;
 
     constructor(width: number, height: number) {
-        this.pixels = new Uint32Array(width * height);
+        this.pixels = new Int32Array(width * height);
         this.width = this.cropW = width;
         this.height = this.cropH = height;
         this.cropX = this.cropY = 0;
@@ -267,7 +267,7 @@ export default class Pix24 {
         }
     };
 
-    private copyImageBlitOpaque = (w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void => {
+    private copyImageBlitOpaque = (w: number, h: number, src: Int32Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
         const qw = -(w >> 2);
         w = -(w & 0x3);
 
@@ -288,7 +288,7 @@ export default class Pix24 {
         }
     };
 
-    private copyImageDraw = (w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void => {
+    private copyImageDraw = (w: number, h: number, src: Int32Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
         const qw = -(w >> 2);
         w = -(w & 0x3);
 

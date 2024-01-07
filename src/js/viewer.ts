@@ -117,7 +117,7 @@ export default class Client extends GameShell {
             await this.showProgress(80, 'Unpacking textures');
             Draw3D.unpackTextures(textures);
             Draw3D.setBrightness(0.8);
-            // Draw3D.initPool(20);
+            Draw3D.initPool(20);
 
             await this.showProgress(83, 'Unpacking models');
             Model.unpack(models);
@@ -128,7 +128,7 @@ export default class Client extends GameShell {
             SeqType.unpack(config);
             LocType.unpack(config);
             FloType.unpack(config);
-            ObjType.unpack(config);
+            ObjType.unpack(config, true);
             NpcType.unpack(config);
             IdkType.unpack(config);
             SpotAnimType.unpack(config);

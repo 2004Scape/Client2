@@ -20,39 +20,52 @@ export default class Draw3D {
     static clipX: boolean = false;
     static alpha: number = 0;
 
+    static texelPool: number[][] | null = null;
+    static activeTexels: number[] = [];
+    static poolSize: number = 0;
+
     static {
         for (let i = 1; i < 512; i++) {
-            Draw3D.reciprocal15[i] = 32768 / i;
+            this.reciprocal15[i] = 32768 / i;
         }
 
         for (let i = 1; i < 2048; i++) {
-            Draw3D.reciprocal16[i] = 65536 / i;
+            this.reciprocal16[i] = 65536 / i;
         }
 
         for (let i = 0; i < 2048; i++) {
             // angular frequency: 2 * pi / 2048 = 0.0030679615757712823
             // * 65536 = maximum amplitude
-            Draw3D.sin[i] = Math.trunc(Math.sin(i * 0.0030679615757712823) * 65536);
-            Draw3D.cos[i] = Math.trunc(Math.cos(i * 0.0030679615757712823) * 65536);
+            this.sin[i] = Math.trunc(Math.sin(i * 0.0030679615757712823) * 65536);
+            this.cos[i] = Math.trunc(Math.cos(i * 0.0030679615757712823) * 65536);
         }
     }
 
     static init2D = (): void => {
-        Draw3D.lineOffset = new Int32Array(Draw2D.height);
-        for (let i = 0; i < Draw2D.height; i++) {
-            Draw3D.lineOffset[i] = Draw2D.width * i;
+        this.lineOffset = new Int32Array(Draw2D.height);
+        for (let y = 0; y < Draw2D.height; y++) {
+            this.lineOffset[y] = Draw2D.width * y;
         }
         this.centerX = Draw2D.width / 2;
         this.centerY = Draw2D.height / 2;
     };
 
+    static init3D = (width: number, height: number): void => {
+        this.lineOffset = new Int32Array(height);
+        for (let y = 0; y < height; y++) {
+            this.lineOffset[y] = width * y;
+        }
+        this.centerX = width / 2;
+        this.centerY = height / 2;
+    };
+
     static unpackTextures = (textures: Jagfile): void => {
-        Draw3D.textureCount = 0;
+        this.textureCount = 0;
 
         for (let i = 0; i < 50; i++) {
             try {
-                Draw3D.textures[i] = Pix8.fromArchive(textures, i.toString());
-                Draw3D.textureCount++;
+                this.textures[i] = Pix8.fromArchive(textures, i.toString());
+                this.textureCount++;
             } catch (err) {
                 /* empty */
             }
@@ -128,12 +141,12 @@ export default class Draw3D {
                 const intG = Math.trunc(g * 256);
                 const intB = Math.trunc(b * 256);
                 let rgb = (intR << 16) | (intG << 8) | intB;
-                rgb = Draw3D.setGamma(rgb, brightness);
+                rgb = this.setGamma(rgb, brightness);
                 if (rgb === 0) {
                     rgb = 1;
                 }
 
-                Draw3D.palette[offset++] = rgb;
+                this.palette[offset++] = rgb;
             }
         }
     };
@@ -151,7 +164,14 @@ export default class Draw3D {
         return (intR << 16) | (intG << 8) | intB;
     };
 
-    static initPool = (): void => {};
+    static initPool = (size: number): void => {
+        if (this.texelPool != null) {
+            return;
+        }
+        this.poolSize = size;
+        this.texelPool = [];
+        this.activeTexels = [];
+    };
 
     static fillGouraudTriangle = (xA: number, xB: number, xC: number, yA: number, yB: number, yC: number, colorA: number, colorB: number, colorC: number): void => {
         let xStepAB = 0;
@@ -207,7 +227,7 @@ export default class Draw3D {
                 if ((yA != yB && xStepAC < xStepAB) || (yA == yB && xStepAC > xStepBC)) {
                     yC -= yB;
                     yB -= yA;
-                    for (yA = Draw3D.lineOffset[yA]; --yB >= 0; yA += Draw2D.width) {
+                    for (yA = this.lineOffset[yA]; --yB >= 0; yA += Draw2D.width) {
                         this.drawGouraudScanline(Draw2D.pixels, yA, xC >> 16, xA >> 16, colorC >> 7, colorA >> 7);
                         xC += xStepAC;
                         xA += xStepAB;
@@ -226,7 +246,7 @@ export default class Draw3D {
                 }
                 yC -= yB;
                 yB -= yA;
-                for (yA = Draw3D.lineOffset[yA]; --yB >= 0; yA += Draw2D.width) {
+                for (yA = this.lineOffset[yA]; --yB >= 0; yA += Draw2D.width) {
                     this.drawGouraudScanline(Draw2D.pixels, yA, xA >> 16, xC >> 16, colorA >> 7, colorC >> 7);
                     xC += xStepAC;
                     xA += xStepAB;
@@ -262,7 +282,7 @@ export default class Draw3D {
             if ((yA != yC && xStepAC < xStepAB) || (yA == yC && xStepBC > xStepAB)) {
                 yB -= yC;
                 yC -= yA;
-                for (yA = Draw3D.lineOffset[yA]; --yC >= 0; yA += Draw2D.width) {
+                for (yA = this.lineOffset[yA]; --yC >= 0; yA += Draw2D.width) {
                     this.drawGouraudScanline(Draw2D.pixels, yA, xB >> 16, xA >> 16, colorB >> 7, colorA >> 7);
                     xB += xStepAC;
                     xA += xStepAB;
@@ -281,7 +301,7 @@ export default class Draw3D {
             }
             yB -= yC;
             yC -= yA;
-            for (yA = Draw3D.lineOffset[yA]; --yC >= 0; yA += Draw2D.width) {
+            for (yA = this.lineOffset[yA]; --yC >= 0; yA += Draw2D.width) {
                 this.drawGouraudScanline(Draw2D.pixels, yA, xA >> 16, xB >> 16, colorA >> 7, colorB >> 7);
                 xB += xStepAC;
                 xA += xStepAB;
@@ -328,7 +348,7 @@ export default class Draw3D {
                 if ((yB != yC && xStepAB < xStepBC) || (yB == yC && xStepAB > xStepAC)) {
                     yA -= yC;
                     yC -= yB;
-                    for (yB = Draw3D.lineOffset[yB]; --yC >= 0; yB += Draw2D.width) {
+                    for (yB = this.lineOffset[yB]; --yC >= 0; yB += Draw2D.width) {
                         this.drawGouraudScanline(Draw2D.pixels, yB, xA >> 16, xB >> 16, colorA >> 7, colorB >> 7);
                         xA += xStepAB;
                         xB += xStepBC;
@@ -347,7 +367,7 @@ export default class Draw3D {
                 }
                 yA -= yC;
                 yC -= yB;
-                for (yB = Draw3D.lineOffset[yB]; --yC >= 0; yB += Draw2D.width) {
+                for (yB = this.lineOffset[yB]; --yC >= 0; yB += Draw2D.width) {
                     this.drawGouraudScanline(Draw2D.pixels, yB, xB >> 16, xA >> 16, colorB >> 7, colorA >> 7);
                     xA += xStepAB;
                     xB += xStepBC;
@@ -383,7 +403,7 @@ export default class Draw3D {
             if (xStepAB < xStepBC) {
                 yC -= yA;
                 yA -= yB;
-                for (yB = Draw3D.lineOffset[yB]; --yA >= 0; yB += Draw2D.width) {
+                for (yB = this.lineOffset[yB]; --yA >= 0; yB += Draw2D.width) {
                     this.drawGouraudScanline(Draw2D.pixels, yB, xC >> 16, xB >> 16, colorC >> 7, colorB >> 7);
                     xC += xStepAB;
                     xB += xStepBC;
@@ -402,7 +422,7 @@ export default class Draw3D {
             }
             yC -= yA;
             yA -= yB;
-            for (yB = Draw3D.lineOffset[yB]; --yA >= 0; yB += Draw2D.width) {
+            for (yB = this.lineOffset[yB]; --yA >= 0; yB += Draw2D.width) {
                 this.drawGouraudScanline(Draw2D.pixels, yB, xB >> 16, xC >> 16, colorB >> 7, colorC >> 7);
                 xC += xStepAB;
                 xB += xStepBC;
@@ -448,7 +468,7 @@ export default class Draw3D {
             if (xStepBC < xStepAC) {
                 yB -= yA;
                 yA -= yC;
-                for (yC = Draw3D.lineOffset[yC]; --yA >= 0; yC += Draw2D.width) {
+                for (yC = this.lineOffset[yC]; --yA >= 0; yC += Draw2D.width) {
                     this.drawGouraudScanline(Draw2D.pixels, yC, xB >> 16, xC >> 16, colorB >> 7, colorC >> 7);
                     xB += xStepBC;
                     xC += xStepAC;
@@ -467,7 +487,7 @@ export default class Draw3D {
             }
             yB -= yA;
             yA -= yC;
-            for (yC = Draw3D.lineOffset[yC]; --yA >= 0; yC += Draw2D.width) {
+            for (yC = this.lineOffset[yC]; --yA >= 0; yC += Draw2D.width) {
                 this.drawGouraudScanline(Draw2D.pixels, yC, xC >> 16, xB >> 16, colorC >> 7, colorB >> 7);
                 xB += xStepBC;
                 xC += xStepAC;
@@ -503,7 +523,7 @@ export default class Draw3D {
         if (xStepBC < xStepAC) {
             yA -= yB;
             yB -= yC;
-            for (yC = Draw3D.lineOffset[yC]; --yB >= 0; yC += Draw2D.width) {
+            for (yC = this.lineOffset[yC]; --yB >= 0; yC += Draw2D.width) {
                 this.drawGouraudScanline(Draw2D.pixels, yC, xA >> 16, xC >> 16, colorA >> 7, colorC >> 7);
                 xA += xStepBC;
                 xC += xStepAC;
@@ -522,7 +542,7 @@ export default class Draw3D {
         }
         yA -= yB;
         yB -= yC;
-        for (yC = Draw3D.lineOffset[yC]; --yB >= 0; yC += Draw2D.width) {
+        for (yC = this.lineOffset[yC]; --yB >= 0; yC += Draw2D.width) {
             this.drawGouraudScanline(Draw2D.pixels, yC, xC >> 16, xA >> 16, colorC >> 7, colorA >> 7);
             xA += xStepBC;
             xC += xStepAC;
@@ -539,14 +559,14 @@ export default class Draw3D {
         }
     };
 
-    private static drawGouraudScanline = (dst: Uint32Array, offset: number, x0: number, x1: number, color0: number, color1: number): void => {
+    private static drawGouraudScanline = (dst: Int32Array, offset: number, x0: number, x1: number, color0: number, color1: number): void => {
         let rgb = 0;
         let length = 0;
 
-        if (Draw3D.jagged) {
+        if (this.jagged) {
             let colorStep = 0;
 
-            if (Draw3D.clipX) {
+            if (this.clipX) {
                 if (x1 - x0 > 3) {
                     colorStep = (color1 - color0) / (x1 - x0);
                 } else {
@@ -578,15 +598,15 @@ export default class Draw3D {
                 length = (x1 - x0) >> 2;
 
                 if (length > 0) {
-                    colorStep = ((color1 - color0) * Draw3D.reciprocal15[length]) >> 15;
+                    colorStep = ((color1 - color0) * this.reciprocal15[length]) >> 15;
                 } else {
                     colorStep = 0;
                 }
             }
 
-            if (Draw3D.alpha == 0) {
+            if (this.alpha == 0) {
                 while (--length >= 0) {
-                    rgb = Draw3D.palette[color0 >> 8];
+                    rgb = this.palette[color0 >> 8];
                     color0 += colorStep;
                     dst[offset++] = rgb;
                     dst[offset++] = rgb;
@@ -597,18 +617,18 @@ export default class Draw3D {
                 length = (x1 - x0) & 3;
 
                 if (length > 0) {
-                    rgb = Draw3D.palette[color0 >> 8];
+                    rgb = this.palette[color0 >> 8];
                     do {
                         dst[offset++] = rgb;
                     } while (--length > 0);
                     return;
                 }
             } else {
-                const alpha = Draw3D.alpha;
-                const invAlpha = 256 - Draw3D.alpha;
+                const alpha = this.alpha;
+                const invAlpha = 256 - this.alpha;
 
                 while (--length >= 0) {
-                    rgb = Draw3D.palette[color0 >> 8];
+                    rgb = this.palette[color0 >> 8];
                     color0 += colorStep;
                     rgb = ((((rgb & 0xff00ff) * invAlpha) >> 8) & 0xff00ff) + ((((rgb & 0xff00) * invAlpha) >> 8) & 0xff00);
                     dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
@@ -620,7 +640,7 @@ export default class Draw3D {
                 length = (x1 - x0) & 3;
 
                 if (length > 0) {
-                    rgb = Draw3D.palette[color0 >> 8];
+                    rgb = this.palette[color0 >> 8];
                     rgb = ((((rgb & 0xff00ff) * invAlpha) >> 8) & 0xff00ff) + ((((rgb & 0xff00) * invAlpha) >> 8) & 0xff00);
                     do {
                         dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
@@ -636,7 +656,7 @@ export default class Draw3D {
 
         const colorStep = (color1 - color0) / (x1 - x0);
 
-        if (Draw3D.clipX) {
+        if (this.clipX) {
             if (x1 > Draw2D.right) {
                 x1 = Draw2D.right;
             }
@@ -652,19 +672,19 @@ export default class Draw3D {
         offset += x0;
         length = x1 - x0;
 
-        if (Draw3D.alpha == 0) {
+        if (this.alpha == 0) {
             do {
-                dst[offset++] = Draw3D.palette[color0 >> 8];
+                dst[offset++] = this.palette[color0 >> 8];
                 color0 += colorStep;
             } while (--length > 0);
             return;
         }
 
-        const alpha = Draw3D.alpha;
-        const invAlpha = 256 - Draw3D.alpha;
+        const alpha = this.alpha;
+        const invAlpha = 256 - this.alpha;
 
         do {
-            rgb = Draw3D.palette[color0 >> 8];
+            rgb = this.palette[color0 >> 8];
             color0 += colorStep;
             rgb = ((((rgb & 0xff00ff) * invAlpha) >> 8) & 0xff00ff) + ((((rgb & 0xff00) * invAlpha) >> 8) & 0xff00);
             dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);

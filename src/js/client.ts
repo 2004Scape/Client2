@@ -29,10 +29,14 @@ import './vendor/midi.js';
 import Packet from './jagex2/io/Packet.js';
 import Wave from './jagex2/sound/Wave';
 import JString from './jagex2/datastruct/JString';
+import World3D from './jagex2/dash3d/World3D';
 
 class Client extends GameShell {
     static readonly HOST: string = 'https://w2.225.2004scape.org';
     static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
+
+    static MEMBERS: boolean = true;
+    static LOW_MEMORY: boolean = false;
 
     private alreadyStarted: boolean = false;
     private errorStarted: boolean = false;
@@ -106,6 +110,9 @@ class Client extends GameShell {
     private areaBackvmid2: PixMap | null = null;
     private areaBackvmid3: PixMap | null = null;
     private areaBackhmid2: PixMap | null = null;
+    private areaChatbackOffsets: Int32Array | null = null;
+    private areaSidebarOffsets: Int32Array | null = null;
+    private areaViewportOffsets: Int32Array | null = null;
 
     private imageInvback: Pix8 | null = null;
     private imageChatback: Pix8 | null = null;
@@ -163,6 +170,10 @@ class Client extends GameShell {
     private tradeChatSetting: number = 0;
     private scrollGrabbed: boolean = false;
     private scrollInputPadding: number = 0;
+    private compassMaskLineOffsets: Uint16Array = new Uint16Array(33);
+    private compassMaskLineLengths: Uint16Array = new Uint16Array(33);
+    private minimapMaskLineOffsets: Uint16Array = new Uint16Array(151);
+    private minimapMaskLineLengths: Uint16Array = new Uint16Array(151);
 
     run = async (): Promise<void> => {
         setInterval(() => {
@@ -333,7 +344,7 @@ class Client extends GameShell {
             await this.showProgress(80, 'Unpacking textures');
             Draw3D.unpackTextures(textures);
             Draw3D.setBrightness(0.8);
-            // Draw3D.initPool(20);
+            Draw3D.initPool(20);
 
             await this.showProgress(83, 'Unpacking models');
             Model.unpack(models);
@@ -344,19 +355,71 @@ class Client extends GameShell {
             SeqType.unpack(config);
             LocType.unpack(config);
             FloType.unpack(config);
-            ObjType.unpack(config);
+            ObjType.unpack(config, Client.MEMBERS);
             NpcType.unpack(config);
             IdkType.unpack(config);
             SpotAnimType.unpack(config);
             VarpType.unpack(config);
 
-            await this.showProgress(90, 'Unpacking sounds');
-            Wave.unpack(sounds);
+            if (!Client.LOW_MEMORY) {
+                await this.showProgress(90, 'Unpacking sounds');
+                Wave.unpack(sounds);
+            }
 
             await this.showProgress(92, 'Unpacking interfaces');
             ComType.unpack(interfaces, media);
 
             await this.showProgress(97, 'Preparing game engine');
+            for (let y = 0; y < 33; y++) {
+                let left = 999;
+                let right = 0;
+                for (let x = 0; x < 35; x++) {
+                    if (this.imageMapback.pixels[x + y * this.imageMapback.width] == 0) {
+                        if (left == 999) {
+                            left = x;
+                        }
+                    } else if (left != 999) {
+                        right = x;
+                        break;
+                    }
+                }
+                this.compassMaskLineOffsets[y] = left;
+                this.compassMaskLineLengths[y] = right - left;
+            }
+
+            for (let y = 9; y < 160; y++) {
+                let left = 999;
+                let right = 0;
+                for (let x = 10; x < 168; x++) {
+                    if (this.imageMapback.pixels[x + y * this.imageMapback.width] == 0 && (x > 34 || y > 34)) {
+                        if (left == 999) {
+                            left = x;
+                        }
+                    } else if (left != 999) {
+                        right = x;
+                        break;
+                    }
+                }
+                this.minimapMaskLineOffsets[y - 9] = left - 21;
+                this.minimapMaskLineLengths[y - 9] = right - left;
+            }
+
+            Draw3D.init3D(479, 96);
+            this.areaChatbackOffsets = Draw3D.lineOffset;
+            Draw3D.init3D(190, 261);
+            this.areaSidebarOffsets = Draw3D.lineOffset;
+            Draw3D.init3D(512, 334);
+            this.areaViewportOffsets = Draw3D.lineOffset;
+
+            const distance: Int32Array = new Int32Array(9);
+            for (let x = 0; x < 9; x++) {
+                const angle = x * 32 + 128 + 15;
+                const offset = angle * 3 + 600;
+                const sin = Draw3D.sin[angle];
+                distance[x] = (offset * sin) >> 16;
+            }
+
+            World3D.init(512, 334, 500, 800, distance);
             WordFilter.unpack(wordenc);
         } catch (err) {
             console.error(err);

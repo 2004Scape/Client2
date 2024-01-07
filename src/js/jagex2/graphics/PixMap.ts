@@ -5,7 +5,7 @@ export default class PixMap {
     readonly canvas: HTMLCanvasElement;
     readonly ctx: CanvasRenderingContext2D;
     readonly image: ImageData;
-    readonly pixels: Uint32Array;
+    readonly pixels: Int32Array;
     readonly width: number;
     readonly height: number;
 
@@ -17,7 +17,7 @@ export default class PixMap {
         this.canvas = canvas;
         this.ctx = canvas2d;
         this.image = canvas2d.getImageData(0, 0, width, height);
-        this.pixels = new Uint32Array(width * height);
+        this.pixels = new Int32Array(width * height);
         this.width = width;
         this.height = height;
         this.bind();

@@ -3,12 +3,10 @@ import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
 
 export default class ObjType extends ConfigType {
-    static MEMBERS_WORLD: boolean = true;
-
     static count: number = 0;
     static instances: ObjType[] = [];
 
-    static unpack = (config: Jagfile): void => {
+    static unpack = (config: Jagfile, members: boolean): void => {
         const dat = new Packet(config.read('obj.dat'));
         this.count = dat.g2;
         for (let i = 0; i < this.count; i++) {
@@ -22,7 +20,7 @@ export default class ObjType extends ConfigType {
                 obj.toCertificate();
             }
 
-            if (!this.MEMBERS_WORLD && obj.members) {
+            if (!members && obj.members) {
                 obj.name = 'Members Object';
                 obj.desc = "Login to a members' server to use this object.";
                 obj.ops = [];

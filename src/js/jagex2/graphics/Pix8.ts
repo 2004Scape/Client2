@@ -208,11 +208,7 @@ export default class Pix8 {
         }
     };
 
-    private copyImage = (w: number, h: number, src: Uint8Array | null, srcOff: number, srcStep: number, dst: Uint32Array | null, dstOff: number, dstStep: number): void => {
-        if (src === null || dst === null || this.palette === null) {
-            return;
-        }
-
+    private copyImage = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 const off = x + y * w;

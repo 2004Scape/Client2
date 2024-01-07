@@ -1,5 +1,5 @@
 export default class Draw2D {
-    static pixels: Uint32Array = new Uint32Array();
+    static pixels: Int32Array = new Int32Array();
 
     static width: number = 0;
     static height: number = 0;
@@ -13,7 +13,7 @@ export default class Draw2D {
     static centerX: number = 0;
     static centerY: number = 0;
 
-    static prepare = (pixels: Uint32Array, width: number, height: number): void => {
+    static prepare = (pixels: Int32Array, width: number, height: number): void => {
         this.pixels = pixels;
         this.width = width;
         this.height = height;
