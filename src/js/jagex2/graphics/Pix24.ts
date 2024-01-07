@@ -22,7 +22,7 @@ export default class Pix24 {
         this.cropX = this.cropY = 0;
     }
 
-    static async fromJpeg(archive: Archive | null, name: string): Promise<Pix24> {
+    static fromJpeg = async (archive: Archive | null, name: string): Promise<Pix24> => {
         let dat = archive?.read(name + '.dat');
         let jpeg = await decodeJpeg(dat);
         let image = new Pix24(jpeg.width, jpeg.height);
@@ -36,9 +36,9 @@ export default class Pix24 {
         }
 
         return image;
-    }
+    };
 
-    static fromArchive(archive: Archive | null, name: string, sprite = 0): Pix24 {
+    static fromArchive = (archive: Archive | null, name: string, sprite = 0): Pix24 => {
         let dat = new Buffer(archive?.read(name + '.dat'));
         let index = new Buffer(archive?.read('index.dat'));
 
@@ -97,9 +97,9 @@ export default class Pix24 {
         }
 
         return image;
-    }
+    };
 
-    draw(x: number, y: number): void {
+    draw = (x: number, y: number): void => {
         x = x | 0;
         y = y | 0;
 
@@ -147,58 +147,9 @@ export default class Pix24 {
         if (w > 0 && h > 0) {
             this.copyImageDraw(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep);
         }
-    }
+    };
 
-    copyImageDraw(w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void {
-        let qw = -(w >> 2);
-        w = -(w & 0x3);
-
-        for (let y = -h; y < 0; y++) {
-            for (let x = qw; x < 0; x++) {
-                let rgb = src[srcOff++];
-                if (rgb === 0) {
-                    dstOff++;
-                } else {
-                    dst[dstOff++] = rgb;
-                }
-
-                rgb = src[srcOff++];
-                if (rgb === 0) {
-                    dstOff++;
-                } else {
-                    dst[dstOff++] = rgb;
-                }
-
-                rgb = src[srcOff++];
-                if (rgb === 0) {
-                    dstOff++;
-                } else {
-                    dst[dstOff++] = rgb;
-                }
-
-                rgb = src[srcOff++];
-                if (rgb === 0) {
-                    dstOff++;
-                } else {
-                    dst[dstOff++] = rgb;
-                }
-            }
-
-            for (let x = w; x < 0; x++) {
-                let rgb = src[srcOff++];
-                if (rgb === 0) {
-                    dstOff++;
-                } else {
-                    dst[dstOff++] = rgb;
-                }
-            }
-
-            dstOff += dstStep;
-            srcOff += srcStep;
-        }
-    }
-
-    blitOpaque(x: number, y: number): void {
+    blitOpaque = (x: number, y: number): void => {
         x = x | 0;
         y = y | 0;
 
@@ -246,9 +197,44 @@ export default class Pix24 {
         if (w > 0 && h > 0) {
             this.copyImageBlitOpaque(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep);
         }
-    }
+    };
 
-    copyImageBlitOpaque(w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void {
+    flipHorizontally = (): void => {
+        let pixels = this.pixels;
+        let width = this.width;
+        let height = this.height;
+
+        for (let y = 0; y < height; y++) {
+            const div = width / 2;
+            for (let x = 0; x < div; x++) {
+                let off1 = x + (y * width);
+                let off2 = width - x - 1 + (y * width);
+
+                let tmp = pixels[off1];
+                pixels[off1] = pixels[off2];
+                pixels[off2] = tmp;
+            }
+        }
+    };
+
+    flipVertically = (): void => {
+        let pixels = this.pixels;
+        let width = this.width;
+        let height = this.height;
+
+        for (let y = 0; y < height / 2; y++) {
+            for (let x = 0; x < width; x++) {
+                let off1 = x + (y * width);
+                let off2 = x + ((height - y - 1) * width);
+
+                let tmp = pixels[off1];
+                pixels[off1] = pixels[off2];
+                pixels[off2] = tmp;
+            }
+        }
+    };
+
+    private copyImageBlitOpaque = (w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void => {
         let qw = -(w >> 2);
         w = -(w & 0x3);
 
@@ -267,40 +253,54 @@ export default class Pix24 {
             dstOff += dstStep;
             srcOff += srcStep;
         }
-    }
+    };
 
-    flipHorizontally(): void {
-        let pixels = this.pixels;
-        let width = this.width;
-        let height = this.height;
+    private copyImageDraw = (w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void => {
+        let qw = -(w >> 2);
+        w = -(w & 0x3);
 
-        for (let y = 0; y < height; y++) {
-            const div = width / 2;
-            for (let x = 0; x < div; x++) {
-                let off1 = x + (y * width);
-                let off2 = width - x - 1 + (y * width);
+        for (let y = -h; y < 0; y++) {
+            for (let x = qw; x < 0; x++) {
+                let rgb = src[srcOff++];
+                if (rgb === 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
 
-                let tmp = pixels[off1];
-                pixels[off1] = pixels[off2];
-                pixels[off2] = tmp;
+                rgb = src[srcOff++];
+                if (rgb === 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
+
+                rgb = src[srcOff++];
+                if (rgb === 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
+
+                rgb = src[srcOff++];
+                if (rgb === 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
             }
-        }
-    }
 
-    flipVertically(): void {
-        let pixels = this.pixels;
-        let width = this.width;
-        let height = this.height;
-
-        for (let y = 0; y < height / 2; y++) {
-            for (let x = 0; x < width; x++) {
-                let off1 = x + (y * width);
-                let off2 = x + ((height - y - 1) * width);
-
-                let tmp = pixels[off1];
-                pixels[off1] = pixels[off2];
-                pixels[off2] = tmp;
+            for (let x = w; x < 0; x++) {
+                let rgb = src[srcOff++];
+                if (rgb === 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
             }
+
+            dstOff += dstStep;
+            srcOff += srcStep;
         }
-    }
+    };
 }

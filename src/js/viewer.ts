@@ -81,7 +81,7 @@ export default class Client extends GameShell {
         return map;
     }
 
-    async load(): Promise<void> {
+    load = async (): Promise<void> => {
         if (this.alreadyStarted) {
             this.errorStarted = true;
             return;
@@ -153,17 +153,17 @@ export default class Client extends GameShell {
             this.errorLoading = true;
             console.error(err);
         }
-    }
+    };
 
-    update(): void {
+    update = (): void => {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             return;
         }
 
         this.loopCycle++;
-    }
+    };
 
-    async draw(): Promise<void> {
+    draw = async (): Promise<void> => {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             this.drawErrorScreen();
             return;
@@ -184,15 +184,15 @@ export default class Client extends GameShell {
         this.fontBold12?.draw(1, this.fontBold12.fontHeight, `ID: ${this.model.id}`, 0xFFFF00);
 
         this.drawArea?.draw(0, 0);
-    }
+    };
 
     //
 
-    async showProgress(progress: number, str: string): Promise<void> {
+    showProgress = async (progress: number, str: string): Promise<void> => {
         console.log(`${progress}%: ${str}`);
 
         await super.showProgress(progress, str);
-    }
+    };
 
     //
 

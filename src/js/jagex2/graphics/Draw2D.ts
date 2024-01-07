@@ -13,14 +13,14 @@ export default class Draw2D {
     static centerX: number = 0;
     static centerY: number = 0;
 
-    static prepare(pixels: Uint32Array, width: number, height: number): void {
+    static prepare = (pixels: Uint32Array, width: number, height: number): void => {
         this.pixels = pixels;
         this.width = width;
         this.height = height;
         this.setBounds(0, 0, width, height);
-    }
+    };
 
-    static setBounds(x0: number, y0: number, x1: number, y1: number): void {
+    static setBounds = (x0: number, y0: number, x1: number, y1: number): void => {
         if (x0 < 0) {
             x0 = 0;
         }
@@ -44,14 +44,14 @@ export default class Draw2D {
         this.boundX = this.right - 1;
         this.centerX = this.right / 2;
         this.centerY = this.bottom / 2;
-    }
+    };
 
-    static clear() {
+    static clear = () => {
         this.pixels.fill(0);
-    }
+    };
 
     // draw a 1px border rectangle
-    static drawRect(x: number, y: number, w: number, h: number, color: number): void {
+    static drawRect = (x: number, y: number, w: number, h: number, color: number): void => {
         let pixels = this.pixels;
 
         let x0 = x;
@@ -90,10 +90,10 @@ export default class Draw2D {
             off = (x1 - 1) + (yy * width);
             pixels[off] = color;
         }
-    }
+    };
 
     // fill in a rectangle area
-    static fillRect(x: number, y: number, w: number, h: number, color: number): void {
+    static fillRect = (x: number, y: number, w: number, h: number, color: number): void => {
         let pixels = this.pixels;
 
         let x0 = x;
@@ -123,5 +123,5 @@ export default class Draw2D {
             let off = x0 + (yy * width);
             pixels.fill(color, off, off + (x1 - x0));
         }
-    }
+    };
 }

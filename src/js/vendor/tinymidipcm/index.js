@@ -156,13 +156,13 @@ class TinyMidiPCM {
         this.wasmModule._tsf_reset(this.soundfontPtr);
         this.wasmModule._tsf_channel_set_bank_preset(this.soundfontPtr, 9, 128, 0);
 
-        if (midiBuffer[0] == 'R'.charCodeAt(0)) {
+        if (midiBuffer[0] === 'R'.charCodeAt(0)) {
             // there is a RIFF header before the midi, quick hack
             midiBuffer = midiBuffer.slice(0x14);
         }
         let midiMessagePtr = this.getMIDIMessagePtr(midiBuffer);
 
-        const boundRender = function () {
+        const bindReducer = () => {
             midiMessagePtr = this.renderMIDIMessage(midiMessagePtr);
 
             const pcm = this.getPCMBuffer();
@@ -170,15 +170,13 @@ class TinyMidiPCM {
             this.onPCMData(pcm);
 
             if (midiMessagePtr) {
-                this.renderTimer = setTimeout(boundRender, this.renderInterval);
+                this.renderTimer = setTimeout(bindReducer, this.renderInterval);
             } else {
                 this.onRenderEnd(getValue(this.msecsPtr, 'double'));
             }
-        }.bind(this);
+        };
 
-        this.renderTimer = setTimeout(() => {
-            boundRender();
-        }, 16);
+        this.renderTimer = setTimeout(bindReducer, 16);
     }
 }
 

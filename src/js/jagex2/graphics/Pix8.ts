@@ -24,7 +24,7 @@ export default class Pix8 {
         this.cropX = this.cropY = 0;
     }
 
-    static fromArchive(archive: Archive | null, name: string, sprite = 0): Pix8 {
+    static fromArchive = (archive: Archive | null, name: string, sprite = 0): Pix8 => {
         let dat = new Buffer(archive?.read(name + '.dat'));
         let index = new Buffer(archive?.read('index.dat'));
 
@@ -83,9 +83,9 @@ export default class Pix8 {
         }
 
         return image;
-    }
+    };
 
-    draw(x: number, y: number, newW = -1, newH = -1): void {
+    draw = (x: number, y: number, newW = -1, newH = -1): void => {
         x = x | 0;
         y = y | 0;
 
@@ -141,9 +141,9 @@ export default class Pix8 {
         if (w > 0 && h > 0) {
             this.copyImage(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep);
         }
-    }
+    };
 
-    copyImage(w: number, h: number, src: Uint8Array | null, srcOff: number, srcStep: number, dst: Uint32Array | null, dstOff: number, dstStep: number): void {
+    copyImage = (w: number, h: number, src: Uint8Array | null, srcOff: number, srcStep: number, dst: Uint32Array | null, dstOff: number, dstStep: number): void => {
         if (src === null || dst === null || this.palette === null) {
             return;
         }
@@ -161,5 +161,5 @@ export default class Pix8 {
             srcOff += srcStep;
             dstOff += dstStep;
         }
-    }
+    };
 }

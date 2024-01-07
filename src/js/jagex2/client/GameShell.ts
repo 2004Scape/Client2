@@ -83,9 +83,9 @@ export default abstract class GameShell {
             }
         }, false);
 
-        window.addEventListener('keydown', this.keyDown.bind(this));
-        window.addEventListener('keyup', this.keyUp.bind(this));
-        window.addEventListener('mousedown', this.mousePressed.bind(this));
+        window.addEventListener('keydown', this.keyDown);
+        window.addEventListener('keyup', this.keyUp);
+        window.addEventListener('mousedown', this.mousePressed);
 
         await this.showProgress(0, 'Loading...');
         await this.load();
@@ -169,8 +169,8 @@ export default abstract class GameShell {
             this.frameTime[this.fpos] = (performance.now() - time) / 1000;
             this.fpos = (this.fpos + 1) % this.frameTime.length;
 
-            // console.log(`${this.fps} fps`);
-            // console.log(`${this.ms.toFixed(4)} ms`);
+            console.log(`${this.fps} fps`);
+            console.log(`${this.ms.toFixed(4)} ms`);
         }
         if (this.state == -1) {
             this.shutdown();
@@ -248,7 +248,7 @@ export default abstract class GameShell {
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
 
-    keyDown(e: KeyboardEvent): void {
+    keyDown = (e: KeyboardEvent): void => {
         this.idleCycles = 0;
 
         let code = e.keyCode;
@@ -301,9 +301,9 @@ export default abstract class GameShell {
             this.keyQueueWritePos = this.keyQueueWritePos + 1 & 0x7F;
         }
         // TODO input tracking
-    }
+    };
 
-    keyUp(e: KeyboardEvent): void {
+    keyUp = (e: KeyboardEvent): void => {
         this.idleCycles = 0;
 
         let ch = e.key.charCodeAt(0);
@@ -318,7 +318,7 @@ export default abstract class GameShell {
         }
 
         this.actionKey[ch] = 0;
-    }
+    };
 
     pollKey(): number {
         let key = -1;
@@ -329,7 +329,7 @@ export default abstract class GameShell {
         return key;
     }
 
-    mousePressed(e: MouseEvent): void {
+    mousePressed = (e: MouseEvent): void => {
         let x = e.x;
         let y = e.y;
 
@@ -349,7 +349,7 @@ export default abstract class GameShell {
             this.mouseButton = 1;
         }
         // TODO input tracking
-    }
+    };
 
     private get getInsets(): { top: number; left: number } {
         const rect = this.canvas.getBoundingClientRect();

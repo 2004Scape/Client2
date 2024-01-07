@@ -101,199 +101,18 @@ class Client extends GameShell {
     private flameGradientCycle0: number = 0;
     private flameGradientCycle1: number = 0;
 
-    async run(): Promise<void> {
-        this.runFlames();
+    run = async (): Promise<void> => {
+        setInterval(() => {
+            if (this.flameActive) {
+                this.updateFlames();
+                this.updateFlames();
+                this.drawFlames();
+            }
+        }, 35);
         await super.run();
-
-        console.log('Running.');
     }
 
-    updateFlames = () => {
-        console.log('Updating flames.');
-
-        const height = 256;
-
-        for (let x = 10; x < 117; x++) {
-            const rand = (Math.random() * 100.0) | 0;
-            if (rand < 50) this.flameBuffer3[x + (height - 2 << 7)] = 255
-        }
-
-        for (let l = 0; l < 100; l++) {
-            const x = ((Math.random() * 124.0) | 0) + 2;
-            const y = ((Math.random() * 128.0) | 0) + 128;
-            const index = x + (y << 7);
-            this.flameBuffer3[index] = 192;
-        }
-
-        for (let y = 1; y < height - 1; y++) {
-            for (let x = 1; x < 127; x++) {
-                const index = x + (y << 7);
-                this.flameBuffer2[index] = ((this.flameBuffer3[index - 1] + this.flameBuffer3[index + 1] + this.flameBuffer3[index - 128] + this.flameBuffer3[index + 128]) / 4) | 0;
-            }
-        }
-
-        this.flameCycle0 += 128;
-        if (this.flameCycle0 > 32768) {
-            this.flameCycle0 -= 32768;
-            const rand = (Math.random() * 12.0) | 0;
-            this.updateFlameBuffer(this.imageRunes[rand]);
-        }
-
-        for (let y = 1; y < height - 1; y++) {
-            for (let x = 1; x < 127; x++) {
-                const index = x + (y << 7);
-                let intensity = (this.flameBuffer2[index + 128] - this.flameBuffer0[index + this.flameCycle0 & 32768 - 1] / 5) | 0;
-                if (intensity < 0) {
-                    intensity = 0;
-                }
-                this.flameBuffer3[index] = intensity;
-            }
-        }
-
-        for (let y = 0; y < height - 1; y++) {
-            this.flameLineOffset[y] = this.flameLineOffset[y + 1];
-        }
-
-        this.flameLineOffset[height - 1] = (Math.sin(this.loopCycle / 14.0) * 16.0 + Math.sin(this.loopCycle / 15.0) * 14.0 + Math.sin(this.loopCycle / 16.0) * 12.0) | 0;
-
-        if (this.flameGradientCycle0 > 0) {
-            this.flameGradientCycle0 -= 4;
-        }
-
-        if (this.flameGradientCycle1 > 0) {
-            this.flameGradientCycle1 -= 4;
-        }
-
-        if (this.flameGradientCycle0 == 0 && this.flameGradientCycle1 == 0) {
-            let rand = (Math.random() * 2000.0) | 0;
-
-            if (rand == 0) {
-                this.flameGradientCycle0 = 1024;
-            } else if (rand == 1) {
-                this.flameGradientCycle1 = 1024;
-            }
-        }
-    }
-
-    mix = (src: number, alpha: number, dst: number) => {
-        const invAlpha = 256 - alpha;
-        return (((src & 0xFF00FF) * invAlpha + (dst & 0xFF00FF) * alpha) & 0xFF00FF00)
-            + (((src & 0xFF00) * invAlpha + (dst & 0xFF00) * alpha) & 0xFF0000) >> 8;
-    }
-
-    drawFlames = () => {
-        const height = 256;
-
-        // just colors
-        if (this.flameGradientCycle0 > 0) {
-            for (let i = 0; i < 256; i++) {
-                if (this.flameGradientCycle0 > 768) {
-                    this.flameGradient[i] = this.mix(this.flameGradient0[i], 1024 - this.flameGradientCycle0, this.flameGradient1[i]);
-                } else if (this.flameGradientCycle0 > 256) {
-                    this.flameGradient[i] = this.flameGradient1[i];
-                } else {
-                    this.flameGradient[i] = this.mix(this.flameGradient1[i], 256 - this.flameGradientCycle0, this.flameGradient0[i]);
-                }
-            }
-        } else if (this.flameGradientCycle1 > 0) {
-            for (let i = 0; i < 256; i++) {
-                if (this.flameGradientCycle1 > 768) {
-                    this.flameGradient[i] = this.mix(this.flameGradient0[i], 1024 - this.flameGradientCycle1, this.flameGradient2[i]);
-                } else if (this.flameGradientCycle1 > 256) {
-                    this.flameGradient[i] = this.flameGradient2[i];
-                } else {
-                    this.flameGradient[i] = this.mix(this.flameGradient2[i], 256 - this.flameGradientCycle1, this.flameGradient0[i]);
-                }
-            }
-        } else {
-            for (let i = 0; i < 256; i++) {
-                this.flameGradient[i] = this.flameGradient0[i];
-            }
-        }
-        for (let i = 0; i < 33920; i++) {
-            if (this.imageTitle0 && this.imageFlamesLeft)
-                this.imageTitle0.pixels[i] = this.imageFlamesLeft.pixels[i];
-        }
-
-        let srcOffset = 0;
-        let dstOffset = 1152;
-
-        for (let y = 1; y < height - 1; y++) {
-            const offset = (this.flameLineOffset[y] * (height - y) / height) | 0;
-            let step = offset + 22;
-            if (step < 0) {
-                step = 0;
-            }
-            srcOffset += step;
-            for (let x = step; x < 128; x++) {
-                let value = this.flameBuffer3[srcOffset++];
-                if (value == 0) {
-                    dstOffset++;
-                } else {
-                    const alpha = value;
-                    const invAlpha = 256 - value;
-                    value = this.flameGradient[value];
-                    if (this.imageTitle0) {
-                        const background = this.imageTitle0.pixels[dstOffset];
-                        this.imageTitle0.pixels[dstOffset++] = (((value & 0xFF00FF) * alpha + (background & 0xFF00FF) * invAlpha) & 0xFF00FF00)
-                            + (((value & 0xFF00) * alpha + (background & 0xFF00) * invAlpha) & 0xFF0000) >> 8;
-
-                    }
-                }
-            }
-            dstOffset += step;
-        }
-
-        this.imageTitle0?.draw(0, 0);
-
-        for (let i = 0; i < 33920; i++) {
-            if (this.imageTitle1 && this.imageFlamesRight) {
-                this.imageTitle1.pixels[i] = this.imageFlamesRight.pixels[i];
-            }
-        }
-
-        srcOffset = 0;
-        dstOffset = 1176;
-        for (let y = 1; y < height - 1; y++) {
-            const offset = (this.flameLineOffset[y] * (height - y) / height) | 0;
-            const step = 103 - offset;
-            dstOffset += offset;
-            for (let x = 0; x < step; x++) {
-                let value = this.flameBuffer3[srcOffset++];
-                if (value == 0) {
-                    dstOffset++;
-                } else {
-                    const alpha = value;
-                    const invAlpha = 256 - value;
-                    value = this.flameGradient[value];
-                    if (this.imageTitle1) {
-                        const background = this.imageTitle1.pixels[dstOffset];
-                        this.imageTitle1.pixels[dstOffset++] = (((value & 0xFF00FF) * alpha + (background & 0xFF00FF) * invAlpha) & 0xFF00FF00)
-                            + (((value & 0xFF00) * alpha + (background & 0xFF00) * invAlpha) & 0xFF0000) >> 8;
-                    }
-                }
-            }
-            srcOffset += 128 - step;
-            dstOffset += 128 - step - offset;
-        }
-
-        this.imageTitle1?.draw(661, 0);
-    }
-
-    test = () => {
-        this.updateFlames();
-        this.updateFlames();
-        this.drawFlames();
-    }
-
-    runFlames = () => {
-        this.flameActive = true;
-        console.log('Running flames.');
-
-        setInterval(this.test, 35);
-    }
-
-    async load(): Promise<void> {
+    load = async (): Promise<void> => {
         if (this.alreadyStarted) {
             this.errorStarted = true;
             return;
@@ -363,9 +182,9 @@ class Client extends GameShell {
             console.error(err);
             this.errorLoading = true;
         }
-    }
+    };
 
-    update(): void {
+    update = (): void => {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             return;
         }
@@ -375,9 +194,9 @@ class Client extends GameShell {
         } else {
             this.updateTitleScreen();
         }
-    }
+    };
 
-    async draw(): Promise<void> {
+    draw = async (): Promise<void> => {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             this.drawError();
             return;
@@ -385,19 +204,16 @@ class Client extends GameShell {
         if (this.ingame) {
             // TODO
         } else {
-            // this.drawFlames();
             await this.drawTitleScreen();
 
         }
-    }
+    };
 
-    refresh(): void {
+    refresh = (): void => {
         this.redrawTitleBackground = true;
-    }
+    };
 
-    //
-
-    async showProgress(progress: number, str: string): Promise<void> {
+    showProgress = async (progress: number, str: string): Promise<void> => {
         console.log(`${progress}%: ${str}`);
 
         await this.loadTitle();
@@ -438,11 +254,11 @@ class Client extends GameShell {
         }
 
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
-    }
+    };
 
-    //
+    // ----
 
-    async loadTitle(): Promise<void> {
+    private loadTitle = async (): Promise<void> => {
         if (this.imageTitle2 === null) {
             this.drawArea = null;
             this.areaChatback = null;
@@ -487,9 +303,9 @@ class Client extends GameShell {
             }
             this.redrawTitleBackground = true;
         }
-    }
+    };
 
-    async loadTitleBackground(): Promise<void> {
+    private loadTitleBackground = async (): Promise<void> => {
         const background = await Pix24.fromJpeg(this.titleArchive, 'title');
 
         this.imageTitle0?.bind();
@@ -552,14 +368,10 @@ class Client extends GameShell {
         const logo = Pix24.fromArchive(this.titleArchive, 'logo');
         this.imageTitle2?.bind();
         logo.draw((this.width / 2) - (logo.width / 2) - 128, 18);
-    }
+    };
 
-    arraycopy = (src: Uint32Array, srcPos: number, dst: Uint32Array, dstPos: number, length: number) => {
-        while (length--) dst[dstPos++] = src[srcPos++];
-    }
-
-    updateFlameBuffer = (image: Pix8 | null) => {
-        const flameHeight = 256.0;
+    private updateFlameBuffer = (image: Pix8 | null): void => {
+        const flameHeight = 256;
 
         // Clears the initial flame buffer
         for (let i = 0; i < 32768; i++) {
@@ -603,13 +415,12 @@ class Client extends GameShell {
         }
     }
 
-    loadTitleImages(): void {
+    private loadTitleImages = (): void => {
         this.imageTitleBox = Pix8.fromArchive(this.titleArchive, 'titlebox');
         this.imageTitleButton = Pix8.fromArchive(this.titleArchive, 'titlebutton');
         for (let i = 0; i < 12; i++) {
             this.imageRunes[i] = Pix8.fromArchive(this.titleArchive, "runes", i);
         }
-        // TODO
         this.imageFlamesLeft = new Pix24(128, 265);
         this.imageFlamesRight = new Pix24(128, 265);
 
@@ -617,51 +428,48 @@ class Client extends GameShell {
         if (this.imageTitle1) this.arraycopy(this.imageTitle1.pixels, 0, this.imageFlamesRight.pixels, 0, 33920);
 
         this.flameGradient0 = [];
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient0[i] = i * 262144;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient0[index] = index * 262144;
         }
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient0[i + 64] = i * 1024 + 16711680;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient0[index + 64] = index * 1024 + 16711680;
         }
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient0[i + 128] = i * 4 + 16776960;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient0[index + 128] = index * 4 + 16776960;
         }
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient0[i + 192] = 16777215;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient0[index + 192] = 16777215;
         }
-        // this.flameGradient1 = new int[256];
         this.flameGradient1 = [];
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient1[i] = i * 1024;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient1[index] = index * 1024;
         }
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient1[i + 64] = i * 4 + 65280;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient1[index + 64] = index * 4 + 65280;
         }
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient1[i + 128] = i * 262144 + 65535;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient1[index + 128] = index * 262144 + 65535;
         }
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient1[i + 192] = 16777215;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient1[index + 192] = 16777215;
         }
-        // this.flameGradient2 = new int[256]; this is resetting it
         this.flameGradient2 = [];
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient2[i] = i * 4;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient2[index] = index * 4;
         }
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient2[i + 64] = i * 262144 + 255;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient2[index + 64] = index * 262144 + 255;
         }
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient2[i + 128] = i * 1024 + 16711935;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient2[index + 128] = index * 1024 + 16711935;
         }
-        for (let i = 0; i < 64; i++) {
-            this.flameGradient2[i + 192] = 16777215;
+        for (let index = 0; index < 64; index++) {
+            this.flameGradient2[index + 192] = 16777215;
         }
 
         this.flameGradient = [];
         this.flameBuffer0 = [];
         this.flameBuffer1 = [];
-
         this.updateFlameBuffer(null);
         this.flameBuffer3 = [];
         this.flameBuffer2 = [];
@@ -671,9 +479,9 @@ class Client extends GameShell {
         this.showProgress(10, 'Connecting to fileserver').then(() => {
             console.log('Finished loading.')
         });
-    }
+    };
 
-    updateTitleScreen(): void {
+    private updateTitleScreen = (): void => {
         if (this.titleScreenState === 0) {
             let x = this.width / 2 - 80;
             let y = this.height / 2 + 20;
@@ -704,7 +512,7 @@ class Client extends GameShell {
             if (this.mouseClickButton == 1 && this.mouseClickY >= y - 15 && this.mouseClickY < y) {
                 this.titleLoginField = 1;
             }
-            y += 15;
+            // y += 15; dead code
 
             let buttonX = this.width / 2 - 80;
             let buttonY = this.height / 2 + 50;
@@ -778,9 +586,9 @@ class Client extends GameShell {
                 this.titleScreenState = 0;
             }
         }
-    }
+    };
 
-    private async drawTitleScreen(): Promise<void> {
+    private drawTitleScreen = async (): Promise<void> => {
         await this.loadTitle();
         this.imageTitle4?.bind();
         this.imageTitleBox?.draw(0, 0);
@@ -818,7 +626,7 @@ class Client extends GameShell {
 
             this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${this.password}${(this.titleLoginField == 1 && this.loopCycle % 40 < 20) ? '@yel@|' : ''}`, 0xFFFFFF, true);
 
-            x = w / 2 - 80;
+            // x = w / 2 - 80; dead code
             y = h / 2 + 50;
             this.imageTitleButton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Login', 0xFFFFFF, true);
@@ -859,24 +667,24 @@ class Client extends GameShell {
             this.imageTitle7?.draw(128, 186);
             this.imageTitle8?.draw(574, 186);
         }
-    }
+    };
 
-    private async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Archive> {
+    private loadArchive = async (filename: string, displayName: string, crc: number, progress: number): Promise<Archive> => {
         // TODO: caching
         // TODO: download progress, retry
 
         await this.showProgress(progress, `Requesting ${displayName}`);
-        let data = await Archive.loadUrl(`${Client.HOST}/${filename}${crc}`);
+        const data = await Archive.loadUrl(`${Client.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
-    }
+    };
 
-    private async setMidi(name: string, crc: number): Promise<void> {
-        let file = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
+    private setMidi = async (name: string, crc: number): Promise<void> => {
+        const file = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
         playMidi(decompressBz2(file.data, true, false), 192);
-    }
+    };
 
-    private drawError(): void {
+    private drawError = (): void => {
         this.ctx.fillStyle = 'black';
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -946,6 +754,178 @@ class Client extends GameShell {
             y += 30;
             this.ctx.fillText('2: Try rebooting your computer, and reloading', 30, y);
         }
+    };
+
+    private updateFlames = (): void => {
+        const height = 256;
+
+        for (let x = 10; x < 117; x++) {
+            const rand = (Math.random() * 100.0) | 0;
+            if (rand < 50) this.flameBuffer3[x + (height - 2 << 7)] = 255
+        }
+
+        for (let l = 0; l < 100; l++) {
+            const x = ((Math.random() * 124.0) | 0) + 2;
+            const y = ((Math.random() * 128.0) | 0) + 128;
+            const index = x + (y << 7);
+            this.flameBuffer3[index] = 192;
+        }
+
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < 127; x++) {
+                const index = x + (y << 7);
+                this.flameBuffer2[index] = ((this.flameBuffer3[index - 1] + this.flameBuffer3[index + 1] + this.flameBuffer3[index - 128] + this.flameBuffer3[index + 128]) / 4) | 0;
+            }
+        }
+
+        this.flameCycle0 += 128;
+        if (this.flameCycle0 > 32768) {
+            this.flameCycle0 -= 32768;
+            const rand = (Math.random() * 12.0) | 0;
+            this.updateFlameBuffer(this.imageRunes[rand]);
+        }
+
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < 127; x++) {
+                const index = x + (y << 7);
+                let intensity = (this.flameBuffer2[index + 128] - this.flameBuffer0[index + this.flameCycle0 & 32768 - 1] / 5) | 0;
+                if (intensity < 0) {
+                    intensity = 0;
+                }
+                this.flameBuffer3[index] = intensity;
+            }
+        }
+
+        for (let y = 0; y < height - 1; y++) {
+            this.flameLineOffset[y] = this.flameLineOffset[y + 1];
+        }
+
+        this.flameLineOffset[height - 1] = (Math.sin(this.loopCycle / 14.0) * 16.0 + Math.sin(this.loopCycle / 15.0) * 14.0 + Math.sin(this.loopCycle / 16.0) * 12.0) | 0;
+
+        if (this.flameGradientCycle0 > 0) {
+            this.flameGradientCycle0 -= 4;
+        }
+
+        if (this.flameGradientCycle1 > 0) {
+            this.flameGradientCycle1 -= 4;
+        }
+
+        if (this.flameGradientCycle0 == 0 && this.flameGradientCycle1 == 0) {
+            let rand = (Math.random() * 2000.0) | 0;
+
+            if (rand == 0) {
+                this.flameGradientCycle0 = 1024;
+            } else if (rand == 1) {
+                this.flameGradientCycle1 = 1024;
+            }
+        }
+    }
+
+    private mix = (src: number, alpha: number, dst: number) => {
+        const invAlpha = 256 - alpha;
+        return (((src & 0xFF00FF) * invAlpha + (dst & 0xFF00FF) * alpha) & 0xFF00FF00) + (((src & 0xFF00) * invAlpha + (dst & 0xFF00) * alpha) & 0xFF0000) >> 8;
+    }
+
+    private drawFlames = (): void => {
+        const height = 256;
+
+        // just colors
+        if (this.flameGradientCycle0 > 0) {
+            for (let i = 0; i < 256; i++) {
+                if (this.flameGradientCycle0 > 768) {
+                    this.flameGradient[i] = this.mix(this.flameGradient0[i], 1024 - this.flameGradientCycle0, this.flameGradient1[i]);
+                } else if (this.flameGradientCycle0 > 256) {
+                    this.flameGradient[i] = this.flameGradient1[i];
+                } else {
+                    this.flameGradient[i] = this.mix(this.flameGradient1[i], 256 - this.flameGradientCycle0, this.flameGradient0[i]);
+                }
+            }
+        } else if (this.flameGradientCycle1 > 0) {
+            for (let i = 0; i < 256; i++) {
+                if (this.flameGradientCycle1 > 768) {
+                    this.flameGradient[i] = this.mix(this.flameGradient0[i], 1024 - this.flameGradientCycle1, this.flameGradient2[i]);
+                } else if (this.flameGradientCycle1 > 256) {
+                    this.flameGradient[i] = this.flameGradient2[i];
+                } else {
+                    this.flameGradient[i] = this.mix(this.flameGradient2[i], 256 - this.flameGradientCycle1, this.flameGradient0[i]);
+                }
+            }
+        } else {
+            for (let i = 0; i < 256; i++) {
+                this.flameGradient[i] = this.flameGradient0[i];
+            }
+        }
+        for (let i = 0; i < 33920; i++) {
+            if (this.imageTitle0 && this.imageFlamesLeft)
+                this.imageTitle0.pixels[i] = this.imageFlamesLeft.pixels[i];
+        }
+
+        let srcOffset = 0;
+        let dstOffset = 1152;
+
+        for (let y = 1; y < height - 1; y++) {
+            const offset = (this.flameLineOffset[y] * (height - y) / height) | 0;
+            let step = offset + 22;
+            if (step < 0) {
+                step = 0;
+            }
+            srcOffset += step;
+            for (let x = step; x < 128; x++) {
+                let value = this.flameBuffer3[srcOffset++] | 0;
+                if (value == 0) {
+                    dstOffset++;
+                } else {
+                    const alpha = value;
+                    const invAlpha = 256 - value;
+                    value = this.flameGradient[value];
+                    if (this.imageTitle0) {
+                        const background = this.imageTitle0.pixels[dstOffset];
+                        this.imageTitle0.pixels[dstOffset++] = (((value & 0xFF00FF) * alpha + (background & 0xFF00FF) * invAlpha) & 0xFF00FF00)
+                            + (((value & 0xFF00) * alpha + (background & 0xFF00) * invAlpha) & 0xFF0000) >> 8;
+
+                    }
+                }
+            }
+            dstOffset += step;
+        }
+
+        this.imageTitle0?.draw(0, 0);
+
+        for (let i = 0; i < 33920; i++) {
+            if (this.imageTitle1 && this.imageFlamesRight) {
+                this.imageTitle1.pixels[i] = this.imageFlamesRight.pixels[i];
+            }
+        }
+
+        srcOffset = 0;
+        dstOffset = 1176;
+        for (let y = 1; y < height - 1; y++) {
+            const offset = (this.flameLineOffset[y] * (height - y) / height) | 0;
+            const step = 103 - offset;
+            dstOffset += offset;
+            for (let x = 0; x < step; x++) {
+                let value = this.flameBuffer3[srcOffset++] | 0;
+                if (value == 0) {
+                    dstOffset++;
+                } else {
+                    const alpha = value;
+                    const invAlpha = 256 - value;
+                    value = this.flameGradient[value];
+                    if (this.imageTitle1) {
+                        const background = this.imageTitle1.pixels[dstOffset];
+                        this.imageTitle1.pixels[dstOffset++] = (((value & 0xFF00FF) * alpha + (background & 0xFF00FF) * invAlpha) & 0xFF00FF00) + (((value & 0xFF00) * alpha + (background & 0xFF00) * invAlpha) & 0xFF0000) >> 8;
+                    }
+                }
+            }
+            srcOffset += 128 - step;
+            dstOffset += 128 - step - offset;
+        }
+
+        this.imageTitle1?.draw(661, 0);
+    }
+
+    private arraycopy = (src: Uint32Array, srcPos: number, dst: Uint32Array, dstPos: number, length: number): void => {
+        while (length--) dst[dstPos++] = src[srcPos++];
     }
 }
 

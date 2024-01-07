@@ -39,7 +39,7 @@ class Playground extends GameShell {
         super(true);
     }
 
-    async load() {
+    load = async () => {
         await this.showProgress(10, 'Connecting to fileserver');
 
         let checksums = await downloadUrl(`${Playground.HOST}/crc`);
@@ -97,9 +97,9 @@ class Playground extends GameShell {
         // this.setLoopRate(1);
         this.drawArea.bind();
         Draw3D.init2D();
-    }
+    };
 
-    update() {
+    update = () => {
         this.updateKeysPressed();
         this.updateKeysHeld();
 
@@ -121,9 +121,9 @@ class Playground extends GameShell {
 
             this.lastHistoryRefresh = 0;
         }
-    }
+    };
 
-    async draw() {
+    draw = async () => {
         Draw2D.clear();
         Draw2D.fillRect(0, 0, this.width, this.height, 0x555555);
 
@@ -148,7 +148,7 @@ class Playground extends GameShell {
         //     this.b12.draw(x, y, `${i}: ${flo.name}`, 0xFFFF00);
 
         //     let textSize = this.b12.getTextWidth(`${i}: ${flo.name}`);
-            
+
         //     if (flo.texture != -1) {
         //         Draw3D.textures[flo.texture].draw(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight);
         //     } else {
@@ -196,7 +196,7 @@ class Playground extends GameShell {
         this.b12.draw(0, leftY, `q and e - move camera along y axis`, 0xFFFF00);
 
         this.drawArea.draw(0, 0);
-    }
+    };
 
     // ----
 
