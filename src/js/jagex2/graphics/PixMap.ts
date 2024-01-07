@@ -28,7 +28,7 @@ export default class PixMap {
     };
 
     bind = (): void => {
-        Draw2D.prepare(this.pixels, this.width, this.height);
+        Draw2D.bind(this.pixels, this.width, this.height);
     };
 
     draw = (width: number, height: number): void => {

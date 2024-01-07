@@ -148,6 +148,54 @@ export default class Pix24 {
         }
     };
 
+    drawAlpha = (alpha: number, x: number, y: number): void => {
+        x = x | 0;
+        y = y | 0;
+
+        x += this.cropX;
+        y += this.cropY;
+
+        let dstStep = x + y * Draw2D.width;
+        let srcStep = 0;
+        let h = this.height;
+        let w = this.width;
+        let dstOff = Draw2D.width - w;
+        let srcOff = 0;
+
+        if (y < Draw2D.top) {
+            const cutoff = Draw2D.top - y;
+            h -= cutoff;
+            y = Draw2D.top;
+            srcStep += cutoff * w;
+            dstStep += cutoff * Draw2D.width;
+        }
+
+        if (y + h > Draw2D.bottom) {
+            h -= y + h - Draw2D.bottom;
+        }
+
+        if (x < Draw2D.left) {
+            const cutoff = Draw2D.left - x;
+            w -= cutoff;
+            x = Draw2D.left;
+            srcStep += cutoff;
+            dstStep += cutoff;
+            srcOff += cutoff;
+            dstOff += cutoff;
+        }
+
+        if (x + w > Draw2D.right) {
+            const cutoff = x + w - Draw2D.right;
+            w -= cutoff;
+            srcOff += cutoff;
+            dstOff += cutoff;
+        }
+
+        if (w > 0 && h > 0) {
+            this.copyPixelsAlpha(w, h, this.pixels, srcStep, srcOff, Draw2D.pixels, dstStep, dstOff, alpha);
+        }
+    };
+
     blitOpaque = (x: number, y: number): void => {
         x = x | 0;
         y = y | 0;
@@ -281,6 +329,25 @@ export default class Pix24 {
 
             for (let x = w; x < 0; x++) {
                 dst[dstOff++] = src[srcOff++];
+            }
+
+            dstOff += dstStep;
+            srcOff += srcStep;
+        }
+    };
+
+    private copyPixelsAlpha = (w: number, h: number, src: Int32Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, alpha: number): void => {
+        const invAlpha = 256 - alpha;
+
+        for (let y = -h; y < 0; y++) {
+            for (let x = -w; x < 0; x++) {
+                const rgb = src[srcOff++];
+                if (rgb == 0) {
+                    dstOff++;
+                } else {
+                    const dstRgb = dst[dstOff];
+                    dst[dstOff++] = ((((rgb & 0xff00ff) * alpha + (dstRgb & 0xff00ff) * invAlpha) & 0xff00ff00) + (((rgb & 0xff00) * alpha + (dstRgb & 0xff00) * invAlpha) & 0xff0000)) >> 8;
+                }
             }
 
             dstOff += dstStep;

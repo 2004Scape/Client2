@@ -641,9 +641,13 @@ export default class Model {
         this.maxDepth = this.minDepth + Math.trunc(Math.sqrt(this.radius * this.radius + this.minY * this.minY));
     }
 
-    createLabelReferences() {}
+    createLabelReferences() {
+        // TODO
+    }
 
-    applyTransform() {}
+    applyTransform(id: number) {
+        // TODO
+    }
 
     rotateY90() {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {

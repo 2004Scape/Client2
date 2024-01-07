@@ -1,6 +1,7 @@
 import Jagfile from '../io/Jagfile';
 import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
+import Pix24 from '../graphics/Pix24';
 
 export default class ObjType extends ConfigType {
     static count: number = 0;
@@ -30,6 +31,11 @@ export default class ObjType extends ConfigType {
     };
 
     static get = (id: number): ObjType => ObjType.instances[id];
+
+    static getIcon = (id: number, count: number): Pix24 => {
+        // TODO
+        return new Pix24(32, 32);
+    };
 
     // ----
 

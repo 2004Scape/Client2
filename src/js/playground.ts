@@ -89,7 +89,7 @@ class Playground extends GameShell {
         Wave.unpack(sounds);
 
         await this.showProgress(92, 'Unpacking interfaces');
-        ComType.unpack(interfaces, media);
+        ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
         await this.showProgress(97, 'Preparing game engine');
         WordFilter.unpack(wordenc);

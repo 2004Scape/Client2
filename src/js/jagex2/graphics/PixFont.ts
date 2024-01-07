@@ -147,7 +147,7 @@ export default class PixFont {
         }
     };
 
-    getTextWidth = (str: string): number => {
+    stringWidth = (str: string): number => {
         const length = str.length;
         let w = 0;
         for (let i = 0; i < length; i++) {
@@ -161,19 +161,125 @@ export default class PixFont {
         return w;
     };
 
+    drawString = (x: number, y: number, str: string, color: number): void => {
+        const offY = y - this.fontHeight;
+
+        for (let i = 0; i < str.length; i++) {
+            const c = PixFont.CHARSET[str.charCodeAt(i)];
+            if (c != 94) {
+                this.drawChar(this.pixels[c], x + this.clipX[c], offY + this.clipY[c], this.charWidth[c], this.charHeight[c], color);
+            }
+
+            x += this.charSpace[c];
+        }
+    };
+
     drawStringTaggableCenter = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
-        this.drawStringTaggable(x - this.getTextWidth(str) / 2, y, str, color, shadowed);
+        this.drawStringTaggable(x - this.stringWidth(str) / 2, y, str, color, shadowed);
     };
 
     drawStringCenter = (x: number, y: number, str: string, color: number): void => {
-        this.draw(x - this.getTextWidth(str) / 2, y, str, color);
+        this.draw(x - this.stringWidth(str) / 2, y, str, color);
     };
 
     drawRight = (x: number, y: number, str: string, color: number, shadowed: boolean = true): void => {
         if (shadowed) {
-            this.draw(x - this.getTextWidth(str) + 1, y + 1, str, 0);
+            this.draw(x - this.stringWidth(str) + 1, y + 1, str, 0);
         }
-        this.draw(x - this.getTextWidth(str), y, str, color);
+        this.draw(x - this.stringWidth(str), y, str, color);
+    };
+
+    drawChar = (data: Uint8Array, x: number, y: number, w: number, h: number, color: number): void => {
+        x = x | 0;
+        y = y | 0;
+        w = w | 0;
+        h = h | 0;
+
+        let dstOff = x + y * Draw2D.width;
+        let dstStep = Draw2D.width - w;
+
+        let srcStep = 0;
+        let srcOff = 0;
+
+        if (y < Draw2D.top) {
+            const cutoff = Draw2D.top - y;
+            h -= cutoff;
+            y = Draw2D.top;
+            srcOff += cutoff * w;
+            dstOff += cutoff * Draw2D.width;
+        }
+
+        if (y + h >= Draw2D.bottom) {
+            h -= y + h + 1 - Draw2D.bottom;
+        }
+
+        if (x < Draw2D.left) {
+            const cutoff = Draw2D.left - x;
+            w -= cutoff;
+            x = Draw2D.left;
+            srcOff += cutoff;
+            dstOff += cutoff;
+            srcStep += cutoff;
+            dstStep += cutoff;
+        }
+
+        if (x + w >= Draw2D.right) {
+            const cutoff = x + w + 1 - Draw2D.right;
+            w -= cutoff;
+            srcStep += cutoff;
+            dstStep += cutoff;
+        }
+
+        if (w > 0 && h > 0) {
+            this.drawMask(w, h, data, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep, color);
+        }
+    };
+
+    drawMask = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, rgb: number): void => {
+        w = w | 0;
+        h = h | 0;
+
+        const hw = -(w >> 2);
+        w = -(w & 0x3);
+
+        for (let y = -h; y < 0; y++) {
+            for (let x = hw; x < 0; x++) {
+                if (src[srcOff++] == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
+
+                if (src[srcOff++] == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
+
+                if (src[srcOff++] == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
+
+                if (src[srcOff++] == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
+            }
+
+            for (let x = w; x < 0; x++) {
+                if (src[srcOff++] == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = rgb;
+                }
+            }
+
+            dstOff += dstStep;
+            srcOff += srcStep;
+        }
     };
 
     copyCharacter = (x: number, y: number, w: number, h: number, pixels: Uint8Array, color: number): void => {

@@ -74,4 +74,27 @@ export default class JString {
         }
         return temp;
     };
+
+    static formatName = (str: string): string => {
+        if (str.length == 0) {
+            return str;
+        }
+
+        const chars: string[] = [...str];
+        for (let i = 0; i < chars.length; i++) {
+            if (chars[i] == '_') {
+                chars[i] = ' ';
+
+                if (i + 1 < chars.length && chars[i + 1] >= 'a' && chars[i + 1] <= 'z') {
+                    chars[i + 1] = String.fromCharCode(chars[i + 1].charCodeAt(0) + 'A'.charCodeAt(0) - 97);
+                }
+            }
+        }
+
+        if (chars[0] >= 'a' && chars[0] <= 'z') {
+            chars[0] = String.fromCharCode(chars[0].charCodeAt(0) + 'A'.charCodeAt(0) - 97);
+        }
+
+        return chars.join('');
+    };
 }

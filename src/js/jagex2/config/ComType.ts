@@ -1,6 +1,8 @@
 import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
 import Pix24 from '../graphics/Pix24';
+import PixFont from '../graphics/PixFont';
+import Model from '../graphics/Model';
 
 export default class ComType {
     static instances: ComType[] = [];
@@ -14,7 +16,7 @@ export default class ComType {
     static TYPE_MODEL: number = 6;
     static TYPE_INVENTORY_TEXT: number = 7;
 
-    static unpack = (interfaces: Jagfile, media: Jagfile): void => {
+    static unpack = (interfaces: Jagfile, media: Jagfile, fonts: PixFont[]): void => {
         const dat: Packet = new Packet(interfaces.read('data'));
         let parentId = -1;
         dat.pos += 2; // const count = dat.g2;
@@ -87,6 +89,9 @@ export default class ComType {
                     dat.pos += 10;
                     break;
                 case ComType.TYPE_INVENTORY: {
+                    com.inventorySlotObjId = new Int32Array(com.width * com.height);
+                    com.inventorySlotObjCount = new Int32Array(com.width * com.height);
+
                     com.inventoryDraggable = dat.g1 === 1;
                     com.inventoryInteractable = dat.g1 === 1;
                     com.inventoryUsable = dat.g1 === 1;
@@ -125,59 +130,71 @@ export default class ComType {
                 }
                 case ComType.TYPE_RECT:
                     com.fill = dat.g1 === 1;
-                    com.colour = dat.g4;
-                    com.activeColour = dat.g4;
-                    com.overColour = dat.g4;
+                    com.color = dat.g4;
+                    com.activeColor = dat.g4;
+                    com.hoverColor = dat.g4;
                     break;
                 case ComType.TYPE_TEXT:
                     com.center = dat.g1 === 1;
-                    com.font = dat.g1;
-                    com.shadowed = dat.g1 === 1;
+                    com.font = fonts[dat.g1];
+                    com.shadow = dat.g1 === 1;
                     com.text = dat.gjstr;
                     com.activeText = dat.gjstr;
-                    com.colour = dat.g4;
-                    com.activeColour = dat.g4;
-                    com.overColour = dat.g4;
+                    com.color = dat.g4;
+                    com.activeColor = dat.g4;
+                    com.hoverColor = dat.g4;
                     break;
-                case ComType.TYPE_SPRITE:
-                    com.graphic = dat.gjstr;
-                    com.activeGraphic = dat.gjstr;
+                case ComType.TYPE_SPRITE: {
+                    const image = dat.gjstr;
+                    if (image.length > 0) {
+                        const spriteIndex = image.lastIndexOf(',');
+                        com.image = Pix24.fromArchive(media, image.substring(0, spriteIndex), parseInt(image.substring(spriteIndex + 1)));
+                    }
+                    const activeImage = dat.gjstr;
+                    if (activeImage.length > 0) {
+                        const spriteIndex = activeImage.lastIndexOf(',');
+                        com.image = Pix24.fromArchive(media, activeImage.substring(0, spriteIndex), parseInt(activeImage.substring(spriteIndex + 1)));
+                    }
                     break;
+                }
                 case ComType.TYPE_MODEL: {
-                    com.model = dat.g1;
-                    if (com.model != 0) {
-                        com.model = ((com.model - 1) << 8) + dat.g1;
+                    const model = dat.g1;
+                    if (model !== 0) {
+                        com.model = this.getModel(((model - 1) << 8) + dat.g1);
                     }
 
-                    com.activeModel = dat.g1;
-                    if (com.activeModel != 0) {
-                        com.activeModel = ((com.activeModel - 1) << 8) + dat.g1;
+                    const activeModel = dat.g1;
+                    if (activeModel !== 0) {
+                        com.activeModel = this.getModel(((activeModel - 1) << 8) + dat.g1);
                     }
 
-                    com.anim = dat.g1;
-                    if (com.anim == 0) {
-                        com.anim = -1;
+                    com.seqId = dat.g1;
+                    if (com.seqId == 0) {
+                        com.seqId = -1;
                     } else {
-                        com.anim = ((com.anim - 1) << 8) + dat.g1;
+                        com.seqId = ((com.seqId - 1) << 8) + dat.g1;
                     }
 
-                    com.activeAnim = dat.g1;
-                    if (com.activeAnim == 0) {
-                        com.activeAnim = -1;
+                    com.activeSeqId = dat.g1;
+                    if (com.activeSeqId == 0) {
+                        com.activeSeqId = -1;
                     } else {
-                        com.activeAnim = ((com.activeAnim - 1) << 8) + dat.g1;
+                        com.activeSeqId = ((com.activeSeqId - 1) << 8) + dat.g1;
                     }
 
-                    com.zoom = dat.g2;
-                    com.xan = dat.g2;
-                    com.yan = dat.g2;
+                    com.modelZoom = dat.g2;
+                    com.modelPitch = dat.g2;
+                    com.modelYaw = dat.g2;
                     break;
                 }
                 case ComType.TYPE_INVENTORY_TEXT: {
+                    com.inventorySlotObjId = new Int32Array(com.width * com.height);
+                    com.inventorySlotObjCount = new Int32Array(com.width * com.height);
+
                     com.center = dat.g1 === 1;
-                    com.font = dat.g1;
-                    com.shadowed = dat.g1 === 1;
-                    com.colour = dat.g4;
+                    com.font = fonts[dat.g1];
+                    com.shadow = dat.g1 === 1;
+                    com.color = dat.g4;
                     com.inventoryMarginX = dat.g2b;
                     com.inventoryMarginY = dat.g2b;
                     com.inventoryInteractable = dat.g1 === 1;
@@ -215,10 +232,14 @@ export default class ComType {
 
     static get = (id: number): ComType => ComType.instances[id];
 
+    static getModel = (id: number): Model => {
+        // TODO
+        return new Model(id);
+    };
+
     // ----
     id: number = -1;
     parentId: number = -1;
-    comName: string | null = null;
     type: number = -1;
     optionType: number = -1;
     contentType: number = 0;
@@ -240,24 +261,24 @@ export default class ComType {
     inventorySlotImage: Pix24[] | null = null;
     // inventoryOptions: (string | null)[] = [];
     inventoryOptions: Array<string | null> = [];
-    fill = false;
-    center = false;
-    font: number = 0;
-    shadowed = false;
+    fill: boolean = false;
+    center: boolean = false;
+    font: PixFont | null = null;
+    shadow: boolean = false;
     text: string | null = null;
     activeText: string | null = null;
-    colour: number = 0;
-    activeColour: number = 0;
-    overColour: number = 0;
-    graphic: string | null = null;
-    activeGraphic: string | null = null;
-    model: number = -1;
-    activeModel: number = -1;
-    anim: number = -1;
-    activeAnim: number = -1;
-    zoom: number = 0;
-    xan: number = 0;
-    yan: number = 0;
+    color: number = 0;
+    activeColor: number = 0;
+    hoverColor: number = 0;
+    image: Pix24 | null = null;
+    activeImage: Pix24 | null = null;
+    model: Model | null = null;
+    activeModel: Model | null = null;
+    seqId: number = -1;
+    activeSeqId: number = -1;
+    modelZoom: number = 0;
+    modelPitch: number = 0;
+    modelYaw: number = 0;
     spellAction: string | null = null;
     spellName: string | null = null;
     spellFlags: number = -1;
@@ -267,5 +288,42 @@ export default class ComType {
     childY: Uint16Array | null = null;
 
     // other
+    x: number = 0;
+    y: number = 0;
     scrollPosition: number = 0;
+    inventorySlotObjId: Int32Array | null = null;
+    inventorySlotObjCount: Int32Array | null = null;
+    seqFrame: number = 0;
+
+    getModel = (primaryFrame: number, secondaryFrame: number, active: boolean): Model | null => {
+        let m = this.model;
+        if (active) {
+            m = this.activeModel;
+        }
+
+        if (m == null) {
+            return null;
+        }
+
+        if (primaryFrame == -1 && secondaryFrame == -1 && m.faceColor == null) {
+            return m;
+        }
+
+        // const tmp = new Model(m, true, true, false);
+        // if (primaryFrame != -1 || secondaryFrame != -1) {
+        //     tmp.createLabelReferences();
+        // }
+        //
+        // if (primaryFrame != -1) {
+        //     tmp.applyTransform(primaryFrame);
+        // }
+        //
+        // if (secondaryFrame != -1) {
+        //     tmp.applyTransform(secondaryFrame);
+        // }
+        //
+        // tmp.calculateNormals(64, 768, -50, -10, -50, true);
+        // return tmp;
+        return null; // TODO
+    };
 }
