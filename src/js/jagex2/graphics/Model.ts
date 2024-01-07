@@ -106,7 +106,7 @@ export default class Model {
             Model.vertex1.pos = 0;
             Model.vertex2.pos = 0;
 
-            const count = Model.head.g2();
+            const count = Model.head.g2;
             Model.metadata = new Array(count + 100);
 
             let vertexTextureDataOffset: number = 0;
@@ -118,12 +118,12 @@ export default class Model {
             let triangleSkinDataOffset: number = 0;
 
             for (let i = 0; i < count; i++) {
-                const id: number = Model.head.g2();
+                const id: number = Model.head.g2;
                 const meta: Metadata = new Metadata();
 
-                meta.vertexCount = Model.head.g2();
-                meta.faceCount = Model.head.g2();
-                meta.texturedFaceCount = Model.head.g1();
+                meta.vertexCount = Model.head.g2;
+                meta.faceCount = Model.head.g2;
+                meta.texturedFaceCount = Model.head.g1;
 
                 meta.vertexFlagsOffset = Model.point1.pos;
                 meta.vertexXOffset = Model.point2.pos;
@@ -132,37 +132,37 @@ export default class Model {
                 meta.faceVerticesOffset = Model.vertex1.pos;
                 meta.faceOrientationsOffset = Model.vertex2.pos;
 
-                const hasInfo: number = Model.head.g1();
-                const hasPriorities: number = Model.head.g1();
-                const hasAlpha: number = Model.head.g1();
-                const hasSkins: number = Model.head.g1();
-                const hasLabels: number = Model.head.g1();
+                const hasInfo: number = Model.head.g1;
+                const hasPriorities: number = Model.head.g1;
+                const hasAlpha: number = Model.head.g1;
+                const hasSkins: number = Model.head.g1;
+                const hasLabels: number = Model.head.g1;
 
                 for (let v = 0; v < meta.vertexCount; v++) {
-                    const flags: number = Model.point1.g1();
+                    const flags: number = Model.point1.g1;
 
                     if ((flags & 0x1) !== 0) {
-                        Model.point2.gsmarts();
+                        Model.point2.gsmarts;
                     }
 
                     if ((flags & 0x2) !== 0) {
-                        Model.point3.gsmarts();
+                        Model.point3.gsmarts;
                     }
 
                     if ((flags & 0x4) !== 0) {
-                        Model.point4.gsmarts();
+                        Model.point4.gsmarts;
                     }
                 }
 
                 for (let v = 0; v < meta.faceCount; v++) {
-                    const type: number = Model.vertex2.g1();
+                    const type: number = Model.vertex2.g1;
 
                     if (type === 1) {
-                        Model.vertex1.gsmarts();
-                        Model.vertex1.gsmarts();
+                        Model.vertex1.gsmarts;
+                        Model.vertex1.gsmarts;
                     }
 
-                    Model.vertex1.gsmarts();
+                    Model.vertex1.gsmarts;
                 }
 
                 meta.faceColorsOffset = triangleColorDataOffset;
@@ -377,21 +377,21 @@ export default class Model {
         let c: number;
 
         for (let v = 0; v < this.vertexCount; v++) {
-            const flags = Model.point1.g1();
+            const flags = Model.point1.g1;
 
             a = 0;
             if ((flags & 0x1) != 0) {
-                a = Model.point2.gsmarts();
+                a = Model.point2.gsmarts;
             }
 
             b = 0;
             if ((flags & 0x2) != 0) {
-                b = Model.point3.gsmarts();
+                b = Model.point3.gsmarts;
             }
 
             c = 0;
             if ((flags & 0x4) != 0) {
-                c = Model.point4.gsmarts();
+                c = Model.point4.gsmarts;
             }
 
             this.vertexX[v] = dx + a;
@@ -402,7 +402,7 @@ export default class Model {
             dz = this.vertexZ[v];
 
             if (this.vertexLabel != null) {
-                this.vertexLabel[v] = Model.point5.g1();
+                this.vertexLabel[v] = Model.point5.g1;
             }
         }
 
@@ -413,22 +413,22 @@ export default class Model {
         Model.face5.pos = meta.faceLabelsOffset;
 
         for (let f = 0; f < this.faceCount; f++) {
-            this.faceColor[f] = Model.face1.g2();
+            this.faceColor[f] = Model.face1.g2;
 
             if (this.faceInfo != null) {
-                this.faceInfo[f] = Model.face2.g1();
+                this.faceInfo[f] = Model.face2.g1;
             }
 
             if (this.facePriority != null) {
-                this.facePriority[f] = Model.face3.g1();
+                this.facePriority[f] = Model.face3.g1;
             }
 
             if (this.faceAlpha != null) {
-                this.faceAlpha[f] = Model.face4.g1();
+                this.faceAlpha[f] = Model.face4.g1;
             }
 
             if (this.faceLabel != null) {
-                this.faceLabel[f] = Model.face5.g1();
+                this.faceLabel[f] = Model.face5.g1;
             }
         }
 
@@ -441,28 +441,28 @@ export default class Model {
         let last = 0;
 
         for (let f = 0; f < this.faceCount; f++) {
-            let orientation = Model.vertex2.g1();
+            let orientation = Model.vertex2.g1;
 
             if (orientation === 1) {
-                a = Model.vertex1.gsmarts() + last;
+                a = Model.vertex1.gsmarts + last;
                 last = a;
-                b = Model.vertex1.gsmarts() + last;
+                b = Model.vertex1.gsmarts + last;
                 last = b;
-                c = Model.vertex1.gsmarts() + last;
+                c = Model.vertex1.gsmarts + last;
                 last = c;
             } else if (orientation === 2) {
                 b = c;
-                c = Model.vertex1.gsmarts() + last;
+                c = Model.vertex1.gsmarts + last;
                 last = c;
             } else if (orientation === 3) {
                 a = c;
-                c = Model.vertex1.gsmarts() + last;
+                c = Model.vertex1.gsmarts + last;
                 last = c;
             } else if (orientation === 4) {
                 const tmp = a;
                 a = b;
                 b = tmp;
-                c = Model.vertex1.gsmarts() + last;
+                c = Model.vertex1.gsmarts + last;
                 last = c;
             }
 
@@ -473,9 +473,9 @@ export default class Model {
 
         Model.axis.pos = meta.faceTextureAxisOffset * 6;
         for (let f = 0; f < this.texturedFaceCount; f++) {
-            this.texturedVertexA[f] = Model.axis.g2();
-            this.texturedVertexB[f] = Model.axis.g2();
-            this.texturedVertexC[f] = Model.axis.g2();
+            this.texturedVertexA[f] = Model.axis.g2;
+            this.texturedVertexB[f] = Model.axis.g2;
+            this.texturedVertexC[f] = Model.axis.g2;
         }
     }
 

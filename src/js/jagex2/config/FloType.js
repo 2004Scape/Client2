@@ -6,7 +6,7 @@ export default class FloType {
 
     static unpack(config) {
         let dat = new Buffer(config.read('flo.dat'));
-        FloType.count = dat.g2();
+        FloType.count = dat.g2;
 
         for (let i = 0; i < FloType.count; i++) {
             FloType.instances[i] = new FloType();
@@ -26,21 +26,21 @@ export default class FloType {
 
     decode(dat) {
         while (true) {
-            let opcode = dat.g1();
-            if (opcode == 0) {
+            let opcode = dat.g1;
+            if (opcode === 0) {
                 break;
             }
 
             if (opcode === 1) {
-                this.rgb = dat.g3();
+                this.rgb = dat.g3;
             } else if (opcode === 2) {
-                this.texture = dat.g1();
+                this.texture = dat.g1;
             } else if (opcode === 3) {
                 this.opcode3 = true;
             } else if (opcode === 5) {
                 this.occludes = false;
             } else if (opcode === 6) {
-                this.name = dat.gjstr();
+                this.name = dat.gjstr;
             } else {
                 console.log('Error unrecognised config code: ', opcode);
             }
