@@ -23,20 +23,20 @@ export default class PixMap {
         this.bind();
     }
 
-    clear(): void {
+    clear = (): void => {
         this.pixels.fill(0);
-    }
+    };
 
-    bind(): void {
+    bind = (): void => {
         Draw2D.prepare(this.pixels, this.width, this.height);
-    }
+    };
 
-    draw(width: number, height: number): void {
+    draw = (width: number, height: number): void => {
         this.#setPixels();
         this.ctx.putImageData(this.image, width, height);
-    }
+    };
 
-    #setPixels(): void {
+    #setPixels = (): void => {
         // copy pixels (uint32) to imageData (uint8)
         const data = this.image.data;
         for (let i = 0; i < this.pixels.length; i++) {
@@ -47,5 +47,5 @@ export default class PixMap {
             data[index + 2] = (pixel >> 0) & 0xff;
             data[index + 3] = 255;
         }
-    }
+    };
 }
