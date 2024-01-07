@@ -61,7 +61,7 @@ export default class Packet {
         return ((this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
     }
 
-    get g2s(): number {
+    get g2b(): number {
         return (this.data[this.pos++] << 8) | this.data[this.pos++];
     }
 

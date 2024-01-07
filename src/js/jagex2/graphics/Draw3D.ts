@@ -1,6 +1,6 @@
 import Draw2D from './Draw2D';
 import Pix8 from './Pix8';
-import Archive from '../io/Archive';
+import Jagfile from '../io/Jagfile';
 
 export default class Draw3D {
     static reciprocal15: Int32Array = new Int32Array(512);
@@ -46,7 +46,7 @@ export default class Draw3D {
         this.centerY = Draw2D.height / 2;
     };
 
-    static unpackTextures = (textures: Archive): void => {
+    static unpackTextures = (textures: Jagfile): void => {
         Draw3D.textureCount = 0;
 
         for (let i = 0; i < 50; i++) {

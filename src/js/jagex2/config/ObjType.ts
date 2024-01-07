@@ -1,5 +1,189 @@
-import Archive from '../io/Archive';
+import Jagfile from '../io/Jagfile';
+import {ConfigType} from './ConfigType';
+import Packet from '../io/Packet';
 
-export default class ObjType {
-    static unpack = (config: Archive): void => {};
+export default class ObjType extends ConfigType {
+    static MEMBERS_WORLD: boolean = true;
+
+    static count: number = 0;
+    static instances: ObjType[] = [];
+
+    static unpack = (config: Jagfile): void => {
+        const dat = new Packet(config.read('obj.dat'));
+        this.count = dat.g2;
+        for (let i = 0; i < this.count; i++) {
+            this.instances[i] = new ObjType(i);
+            this.instances[i].decodeType(dat);
+        }
+        for (let i = 0; i < this.count; i++) {
+            const obj = this.instances[i];
+
+            if (obj.certtemplate !== -1) {
+                obj.toCertificate();
+            }
+
+            if (!this.MEMBERS_WORLD && obj.members) {
+                obj.name = 'Members Object';
+                obj.desc = "Login to a members' server to use this object.";
+                obj.ops = [];
+                obj.iops = [];
+            }
+        }
+    };
+
+    static get = (id: number): ObjType => ObjType.instances[id];
+
+    // ----
+
+    model: number = 0;
+    name: string | null = null;
+    desc: string | null = null;
+    recol_s: Uint16Array | null = null;
+    recol_d: Uint16Array | null = null;
+    zoom2d: number = 2000;
+    xan2d: number = 0;
+    yan2d: number = 0;
+    zan2d: number = 0;
+    xof2d: number = 0;
+    yof2d: number = 0;
+    code9: boolean = false;
+    code10: number = -1;
+    stackable: boolean = false;
+    cost: number = 1;
+    members: boolean = false;
+    ops: (string | null)[] = [];
+    iops: string[] = [];
+    manwear: number = -1;
+    manwear2: number = -1;
+    manwearOffsetY: number = 0;
+    womanwear: number = -1;
+    womanwear2: number = -1;
+    womanwearOffsetY: number = 0;
+    manwear3: number = -1;
+    womanwear3: number = -1;
+    manhead: number = -1;
+    manhead2: number = -1;
+    womanhead: number = -1;
+    womanhead2: number = -1;
+    countobj: Uint16Array | null = null;
+    countco: Uint16Array | null = null;
+    certlink: number = -1;
+    certtemplate: number = -1;
+
+    decode = (code: number, dat: Packet): void => {
+        if (code === 1) {
+            this.model = dat.g2;
+        } else if (code === 2) {
+            this.name = dat.gjstr;
+        } else if (code === 3) {
+            this.desc = dat.gjstr;
+        } else if (code === 4) {
+            this.zoom2d = dat.g2;
+        } else if (code === 5) {
+            this.xan2d = dat.g2;
+        } else if (code === 6) {
+            this.yan2d = dat.g2;
+        } else if (code === 7) {
+            this.xof2d = dat.g2b;
+            if (this.xof2d > 32767) {
+                this.xof2d -= 65536;
+            }
+        } else if (code === 8) {
+            this.yof2d = dat.g2b;
+            if (this.yof2d > 32767) {
+                this.yof2d -= 65536;
+            }
+        } else if (code === 9) {
+            this.code9 = true;
+        } else if (code === 10) {
+            this.code10 = dat.g2;
+        } else if (code === 11) {
+            this.stackable = true;
+        } else if (code === 12) {
+            this.cost = dat.g4s;
+        } else if (code === 16) {
+            this.members = true;
+        } else if (code === 23) {
+            this.manwear = dat.g2;
+            this.manwearOffsetY = dat.g1b;
+        } else if (code === 24) {
+            this.manwear2 = dat.g2;
+        } else if (code === 25) {
+            this.womanwear = dat.g2;
+            this.womanwearOffsetY = dat.g1b;
+        } else if (code === 26) {
+            this.womanwear2 = dat.g2;
+        } else if (code >= 30 && code < 35) {
+            this.ops[code - 30] = dat.gjstr;
+
+            if (this.ops[code - 30] === 'hidden') {
+                this.ops[code - 30] = null;
+            }
+        } else if (code >= 35 && code < 40) {
+            this.iops[code - 35] = dat.gjstr;
+        } else if (code === 40) {
+            const count = dat.g1;
+            this.recol_s = new Uint16Array(count);
+            this.recol_d = new Uint16Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.recol_s[i] = dat.g2;
+                this.recol_d[i] = dat.g2;
+            }
+        } else if (code === 78) {
+            this.manwear3 = dat.g2;
+        } else if (code === 79) {
+            this.womanwear3 = dat.g2;
+        } else if (code === 90) {
+            this.manhead = dat.g2;
+        } else if (code === 91) {
+            this.womanhead = dat.g2;
+        } else if (code === 92) {
+            this.manhead2 = dat.g2;
+        } else if (code === 93) {
+            this.womanhead2 = dat.g2;
+        } else if (code === 95) {
+            this.zan2d = dat.g2;
+        } else if (code === 97) {
+            this.certlink = dat.g2;
+        } else if (code === 98) {
+            this.certtemplate = dat.g2;
+        } else if (code >= 100 && code < 110) {
+            if (!this.countobj || !this.countco) {
+                this.countobj = new Uint16Array(10);
+                this.countco = new Uint16Array(10);
+            }
+            this.countobj[code - 100] = dat.g2;
+            this.countco[code - 100] = dat.g2;
+        } else {
+            throw new Error(`Unrecognized obj config code: ${code}`);
+        }
+    };
+
+    private toCertificate = (): void => {
+        const template: ObjType = ObjType.get(this.certtemplate);
+        this.model = template.model;
+        this.zoom2d = template.zoom2d;
+        this.xan2d = template.xan2d;
+        this.yan2d = template.yan2d;
+        this.zan2d = template.zan2d;
+        this.xof2d = template.xof2d;
+        this.yof2d = template.yof2d;
+        this.recol_s = template.recol_s;
+        this.recol_d = template.recol_d;
+
+        const link: ObjType = ObjType.get(this.certlink);
+        this.name = link.name;
+        this.members = link.members;
+        this.cost = link.cost;
+
+        let article = 'a';
+        const c = (link.name || '').toLowerCase().charAt(0);
+        if (c === 'a' || c === 'e' || c === 'i' || c === 'o' || c === 'u') {
+            article = 'an';
+        }
+        this.desc = `Swap this note at any bank for ${article} ${link.name}.`;
+
+        this.stackable = true;
+    };
 }

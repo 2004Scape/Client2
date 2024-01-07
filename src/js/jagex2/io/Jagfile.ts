@@ -2,8 +2,8 @@ import {decompressBz2, downloadUrl} from '../util/JsUtil';
 
 import Packet from './Packet';
 
-export default class Archive {
-    static loadUrl = async (url: string): Promise<Archive> => new Archive(await downloadUrl(url));
+export default class Jagfile {
+    static loadUrl = async (url: string): Promise<Jagfile> => new Jagfile(await downloadUrl(url));
 
     static genHash = (name: string): number => {
         let hash = 0;
@@ -56,7 +56,7 @@ export default class Archive {
     }
 
     read = (name: string): Uint8Array | null => {
-        const hash = Archive.genHash(name);
+        const hash = Jagfile.genHash(name);
         const index = this.fileHash.indexOf(hash);
         if (index == -1) {
             return null;

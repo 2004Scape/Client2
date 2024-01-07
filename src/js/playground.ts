@@ -1,7 +1,5 @@
 import GameShell from './jagex2/client/GameShell.js';
 
-import SoundTrack from './jagex2/audio/SoundTrack.js';
-
 import SeqType from './jagex2/config/SeqType.js';
 import LocType from './jagex2/config/LocType.js';
 import FloType from './jagex2/config/FloType.js';
@@ -10,28 +8,29 @@ import NpcType from './jagex2/config/NpcType.js';
 import IdkType from './jagex2/config/IdkType.js';
 import SpotAnimType from './jagex2/config/SpotAnimType.js';
 import VarpType from './jagex2/config/VarpType.js';
-import IfType from './jagex2/config/IfType.js';
+import ComType from './jagex2/config/ComType.js';
 
 import Draw3D from './jagex2/graphics/Draw3D.js';
-import Font from './jagex2/graphics/Font.js';
+import PixFont from './jagex2/graphics/PixFont.js';
 import Model from './jagex2/graphics/Model.js';
 import SeqBase from './jagex2/graphics/SeqBase.js';
 import SeqFrame from './jagex2/graphics/SeqFrame.js';
 
-import Archive from './jagex2/io/Archive.js';
+import Jagfile from './jagex2/io/Jagfile.js';
 
-import Censor from './jagex2/util/Censor.js';
+import WordFilter from './jagex2/wordenc/WordFilter.js';
 import {downloadUrl} from './jagex2/util/JsUtil.js';
 import Draw2D from './jagex2/graphics/Draw2D.js';
 import Packet from './jagex2/io/Packet.js';
+import Wave from './jagex2/sound/Wave';
 
 class Playground extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
 
-    private fontPlain11: Font | null = null;
-    private fontPlain12: Font | null = null;
-    private fontBold12: Font | null = null;
-    private fontQuill8: Font | null = null;
+    private fontPlain11: PixFont | null = null;
+    private fontPlain12: PixFont | null = null;
+    private fontBold12: PixFont | null = null;
+    private fontQuill8: PixFont | null = null;
 
     lastHistoryRefresh = 0;
     historyRefresh = true;
@@ -51,14 +50,14 @@ class Playground extends GameShell {
 
         const title = await this.loadArchive('title', 'title screen', archiveChecksums[1], 10);
 
-        this.fontPlain11 = Font.fromArchive(title, 'p11');
-        this.fontPlain12 = Font.fromArchive(title, 'p12');
-        this.fontBold12 = Font.fromArchive(title, 'b12');
-        this.fontQuill8 = Font.fromArchive(title, 'q8');
+        this.fontPlain11 = PixFont.fromArchive(title, 'p11');
+        this.fontPlain12 = PixFont.fromArchive(title, 'p12');
+        this.fontBold12 = PixFont.fromArchive(title, 'b12');
+        this.fontQuill8 = PixFont.fromArchive(title, 'q8');
 
         const config = await this.loadArchive('config', 'config', archiveChecksums[2], 15);
         const interfaces = await this.loadArchive('interface', 'interface', archiveChecksums[3], 20);
-        // const media = await this.loadArchive('media', '2d graphics', archiveChecksums[4], 30);
+        const media = await this.loadArchive('media', '2d graphics', archiveChecksums[4], 30);
         const models = await this.loadArchive('models', '3d graphics', archiveChecksums[5], 40);
         const textures = await this.loadArchive('textures', 'textures', archiveChecksums[6], 60);
         const wordenc = await this.loadArchive('wordenc', 'chat system', archiveChecksums[7], 65);
@@ -87,13 +86,13 @@ class Playground extends GameShell {
         VarpType.unpack(config);
 
         await this.showProgress(90, 'Unpacking sounds');
-        SoundTrack.unpack(sounds);
+        Wave.unpack(sounds);
 
         await this.showProgress(92, 'Unpacking interfaces');
-        IfType.unpack(interfaces);
+        ComType.unpack(interfaces, media);
 
         await this.showProgress(97, 'Preparing game engine');
-        Censor.unpack(wordenc);
+        WordFilter.unpack(wordenc);
 
         // this.setLoopRate(1);
         this.drawArea?.bind();
@@ -210,7 +209,7 @@ class Playground extends GameShell {
 
     async loadArchive(filename: string, displayName: string, crc: number, progress: number) {
         await this.showProgress(progress, `Requesting ${displayName}`);
-        const data = await Archive.loadUrl(`${Playground.HOST}/${filename}${crc}`);
+        const data = await Jagfile.loadUrl(`${Playground.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
     }

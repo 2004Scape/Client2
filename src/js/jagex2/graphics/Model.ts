@@ -1,4 +1,4 @@
-import Archive from '../io/Archive';
+import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
 
 import Draw2D from './Draw2D';
@@ -81,7 +81,7 @@ export default class Model {
     static pickedCount: number = 0;
     static pickedBitsets: Int32Array = new Int32Array(1000);
 
-    static unpack(models: Archive) {
+    static unpack(models: Jagfile) {
         try {
             Model.head = new Packet(models.read('ob_head.dat'));
             Model.face1 = new Packet(models.read('ob_face1.dat'));

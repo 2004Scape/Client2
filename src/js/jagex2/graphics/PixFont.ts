@@ -1,9 +1,9 @@
 import Draw2D from './Draw2D';
 
-import Archive from '../io/Archive';
+import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
 
-export default class Font {
+export default class PixFont {
     static CHARSET: number[] = [];
 
     static {
@@ -16,7 +16,7 @@ export default class Font {
                 c = 74; // space
             }
 
-            Font.CHARSET[i] = c;
+            PixFont.CHARSET[i] = c;
         }
     }
 
@@ -29,7 +29,7 @@ export default class Font {
     drawWidth: number[] = [];
     fontHeight: number = -1;
 
-    static fromArchive = (archive: Archive, name: string): Font => {
+    static fromArchive = (archive: Jagfile, name: string): PixFont => {
         const dat = new Packet(archive.read(name + '.dat'));
         const index = new Packet(archive.read('index.dat'));
 
@@ -41,7 +41,7 @@ export default class Font {
             index.pos += (paletteCount - 1) * 3;
         }
 
-        const font: Font = new Font();
+        const font: PixFont = new PixFont();
 
         for (let c = 0; c < 94; c++) {
             font.clipX[c] = index.g1;
@@ -99,7 +99,7 @@ export default class Font {
 
         font.charSpace[94] = font.charSpace[8];
         for (let i = 0; i < 256; i++) {
-            font.drawWidth[i] = font.charSpace[Font.CHARSET[i]];
+            font.drawWidth[i] = font.charSpace[PixFont.CHARSET[i]];
         }
 
         return font;
@@ -112,7 +112,7 @@ export default class Font {
         const length = str.length;
         y -= this.fontHeight;
         for (let i = 0; i < length; i++) {
-            const c = Font.CHARSET[str.charCodeAt(i)];
+            const c = PixFont.CHARSET[str.charCodeAt(i)];
 
             if (c !== 94) {
                 this.copyCharacter(x + this.clipX[c], y + this.clipY[c], this.charWidth[c], this.charHeight[c], this.pixels[c], color);
@@ -133,7 +133,7 @@ export default class Font {
                 color = this.evaluateTag(str.substring(i + 1, i + 4));
                 i += 4;
             } else {
-                const c = Font.CHARSET[str.charCodeAt(i)];
+                const c = PixFont.CHARSET[str.charCodeAt(i)];
 
                 if (c !== 94) {
                     if (shadowed) {

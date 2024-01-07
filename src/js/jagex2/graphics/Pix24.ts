@@ -1,7 +1,7 @@
 import Draw2D from './Draw2D';
 
 import {decodeJpeg} from '../util/JsUtil';
-import Archive from '../io/Archive';
+import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
 
 export default class Pix24 {
@@ -21,7 +21,7 @@ export default class Pix24 {
         this.cropX = this.cropY = 0;
     }
 
-    static fromJpeg = async (archive: Archive, name: string): Promise<Pix24> => {
+    static fromJpeg = async (archive: Jagfile, name: string): Promise<Pix24> => {
         const dat = archive.read(name + '.dat');
         const jpeg = await decodeJpeg(dat);
         const image = new Pix24(jpeg.width, jpeg.height);
@@ -37,7 +37,7 @@ export default class Pix24 {
         return image;
     };
 
-    static fromArchive = (archive: Archive, name: string, sprite: number = 0): Pix24 => {
+    static fromArchive = (archive: Jagfile, name: string, sprite: number = 0): Pix24 => {
         const dat = new Packet(archive.read(name + '.dat'));
         const index = new Packet(archive.read('index.dat'));
 

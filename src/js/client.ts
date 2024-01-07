@@ -1,5 +1,3 @@
-import SoundTrack from './jagex2/audio/SoundTrack.js';
-
 import SeqType from './jagex2/config/SeqType.js';
 import LocType from './jagex2/config/LocType.js';
 import FloType from './jagex2/config/FloType.js';
@@ -8,27 +6,28 @@ import NpcType from './jagex2/config/NpcType.js';
 import IdkType from './jagex2/config/IdkType.js';
 import SpotAnimType from './jagex2/config/SpotAnimType.js';
 import VarpType from './jagex2/config/VarpType.js';
-import IfType from './jagex2/config/IfType.js';
+import ComType from './jagex2/config/ComType.js';
 
 import PixMap from './jagex2/graphics/PixMap.js';
 import Draw2D from './jagex2/graphics/Draw2D.js';
 import Draw3D from './jagex2/graphics/Draw3D.js';
 import Pix8 from './jagex2/graphics/Pix8.js';
 import Pix24 from './jagex2/graphics/Pix24.js';
-import Font from './jagex2/graphics/Font.js';
+import PixFont from './jagex2/graphics/PixFont.js';
 import Model from './jagex2/graphics/Model.js';
 import SeqBase from './jagex2/graphics/SeqBase.js';
 import SeqFrame from './jagex2/graphics/SeqFrame.js';
 
-import Archive from './jagex2/io/Archive.js';
+import Jagfile from './jagex2/io/Jagfile.js';
 
-import Censor from './jagex2/util/Censor.js';
+import WordFilter from './jagex2/wordenc/WordFilter.js';
 import {arraycopy, decompressBz2, downloadUrl, sleep} from './jagex2/util/JsUtil.js';
 import {playMidi} from './jagex2/util/AudioUtil.js';
 import GameShell from './jagex2/client/GameShell.js';
 
 import './vendor/midi.js';
 import Packet from './jagex2/io/Packet.js';
+import Wave from './jagex2/sound/Wave';
 
 class Client extends GameShell {
     static readonly HOST: string = 'https://w2.225.2004scape.org';
@@ -46,7 +45,7 @@ class Client extends GameShell {
 
     private titleScreenState: number = 0;
     private titleLoginField: number = 0;
-    private titleArchive: Archive | null = null;
+    private titleArchive: Jagfile | null = null;
     private imageTitle2: PixMap | null = null;
     private imageTitle3: PixMap | null = null;
     private imageTitle4: PixMap | null = null;
@@ -59,10 +58,10 @@ class Client extends GameShell {
     private imageTitleBox: Pix8 | null = null;
     private imageTitleButton: Pix8 | null = null;
 
-    private fontPlain11: Font | null = null;
-    private fontPlain12: Font | null = null;
-    private fontBold12: Font | null = null;
-    private fontQuill8: Font | null = null;
+    private fontPlain11: PixFont | null = null;
+    private fontPlain12: PixFont | null = null;
+    private fontBold12: PixFont | null = null;
+    private fontQuill8: PixFont | null = null;
 
     private flameActive: boolean = false;
 
@@ -132,17 +131,17 @@ class Client extends GameShell {
 
             this.titleArchive = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
 
-            this.fontPlain11 = Font.fromArchive(this.titleArchive, 'p11');
-            this.fontPlain12 = Font.fromArchive(this.titleArchive, 'p12');
-            this.fontBold12 = Font.fromArchive(this.titleArchive, 'b12');
-            this.fontQuill8 = Font.fromArchive(this.titleArchive, 'q8');
+            this.fontPlain11 = PixFont.fromArchive(this.titleArchive, 'p11');
+            this.fontPlain12 = PixFont.fromArchive(this.titleArchive, 'p12');
+            this.fontBold12 = PixFont.fromArchive(this.titleArchive, 'b12');
+            this.fontQuill8 = PixFont.fromArchive(this.titleArchive, 'q8');
 
             await this.loadTitleBackground();
             this.loadTitleImages();
 
             const config = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
             const interfaces = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
-            // const media = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
+            const media = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
             const models = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
             const textures = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
             const wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
@@ -171,13 +170,13 @@ class Client extends GameShell {
             VarpType.unpack(config);
 
             await this.showProgress(90, 'Unpacking sounds');
-            SoundTrack.unpack(sounds);
+            Wave.unpack(sounds);
 
             await this.showProgress(92, 'Unpacking interfaces');
-            IfType.unpack(interfaces);
+            ComType.unpack(interfaces, media);
 
             await this.showProgress(97, 'Preparing game engine');
-            Censor.unpack(wordenc);
+            WordFilter.unpack(wordenc);
         } catch (err) {
             console.error(err);
             this.errorLoading = true;
@@ -675,12 +674,12 @@ class Client extends GameShell {
         }
     };
 
-    private loadArchive = async (filename: string, displayName: string, crc: number, progress: number): Promise<Archive> => {
+    private loadArchive = async (filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> => {
         // TODO: caching
         // TODO: download progress, retry
 
         await this.showProgress(progress, `Requesting ${displayName}`);
-        const data: Archive = await Archive.loadUrl(`${Client.HOST}/${filename}${crc}`);
+        const data: Jagfile = await Jagfile.loadUrl(`${Client.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
     };
