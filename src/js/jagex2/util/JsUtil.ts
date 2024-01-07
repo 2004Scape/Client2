@@ -22,7 +22,7 @@ export const decompressBz2 = (data: Uint8Array, addMagic: boolean = true, prepen
 
 export const decodeJpeg = async (data: Uint8Array | null): Promise<ImageData> => {
     if (!data) {
-        throw new Error("Input jpeg data was null!");
+        throw new Error("Input jpeg data was  null!");
     }
     if (data[0] !== 0xFF) {
         // fix invalid JPEG header
