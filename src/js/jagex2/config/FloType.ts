@@ -1,30 +1,29 @@
-import Buffer from '../io/Buffer.js';
+import Archive from "../io/Archive.js";
+import Packet from "../io/Packet.js";
 
 export default class FloType {
-    static count = 0;
-    static instances = [];
+    static count: number = 0;
+    static instances: FloType[] = [];
 
-    static unpack(config) {
-        let dat = new Buffer(config.read('flo.dat'));
+    static unpack = (config: Archive): void => {
+        let dat = new Packet(config.read('flo.dat'));
         FloType.count = dat.g2;
 
         for (let i = 0; i < FloType.count; i++) {
             FloType.instances[i] = new FloType();
             FloType.instances[i].decode(dat);
         }
-    }
+    };
 
-    static get(id) {
-        return FloType.instances[id];
-    }
+    static get = (id: number): FloType => FloType.instances[id];
 
-    rgb = 0;
-    texture = -1;
-    opcode3 = false;
-    occludes = true;
-    name = null;
+    rgb: number = 0;
+    texture: number = -1;
+    opcode3: boolean = false;
+    occludes: boolean = true;
+    name: string | null = null;
 
-    decode(dat) {
+    decode = (dat: Packet): void => {
         while (true) {
             let opcode = dat.g1;
             if (opcode === 0) {
@@ -45,5 +44,5 @@ export default class FloType {
                 console.log('Error unrecognised config code: ', opcode);
             }
         }
-    }
+    };
 }

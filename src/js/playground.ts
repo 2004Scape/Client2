@@ -23,14 +23,15 @@ import Archive from './jagex2/io/Archive.js';
 import Censor from './jagex2/util/Censor.js';
 import { downloadUrl } from './jagex2/util/JsUtil.js';
 import Draw2D from './jagex2/graphics/Draw2D.js';
+import Packet from "./jagex2/io/Packet.js";
 
 class Playground extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
 
-    p11 = null;
-    p12 = null;
-    b12 = null;
-    q8 = null;
+    private fontPlain11: Font | null = null;
+    private fontPlain12: Font | null = null;
+    private fontBold12: Font | null = null;
+    private fontQuill8: Font | null = null;
 
     lastHistoryRefresh = 0;
     historyRefresh = true;
@@ -42,18 +43,18 @@ class Playground extends GameShell {
     load = async () => {
         await this.showProgress(10, 'Connecting to fileserver');
 
-        let checksums = await downloadUrl(`${Playground.HOST}/crc`);
+        let checksums = new Packet(await downloadUrl(`${Playground.HOST}/crc`));
         let archiveChecksums = [];
-        for (let i = 0; i < checksums.length / 4; i++) {
-            archiveChecksums[i] = checksums.g4();
+        for (let i = 0; i < 9; i++) {
+            archiveChecksums[i] = checksums.g4;
         }
 
         let title = await this.loadArchive('title', 'title screen', archiveChecksums[1], 10);
 
-        this.p11 = Font.fromArchive(title, 'p11');
-        this.p12 = Font.fromArchive(title, 'p12');
-        this.b12 = Font.fromArchive(title, 'b12');
-        this.q8 = Font.fromArchive(title, 'q8');
+        this.fontPlain11 = Font.fromArchive(title, 'p11');
+        this.fontPlain12 = Font.fromArchive(title, 'p12');
+        this.fontBold12 = Font.fromArchive(title, 'b12');
+        this.fontQuill8 = Font.fromArchive(title, 'q8');
 
         let config = await this.loadArchive('config', 'config', archiveChecksums[2], 15);
         let interfaces = await this.loadArchive('interface', 'interface', archiveChecksums[3], 20);
@@ -68,7 +69,7 @@ class Playground extends GameShell {
         await this.showProgress(80, 'Unpacking textures');
         Draw3D.unpackTextures(textures);
         Draw3D.setBrightness(0.8);
-        Draw3D.initPool(20);
+        // Draw3D.initPool(20);
 
         await this.showProgress(83, 'Unpacking models');
         Model.unpack(models);
@@ -95,7 +96,7 @@ class Playground extends GameShell {
         Censor.unpack(wordenc);
 
         // this.setLoopRate(1);
-        this.drawArea.bind();
+        this.drawArea?.bind();
         Draw3D.init2D();
     };
 
@@ -168,39 +169,41 @@ class Playground extends GameShell {
         model.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
         // debug
-        this.b12.drawRight(this.width, this.b12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
-        this.b12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, 0xFFFF00);
+        if (this.fontBold12) {
+            this.fontBold12.drawRight(this.width, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
+            this.fontBold12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, 0xFFFF00);
 
-        // controls
-        let leftY = this.b12.fontHeight;
-        this.b12.draw(0, leftY, `Model: ${this.model.id}`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `Controls:`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `r - reset camera and model rotation + movement speed`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `1 and 2 - change model`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `[ and ] - adjust movement speed`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `left and right - adjust model yaw`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `up and down - adjust model pitch`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `. and / - adjust model roll`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `w and s - move camera along z axis`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `a and d - move camera along x axis`, 0xFFFF00);
-        leftY += this.b12.fontHeight;
-        this.b12.draw(0, leftY, `q and e - move camera along y axis`, 0xFFFF00);
+            // controls
+            let leftY = this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `Model: ${this.model.id}`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `Controls:`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `r - reset camera and model rotation + movement speed`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `1 and 2 - change model`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `[ and ] - adjust movement speed`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `left and right - adjust model yaw`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `up and down - adjust model pitch`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `. and / - adjust model roll`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `w and s - move camera along z axis`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `a and d - move camera along x axis`, 0xFFFF00);
+            leftY += this.fontBold12.fontHeight;
+            this.fontBold12.draw(0, leftY, `q and e - move camera along y axis`, 0xFFFF00);
+        }
 
-        this.drawArea.draw(0, 0);
+        this.drawArea?.draw(0, 0);
     };
 
     // ----
 
-    async loadArchive(filename, displayName, crc, progress) {
+    async loadArchive(filename: string, displayName: string, crc: number, progress: number) {
         await this.showProgress(progress, `Requesting ${displayName}`);
         let data = await Archive.loadUrl(`${Playground.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
@@ -245,13 +248,13 @@ class Playground extends GameShell {
                 this.historyRefresh = true;
             } else if (key === '1'.charCodeAt(0)) {
                 this.model.id--;
-                if (this.model.id < 0) {
+                if (this.model.id < 0 && Model.metadata) {
                     this.model.id = Model.metadata.length - 100 - 1;
                 }
                 this.historyRefresh = true;
             } else if (key === '2'.charCodeAt(0)) {
                 this.model.id++;
-                if (this.model.id >= Model.metadata.length - 100) {
+                if (Model.metadata && this.model.id >= Model.metadata.length - 100) {
                     this.model.id = 0;
                 }
                 this.historyRefresh = true;

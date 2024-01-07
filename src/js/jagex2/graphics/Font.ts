@@ -1,9 +1,10 @@
 import Draw2D from './Draw2D.js';
 
-import Buffer from '../io/Buffer.js';
+import Archive from "../io/Archive";
+import Packet from "../io/Packet";
 
 export default class Font {
-    static CHARSET = [];
+    static CHARSET: number[] = [];
 
     static {
         let s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
@@ -19,48 +20,48 @@ export default class Font {
         }
     }
 
-    pixels = [];
-    charWidth = [];
-    charHeight = [];
-    clipX = [];
-    clipY = [];
-    charSpace = [];
-    drawWidth = [];
-    fontHeight = -1;
+    pixels: Uint8Array[] = []
+    charWidth: number[] = [];
+    charHeight: number[] = [];
+    clipX: number[] = [];
+    clipY: number[] = [];
+    charSpace: number[] = [];
+    drawWidth: number[] = [];
+    fontHeight: number = -1;
 
-    static fromArchive(archive, name) {
-        let dat = new Buffer(archive.read(name + '.dat'));
-        let index = new Buffer(archive.read('index.dat'));
+    static fromArchive = (archive: Archive, name: string): Font => {
+        const dat = new Packet(archive.read(name + '.dat'));
+        const index = new Packet(archive.read('index.dat'));
 
-        index.pos = dat.g2() + 4; // skip cropW and cropH
+        index.pos = dat.g2 + 4; // skip cropW and cropH
 
-        let paletteCount = index.g1();
+        let paletteCount = index.g1;
         if (paletteCount > 0) {
             // skip palette
             index.pos += (paletteCount - 1) * 3;
         }
 
-        let font = new Font();
+        const font: Font = new Font();
 
         for (let c = 0; c < 94; c++) {
-            font.clipX[c] = index.g1();
-            font.clipY[c] = index.g1();
+            font.clipX[c] = index.g1;
+            font.clipY[c] = index.g1;
 
-            let width = font.charWidth[c] = index.g2();
-            let height = font.charHeight[c] = index.g2();
+            const width = font.charWidth[c] = index.g2;
+            const height = font.charHeight[c] = index.g2;
 
-            let size = width * height;
+            const size = width * height;
             font.pixels[c] = new Uint8Array(size);
 
-            let pixelOrder = index.g1();
+            const pixelOrder = index.g1;
             if (pixelOrder === 0) {
                 for (let i = 0; i < width * height; i++) {
-                    font.pixels[c][i] = dat.g1();
+                    font.pixels[c][i] = dat.g1;
                 }
             } else if (pixelOrder === 1) {
                 for (let x = 0; x < width; x++) {
                     for (let y = 0; y < height; y++) {
-                        font.pixels[c][x + (y * width)] = dat.g1();
+                        font.pixels[c][x + (y * width)] = dat.g1;
                     }
                 }
             }
@@ -102,20 +103,16 @@ export default class Font {
         }
 
         return font;
-    }
+    };
 
-    draw(x, y, str, color) {
-        if (!str) {
-            return;
-        }
-
+    draw = (x: number, y: number, str: string, color: number): void => {
         x = Math.trunc(x);
         y = Math.trunc(y);
 
         const length = str.length;
         y -= this.fontHeight;
         for (let i = 0; i < length; i++) {
-            let c = Font.CHARSET[str.charCodeAt(i)];
+            const c = Font.CHARSET[str.charCodeAt(i)];
 
             if (c !== 94) {
                 this.copyCharacter(x + this.clipX[c], y + this.clipY[c], this.charWidth[c], this.charHeight[c], this.pixels[c], color);
@@ -124,15 +121,11 @@ export default class Font {
             x += this.charSpace[c];
         }
 
-    }
+    };
 
-    drawStringTaggable(x, y, str, color, shadowed) {
-        if (!str) {
-            return;
-        }
-
-        x = Math.trunc(x);
-        y = Math.trunc(y);
+    drawStringTaggable = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
+        x = x | 0;
+        y = y | 0;
 
         const length = str.length;
         y -= this.fontHeight;
@@ -141,7 +134,7 @@ export default class Font {
                 color = this.evaluateTag(str.substring(i + 1, i + 4));
                 i += 4;
             } else {
-                let c = Font.CHARSET[str.charCodeAt(i)];
+                const c = Font.CHARSET[str.charCodeAt(i)];
 
                 if (c !== 94) {
                     if (shadowed) {
@@ -154,13 +147,9 @@ export default class Font {
             }
         }
 
-    }
+    };
 
-    getTextWidth(str) {
-        if (!str) {
-            return 0;
-        }
-
+    getTextWidth = (str: string): number => {
         const length = str.length;
         let w = 0;
         for (let i = 0; i < length; i++) {
@@ -172,29 +161,29 @@ export default class Font {
         }
 
         return w;
-    }
+    };
 
-    drawStringTaggableCenter(x, y, str, color, shadowed) {
+    drawStringTaggableCenter = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
         this.drawStringTaggable(x - (this.getTextWidth(str) / 2), y, str, color, shadowed);
-    }
+    };
 
-    drawStringCenter(x, y, str, color) {
+    drawStringCenter = (x: number, y: number, str: string, color: number) => {
         this.draw(x - (this.getTextWidth(str) / 2), y, str, color);
-    }
+    };
 
-    drawRight(x, y, str, color, shadowed = true) {
+    drawRight = (x: number, y: number, str: string, color: number, shadowed = true): void => {
         if (shadowed) {
             this.draw(x - this.getTextWidth(str) + 1, y + 1, str, 0);
         }
 
         this.draw(x - this.getTextWidth(str), y, str, color);
-    }
+    };
 
-    copyCharacter(x, y, w, h, pixels, color) {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
-        w = Math.trunc(w);
-        h = Math.trunc(h);
+    copyCharacter = (x: number, y: number, w: number, h: number, pixels: Uint8Array, color: number): void => {
+        x = x | 0;
+        y = y | 0;
+        w = w | 0;
+        h = h | 0;
 
         let dstOff = x + (y * Draw2D.width);
         let srcOff = 0;
@@ -234,9 +223,9 @@ export default class Font {
         if (w > 0 && h > 0) {
             this.copyImageMasked(w, h, pixels, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep, color);
         }
-    }
+    };
 
-    copyImageMasked(w, h, src, srcOff, srcStep, dst, dstOff, dstStep, color) {
+    copyImageMasked = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number, color: number): void => {
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 if (src[srcOff++] != 0) {
@@ -249,9 +238,9 @@ export default class Font {
             srcOff += srcStep;
             dstOff += dstStep;
         }
-    }
+    };
 
-    evaluateTag(tag) {
+    evaluateTag = (tag: string): number => {
         switch (tag) {
             case 'red':
                 return 0xff0000;
@@ -290,5 +279,5 @@ export default class Font {
             default:
                 return 0;
         }
-    }
+    };
 }

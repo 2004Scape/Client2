@@ -23,11 +23,12 @@ import SeqFrame from './jagex2/graphics/SeqFrame.js';
 import Archive from './jagex2/io/Archive.js';
 
 import Censor from './jagex2/util/Censor.js';
-import {decompressBz2, downloadUrl, sleep} from './jagex2/util/JsUtil.js';
+import {arraycopy, decompressBz2, downloadUrl, sleep} from './jagex2/util/JsUtil.js';
 import {playMidi} from './jagex2/util/AudioUtil.js';
 import GameShell from "./jagex2/client/GameShell.js";
 
 import './vendor/midi.js';
+import Packet from "./jagex2/io/Packet.js";
 
 class Client extends GameShell {
     static readonly HOST: string = 'https://w2.225.2004scape.org';
@@ -123,9 +124,9 @@ class Client extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            let checksums = await downloadUrl(`${Client.HOST}/crc`);
-            for (let i = 0; i < checksums.length / 4; i++) {
-                this.archiveChecksums[i] = checksums.g4();
+            const checksums = new Packet(await downloadUrl(`${Client.HOST}/crc`));
+            for (let i = 0; i < 9; i++) {
+                this.archiveChecksums[i] = checksums.g4;
             }
 
             await this.setMidi('scape_main', 12345678);
@@ -306,6 +307,9 @@ class Client extends GameShell {
     };
 
     private loadTitleBackground = async (): Promise<void> => {
+        if (!this.titleArchive) {
+            return;
+        }
         const background = await Pix24.fromJpeg(this.titleArchive, 'title');
 
         this.imageTitle0?.bind();
@@ -416,6 +420,9 @@ class Client extends GameShell {
     }
 
     private loadTitleImages = (): void => {
+        if (!this.titleArchive) {
+            return;
+        }
         this.imageTitleBox = Pix8.fromArchive(this.titleArchive, 'titlebox');
         this.imageTitleButton = Pix8.fromArchive(this.titleArchive, 'titlebutton');
         for (let i = 0; i < 12; i++) {
@@ -424,8 +431,8 @@ class Client extends GameShell {
         this.imageFlamesLeft = new Pix24(128, 265);
         this.imageFlamesRight = new Pix24(128, 265);
 
-        if (this.imageTitle0) this.arraycopy(this.imageTitle0.pixels, 0, this.imageFlamesLeft.pixels, 0, 33920)
-        if (this.imageTitle1) this.arraycopy(this.imageTitle1.pixels, 0, this.imageFlamesRight.pixels, 0, 33920);
+        if (this.imageTitle0) arraycopy(this.imageTitle0.pixels, 0, this.imageFlamesLeft.pixels, 0, 33920)
+        if (this.imageTitle1) arraycopy(this.imageTitle1.pixels, 0, this.imageFlamesRight.pixels, 0, 33920);
 
         this.flameGradient0 = [];
         for (let index = 0; index < 64; index++) {
@@ -635,7 +642,7 @@ class Client extends GameShell {
             this.imageTitleButton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 0xFFFFFF, true);
         } else if (this.titleScreenState == 3) {
-            this.fontBold12?.drawStringTaggableCenter(w / 2, 16776960, true, h / 2 - 60, "Create a free account");
+            this.fontBold12?.drawStringTaggableCenter(w / 2, 16776960, "Create a free account", h / 2 - 60, true);
 
             let x = w / 2;
             let y = h / 2 - 35;
@@ -674,13 +681,13 @@ class Client extends GameShell {
         // TODO: download progress, retry
 
         await this.showProgress(progress, `Requesting ${displayName}`);
-        const data = await Archive.loadUrl(`${Client.HOST}/${filename}${crc}`);
+        const data: Archive = await Archive.loadUrl(`${Client.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
     };
 
     private setMidi = async (name: string, crc: number): Promise<void> => {
-        const file = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
+        const file: Packet = new Packet(await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`));
         playMidi(decompressBz2(file.data, true, false), 192);
     };
 
@@ -920,10 +927,6 @@ class Client extends GameShell {
         }
 
         this.imageTitle1?.draw(661, 0);
-    }
-
-    private arraycopy = (src: Uint32Array, srcPos: number, dst: Uint32Array, dstPos: number, length: number): void => {
-        while (length--) dst[dstPos++] = src[srcPos++];
     }
 }
 

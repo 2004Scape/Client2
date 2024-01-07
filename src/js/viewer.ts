@@ -24,6 +24,7 @@ import Archive from './jagex2/io/Archive.js';
 import Censor from './jagex2/util/Censor.js';
 import { downloadText, downloadUrl } from './jagex2/util/JsUtil.js';
 import GameShell from "./jagex2/client/GameShell.js";
+import Packet from "./jagex2/io/Packet";
 
 export default class Client extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
@@ -92,9 +93,9 @@ export default class Client extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            let checksums = await downloadUrl(`${Client.HOST}/crc`);
-            for (let i = 0; i < checksums.length / 4; i++) {
-                this.archiveChecksums[i] = checksums.g4();
+            let checksums = new Packet(await downloadUrl(`${Client.HOST}/crc`));
+            for (let i = 0; i < 9; i++) {
+                this.archiveChecksums[i] = checksums.g4;
             }
 
             const title = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);

@@ -31,7 +31,10 @@ export default class Packet {
     // runtime
     bitPos: number = 0;
 
-    constructor(src: Uint8Array) {
+    constructor(src: Uint8Array | null) {
+        if (!src) {
+            throw new Error(`Input src packet array was null!`);
+        }
         this.data = src;
         this.pos = 0;
     }

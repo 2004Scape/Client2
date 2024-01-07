@@ -1,9 +1,8 @@
 import Draw2D from './Draw2D.js';
 
-import Buffer from '../io/Buffer.js';
-
 import { decodeJpeg } from '../util/JsUtil.js';
 import Archive from "../io/Archive";
+import Packet from "../io/Packet";
 
 export default class Pix24 {
     // constructor
@@ -22,8 +21,8 @@ export default class Pix24 {
         this.cropX = this.cropY = 0;
     }
 
-    static fromJpeg = async (archive: Archive | null, name: string): Promise<Pix24> => {
-        let dat = archive?.read(name + '.dat');
+    static fromJpeg = async (archive: Archive, name: string): Promise<Pix24> => {
+        let dat = archive.read(name + '.dat');
         let jpeg = await decodeJpeg(dat);
         let image = new Pix24(jpeg.width, jpeg.height);
 
@@ -38,22 +37,22 @@ export default class Pix24 {
         return image;
     };
 
-    static fromArchive = (archive: Archive | null, name: string, sprite = 0): Pix24 => {
-        let dat = new Buffer(archive?.read(name + '.dat'));
-        let index = new Buffer(archive?.read('index.dat'));
+    static fromArchive = (archive: Archive, name: string, sprite: number = 0): Pix24 => {
+        let dat = new Packet(archive.read(name + '.dat'));
+        let index = new Packet(archive.read('index.dat'));
 
         // cropW/cropH are shared across all sprites in a single image
-        index.pos = dat.g2();
-        let cropW = index.g2();
-        let cropH = index.g2();
+        index.pos = dat.g2;
+        let cropW = index.g2;
+        let cropH = index.g2;
 
         // palette is shared across all images in a single archive
-        let paletteCount = index.g1();
+        let paletteCount = index.g1;
         let palette = new Uint32Array(paletteCount);
         const length = paletteCount - 1;
         for (let i = 0; i < length; i++) {
             // the first color (0) is reserved for transparency
-            palette[i + 1] = index.g3();
+            palette[i + 1] = index.g3;
 
             // black (0) will become transparent, make it black (1) so it's visible
             if (palette[i + 1] === 0) {
@@ -64,15 +63,15 @@ export default class Pix24 {
         // advance to sprite
         for (let i = 0; i < sprite; i++) {
             index.pos += 2;
-            dat.pos += index.g2() * index.g2();
+            dat.pos += index.g2 * index.g2;
             index.pos += 1;
         }
 
         // read sprite
-        let cropX = index.g1();
-        let cropY = index.g1();
-        let width = index.g2();
-        let height = index.g2();
+        let cropX = index.g1;
+        let cropY = index.g1;
+        let width = index.g2;
+        let height = index.g2;
 
         let image = new Pix24(width, height);
         image.cropX = cropX;
@@ -80,18 +79,18 @@ export default class Pix24 {
         image.cropW = cropW;
         image.cropH = cropH;
 
-        let pixelOrder = index.g1();
+        let pixelOrder = index.g1;
         if (pixelOrder === 0) {
             const length = image.width * image.height;
             for (let i = 0; i < length; i++) {
-                image.pixels[i] = palette[dat.g1()];
+                image.pixels[i] = palette[dat.g1];
             }
         } else if (pixelOrder === 1) {
             const width = image.width;
             for (let x = 0; x < width; x++) {
                 const height = image.height;
                 for (let y = 0; y < height; y++) {
-                    image.pixels[x + (y * width)] = palette[dat.g1()];
+                    image.pixels[x + (y * width)] = palette[dat.g1];
                 }
             }
         }
