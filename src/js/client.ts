@@ -380,8 +380,8 @@ class Client extends GameShell {
 
         // Blends the fire at random
         for (let i = 0; i < 5000; i++) {
-            const rand = (Math.random() * 128.0 * flameHeight) | 0;
-            this.flameBuffer0[rand] = (Math.random() * 256.0) | 0;
+            const rand = Math.trunc(Math.random() * 128.0 * flameHeight);
+            this.flameBuffer0[rand] = Math.trunc(Math.random() * 256.0);
         }
 
         // changes color between last few flames
@@ -760,13 +760,13 @@ class Client extends GameShell {
         const height = 256;
 
         for (let x = 10; x < 117; x++) {
-            const rand = (Math.random() * 100.0) | 0;
+            const rand = Math.trunc(Math.random() * 100.0);
             if (rand < 50) this.flameBuffer3[x + (height - 2 << 7)] = 255
         }
 
         for (let l = 0; l < 100; l++) {
-            const x = ((Math.random() * 124.0) | 0) + 2;
-            const y = ((Math.random() * 128.0) | 0) + 128;
+            const x = Math.trunc(Math.random() * 124.0 + 2);
+            const y = Math.trunc(Math.random() * 128.0 + 128);
             const index = x + (y << 7);
             this.flameBuffer3[index] = 192;
         }
@@ -781,7 +781,7 @@ class Client extends GameShell {
         this.flameCycle0 += 128;
         if (this.flameCycle0 > 32768) {
             this.flameCycle0 -= 32768;
-            const rand = (Math.random() * 12.0) | 0;
+            const rand = Math.trunc(Math.random() * 12.0);
             this.updateFlameBuffer(this.imageRunes[rand]);
         }
 
@@ -811,7 +811,7 @@ class Client extends GameShell {
         }
 
         if (this.flameGradientCycle0 == 0 && this.flameGradientCycle1 == 0) {
-            let rand = (Math.random() * 2000.0) | 0;
+            let rand = Math.trunc(Math.random() * 2000.0);
 
             if (rand == 0) {
                 this.flameGradientCycle0 = 1024;
@@ -880,9 +880,7 @@ class Client extends GameShell {
                     value = this.flameGradient[value];
                     if (this.imageTitle0) {
                         const background = this.imageTitle0.pixels[dstOffset];
-                        this.imageTitle0.pixels[dstOffset++] = (((value & 0xFF00FF) * alpha + (background & 0xFF00FF) * invAlpha) & 0xFF00FF00)
-                            + (((value & 0xFF00) * alpha + (background & 0xFF00) * invAlpha) & 0xFF0000) >> 8;
-
+                        this.imageTitle0.pixels[dstOffset++] = (((value & 0xFF00FF) * alpha + (background & 0xFF00FF) * invAlpha) & 0xFF00FF00) + (((value & 0xFF00) * alpha + (background & 0xFF00) * invAlpha) & 0xFF0000) >> 8;
                     }
                 }
             }
