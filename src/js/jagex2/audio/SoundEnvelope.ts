@@ -1,2 +1,1 @@
-export default class SoundEnvelope {
-}
+export default class SoundEnvelope {}

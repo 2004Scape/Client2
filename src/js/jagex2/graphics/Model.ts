@@ -250,7 +250,7 @@ export default class Model {
             return 127 - scalar;
         }
 
-        scalar = (scalar * (hsl & 0x7F)) >> 7;
+        scalar = (scalar * (hsl & 0x7f)) >> 7;
 
         if (scalar < 2) {
             scalar = 2;
@@ -258,7 +258,7 @@ export default class Model {
             scalar = 126;
         }
 
-        return (hsl & 0xFF80) + scalar;
+        return (hsl & 0xff80) + scalar;
     }
 
     // ----
@@ -309,7 +309,22 @@ export default class Model {
     vertexNormalOriginal: VertexNormal[] | null = null;
 
     constructor(id: number) {
-        if (Model.head === null || Model.face1 === null || Model.face2 === null || Model.face3 === null || Model.face4 === null || Model.face5 === null || Model.point1 === null || Model.point2 === null || Model.point3 === null || Model.point4 === null || Model.point5 === null || Model.vertex1 === null || Model.vertex2 === null || Model.axis === null) {
+        if (
+            Model.head === null ||
+            Model.face1 === null ||
+            Model.face2 === null ||
+            Model.face3 === null ||
+            Model.face4 === null ||
+            Model.face5 === null ||
+            Model.point1 === null ||
+            Model.point2 === null ||
+            Model.point3 === null ||
+            Model.point4 === null ||
+            Model.point5 === null ||
+            Model.vertex1 === null ||
+            Model.vertex2 === null ||
+            Model.axis === null
+        ) {
             return;
         }
 
@@ -491,27 +506,27 @@ export default class Model {
         let identical = -1;
 
         const x = src.vertexX[vertexId];
-		const y = src.vertexY[vertexId];
-		const z = src.vertexZ[vertexId];
+        const y = src.vertexY[vertexId];
+        const z = src.vertexZ[vertexId];
 
         for (let v = 0; v < this.vertexCount; v++) {
-			if (x == this.vertexX[v] && y == this.vertexY[v] && z == this.vertexZ[v]) {
-				identical = v;
-				break;
-			}
-		}
+            if (x == this.vertexX[v] && y == this.vertexY[v] && z == this.vertexZ[v]) {
+                identical = v;
+                break;
+            }
+        }
 
         if (identical == -1) {
-			this.vertexX[this.vertexCount] = x;
-			this.vertexY[this.vertexCount] = y;
-			this.vertexZ[this.vertexCount] = z;
+            this.vertexX[this.vertexCount] = x;
+            this.vertexY[this.vertexCount] = y;
+            this.vertexZ[this.vertexCount] = z;
 
             if (this.vertexLabel != null && src.vertexLabel != null) {
-				this.vertexLabel[this.vertexCount] = src.vertexLabel[vertexId];
-			}
+                this.vertexLabel[this.vertexCount] = src.vertexLabel[vertexId];
+            }
 
             identical = this.vertexCount++;
-		}
+        }
 
         return identical;
     }
@@ -626,11 +641,9 @@ export default class Model {
         this.maxDepth = this.minDepth + Math.trunc(Math.sqrt(this.radius * this.radius + this.minY * this.minY));
     }
 
-    createLabelReferences() {
-    }
+    createLabelReferences() {}
 
-    applyTransform() {
-    }
+    applyTransform() {}
 
     rotateY90() {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
@@ -709,9 +722,9 @@ export default class Model {
         }
 
         for (let v = 0; v < this.vertexCount; v++) {
-            this.vertexX[v] = this.vertexX[v] * x / 128;
-            this.vertexY[v] = this.vertexY[v] * y / 128;
-            this.vertexZ[v] = this.vertexZ[v] * z / 128;
+            this.vertexX[v] = (this.vertexX[v] * x) / 128;
+            this.vertexY[v] = (this.vertexY[v] * y) / 128;
+            this.vertexZ[v] = (this.vertexZ[v] * z) / 128;
         }
     }
 
@@ -765,9 +778,9 @@ export default class Model {
                 length = 1;
             }
 
-            nx = nx * 256 / length;
-            ny = ny * 256 / length;
-            nz = nz * 256 / length;
+            nx = (nx * 256) / length;
+            ny = (ny * 256) / length;
+            nz = (nz * 256) / length;
 
             if (this.faceInfo === null || (this.faceInfo[f] & 0x1) === 0) {
                 let n = this.vertexNormal[a];
@@ -952,15 +965,14 @@ export default class Model {
         }
 
         // try {
-            this.draw2(false, false, 0);
+        this.draw2(false, false, 0);
         // } catch (err) {
         //     console.error(err);
         // }
     }
 
     // todo: better name, Java relies on overloads
-    draw(yaw: number, sinEyePitch: number, cosEyePitch: number, sinEyeYaw: number, cosEyeYaw: number, relativeX: number, relativeY: number, relativeZ: number, bitset: number) {
-    }
+    draw(yaw: number, sinEyePitch: number, cosEyePitch: number, sinEyeYaw: number, cosEyeYaw: number, relativeX: number, relativeY: number, relativeZ: number, bitset: number) {}
 
     // todo: better name, Java relies on overloads
     draw2(clipped: boolean, picking: boolean, bitset: number) {
@@ -976,7 +988,15 @@ export default class Model {
             return;
         }
 
-        if (Model.tmpDepthFaceCount === null || Model.tmpDepthFaces === null || Model.tmpPriorityFaces === null || Model.tmpPriorityFaceCount === null || Model.tmpPriorityDepthSum === null || Model.tmpPriority10FaceDepth === null || Model.tmpPriority11FaceDepth === null) {
+        if (
+            Model.tmpDepthFaceCount === null ||
+            Model.tmpDepthFaces === null ||
+            Model.tmpPriorityFaces === null ||
+            Model.tmpPriorityFaceCount === null ||
+            Model.tmpPriorityDepthSum === null ||
+            Model.tmpPriority10FaceDepth === null ||
+            Model.tmpPriority11FaceDepth === null
+        ) {
             return;
         }
 
@@ -1017,7 +1037,7 @@ export default class Model {
                 const dxCB = xC - xB;
                 const dyCB = Model.vertexScreenY[c] - Model.vertexScreenY[b];
 
-                if ((dxAB * dyCB - dyAB * dxCB) <= 0) {
+                if (dxAB * dyCB - dyAB * dxCB <= 0) {
                     continue;
                 }
 
@@ -1228,7 +1248,17 @@ export default class Model {
         }
 
         if (type === 0 && this.faceColorA !== null && this.faceColorB !== null && this.faceColorC !== null) {
-            Draw3D.fillGouraudTriangle(Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], this.faceColorA[face], this.faceColorB[face], this.faceColorC[face]);
+            Draw3D.fillGouraudTriangle(
+                Model.vertexScreenX[a],
+                Model.vertexScreenX[b],
+                Model.vertexScreenX[c],
+                Model.vertexScreenY[a],
+                Model.vertexScreenY[b],
+                Model.vertexScreenY[c],
+                this.faceColorA[face],
+                this.faceColorB[face],
+                this.faceColorC[face]
+            );
         } else if (type === 1) {
             // Draw3D.fillTriangle(Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], palette[this.faceColorA[face]]);
         } else if (type === 2 && this.faceInfo !== null && this.texturedVertexA !== null && this.texturedVertexB !== null && this.texturedVertexC !== null) {
@@ -1246,8 +1276,7 @@ export default class Model {
         }
     }
 
-    drawNearClippedFace(face: number) {
-    }
+    drawNearClippedFace(face: number) {}
 
     pointWithinTriangle(x: number, y: number, xA: number, xB: number, xC: number, yA: number, yB: number, yC: number) {
         if (y < yA && y < yB && y < yC) {

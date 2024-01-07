@@ -21,7 +21,7 @@ import SeqFrame from './jagex2/graphics/SeqFrame.js';
 import Archive from './jagex2/io/Archive.js';
 
 import Censor from './jagex2/util/Censor.js';
-import { downloadUrl } from './jagex2/util/JsUtil.js';
+import {downloadUrl} from './jagex2/util/JsUtil.js';
 import Draw2D from './jagex2/graphics/Draw2D.js';
 import Packet from './jagex2/io/Packet.js';
 
@@ -170,32 +170,37 @@ class Playground extends GameShell {
 
         // debug
         if (this.fontBold12) {
-            this.fontBold12.drawRight(this.width, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
-            this.fontBold12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, 0xFFFF00);
+            this.fontBold12.drawRight(this.width, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xffff00);
+            this.fontBold12.drawRight(
+                this.width,
+                this.height,
+                `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`,
+                0xffff00
+            );
 
             // controls
             let leftY = this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `Model: ${this.model.id}`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, `Model: ${this.model.id}`, 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'Controls:', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'Controls:', 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'r - reset camera and model rotation + movement speed', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'r - reset camera and model rotation + movement speed', 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, '1 and 2 - change model', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, '1 and 2 - change model', 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, '[ and ] - adjust movement speed', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, '[ and ] - adjust movement speed', 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'left and right - adjust model yaw', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'left and right - adjust model yaw', 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'up and down - adjust model pitch', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'up and down - adjust model pitch', 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, '. and / - adjust model roll', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, '. and / - adjust model roll', 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'w and s - move camera along z axis', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'w and s - move camera along z axis', 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'a and d - move camera along x axis', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'a and d - move camera along x axis', 0xffff00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'q and e - move camera along y axis', 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'q and e - move camera along y axis', 0xffff00);
         }
 
         this.drawArea?.draw(0, 0);
@@ -215,13 +220,13 @@ class Playground extends GameShell {
         id: parseInt(GameShell.getParameter('model')) || 0,
         pitch: parseInt(GameShell.getParameter('x')) || 0,
         yaw: parseInt(GameShell.getParameter('y')) || 0,
-        roll: parseInt(GameShell.getParameter('z')) || 0,
+        roll: parseInt(GameShell.getParameter('z')) || 0
     };
     camera = {
         x: parseInt(GameShell.getParameter('eyeX')) || 0,
         y: parseInt(GameShell.getParameter('eyeY')) || 0,
         z: parseInt(GameShell.getParameter('eyeZ')) || 420,
-        pitch: parseInt(GameShell.getParameter('eyePitch')) || 0,
+        pitch: parseInt(GameShell.getParameter('eyePitch')) || 0
     };
 
     updateKeysPressed() {

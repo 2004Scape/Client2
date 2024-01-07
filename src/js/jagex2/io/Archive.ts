@@ -45,7 +45,7 @@ export default class Archive {
         this.fileSizeDeflated = [];
         this.fileOffset = [];
 
-        let offset = buffer.pos + (this.fileCount * 10);
+        let offset = buffer.pos + this.fileCount * 10;
         for (let i = 0; i < this.fileCount; i++) {
             this.fileHash.push(buffer.g4);
             this.fileSizeInflated.push(buffer.g3);

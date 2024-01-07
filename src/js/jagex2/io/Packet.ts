@@ -1,13 +1,13 @@
 export default class Packet {
     static crctable: Int32Array = new Int32Array(256);
-    static CRC32_POLYNOMIAL: number = 0xEDB88320;
+    static CRC32_POLYNOMIAL: number = 0xedb88320;
     static bitmask: Uint32Array = new Uint32Array(33);
 
     static {
         for (let i = 0; i < 32; i++) {
             Packet.bitmask[i] = (1 << i) - 1;
         }
-        Packet.bitmask[32] = 0xFFFFFFFF;
+        Packet.bitmask[32] = 0xffffffff;
 
         for (let i = 0; i < 256; i++) {
             let remainder = i;
@@ -46,7 +46,7 @@ export default class Packet {
             return new Packet(new Uint8Array(5000));
         }
         return new Packet(new Uint8Array(30000));
-    }
+    };
 
     get g1(): number {
         return this.data[this.pos++];
@@ -54,28 +54,28 @@ export default class Packet {
 
     // signed
     get g1b(): number {
-        return this.data[this.pos++] << 24 >> 24;
+        return (this.data[this.pos++] << 24) >> 24;
     }
 
     get g2(): number {
-        return (this.data[this.pos++] << 8 | this.data[this.pos++]) >>> 0;
+        return ((this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
     }
 
     get g2s(): number {
-        return this.data[this.pos++] << 8 | this.data[this.pos++];
+        return (this.data[this.pos++] << 8) | this.data[this.pos++];
     }
 
     get g3(): number {
-        return (this.data[this.pos++] << 16 | this.data[this.pos++] << 8 | this.data[this.pos++]) >>> 0;
+        return ((this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
     }
 
     get g4(): number {
-        return (this.data[this.pos++] << 24 | this.data[this.pos++] << 16 | this.data[this.pos++] << 8 | this.data[this.pos++]) >>> 0;
+        return ((this.data[this.pos++] << 24) | (this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
     }
 
     // signed
     get g4s(): number {
-        return this.data[this.pos++] << 24 | this.data[this.pos++] << 16 | this.data[this.pos++] << 8 | this.data[this.pos++];
+        return (this.data[this.pos++] << 24) | (this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++];
     }
 
     get g8(): bigint {
@@ -83,12 +83,12 @@ export default class Packet {
     }
 
     get gsmart(): number {
-        return (this.data[this.pos] < 0x80) ? this.g1 : (this.g2 - 0x8000);
+        return this.data[this.pos] < 0x80 ? this.g1 : this.g2 - 0x8000;
     }
 
     // signed
     get gsmarts(): number {
-        return (this.data[this.pos] < 0x80) ? (this.g1 - 0x40) : (this.g2 - 0xC000);
+        return this.data[this.pos] < 0x80 ? this.g1 - 0x40 : this.g2 - 0xc000;
     }
 
     get gjstr(): string {
@@ -104,67 +104,67 @@ export default class Packet {
 
     p1 = (value: number): void => {
         this.data[this.pos++] = value;
-    }
+    };
 
     p2 = (value: number): void => {
         this.data[this.pos++] = value >>> 8;
         this.data[this.pos++] = value;
-    }
+    };
 
     ip2 = (value: number): void => {
         this.data[this.pos++] = value;
         this.data[this.pos++] = value >>> 8;
-    }
+    };
 
     p3 = (value: number): void => {
         this.data[this.pos++] = value >>> 16;
         this.data[this.pos++] = value >>> 8;
         this.data[this.pos++] = value;
-    }
+    };
 
     p4 = (value: number): void => {
         this.data[this.pos++] = value >>> 24;
         this.data[this.pos++] = value >>> 16;
         this.data[this.pos++] = value >>> 8;
         this.data[this.pos++] = value;
-    }
+    };
 
     ip4 = (value: number): void => {
         this.data[this.pos++] = value;
         this.data[this.pos++] = value >>> 8;
         this.data[this.pos++] = value >>> 16;
         this.data[this.pos++] = value >>> 24;
-    }
+    };
 
     p8 = (value: bigint): void => {
         this.p4(Number(value >> 32n));
-        this.p4(Number(value & 0xFFFFFFFFn));
-    }
+        this.p4(Number(value & 0xffffffffn));
+    };
 
     pjstr = (str: string): void => {
         for (let i = 0; i < str.length; i++) {
             this.data[this.pos++] = str.charCodeAt(i);
         }
         this.data[this.pos++] = 10;
-    }
+    };
 
     pdata = (src: Uint8Array, length: number, offset: number): void => {
         for (let i = offset; i < offset + length; i++) {
             this.data[this.pos++] = src[i];
         }
-    }
+    };
 
     psize1 = (size: number): void => {
         this.data[this.pos - size - 1] = size;
-    }
+    };
 
     bits = (): void => {
         this.bitPos = this.pos * 8;
-    }
+    };
 
     bytes = (): void => {
         this.pos = ((this.bitPos + 7) / 8) >>> 0;
-    }
+    };
 
     gBit = (n: number): number => {
         let bytePos = this.bitPos >>> 3;
@@ -184,5 +184,5 @@ export default class Packet {
         }
 
         return value;
-    }
+    };
 }

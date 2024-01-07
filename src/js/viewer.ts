@@ -22,7 +22,7 @@ import SeqFrame from './jagex2/graphics/SeqFrame.js';
 import Archive from './jagex2/io/Archive.js';
 
 import Censor from './jagex2/util/Censor.js';
-import { downloadText, downloadUrl } from './jagex2/util/JsUtil.js';
+import {downloadText, downloadUrl} from './jagex2/util/JsUtil.js';
 import GameShell from './jagex2/client/GameShell.js';
 import Packet from './jagex2/io/Packet';
 
@@ -53,13 +53,13 @@ export default class Client extends GameShell {
         pitch: parseInt(GameShell.getParameter('x')) || 0,
         yaw: parseInt(GameShell.getParameter('y')) || 0,
         roll: parseInt(GameShell.getParameter('z')) || 0,
-        built: null as Model | null,
+        built: null as Model | null
     };
     camera = {
         x: parseInt(GameShell.getParameter('eyeX')) || 0,
         y: parseInt(GameShell.getParameter('eyeY')) || 0,
         z: parseInt(GameShell.getParameter('eyeZ')) || 420,
-        pitch: parseInt(GameShell.getParameter('eyePitch')) || 0,
+        pitch: parseInt(GameShell.getParameter('eyePitch')) || 0
     };
 
     async loadPack(url: string): Promise<Map<number, string>> {
@@ -181,8 +181,8 @@ export default class Client extends GameShell {
         this.model.built.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
         // debug
-        this.fontBold12?.drawRight(this.width - 1, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xFFFF00);
-        this.fontBold12?.draw(1, this.fontBold12.fontHeight, `ID: ${this.model.id}`, 0xFFFF00);
+        this.fontBold12?.drawRight(this.width - 1, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xffff00);
+        this.fontBold12?.draw(1, this.fontBold12.fontHeight, `ID: ${this.model.id}`, 0xffff00);
 
         this.drawArea?.draw(0, 0);
     };
@@ -335,5 +335,4 @@ export default class Client extends GameShell {
 }
 
 const client = new Client();
-client.run().then(() => {
-});
+client.run().then(() => {});

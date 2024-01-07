@@ -20,7 +20,7 @@ export default class Font {
         }
     }
 
-    pixels: Uint8Array[] = []
+    pixels: Uint8Array[] = [];
     charWidth: number[] = [];
     charHeight: number[] = [];
     clipX: number[] = [];
@@ -47,8 +47,8 @@ export default class Font {
             font.clipX[c] = index.g1;
             font.clipY[c] = index.g1;
 
-            const width = font.charWidth[c] = index.g2;
-            const height = font.charHeight[c] = index.g2;
+            const width = (font.charWidth[c] = index.g2);
+            const height = (font.charHeight[c] = index.g2);
 
             const size = width * height;
             font.pixels[c] = new Uint8Array(size);
@@ -61,7 +61,7 @@ export default class Font {
             } else if (pixelOrder === 1) {
                 for (let x = 0; x < width; x++) {
                     for (let y = 0; y < height; y++) {
-                        font.pixels[c][x + (y * width)] = dat.g1;
+                        font.pixels[c][x + y * width] = dat.g1;
                     }
                 }
             }
@@ -76,7 +76,7 @@ export default class Font {
             {
                 let i = 0;
                 for (let y = height / 7; y < height; y++) {
-                    i += font.pixels[c][width + (y * width)];
+                    i += font.pixels[c][width + y * width];
                 }
 
                 if (i <= height / 7) {
@@ -88,7 +88,7 @@ export default class Font {
             {
                 let i = 0;
                 for (let y = height / 7; y < height; y++) {
-                    i += font.pixels[c][width + (y * width) - 1];
+                    i += font.pixels[c][width + y * width - 1];
                 }
 
                 if (i <= height / 7) {
@@ -120,7 +120,6 @@ export default class Font {
 
             x += this.charSpace[c];
         }
-
     };
 
     drawStringTaggable = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
@@ -146,7 +145,6 @@ export default class Font {
                 x += this.charSpace[c];
             }
         }
-
     };
 
     getTextWidth = (str: string): number => {
@@ -164,11 +162,11 @@ export default class Font {
     };
 
     drawStringTaggableCenter = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
-        this.drawStringTaggable(x - (this.getTextWidth(str) / 2), y, str, color, shadowed);
+        this.drawStringTaggable(x - this.getTextWidth(str) / 2, y, str, color, shadowed);
     };
 
     drawStringCenter = (x: number, y: number, str: string, color: number) => {
-        this.draw(x - (this.getTextWidth(str) / 2), y, str, color);
+        this.draw(x - this.getTextWidth(str) / 2, y, str, color);
     };
 
     drawRight = (x: number, y: number, str: string, color: number, shadowed = true): void => {
@@ -185,7 +183,7 @@ export default class Font {
         w = w | 0;
         h = h | 0;
 
-        let dstOff = x + (y * Draw2D.width);
+        let dstOff = x + y * Draw2D.width;
         let srcOff = 0;
 
         let dstStep = Draw2D.width - w;

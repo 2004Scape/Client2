@@ -2,39 +2,39 @@ import TinyMidiPCM from './tinymidipcm/index.js';
 
 // Fix iOS Audio Context by Blake Kus https://gist.github.com/kus/3f01d60569eeadefe3a1
 // MIT license
-(function() {
-	window.AudioContext = window.AudioContext || window.webkitAudioContext;
-	if (window.AudioContext) {
-		window.audioContext = new window.AudioContext();
-	}
-	var fixAudioContext = function (e) {
-		if (window.audioContext) {
-			// Create empty buffer
-			var buffer = window.audioContext.createBuffer(1, 1, 22050);
-			var source = window.audioContext.createBufferSource();
-			source.buffer = buffer;
-			// Connect to output (speakers)
-			source.connect(window.audioContext.destination);
-			// Play sound
-			if (source.start) {
-				source.start(0);
-			} else if (source.play) {
-				source.play(0);
-			} else if (source.noteOn) {
-				source.noteOn(0);
-			}
-		}
-		// Remove events
-		document.removeEventListener('touchstart', fixAudioContext);
-		document.removeEventListener('touchend', fixAudioContext);
-		document.removeEventListener('click', fixAudioContext);
-	};
-	// iOS 6-8
-	document.addEventListener('touchstart', fixAudioContext);
-	// iOS 9
-	document.addEventListener('touchend', fixAudioContext);
-	// Safari
-	document.addEventListener('click', fixAudioContext);
+(function () {
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (window.AudioContext) {
+        window.audioContext = new window.AudioContext();
+    }
+    var fixAudioContext = function (e) {
+        if (window.audioContext) {
+            // Create empty buffer
+            var buffer = window.audioContext.createBuffer(1, 1, 22050);
+            var source = window.audioContext.createBufferSource();
+            source.buffer = buffer;
+            // Connect to output (speakers)
+            source.connect(window.audioContext.destination);
+            // Play sound
+            if (source.start) {
+                source.start(0);
+            } else if (source.play) {
+                source.play(0);
+            } else if (source.noteOn) {
+                source.noteOn(0);
+            }
+        }
+        // Remove events
+        document.removeEventListener('touchstart', fixAudioContext);
+        document.removeEventListener('touchend', fixAudioContext);
+        document.removeEventListener('click', fixAudioContext);
+    };
+    // iOS 6-8
+    document.addEventListener('touchstart', fixAudioContext);
+    // iOS 9
+    document.addEventListener('touchend', fixAudioContext);
+    // Safari
+    document.addEventListener('click', fixAudioContext);
 })();
 
 // controlling tinymidipcm:
@@ -58,14 +58,14 @@ import TinyMidiPCM from './tinymidipcm/index.js';
 
     const tinyMidiPCM = new TinyMidiPCM({
         renderInterval,
-        onPCMData: (pcm) => {
+        onPCMData: pcm => {
             let float32 = new Float32Array(pcm.buffer);
             let temp = new Float32Array(samples.length + float32.length);
             temp.set(samples, 0);
             temp.set(float32, samples.length);
             samples = temp;
         },
-        onRenderEnd: (ms) => {
+        onRenderEnd: ms => {
             renderEndSeconds = Math.floor(startTime + Math.floor(ms / 1000));
         },
         bufferSize: 1024 * 100
@@ -83,7 +83,7 @@ import TinyMidiPCM from './tinymidipcm/index.js';
         }
 
         let bufferSource = window.audioContext.createBufferSource();
-        bufferSource.onended = function(event) {
+        bufferSource.onended = function (event) {
             const timeSeconds = Math.floor(window.audioContext.currentTime);
 
             if (renderEndSeconds > 0 && Math.abs(timeSeconds - renderEndSeconds) <= 2) {
@@ -93,7 +93,7 @@ import TinyMidiPCM from './tinymidipcm/index.js';
                     window._tinyMidiPlay(currentMidiBuffer, -1);
                 }
             }
-        }
+        };
 
         const length = samples.length / channels;
         const audioBuffer = window.audioContext.createBuffer(channels, length, sampleRate);

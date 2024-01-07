@@ -77,11 +77,15 @@ export default abstract class GameShell {
     }
 
     async run(): Promise<void> {
-        window.addEventListener('resize', () => {
-            if (this.resizeToFit) {
-                this.resize(window.innerWidth, window.innerHeight);
-            }
-        }, false);
+        window.addEventListener(
+            'resize',
+            () => {
+                if (this.resizeToFit) {
+                    this.resize(window.innerWidth, window.innerHeight);
+                }
+            },
+            false
+        );
 
         window.addEventListener('keydown', this.keyDown);
         window.addEventListener('keyup', this.keyUp);
@@ -156,7 +160,7 @@ export default abstract class GameShell {
                 count += ratio;
             }
 
-            count &= 0xFF;
+            count &= 0xff;
 
             if (this.deltime > 0) {
                 this.fps = Math.trunc((ratio * 1000) / (this.deltime * 256));
@@ -202,20 +206,15 @@ export default abstract class GameShell {
         this.state = -1;
     }
 
-    async load(): Promise<void> {
-    }
+    async load(): Promise<void> {}
 
-    update(): void {
-    }
+    update(): void {}
 
-    unload(): void {
-    }
+    unload(): void {}
 
-    async draw(): Promise<void> {
-    }
+    async draw(): Promise<void> {}
 
-    refresh(): void {
-    }
+    refresh(): void {}
 
     async showProgress(progress: number, message: string): Promise<void> {
         const ctx = this.ctx;
@@ -224,7 +223,7 @@ export default abstract class GameShell {
 
         if (this.redrawScreen) {
             ctx.fillStyle = 'black';
-            ctx.clearRect(0, 0, width,height);
+            ctx.clearRect(0, 0, width, height);
             this.redrawScreen = false;
         }
 
@@ -232,12 +231,12 @@ export default abstract class GameShell {
 
         // draw full progress bar
         ctx.fillStyle = 'rgb(140, 17, 17)';
-        ctx.rect((width / 2) - 152, y, 304, 34);
-        ctx.fillRect((width / 2) - 150, y + 2, progress * 3, 30);
+        ctx.rect(width / 2 - 152, y, 304, 34);
+        ctx.fillRect(width / 2 - 150, y + 2, progress * 3, 30);
 
         // cover up progress bar
         ctx.fillStyle = 'black';
-        ctx.fillRect(((width / 2) - 150) + (progress * 3), y + 2, 300 - (progress * 3), 30);
+        ctx.fillRect(width / 2 - 150 + progress * 3, y + 2, 300 - progress * 3, 30);
 
         // draw text
         ctx.font = 'bold 13px helvetica, sans-serif';
@@ -298,7 +297,7 @@ export default abstract class GameShell {
 
         if (ch > 4) {
             this.keyQueue[this.keyQueueWritePos] = ch;
-            this.keyQueueWritePos = this.keyQueueWritePos + 1 & 0x7F;
+            this.keyQueueWritePos = (this.keyQueueWritePos + 1) & 0x7f;
         }
         // TODO input tracking
     };
@@ -324,7 +323,7 @@ export default abstract class GameShell {
         let key = -1;
         if (this.keyQueueWritePos != this.keyQueueReadPos) {
             key = this.keyQueue[this.keyQueueReadPos];
-            this.keyQueueReadPos = (this.keyQueueReadPos + 1) & 0x7F;
+            this.keyQueueReadPos = (this.keyQueueReadPos + 1) & 0x7f;
         }
         return key;
     }
@@ -351,7 +350,7 @@ export default abstract class GameShell {
         // TODO input tracking
     };
 
-    private get getInsets(): { top: number; left: number } {
+    private get getInsets(): {top: number; left: number} {
         const rect = this.canvas.getBoundingClientRect();
         const computedStyle = window.getComputedStyle(this.canvas);
         const paddingLeft = parseFloat(computedStyle.paddingLeft || '0');
@@ -362,7 +361,7 @@ export default abstract class GameShell {
         const left = rect.left + borderLeft + paddingLeft;
         const top = rect.top + borderTop + paddingTop;
 
-        return { top, left };
+        return {top, left};
     }
 
     private get ms(): number {

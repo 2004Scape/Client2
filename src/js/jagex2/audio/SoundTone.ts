@@ -1,2 +1,1 @@
-export default class SoundTone {
-}
+export default class SoundTone {}

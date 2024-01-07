@@ -77,7 +77,7 @@ export default class Pix8 {
             for (let x = 0; x < width; x++) {
                 const height = image.height;
                 for (let y = 0; y < height; y++) {
-                    image.pixels[x + (y * width)] = dat.g1;
+                    image.pixels[x + y * width] = dat.g1;
                 }
             }
         }
@@ -92,7 +92,7 @@ export default class Pix8 {
         x += this.cropX;
         y += this.cropY;
 
-        let dstOff = x + (y * Draw2D.width);
+        let dstOff = x + y * Draw2D.width;
         let srcOff = 0;
 
         let h = this.height;
@@ -118,7 +118,7 @@ export default class Pix8 {
         }
 
         if (y + h > Draw2D.bottom) {
-            h -= (y + h) - Draw2D.bottom;
+            h -= y + h - Draw2D.bottom;
         }
 
         if (x < Draw2D.left) {
@@ -132,7 +132,7 @@ export default class Pix8 {
         }
 
         if (x + w > Draw2D.right) {
-            const cutoff = (x + w) - Draw2D.right;
+            const cutoff = x + w - Draw2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
@@ -150,7 +150,7 @@ export default class Pix8 {
 
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
-                const off = x + (y * w);
+                const off = x + y * w;
 
                 const p = src[srcOff + off];
                 if (p != 0) {

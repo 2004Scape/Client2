@@ -1,5 +1,5 @@
 export default class Draw2D {
-    static pixels: Uint32Array = new Uint32Array;
+    static pixels: Uint32Array = new Uint32Array();
 
     static width: number = 0;
     static height: number = 0;
@@ -78,16 +78,16 @@ export default class Draw2D {
         const width = this.width;
 
         for (let xx = x0; xx < x1; xx++) {
-            let off = xx + (y0 * width);
+            let off = xx + y0 * width;
             pixels[off] = color;
-            off = xx + ((y1 - 1) * width);
+            off = xx + (y1 - 1) * width;
             pixels[off] = color;
         }
 
         for (let yy = y0; yy < y1; yy++) {
-            let off = x0 + (yy * width);
+            let off = x0 + yy * width;
             pixels[off] = color;
-            off = (x1 - 1) + (yy * width);
+            off = x1 - 1 + yy * width;
             pixels[off] = color;
         }
     };
@@ -120,7 +120,7 @@ export default class Draw2D {
         const width = this.width;
 
         for (let yy = y0; yy < y1; yy++) {
-            const off = x0 + (yy * width);
+            const off = x0 + yy * width;
             pixels.fill(color, off, off + (x1 - x0));
         }
     };

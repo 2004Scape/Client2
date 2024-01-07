@@ -37,7 +37,8 @@
     "build:prod": "webpack --mode=production --node-env=production",
     "dev": "webpack-dev-server --hot --watch",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix"
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier src/**/*.{js,ts} --write"
   },
   "repository": {
     "type": "git",
@@ -56,7 +57,7 @@
   },
   "lint-staged": {
     "src/**/*.{js,ts}": [
-      "prettier --write",
+      "npm run format",
       "npm run lint:fix",
       "git add"
     ]

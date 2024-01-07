@@ -37,10 +37,8 @@ class TinyMidiPCM {
         // check if node
         // http://philiplassen.com/2021/08/11/node-es6-emscripten.html
         if (typeof process !== 'undefined') {
-            const { dirname } = await import(/* webpackIgnore: true */ 'path');
-            const { createRequire } = await import(
-                /* webpackIgnore: true */ 'module'
-            );
+            const {dirname} = await import(/* webpackIgnore: true */ 'path');
+            const {createRequire} = await import(/* webpackIgnore: true */ 'module');
 
             globalThis.__dirname = dirname(import.meta.url);
             globalThis.require = createRequire(import.meta.url);
@@ -59,24 +57,14 @@ class TinyMidiPCM {
 
     ensureInitialized() {
         if (!this.wasmModule) {
-            throw new Error(
-                `${this.constructor.name} not initalized. call .init()`
-            );
+            throw new Error(`${this.constructor.name} not initalized. call .init()`);
         }
     }
 
     setSoundfont(buffer) {
         this.ensureInitialized();
 
-        const {
-            _malloc,
-            _free,
-            _tsf_load_memory,
-            _tsf_set_output,
-            _tsf_channel_set_bank_preset,
-            _tsf_set_max_voices,
-            _tsf_channel_set_presetnumber
-        } = this.wasmModule;
+        const {_malloc, _free, _tsf_load_memory, _tsf_set_output, _tsf_channel_set_bank_preset, _tsf_set_max_voices, _tsf_channel_set_presetnumber} = this.wasmModule;
 
         _free(this.soundfontBufferPtr);
 
@@ -85,19 +73,11 @@ class TinyMidiPCM {
 
         //_tsf_channel_set_bank_preset(this.soundfontPtr, 9, 128, 0);
 
-        this.soundfontPtr = _tsf_load_memory(
-            this.soundfontBufferPtr,
-            buffer.length
-        );
+        this.soundfontPtr = _tsf_load_memory(this.soundfontBufferPtr, buffer.length);
 
         //_tsf_set_max_voices(this.soundfontPtr, 10);
 
-        _tsf_set_output(
-            this.soundfontPtr,
-            this.channels === 2 ? 0 : 2,
-            this.sampleRate,
-            this.gain
-        );
+        _tsf_set_output(this.soundfontPtr, this.channels === 2 ? 0 : 2, this.sampleRate, this.gain);
     }
 
     getPCMBuffer() {
@@ -105,18 +85,13 @@ class TinyMidiPCM {
 
         const pcm = new Uint8Array(this.bufferSize);
 
-        pcm.set(
-            this.wasmModule.HEAPU8.subarray(
-                this.pcmBufferPtr,
-                this.pcmBufferPtr + this.bufferSize
-            )
-        );
+        pcm.set(this.wasmModule.HEAPU8.subarray(this.pcmBufferPtr, this.pcmBufferPtr + this.bufferSize));
 
         return pcm;
     }
 
     getMIDIMessagePtr(midiBuffer) {
-        const { _malloc, _free, _tml_load_memory } = this.wasmModule;
+        const {_malloc, _free, _tml_load_memory} = this.wasmModule;
 
         _free(this.midiBufferPtr);
 
@@ -127,17 +102,9 @@ class TinyMidiPCM {
     }
 
     renderMIDIMessage(midiMessagePtr) {
-        const { _midi_render } = this.wasmModule;
+        const {_midi_render} = this.wasmModule;
 
-        return _midi_render(
-            this.soundfontPtr,
-            midiMessagePtr,
-            this.channels,
-            this.sampleRate,
-            this.pcmBufferPtr,
-            this.bufferSize,
-            this.msecsPtr
-        );
+        return _midi_render(this.soundfontPtr, midiMessagePtr, this.channels, this.sampleRate, this.pcmBufferPtr, this.bufferSize, this.msecsPtr);
     }
 
     render(midiBuffer) {
@@ -149,7 +116,7 @@ class TinyMidiPCM {
 
         window.clearTimeout(this.renderTimer);
 
-        const { setValue, getValue } = this.wasmModule;
+        const {setValue, getValue} = this.wasmModule;
 
         setValue(this.msecsPtr, 0, 'double');
 

@@ -89,7 +89,6 @@ class Client extends GameShell {
     private flameBuffer3: number[] = [];
     private flameBuffer2: number[] = [];
 
-
     private flameGradient: number[] = [];
     private flameGradient0: number[] = [];
     private flameGradient1: number[] = [];
@@ -111,7 +110,7 @@ class Client extends GameShell {
             }
         }, 35);
         await super.run();
-    }
+    };
 
     load = async (): Promise<void> => {
         if (this.alreadyStarted) {
@@ -206,7 +205,6 @@ class Client extends GameShell {
             // TODO
         } else {
             await this.drawTitleScreen();
-
         }
     };
 
@@ -229,15 +227,15 @@ class Client extends GameShell {
         const y = 200;
 
         const offsetY = 20;
-        this.fontBold12?.drawStringCenter(x / 2, (y / 2) - offsetY - 26, 'RuneScape is loading - please wait...', 0xFFFFFF);
-        const midY = (y / 2) - 18 - offsetY;
+        this.fontBold12?.drawStringCenter(x / 2, y / 2 - offsetY - 26, 'RuneScape is loading - please wait...', 0xffffff);
+        const midY = y / 2 - 18 - offsetY;
 
-        Draw2D.drawRect((x / 2) - 152, midY, 304, 34, 0x8c1111);
-        Draw2D.drawRect((x / 2) - 151, midY + 1, 302, 32, 0x000000);
-        Draw2D.fillRect((x / 2) - 150, midY + 2, progress * 3, 30, 0x8c1111);
-        Draw2D.fillRect(((x / 2) - 150) + (progress * 3), midY + 2, 300 - (progress * 3), 30, 0x000000);
+        Draw2D.drawRect(x / 2 - 152, midY, 304, 34, 0x8c1111);
+        Draw2D.drawRect(x / 2 - 151, midY + 1, 302, 32, 0x000000);
+        Draw2D.fillRect(x / 2 - 150, midY + 2, progress * 3, 30, 0x8c1111);
+        Draw2D.fillRect(x / 2 - 150 + progress * 3, midY + 2, 300 - progress * 3, 30, 0x000000);
 
-        this.fontBold12?.drawStringCenter(x / 2, (y / 2) + 5 - offsetY, str, 0xFFFFFF);
+        this.fontBold12?.drawStringCenter(x / 2, y / 2 + 5 - offsetY, str, 0xffffff);
         this.imageTitle4?.draw(214, 186);
 
         if (this.redrawTitleBackground) {
@@ -371,7 +369,7 @@ class Client extends GameShell {
 
         const logo = Pix24.fromArchive(this.titleArchive, 'logo');
         this.imageTitle2?.bind();
-        logo.draw((this.width / 2) - (logo.width / 2) - 128, 18);
+        logo.draw(this.width / 2 - logo.width / 2 - 128, 18);
     };
 
     private updateFlameBuffer = (image: Pix8 | null): void => {
@@ -417,7 +415,7 @@ class Client extends GameShell {
                 }
             }
         }
-    }
+    };
 
     private loadTitleImages = (): void => {
         if (!this.titleArchive) {
@@ -431,7 +429,7 @@ class Client extends GameShell {
         this.imageFlamesLeft = new Pix24(128, 265);
         this.imageFlamesRight = new Pix24(128, 265);
 
-        if (this.imageTitle0) arraycopy(this.imageTitle0.pixels, 0, this.imageFlamesLeft.pixels, 0, 33920)
+        if (this.imageTitle0) arraycopy(this.imageTitle0.pixels, 0, this.imageFlamesLeft.pixels, 0, 33920);
         if (this.imageTitle1) arraycopy(this.imageTitle1.pixels, 0, this.imageFlamesRight.pixels, 0, 33920);
 
         this.flameGradient0 = [];
@@ -484,7 +482,7 @@ class Client extends GameShell {
         if (!this.flameActive) this.flameActive = true;
 
         this.showProgress(10, 'Connecting to fileserver').then(() => {
-            console.log('Finished loading.')
+            console.log('Finished loading.');
         });
     };
 
@@ -606,58 +604,58 @@ class Client extends GameShell {
 
         if (this.titleScreenState === 0) {
             let x = w / 2;
-            let y = (h / 2) - 20;
-            this.fontBold12?.drawStringTaggableCenter(x, y, 'Welcome to RuneScape', 0xFFFFFF00, true);
+            let y = h / 2 - 20;
+            this.fontBold12?.drawStringTaggableCenter(x, y, 'Welcome to RuneScape', 0xffffff00, true);
 
-            x = (w / 2) - 80;
-            y = (h / 2) + 20;
+            x = w / 2 - 80;
+            y = h / 2 + 20;
             this.imageTitleButton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'New user', 0xFFFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'New user', 0xffffffff, true);
 
-            x = (w / 2) + 80;
+            x = w / 2 + 80;
             this.imageTitleButton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Existing User', 0xFFFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Existing User', 0xffffffff, true);
         } else if (this.titleScreenState === 2) {
             let x = w / 2 - 80;
             let y = h / 2 - 40;
             if (this.loginMessage0.length === 0) {
-                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 15, this.loginMessage0, 0xFFFF00, true);
-                this.fontBold12?.drawStringTaggableCenter(w / 2, y, this.loginMessage1, 0xFFFF00, true);
+                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 15, this.loginMessage0, 0xffff00, true);
+                this.fontBold12?.drawStringTaggableCenter(w / 2, y, this.loginMessage1, 0xffff00, true);
                 y += 30;
             } else {
-                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 7, this.loginMessage1, 0xFFFF00, true);
+                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 7, this.loginMessage1, 0xffff00, true);
                 y += 30;
             }
 
-            this.fontBold12?.drawStringTaggable(w / 2 - 90, y, `Username: ${this.username}${(this.titleLoginField == 0 && this.loopCycle % 40 < 20) ? '@yel@|' : ''}`, 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggable(w / 2 - 90, y, `Username: ${this.username}${this.titleLoginField == 0 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, 0xffffff, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${this.password}${(this.titleLoginField == 1 && this.loopCycle % 40 < 20) ? '@yel@|' : ''}`, 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${this.password}${this.titleLoginField == 1 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, 0xffffff, true);
 
             // x = w / 2 - 80; dead code
             y = h / 2 + 50;
             this.imageTitleButton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Login', 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Login', 0xffffff, true);
 
             x = w / 2 + 80;
             this.imageTitleButton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 0xffffff, true);
         } else if (this.titleScreenState == 3) {
             this.fontBold12?.drawStringTaggableCenter(w / 2, 16776960, 'Create a free account', h / 2 - 60, true);
 
             const x = w / 2;
             let y = h / 2 - 35;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'To create a new account you need to', 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'To create a new account you need to', 0xffffff, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'go back to the main RuneScape webpage', 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'go back to the main RuneScape webpage', 0xffffff, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "and choose the red 'create account'", 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "and choose the red 'create account'", 0xffffff, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'button at the top right of that page.', 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'button at the top right of that page.', 0xffffff, true);
             // y += 15; dead code
 
             y = h / 2 + 50;
@@ -769,7 +767,7 @@ class Client extends GameShell {
 
         for (let x = 10; x < 117; x++) {
             const rand = Math.trunc(Math.random() * 100.0);
-            if (rand < 50) this.flameBuffer3[x + (height - 2 << 7)] = 255
+            if (rand < 50) this.flameBuffer3[x + ((height - 2) << 7)] = 255;
         }
 
         for (let l = 0; l < 100; l++) {
@@ -796,7 +794,7 @@ class Client extends GameShell {
         for (let y = 1; y < height - 1; y++) {
             for (let x = 1; x < 127; x++) {
                 const index = x + (y << 7);
-                let intensity = (this.flameBuffer2[index + 128] - this.flameBuffer0[index + this.flameCycle0 & 32768 - 1] / 5) | 0;
+                let intensity = (this.flameBuffer2[index + 128] - this.flameBuffer0[(index + this.flameCycle0) & (32768 - 1)] / 5) | 0;
                 if (intensity < 0) {
                     intensity = 0;
                 }
@@ -827,12 +825,12 @@ class Client extends GameShell {
                 this.flameGradientCycle1 = 1024;
             }
         }
-    }
+    };
 
     private mix = (src: number, alpha: number, dst: number) => {
         const invAlpha = 256 - alpha;
-        return (((src & 0xFF00FF) * invAlpha + (dst & 0xFF00FF) * alpha) & 0xFF00FF00) + (((src & 0xFF00) * invAlpha + (dst & 0xFF00) * alpha) & 0xFF0000) >> 8;
-    }
+        return ((((src & 0xff00ff) * invAlpha + (dst & 0xff00ff) * alpha) & 0xff00ff00) + (((src & 0xff00) * invAlpha + (dst & 0xff00) * alpha) & 0xff0000)) >> 8;
+    };
 
     private drawFlames = (): void => {
         const height = 256;
@@ -864,15 +862,14 @@ class Client extends GameShell {
             }
         }
         for (let i = 0; i < 33920; i++) {
-            if (this.imageTitle0 && this.imageFlamesLeft)
-                this.imageTitle0.pixels[i] = this.imageFlamesLeft.pixels[i];
+            if (this.imageTitle0 && this.imageFlamesLeft) this.imageTitle0.pixels[i] = this.imageFlamesLeft.pixels[i];
         }
 
         let srcOffset = 0;
         let dstOffset = 1152;
 
         for (let y = 1; y < height - 1; y++) {
-            const offset = (this.flameLineOffset[y] * (height - y) / height) | 0;
+            const offset = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
             let step = offset + 22;
             if (step < 0) {
                 step = 0;
@@ -888,7 +885,8 @@ class Client extends GameShell {
                     value = this.flameGradient[value];
                     if (this.imageTitle0) {
                         const background = this.imageTitle0.pixels[dstOffset];
-                        this.imageTitle0.pixels[dstOffset++] = (((value & 0xFF00FF) * alpha + (background & 0xFF00FF) * invAlpha) & 0xFF00FF00) + (((value & 0xFF00) * alpha + (background & 0xFF00) * invAlpha) & 0xFF0000) >> 8;
+                        this.imageTitle0.pixels[dstOffset++] =
+                            ((((value & 0xff00ff) * alpha + (background & 0xff00ff) * invAlpha) & 0xff00ff00) + (((value & 0xff00) * alpha + (background & 0xff00) * invAlpha) & 0xff0000)) >> 8;
                     }
                 }
             }
@@ -906,7 +904,7 @@ class Client extends GameShell {
         srcOffset = 0;
         dstOffset = 1176;
         for (let y = 1; y < height - 1; y++) {
-            const offset = (this.flameLineOffset[y] * (height - y) / height) | 0;
+            const offset = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
             const step = 103 - offset;
             dstOffset += offset;
             for (let x = 0; x < step; x++) {
@@ -919,7 +917,8 @@ class Client extends GameShell {
                     value = this.flameGradient[value];
                     if (this.imageTitle1) {
                         const background = this.imageTitle1.pixels[dstOffset];
-                        this.imageTitle1.pixels[dstOffset++] = (((value & 0xFF00FF) * alpha + (background & 0xFF00FF) * invAlpha) & 0xFF00FF00) + (((value & 0xFF00) * alpha + (background & 0xFF00) * invAlpha) & 0xFF0000) >> 8;
+                        this.imageTitle1.pixels[dstOffset++] =
+                            ((((value & 0xff00ff) * alpha + (background & 0xff00ff) * invAlpha) & 0xff00ff00) + (((value & 0xff00) * alpha + (background & 0xff00) * invAlpha) & 0xff0000)) >> 8;
                     }
                 }
             }
@@ -928,9 +927,8 @@ class Client extends GameShell {
         }
 
         this.imageTitle1?.draw(661, 0);
-    }
+    };
 }
 
 const client = new Client();
-client.run().then(() => {
-});
+client.run().then(() => {});

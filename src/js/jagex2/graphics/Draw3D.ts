@@ -53,17 +53,19 @@ export default class Draw3D {
             try {
                 Draw3D.textures[i] = Pix8.fromArchive(textures, i.toString());
                 Draw3D.textureCount++;
-            } catch (err) { /* empty */ }
+            } catch (err) {
+                /* empty */
+            }
         }
     };
 
     static setBrightness = (brightness: number): void => {
-        brightness += (Math.random() * 0.3) - 0.15;
+        brightness += Math.random() * 0.3 - 0.15;
 
         let offset = 0;
         for (let y = 0; y < 512; y++) {
-            const hue = ((y / 8) / 64) + 0.0078125;
-            const saturation = ((y & 7) / 8) + 0.0625;
+            const hue = y / 8 / 64 + 0.0078125;
+            const saturation = (y & 7) / 8 + 0.0625;
 
             for (let x = 0; x < 128; x++) {
                 const lightness = x / 128;
@@ -77,7 +79,7 @@ export default class Draw3D {
                     if (lightness < 0.5) {
                         q = lightness * (1 + saturation);
                     } else {
-                        q = (lightness + saturation) - (lightness * saturation);
+                        q = lightness + saturation - lightness * saturation;
                     }
 
                     const p = 2 * lightness - q;
@@ -92,31 +94,31 @@ export default class Draw3D {
                     }
 
                     if (6 * t < 1) {
-                        r = p + ((q - p) * 6 * t);
+                        r = p + (q - p) * 6 * t;
                     } else if (2 * t < 1) {
                         r = q;
                     } else if (3 * t < 2) {
-                        r = p + ((q - p) * ((0.6666666666666666 - t) * 6));
+                        r = p + (q - p) * ((0.6666666666666666 - t) * 6);
                     } else {
                         r = p;
                     }
 
                     if (6 * hue < 1) {
-                        g = p + ((q - p) * 6 * hue);
+                        g = p + (q - p) * 6 * hue;
                     } else if (2 * hue < 1) {
                         g = q;
                     } else if (3 * hue < 2) {
-                        g = p + ((q - p) * ((0.6666666666666666 - hue) * 6));
+                        g = p + (q - p) * ((0.6666666666666666 - hue) * 6);
                     } else {
                         g = p;
                     }
 
                     if (6 * d11 < 1) {
-                        b = p + ((q - p) * 6 * d11);
+                        b = p + (q - p) * 6 * d11;
                     } else if (2 * d11 < 1) {
                         b = q;
                     } else if (3 * d11 < 2) {
-                        b = p + ((q - p) * ((0.6666666666666666 - d11) * 6));
+                        b = p + (q - p) * ((0.6666666666666666 - d11) * 6);
                     } else {
                         b = p;
                     }
@@ -138,7 +140,7 @@ export default class Draw3D {
 
     private static setGamma = (rgb: number, gamma: number): number => {
         let r = (rgb >> 16) / 256;
-        let g = (rgb >> 8 & 255) / 256;
+        let g = ((rgb >> 8) & 255) / 256;
         let b = (rgb & 255) / 256;
         r = Math.pow(r, gamma);
         g = Math.pow(g, gamma);
@@ -149,8 +151,7 @@ export default class Draw3D {
         return (intR << 16) | (intG << 8) | intB;
     };
 
-    static initPool = (): void => {
-    };
+    static initPool = (): void => {};
 
     static fillGouraudTriangle = (xA: number, xB: number, xC: number, yA: number, yB: number, yC: number, colorA: number, colorB: number, colorC: number): void => {
         let xStepAB = 0;
@@ -176,7 +177,7 @@ export default class Draw3D {
             colorStepAC = ((colorA - colorC) << 15) / (yA - yC);
         }
 
-        if ((yA <= yB) && (yA <= yC)) {
+        if (yA <= yB && yA <= yC) {
             if (yA >= Draw2D.bottom) {
                 return;
             }
@@ -187,8 +188,8 @@ export default class Draw3D {
                 yC = Draw2D.bottom;
             }
             if (yB < yC) {
-                xC = (xA <<= 16);
-                colorC = (colorA <<= 15);
+                xC = xA <<= 16;
+                colorC = colorA <<= 15;
                 if (yA < 0) {
                     xC -= xStepAC * yA;
                     xA -= xStepAB * yA;
@@ -203,7 +204,7 @@ export default class Draw3D {
                     colorB -= colorStepBC * yB;
                     yB = 0;
                 }
-                if (((yA != yB) && (xStepAC < xStepAB)) || ((yA == yB) && (xStepAC > xStepBC))) {
+                if ((yA != yB && xStepAC < xStepAB) || (yA == yB && xStepAC > xStepBC)) {
                     yC -= yB;
                     yB -= yA;
                     for (yA = Draw3D.lineOffset[yA]; --yB >= 0; yA += Draw2D.width) {
@@ -242,8 +243,8 @@ export default class Draw3D {
                 }
                 return;
             }
-            xB = (xA <<= 16);
-            colorB = (colorA <<= 15);
+            xB = xA <<= 16;
+            colorB = colorA <<= 15;
             if (yA < 0) {
                 xB -= xStepAC * yA;
                 xA -= xStepAB * yA;
@@ -258,7 +259,7 @@ export default class Draw3D {
                 colorC -= colorStepBC * yC;
                 yC = 0;
             }
-            if (((yA != yC) && (xStepAC < xStepAB)) || ((yA == yC) && (xStepBC > xStepAB))) {
+            if ((yA != yC && xStepAC < xStepAB) || (yA == yC && xStepBC > xStepAB)) {
                 yB -= yC;
                 yC -= yA;
                 for (yA = Draw3D.lineOffset[yA]; --yC >= 0; yA += Draw2D.width) {
@@ -308,8 +309,8 @@ export default class Draw3D {
                 yA = Draw2D.bottom;
             }
             if (yC < yA) {
-                xA = (xB <<= 16);
-                colorA = (colorB <<= 15);
+                xA = xB <<= 16;
+                colorA = colorB <<= 15;
                 if (yB < 0) {
                     xA -= xStepAB * yB;
                     xB -= xStepBC * yB;
@@ -324,7 +325,7 @@ export default class Draw3D {
                     colorC -= colorStepAC * yC;
                     yC = 0;
                 }
-                if (((yB != yC) && (xStepAB < xStepBC)) || ((yB == yC) && (xStepAB > xStepAC))) {
+                if ((yB != yC && xStepAB < xStepBC) || (yB == yC && xStepAB > xStepAC)) {
                     yA -= yC;
                     yC -= yB;
                     for (yB = Draw3D.lineOffset[yB]; --yC >= 0; yB += Draw2D.width) {
@@ -363,8 +364,8 @@ export default class Draw3D {
                 }
                 return;
             }
-            xC = (xB <<= 16);
-            colorC = (colorB <<= 15);
+            xC = xB <<= 16;
+            colorC = colorB <<= 15;
             if (yB < 0) {
                 xC -= xStepAB * yB;
                 xB -= xStepBC * yB;
@@ -428,8 +429,8 @@ export default class Draw3D {
             yB = Draw2D.bottom;
         }
         if (yA < yB) {
-            xB = (xC <<= 16);
-            colorB = (colorC <<= 15);
+            xB = xC <<= 16;
+            colorB = colorC <<= 15;
             if (yC < 0) {
                 xB -= xStepBC * yC;
                 xC -= xStepAC * yC;
@@ -483,8 +484,8 @@ export default class Draw3D {
             }
             return;
         }
-        xA = (xC <<= 16);
-        colorA = (colorC <<= 15);
+        xA = xC <<= 16;
+        colorA = colorC <<= 15;
         if (yC < 0) {
             xA -= xStepBC * yC;
             xC -= xStepAC * yC;
@@ -546,7 +547,7 @@ export default class Draw3D {
             let colorStep = 0;
 
             if (Draw3D.clipX) {
-                if ((x1 - x0) > 3) {
+                if (x1 - x0 > 3) {
                     colorStep = (color1 - color0) / (x1 - x0);
                 } else {
                     colorStep = 0;
@@ -670,9 +671,7 @@ export default class Draw3D {
         } while (--length > 0);
     };
 
-    static fillTriangle = (): void => {
-    };
+    static fillTriangle = (): void => {};
 
-    static fillTexturedTriangle = (): void => {
-    };
+    static fillTexturedTriangle = (): void => {};
 }
