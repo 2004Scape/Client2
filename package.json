@@ -38,7 +38,8 @@
     "dev": "webpack-dev-server --hot --watch",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "format": "prettier src/**/*.{js,ts} --write"
+    "format": "prettier src/**/*.{js,ts} --write",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
