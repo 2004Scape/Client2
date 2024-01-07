@@ -233,6 +233,40 @@ export default class Pix24 {
         }
     };
 
+    translate = (r: number, g: number, b: number): void => {
+        for (let i = 0; i < this.pixels.length; i++) {
+            const rgb = this.pixels[i];
+
+            if (rgb != 0) {
+                let red = (rgb >> 16) & 0xff;
+                red += r;
+                if (red < 1) {
+                    red = 1;
+                } else if (red > 255) {
+                    red = 255;
+                }
+
+                let green = (rgb >> 8) & 0xff;
+                green += g;
+                if (green < 1) {
+                    green = 1;
+                } else if (green > 255) {
+                    green = 255;
+                }
+
+                let blue = rgb & 0xff;
+                blue += b;
+                if (blue < 1) {
+                    blue = 1;
+                } else if (blue > 255) {
+                    blue = 255;
+                }
+
+                this.pixels[i] = (red << 16) + (green << 8) + blue;
+            }
+        }
+    };
+
     private copyImageBlitOpaque = (w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void => {
         const qw = -(w >> 2);
         w = -(w & 0x3);

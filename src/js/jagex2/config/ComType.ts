@@ -265,4 +265,7 @@ export default class ComType {
     childId: Uint16Array | null = null;
     childX: Uint16Array | null = null;
     childY: Uint16Array | null = null;
+
+    // other
+    scrollPosition: number = 0;
 }

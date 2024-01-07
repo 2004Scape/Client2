@@ -41,9 +41,10 @@ class Client extends GameShell {
 
     private loopCycle: number = 0;
     private ingame: boolean = false;
-    private redrawTitleBackground: boolean = true;
     private archiveChecksums: number[] = [];
 
+    // login screen properties
+    private redrawTitleBackground: boolean = true;
     private titleScreenState: number = 0;
     private titleLoginField: number = 0;
     private titleArchive: Jagfile | null = null;
@@ -56,21 +57,38 @@ class Client extends GameShell {
     private imageTitle6: PixMap | null = null;
     private imageTitle7: PixMap | null = null;
     private imageTitle8: PixMap | null = null;
-    private imageTitleBox: Pix8 | null = null;
-    private imageTitleButton: Pix8 | null = null;
-
-    private fontPlain11: PixFont | null = null;
-    private fontPlain12: PixFont | null = null;
-    private fontBold12: PixFont | null = null;
-    private fontQuill8: PixFont | null = null;
-
-    private flameActive: boolean = false;
-
+    private imageTitlebox: Pix8 | null = null;
+    private imageTitlebutton: Pix8 | null = null;
     private loginMessage0: string = '';
     private loginMessage1: string = '';
     private username: string = '';
     private password: string = '';
 
+    // fonts
+    private fontPlain11: PixFont | null = null;
+    private fontPlain12: PixFont | null = null;
+    private fontBold12: PixFont | null = null;
+    private fontQuill8: PixFont | null = null;
+
+    // login screen pillar flames properties
+    private imageRunes: Pix8[] = [];
+    private flameActive: boolean = false;
+    private imageFlamesLeft: Pix24 | null = null;
+    private imageFlamesRight: Pix24 | null = null;
+    private flameBuffer1: number[] = [];
+    private flameBuffer0: number[] = [];
+    private flameBuffer3: number[] = [];
+    private flameBuffer2: number[] = [];
+    private flameGradient: number[] = [];
+    private flameGradient0: number[] = [];
+    private flameGradient1: number[] = [];
+    private flameGradient2: number[] = [];
+    private flameLineOffset: number[] = [];
+    private flameCycle0: number = 0;
+    private flameGradientCycle0: number = 0;
+    private flameGradientCycle1: number = 0;
+
+    // game world properties
     private areaSidebar: PixMap | null = null;
     private areaMapback: PixMap | null = null;
     private areaViewport: PixMap | null = null;
@@ -78,28 +96,73 @@ class Client extends GameShell {
     private areaBackbase1: PixMap | null = null;
     private areaBackbase2: PixMap | null = null;
     private areaBackhmid1: PixMap | null = null;
+    private areaBackleft1: PixMap | null = null;
+    private areaBackleft2: PixMap | null = null;
+    private areaBackright1: PixMap | null = null;
+    private areaBackright2: PixMap | null = null;
+    private areaBacktop1: PixMap | null = null;
+    private areaBacktop2: PixMap | null = null;
+    private areaBackvmid1: PixMap | null = null;
+    private areaBackvmid2: PixMap | null = null;
+    private areaBackvmid3: PixMap | null = null;
+    private areaBackhmid2: PixMap | null = null;
 
-    private imageRunes: Pix8[] = [];
+    private imageInvback: Pix8 | null = null;
+    private imageChatback: Pix8 | null = null;
+    private imageMapback: Pix8 | null = null;
+    private imageBackbase1: Pix8 | null = null;
+    private imageBackbase2: Pix8 | null = null;
+    private imageBackhmid1: Pix8 | null = null;
+    private imageSideicons: Pix8[] = [];
+    private imageCompass: Pix24 | null = null;
+    private imageMapscene: Pix8[] = [];
+    private imageMapfunction: Pix24[] = [];
+    private imageHitmarks: Pix24[] = [];
+    private imageHeadicons: Pix24[] = [];
+    private imageMapflag: Pix24 | null = null;
+    private imageCrosses: Pix24[] = [];
+    private imageMapdot0: Pix24 | null = null;
+    private imageMapdot1: Pix24 | null = null;
+    private imageMapdot2: Pix24 | null = null;
+    private imageMapdot3: Pix24 | null = null;
+    private imageScrollbar0: Pix8 | null = null;
+    private imageScrollbar1: Pix8 | null = null;
+    private imageRedstone1: Pix8 | null = null;
+    private imageRedstone2: Pix8 | null = null;
+    private imageRedstone3: Pix8 | null = null;
+    private imageRedstone1h: Pix8 | null = null;
+    private imageRedstone2h: Pix8 | null = null;
+    private imageRedstone1v: Pix8 | null = null;
+    private imageRedstone2v: Pix8 | null = null;
+    private imageRedstone3v: Pix8 | null = null;
+    private imageRedstone1hv: Pix8 | null = null;
+    private imageRedstone2hv: Pix8 | null = null;
 
-    private imageFlamesLeft: Pix24 | null = null;
-    private imageFlamesRight: Pix24 | null = null;
-
-    private flameBuffer1: number[] = [];
-    private flameBuffer0: number[] = [];
-    private flameBuffer3: number[] = [];
-    private flameBuffer2: number[] = [];
-
-    private flameGradient: number[] = [];
-    private flameGradient0: number[] = [];
-    private flameGradient1: number[] = [];
-    private flameGradient2: number[] = [];
-
-    private flameLineOffset: number[] = [];
-
-    private flameCycle0: number = 0;
-
-    private flameGradientCycle0: number = 0;
-    private flameGradientCycle1: number = 0;
+    private redrawSidebar: boolean = false;
+    private redrawChatback: boolean = false;
+    private redrawSideicons: boolean = false;
+    private redrawPrivacySettings: boolean = false;
+    private dragCycles: number = 0;
+    private sceneState: number = 0;
+    private sceneDelta: number = 0;
+    private menuVisible: boolean = false;
+    private menuArea: number = 0;
+    private sidebarInterfaceId: number = -1;
+    private selectedArea: number = 0;
+    private objDragArea: number = 0;
+    private chatInterfaceId: number = -1;
+    private chatInterface: ComType = new ComType();
+    private chatScrollHeight: number = 78;
+    private chatScrollOffset: number = 0;
+    private modalMessage: string | null = null;
+    private flashingTab: number = -1;
+    private selectedTab: number = 3;
+    private tabInterfaceId: number[] = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
+    private publicChatSetting: number = 0;
+    private privateChatSetting: number = 0;
+    private tradeChatSetting: number = 0;
+    private scrollGrabbed: boolean = false;
+    private scrollInputPadding: number = 0;
 
     run = async (): Promise<void> => {
         setInterval(() => {
@@ -149,6 +212,123 @@ class Client extends GameShell {
             const sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
             await this.showProgress(75, 'Unpacking media');
+            this.imageInvback = Pix8.fromArchive(media, 'invback', 0);
+            this.imageChatback = Pix8.fromArchive(media, 'chatback', 0);
+            this.imageMapback = Pix8.fromArchive(media, 'mapback', 0);
+            this.imageBackbase1 = Pix8.fromArchive(media, 'backbase1', 0);
+            this.imageBackbase2 = Pix8.fromArchive(media, 'backbase2', 0);
+            this.imageBackhmid1 = Pix8.fromArchive(media, 'backhmid1', 0);
+            for (let i = 0; i < 13; i++) {
+                this.imageSideicons[i] = Pix8.fromArchive(media, 'sideicons', i);
+            }
+            this.imageCompass = Pix24.fromArchive(media, 'compass', 0);
+
+            try {
+                for (let i = 0; i < 50; i++) {
+                    this.imageMapscene[i] = Pix8.fromArchive(media, 'mapscene', i);
+                }
+            } catch (e) {
+                /* empty */
+            }
+
+            try {
+                for (let i = 0; i < 50; i++) {
+                    this.imageMapfunction[i] = Pix24.fromArchive(media, 'mapfunction', i);
+                }
+            } catch (e) {
+                /* empty */
+            }
+
+            try {
+                for (let i = 0; i < 20; i++) {
+                    this.imageHitmarks[i] = Pix24.fromArchive(media, 'hitmarks', i);
+                }
+            } catch (e) {
+                /* empty */
+            }
+
+            try {
+                for (let i = 0; i < 20; i++) {
+                    this.imageHeadicons[i] = Pix24.fromArchive(media, 'headicons', i);
+                }
+            } catch (e) {
+                /* empty */
+            }
+
+            this.imageMapflag = Pix24.fromArchive(media, 'mapflag', 0);
+            for (let i = 0; i < 8; i++) {
+                this.imageCrosses[i] = Pix24.fromArchive(media, 'cross', i);
+            }
+            this.imageMapdot0 = Pix24.fromArchive(media, 'mapdots', 0);
+            this.imageMapdot1 = Pix24.fromArchive(media, 'mapdots', 1);
+            this.imageMapdot2 = Pix24.fromArchive(media, 'mapdots', 2);
+            this.imageMapdot3 = Pix24.fromArchive(media, 'mapdots', 3);
+            this.imageScrollbar0 = Pix8.fromArchive(media, 'scrollbar', 0);
+            this.imageScrollbar1 = Pix8.fromArchive(media, 'scrollbar', 1);
+            this.imageRedstone1 = Pix8.fromArchive(media, 'redstone1', 0);
+            this.imageRedstone2 = Pix8.fromArchive(media, 'redstone2', 0);
+            this.imageRedstone3 = Pix8.fromArchive(media, 'redstone3', 0);
+            this.imageRedstone1h = Pix8.fromArchive(media, 'redstone1', 0);
+            this.imageRedstone1h?.flipHorizontally();
+            this.imageRedstone2h = Pix8.fromArchive(media, 'redstone2', 0);
+            this.imageRedstone2h?.flipHorizontally();
+            this.imageRedstone1v = Pix8.fromArchive(media, 'redstone1', 0);
+            this.imageRedstone1v?.flipVertically();
+            this.imageRedstone2v = Pix8.fromArchive(media, 'redstone2', 0);
+            this.imageRedstone2v?.flipVertically();
+            this.imageRedstone3v = Pix8.fromArchive(media, 'redstone3', 0);
+            this.imageRedstone3v?.flipVertically();
+            this.imageRedstone1hv = Pix8.fromArchive(media, 'redstone1', 0);
+            this.imageRedstone1hv?.flipHorizontally();
+            this.imageRedstone1hv?.flipVertically();
+            this.imageRedstone2hv = Pix8.fromArchive(media, 'redstone2', 0);
+            this.imageRedstone2hv?.flipHorizontally();
+            this.imageRedstone2hv?.flipVertically();
+            const canvas = this.canvas;
+            const backleft1 = Pix24.fromArchive(media, 'backleft1', 0);
+            this.areaBackleft1 = new PixMap(canvas, backleft1.width, backleft1.height);
+            backleft1.blitOpaque(0, 0);
+            const backleft2 = Pix24.fromArchive(media, 'backleft2', 0);
+            this.areaBackleft2 = new PixMap(canvas, backleft2.width, backleft2.height);
+            backleft2.blitOpaque(0, 0);
+            const backright1 = Pix24.fromArchive(media, 'backright1', 0);
+            this.areaBackright1 = new PixMap(canvas, backright1.width, backright1.height);
+            backright1.blitOpaque(0, 0);
+            const backright2 = Pix24.fromArchive(media, 'backright2', 0);
+            this.areaBackright2 = new PixMap(canvas, backright2.width, backright2.height);
+            backright2.blitOpaque(0, 0);
+            const backtop1 = Pix24.fromArchive(media, 'backtop1', 0);
+            this.areaBacktop1 = new PixMap(canvas, backtop1.width, backtop1.height);
+            backtop1.blitOpaque(0, 0);
+            const backtop2 = Pix24.fromArchive(media, 'backtop2', 0);
+            this.areaBacktop2 = new PixMap(canvas, backtop2.width, backtop2.height);
+            backtop2.blitOpaque(0, 0);
+            const backvmid1 = Pix24.fromArchive(media, 'backvmid1', 0);
+            this.areaBackvmid1 = new PixMap(canvas, backvmid1.width, backvmid1.height);
+            backvmid1.blitOpaque(0, 0);
+            const backvmid2 = Pix24.fromArchive(media, 'backvmid2', 0);
+            this.areaBackvmid2 = new PixMap(canvas, backvmid2.width, backvmid2.height);
+            backvmid2.blitOpaque(0, 0);
+            const backvmid3 = Pix24.fromArchive(media, 'backvmid3', 0);
+            this.areaBackvmid3 = new PixMap(canvas, backvmid3.width, backvmid3.height);
+            backvmid3.blitOpaque(0, 0);
+            const backhmid2 = Pix24.fromArchive(media, 'backhmid2', 0);
+            this.areaBackhmid2 = new PixMap(canvas, backhmid2.width, backhmid2.height);
+            backhmid2.blitOpaque(0, 0);
+
+            const randR = Math.trunc(Math.random() * 21.0) - 10;
+            const randG = Math.trunc(Math.random() * 21.0) - 10;
+            const randB = Math.trunc(Math.random() * 21.0) - 10;
+            const rand = Math.trunc(Math.random() * 41.0) - 20;
+            for (let i = 0; i < 50; i++) {
+                if (this.imageMapfunction[i] != null) {
+                    this.imageMapfunction[i].translate(randR + rand, randG + rand, randB + rand);
+                }
+
+                if (this.imageMapscene[i] != null) {
+                    this.imageMapscene[i].translate(randR + rand, randG + rand, randB + rand);
+                }
+            }
 
             await this.showProgress(80, 'Unpacking textures');
             Draw3D.unpackTextures(textures);
@@ -190,7 +370,7 @@ class Client extends GameShell {
         }
         this.loopCycle++;
         if (this.ingame) {
-            // TODO
+            this.updateGame();
         } else {
             this.updateTitleScreen();
         }
@@ -202,10 +382,11 @@ class Client extends GameShell {
             return;
         }
         if (this.ingame) {
-            // TODO
+            this.drawGame();
         } else {
             await this.drawTitleScreen();
         }
+        this.dragCycles = 0;
     };
 
     refresh = (): void => {
@@ -421,8 +602,8 @@ class Client extends GameShell {
         if (!this.titleArchive) {
             return;
         }
-        this.imageTitleBox = Pix8.fromArchive(this.titleArchive, 'titlebox');
-        this.imageTitleButton = Pix8.fromArchive(this.titleArchive, 'titlebutton');
+        this.imageTitlebox = Pix8.fromArchive(this.titleArchive, 'titlebox');
+        this.imageTitlebutton = Pix8.fromArchive(this.titleArchive, 'titlebutton');
         for (let i = 0; i < 12; i++) {
             this.imageRunes[i] = Pix8.fromArchive(this.titleArchive, 'runes', i);
         }
@@ -524,7 +705,7 @@ class Client extends GameShell {
             buttonY += 20;
 
             if (this.mouseClickButton == 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
-                // this.login(this.username, this.password, false);
+                this.login(this.username, this.password, false).then(() => {});
             }
 
             buttonX = this.width / 2 + 80;
@@ -597,7 +778,7 @@ class Client extends GameShell {
     private drawTitleScreen = async (): Promise<void> => {
         await this.loadTitle();
         this.imageTitle4?.bind();
-        this.imageTitleBox?.draw(0, 0);
+        this.imageTitlebox?.draw(0, 0);
 
         const w = 360;
         const h = 200;
@@ -609,11 +790,11 @@ class Client extends GameShell {
 
             x = w / 2 - 80;
             y = h / 2 + 20;
-            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'New user', 0xffffffff, true);
 
             x = w / 2 + 80;
-            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Existing User', 0xffffffff, true);
         } else if (this.titleScreenState === 2) {
             let x = w / 2 - 80;
@@ -634,11 +815,11 @@ class Client extends GameShell {
 
             // x = w / 2 - 80; dead code
             y = h / 2 + 50;
-            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Login', 0xffffff, true);
 
             x = w / 2 + 80;
-            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 0xffffff, true);
         } else if (this.titleScreenState == 3) {
             this.fontBold12?.drawStringTaggableCenter(w / 2, 16776960, 'Create a free account', h / 2 - 60, true);
@@ -659,7 +840,7 @@ class Client extends GameShell {
             // y += 15; dead code
 
             y = h / 2 + 50;
-            this.imageTitleButton?.draw(x - 73, y - 20);
+            this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 16777215, true);
         }
 
@@ -673,6 +854,388 @@ class Client extends GameShell {
             this.imageTitle7?.draw(128, 186);
             this.imageTitle8?.draw(574, 186);
         }
+    };
+
+    private login = async (username: string, password: string, reconnect: boolean): Promise<void> => {
+        try {
+            this.ingame = true;
+            this.prepareGameScreen();
+        } catch (err) {
+            this.loginMessage0 = '';
+            this.loginMessage1 = 'Error connecting to server.';
+        }
+    };
+
+    private updateGame = (): void => {
+        if (this.ingame) {
+            // TODO
+            this.sceneDelta++;
+            if (this.mouseButton == 1 || this.mouseClickButton == 1) {
+                this.dragCycles++;
+            }
+        }
+    };
+
+    private drawGame = (): void => {
+        if (this.redrawTitleBackground) {
+            this.redrawTitleBackground = false;
+            this.areaBackleft1?.draw(0, 11);
+            this.areaBackleft2?.draw(0, 375);
+            this.areaBackright1?.draw(729, 5);
+            this.areaBackright2?.draw(752, 231);
+            this.areaBacktop1?.draw(0, 0);
+            this.areaBacktop2?.draw(561, 0);
+            this.areaBackvmid1?.draw(520, 11);
+            this.areaBackvmid2?.draw(520, 231);
+            this.areaBackvmid3?.draw(501, 375);
+            this.areaBackhmid2?.draw(0, 345);
+            this.redrawSidebar = true;
+            this.redrawChatback = true;
+            this.redrawSideicons = true;
+            this.redrawPrivacySettings = true;
+            if (this.sceneState != 2) {
+                this.areaViewport?.draw(8, 11);
+                this.areaMapback?.draw(561, 5);
+            }
+        }
+        if (this.sceneState == 2) {
+            this.drawScene();
+        }
+        if (this.menuVisible && this.menuArea == 1) {
+            this.redrawSidebar = true;
+        }
+        let redraw = false;
+        if (this.sidebarInterfaceId != -1) {
+            redraw = this.updateInterfaceAnimation(this.sidebarInterfaceId, this.sceneDelta);
+            if (redraw) {
+                this.redrawSidebar = true;
+            }
+        }
+        if (this.selectedArea == 2) {
+            this.redrawSidebar = true;
+        }
+        if (this.objDragArea == 2) {
+            this.redrawSidebar = true;
+        }
+        if (this.redrawSidebar) {
+            this.drawSidebar();
+            this.redrawSidebar = false;
+        }
+        if (this.chatInterfaceId == -1) {
+            this.chatInterface.scrollPosition = this.chatScrollHeight - this.chatScrollOffset - 77;
+            if (this.mouseX > 453 && this.mouseX < 565 && this.mouseY > 350) {
+                this.handleScrollInput(this.mouseX - 22, this.mouseY - 375, this.chatScrollHeight, 77, false, 463, 0, this.chatInterface);
+            }
+
+            let offset = this.chatScrollHeight - this.chatInterface.scrollPosition - 77;
+            if (offset < 0) {
+                offset = 0;
+            }
+
+            if (offset > this.chatScrollHeight - 77) {
+                offset = this.chatScrollHeight - 77;
+            }
+
+            if (this.chatScrollOffset != offset) {
+                this.chatScrollOffset = offset;
+                this.redrawChatback = true;
+            }
+        }
+
+        if (this.chatInterfaceId != -1) {
+            redraw = this.updateInterfaceAnimation(this.chatInterfaceId, this.sceneDelta);
+            if (redraw) {
+                this.redrawChatback = true;
+            }
+        }
+
+        if (this.selectedArea == 3) {
+            this.redrawChatback = true;
+        }
+
+        if (this.objDragArea == 3) {
+            this.redrawChatback = true;
+        }
+
+        if (this.modalMessage != null) {
+            this.redrawChatback = true;
+        }
+
+        if (this.menuVisible && this.menuArea == 2) {
+            this.redrawChatback = true;
+        }
+
+        if (this.redrawChatback) {
+            this.drawChatback();
+            this.redrawChatback = false;
+        }
+
+        if (this.sceneState == 2) {
+            this.drawMinimap();
+            this.areaMapback?.draw(561, 5);
+        }
+
+        if (this.flashingTab != -1) {
+            this.redrawSideicons = true;
+        }
+
+        if (this.redrawSideicons) {
+            /*if (this.flashingTab != -1 && this.flashingTab == this.selectedTab) {
+                this.flashingTab = -1;
+                this.out.p1isaac(175);
+                this.out.p1(this.selectedTab);
+            }*/
+
+            this.redrawSideicons = false;
+            this.areaBackhmid1?.bind();
+            this.imageBackhmid1?.draw(0, 0);
+
+            if (this.sidebarInterfaceId == -1) {
+                if (this.tabInterfaceId[this.selectedTab] != -1) {
+                    if (this.selectedTab == 0) {
+                        this.imageRedstone1?.draw(29, 30);
+                    } else if (this.selectedTab == 1) {
+                        this.imageRedstone2?.draw(59, 29);
+                    } else if (this.selectedTab == 2) {
+                        this.imageRedstone2?.draw(87, 29);
+                    } else if (this.selectedTab == 3) {
+                        this.imageRedstone3?.draw(115, 29);
+                    } else if (this.selectedTab == 4) {
+                        this.imageRedstone2h?.draw(156, 29);
+                    } else if (this.selectedTab == 5) {
+                        this.imageRedstone2h?.draw(184, 29);
+                    } else if (this.selectedTab == 6) {
+                        this.imageRedstone1h?.draw(212, 30);
+                    }
+                }
+
+                if (this.tabInterfaceId[0] != -1 && (this.flashingTab != 0 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[0].draw(35, 34);
+                }
+
+                if (this.tabInterfaceId[1] != -1 && (this.flashingTab != 1 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[1].draw(59, 32);
+                }
+
+                if (this.tabInterfaceId[2] != -1 && (this.flashingTab != 2 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[2].draw(86, 32);
+                }
+
+                if (this.tabInterfaceId[3] != -1 && (this.flashingTab != 3 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[3].draw(121, 33);
+                }
+
+                if (this.tabInterfaceId[4] != -1 && (this.flashingTab != 4 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[4].draw(157, 34);
+                }
+
+                if (this.tabInterfaceId[5] != -1 && (this.flashingTab != 5 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[5].draw(185, 32);
+                }
+
+                if (this.tabInterfaceId[6] != -1 && (this.flashingTab != 6 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[6].draw(212, 34);
+                }
+            }
+
+            this.areaBackhmid1?.draw(520, 165);
+            this.areaBackbase2?.bind();
+            this.imageBackbase2?.draw(0, 0);
+
+            if (this.sidebarInterfaceId == -1) {
+                if (this.tabInterfaceId[this.selectedTab] != -1) {
+                    if (this.selectedTab == 7) {
+                        this.imageRedstone1v?.draw(49, 0);
+                    } else if (this.selectedTab == 8) {
+                        this.imageRedstone2v?.draw(81, 0);
+                    } else if (this.selectedTab == 9) {
+                        this.imageRedstone2v?.draw(108, 0);
+                    } else if (this.selectedTab == 10) {
+                        this.imageRedstone3v?.draw(136, 1);
+                    } else if (this.selectedTab == 11) {
+                        this.imageRedstone2hv?.draw(178, 0);
+                    } else if (this.selectedTab == 12) {
+                        this.imageRedstone2hv?.draw(205, 0);
+                    } else if (this.selectedTab == 13) {
+                        this.imageRedstone1hv?.draw(233, 0);
+                    }
+                }
+
+                if (this.tabInterfaceId[8] != -1 && (this.flashingTab != 8 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[7].draw(80, 2);
+                }
+
+                if (this.tabInterfaceId[9] != -1 && (this.flashingTab != 9 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[8].draw(107, 3);
+                }
+
+                if (this.tabInterfaceId[10] != -1 && (this.flashingTab != 10 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[9].draw(142, 4);
+                }
+
+                if (this.tabInterfaceId[11] != -1 && (this.flashingTab != 11 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[10].draw(179, 2);
+                }
+
+                if (this.tabInterfaceId[12] != -1 && (this.flashingTab != 12 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[11].draw(206, 2);
+                }
+
+                if (this.tabInterfaceId[13] != -1 && (this.flashingTab != 13 || this.loopCycle % 20 < 10)) {
+                    this.imageSideicons[12].draw(230, 2);
+                }
+            }
+            this.areaBackbase2?.draw(501, 492);
+            this.areaViewport?.bind();
+        }
+
+        if (this.redrawPrivacySettings) {
+            this.redrawPrivacySettings = false;
+            this.areaBackbase1?.bind();
+            this.imageBackbase1?.draw(0, 0);
+
+            this.fontPlain12?.drawStringTaggableCenter(57, 33, 'Public chat', 16777215, true);
+            if (this.publicChatSetting == 0) {
+                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'On', 65280, true);
+            }
+            if (this.publicChatSetting == 1) {
+                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'Friends', 16776960, true);
+            }
+            if (this.publicChatSetting == 2) {
+                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'Off', 16711680, true);
+            }
+            if (this.publicChatSetting == 3) {
+                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'Hide', 65535, true);
+            }
+
+            this.fontPlain12?.drawStringTaggableCenter(186, 33, 'Private chat', 16777215, true);
+            if (this.privateChatSetting == 0) {
+                this.fontPlain12?.drawStringTaggableCenter(186, 46, 'On', 65280, true);
+            }
+            if (this.privateChatSetting == 1) {
+                this.fontPlain12?.drawStringTaggableCenter(186, 46, 'Friends', 16776960, true);
+            }
+            if (this.privateChatSetting == 2) {
+                this.fontPlain12?.drawStringTaggableCenter(186, 46, 'Off', 16711680, true);
+            }
+
+            this.fontPlain12?.drawStringTaggableCenter(326, 33, 'Trade/duel', 16777215, true);
+            if (this.tradeChatSetting == 0) {
+                this.fontPlain12?.drawStringTaggableCenter(326, 46, 'On', 65280, true);
+            }
+            if (this.tradeChatSetting == 1) {
+                this.fontPlain12?.drawStringTaggableCenter(326, 46, 'Friends', 16776960, true);
+            }
+            if (this.tradeChatSetting == 2) {
+                this.fontPlain12?.drawStringTaggableCenter(326, 46, 'Off', 16711680, true);
+            }
+
+            this.fontPlain12?.drawStringTaggableCenter(462, 38, 'Report abuse', 16777215, true);
+            this.areaBackbase1?.draw(0, 471);
+            this.areaViewport?.bind();
+        }
+
+        this.sceneDelta = 0;
+    };
+
+    private drawScene = (): void => {
+        // TODO
+    };
+
+    private drawSidebar = (): void => {
+        // TODO
+    };
+
+    private drawChatback = (): void => {
+        // TODO
+    };
+
+    private drawMinimap = (): void => {
+        // TODO
+    };
+
+    private updateInterfaceAnimation = (id: number, delta: number): boolean => {
+        // TODO
+        return false;
+    };
+
+    private handleScrollInput = (mouseX: number, mouseY: number, scrollableHeight: number, height: number, redraw: boolean, left: number, top: number, component: ComType): void => {
+        if (this.scrollGrabbed) {
+            this.scrollInputPadding = 32;
+        } else {
+            this.scrollInputPadding = 0;
+        }
+
+        this.scrollGrabbed = false;
+
+        if (mouseX >= left && mouseX < left + 16 && mouseY >= top && mouseY < top + 16) {
+            component.scrollPosition -= this.dragCycles * 4;
+            if (redraw) {
+                this.redrawSidebar = true;
+            }
+        } else if (mouseX >= left && mouseX < left + 16 && mouseY >= top + height - 16 && mouseY < top + height) {
+            component.scrollPosition += this.dragCycles * 4;
+            if (redraw) {
+                this.redrawSidebar = true;
+            }
+        } else if (mouseX >= left - this.scrollInputPadding && mouseX < left + this.scrollInputPadding + 16 && mouseY >= top + 16 && mouseY < top + height - 16 && this.dragCycles > 0) {
+            let gripSize = ((height - 32) * height) / scrollableHeight;
+            if (gripSize < 8) {
+                gripSize = 8;
+            }
+            const gripY = mouseY - top - gripSize / 2 - 16;
+            const maxY = height - gripSize - 32;
+            component.scrollPosition = ((scrollableHeight - height) * gripY) / maxY;
+            if (redraw) {
+                this.redrawSidebar = true;
+            }
+            this.scrollGrabbed = true;
+        }
+    };
+
+    private prepareGameScreen = (): void => {
+        if (this.areaChatback == null) {
+            this.unloadTitle();
+            this.drawArea = null;
+            this.imageTitle2 = null;
+            this.imageTitle3 = null;
+            this.imageTitle4 = null;
+            this.imageTitle0 = null;
+            this.imageTitle1 = null;
+            this.imageTitle5 = null;
+            this.imageTitle6 = null;
+            this.imageTitle7 = null;
+            this.imageTitle8 = null;
+            const canvas = this.canvas;
+            this.areaChatback = new PixMap(canvas, 479, 96);
+            this.areaMapback = new PixMap(canvas, 168, 160);
+            Draw2D.clear();
+            this.imageMapback?.draw(0, 0);
+            this.areaSidebar = new PixMap(canvas, 190, 261);
+            this.areaViewport = new PixMap(canvas, 512, 334);
+            Draw2D.clear();
+            this.areaBackbase1 = new PixMap(canvas, 501, 61);
+            this.areaBackbase2 = new PixMap(canvas, 288, 40);
+            this.areaBackhmid1 = new PixMap(canvas, 269, 66);
+            this.redrawTitleBackground = true;
+        }
+    };
+
+    private unloadTitle = (): void => {
+        this.flameActive = false;
+        this.imageTitlebox = null;
+        this.imageTitlebutton = null;
+        this.imageRunes = [];
+        this.flameGradient = [];
+        this.flameGradient0 = [];
+        this.flameGradient1 = [];
+        this.flameGradient2 = [];
+        this.flameBuffer0 = [];
+        this.flameBuffer1 = [];
+        this.flameBuffer3 = [];
+        this.flameBuffer2 = [];
+        this.imageFlamesLeft = null;
+        this.imageFlamesRight = null;
     };
 
     private loadArchive = async (filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> => {

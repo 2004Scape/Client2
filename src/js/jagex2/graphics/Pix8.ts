@@ -15,7 +15,7 @@ export default class Pix8 {
     cropH: number;
 
     // runtime
-    palette: Uint32Array | null = null;
+    palette: Uint32Array = new Uint32Array(0);
 
     constructor(width: number, height: number) {
         this.pixels = new Uint8Array(width * height);
@@ -143,7 +143,72 @@ export default class Pix8 {
         }
     };
 
-    copyImage = (w: number, h: number, src: Uint8Array | null, srcOff: number, srcStep: number, dst: Uint32Array | null, dstOff: number, dstStep: number): void => {
+    flipHorizontally = (): void => {
+        const pixels = this.pixels;
+        const width = this.width;
+        const height = this.height;
+
+        for (let y = 0; y < height; y++) {
+            const div = width / 2;
+            for (let x = 0; x < div; x++) {
+                const off1 = x + y * width;
+                const off2 = width - x - 1 + y * width;
+
+                const tmp = pixels[off1];
+                pixels[off1] = pixels[off2];
+                pixels[off2] = tmp;
+            }
+        }
+    };
+
+    flipVertically = (): void => {
+        const pixels = this.pixels;
+        const width = this.width;
+        const height = this.height;
+
+        for (let y = 0; y < height / 2; y++) {
+            for (let x = 0; x < width; x++) {
+                const off1 = x + y * width;
+                const off2 = x + (height - y - 1) * width;
+
+                const tmp = pixels[off1];
+                pixels[off1] = pixels[off2];
+                pixels[off2] = tmp;
+            }
+        }
+    };
+
+    translate = (r: number, g: number, b: number): void => {
+        for (let i = 0; i < this.palette.length; i++) {
+            let red = (this.palette[i] >> 16) & 0xff;
+            red += r;
+            if (red < 0) {
+                red = 0;
+            } else if (red > 255) {
+                red = 255;
+            }
+
+            let green = (this.palette[i] >> 8) & 0xff;
+            green += g;
+            if (green < 0) {
+                green = 0;
+            } else if (green > 255) {
+                green = 255;
+            }
+
+            let blue = this.palette[i] & 0xff;
+            blue += b;
+            if (blue < 0) {
+                blue = 0;
+            } else if (blue > 255) {
+                blue = 255;
+            }
+
+            this.palette[i] = (red << 16) + (green << 8) + blue;
+        }
+    };
+
+    private copyImage = (w: number, h: number, src: Uint8Array | null, srcOff: number, srcStep: number, dst: Uint32Array | null, dstOff: number, dstStep: number): void => {
         if (src === null || dst === null || this.palette === null) {
             return;
         }
