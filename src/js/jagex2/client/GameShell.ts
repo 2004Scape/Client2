@@ -91,6 +91,10 @@ export default abstract class GameShell {
         window.addEventListener('keyup', this.keyUp);
         window.addEventListener('mousedown', this.mousePressed);
 
+        // Preventing mouse events from bubbling up to the context menu in the browser for our canvas.
+        // This may need to be hooked up to our own context menu in the future.
+        this.canvas.oncontextmenu = (e: MouseEvent) => { e.preventDefault(); }
+
         await this.showProgress(0, 'Loading...');
         await this.load();
 
