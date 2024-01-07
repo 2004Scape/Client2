@@ -25,14 +25,14 @@ import Archive from './jagex2/io/Archive.js';
 import Censor from './jagex2/util/Censor.js';
 import {arraycopy, decompressBz2, downloadUrl, sleep} from './jagex2/util/JsUtil.js';
 import {playMidi} from './jagex2/util/AudioUtil.js';
-import GameShell from "./jagex2/client/GameShell.js";
+import GameShell from './jagex2/client/GameShell.js';
 
 import './vendor/midi.js';
-import Packet from "./jagex2/io/Packet.js";
+import Packet from './jagex2/io/Packet.js';
 
 class Client extends GameShell {
     static readonly HOST: string = 'https://w2.225.2004scape.org';
-    static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
+    static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
 
     private alreadyStarted: boolean = false;
     private errorStarted: boolean = false;
@@ -141,13 +141,13 @@ class Client extends GameShell {
             await this.loadTitleBackground();
             this.loadTitleImages();
 
-            let config = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
-            let interfaces = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
-            let media = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
-            let models = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
-            let textures = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
-            let wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
-            let sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
+            const config = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
+            const interfaces = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
+            // const media = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
+            const models = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
+            const textures = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
+            const wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
+            const sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
             await this.showProgress(75, 'Unpacking media');
 
@@ -225,12 +225,12 @@ class Client extends GameShell {
 
         this.imageTitle4?.bind();
 
-        let x = 360;
-        let y = 200;
+        const x = 360;
+        const y = 200;
 
-        let offsetY = 20;
+        const offsetY = 20;
         this.fontBold12?.drawStringCenter(x / 2, (y / 2) - offsetY - 26, 'RuneScape is loading - please wait...', 0xFFFFFF);
-        let midY = (y / 2) - 18 - offsetY;
+        const midY = (y / 2) - 18 - offsetY;
 
         Draw2D.drawRect((x / 2) - 152, midY, 304, 34, 0x8c1111);
         Draw2D.drawRect((x / 2) - 151, midY + 1, 302, 32, 0x000000);
@@ -426,7 +426,7 @@ class Client extends GameShell {
         this.imageTitleBox = Pix8.fromArchive(this.titleArchive, 'titlebox');
         this.imageTitleButton = Pix8.fromArchive(this.titleArchive, 'titlebutton');
         for (let i = 0; i < 12; i++) {
-            this.imageRunes[i] = Pix8.fromArchive(this.titleArchive, "runes", i);
+            this.imageRunes[i] = Pix8.fromArchive(this.titleArchive, 'runes', i);
         }
         this.imageFlamesLeft = new Pix24(128, 265);
         this.imageFlamesRight = new Pix24(128, 265);
@@ -536,8 +536,9 @@ class Client extends GameShell {
                 this.password = '';
             }
 
+            // eslint-disable-next-line no-constant-condition
             while (true) {
-                let key = this.pollKey();
+                const key = this.pollKey();
                 if (key == -1) {
                     return;
                 }
@@ -585,7 +586,7 @@ class Client extends GameShell {
                 }
             }
         } else if (this.titleScreenState == 3) {
-            let x = this.width / 2;
+            const x = this.width / 2;
             let y = this.height / 2 + 50;
             y += 20;
 
@@ -600,8 +601,8 @@ class Client extends GameShell {
         this.imageTitle4?.bind();
         this.imageTitleBox?.draw(0, 0);
 
-        let w = 360;
-        let h = 200;
+        const w = 360;
+        const h = 200;
 
         if (this.titleScreenState === 0) {
             let x = w / 2;
@@ -642,26 +643,26 @@ class Client extends GameShell {
             this.imageTitleButton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 0xFFFFFF, true);
         } else if (this.titleScreenState == 3) {
-            this.fontBold12?.drawStringTaggableCenter(w / 2, 16776960, "Create a free account", h / 2 - 60, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, 16776960, 'Create a free account', h / 2 - 60, true);
 
-            let x = w / 2;
+            const x = w / 2;
             let y = h / 2 - 35;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "To create a new account you need to", 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'To create a new account you need to', 0xFFFFFF, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "go back to the main RuneScape webpage", 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'go back to the main RuneScape webpage', 0xFFFFFF, true);
             y += 15;
 
             this.fontBold12?.drawStringTaggableCenter(w / 2, y, "and choose the red 'create account'", 0xFFFFFF, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "button at the top right of that page.", 0xFFFFFF, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'button at the top right of that page.', 0xFFFFFF, true);
             // y += 15; dead code
 
             y = h / 2 + 50;
             this.imageTitleButton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, "Cancel", 16777215, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 16777215, true);
         }
 
         this.imageTitle4?.draw(214, 186);
@@ -818,7 +819,7 @@ class Client extends GameShell {
         }
 
         if (this.flameGradientCycle0 == 0 && this.flameGradientCycle1 == 0) {
-            let rand = Math.trunc(Math.random() * 2000.0);
+            const rand = Math.trunc(Math.random() * 2000.0);
 
             if (rand == 0) {
                 this.flameGradientCycle0 = 1024;

@@ -33,7 +33,7 @@ export default class Packet {
 
     constructor(src: Uint8Array | null) {
         if (!src) {
-            throw new Error(`Input src packet array was null!`);
+            throw new Error('Input src packet array was null!');
         }
         this.data = src;
         this.pos = 0;

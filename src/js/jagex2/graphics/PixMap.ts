@@ -1,4 +1,4 @@
-import Draw2D from './Draw2D.js';
+import Draw2D from './Draw2D';
 
 export default class PixMap {
     // constructor
@@ -12,7 +12,7 @@ export default class PixMap {
     constructor(canvas: HTMLCanvasElement, width: number, height: number) {
         const canvas2d = canvas.getContext('2d');
         if (!canvas2d) {
-            throw new Error("Canvas 2d not found!!!!!!!!");
+            throw new Error('Canvas 2d not found!!!!!!!!');
         }
         this.canvas = canvas;
         this.ctx = canvas2d;

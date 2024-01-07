@@ -1,7 +1,7 @@
-import Draw2D from './Draw2D.js';
+import Draw2D from './Draw2D';
 
-import Archive from "../io/Archive.js";
-import Packet from "../io/Packet";
+import Archive from '../io/Archive';
+import Packet from '../io/Packet';
 
 // identical to Pix24 except the image is indexed by a palette
 export default class Pix8 {
@@ -25,17 +25,17 @@ export default class Pix8 {
     }
 
     static fromArchive = (archive: Archive, name: string, sprite: number = 0): Pix8 => {
-        let dat = new Packet(archive?.read(name + '.dat'));
-        let index = new Packet(archive?.read('index.dat'));
+        const dat = new Packet(archive?.read(name + '.dat'));
+        const index = new Packet(archive?.read('index.dat'));
 
         // cropW/cropH are shared across all sprites in a single image
         index.pos = dat.g2;
-        let cropW = index.g2;
-        let cropH = index.g2;
+        const cropW = index.g2;
+        const cropH = index.g2;
 
         // palette is shared across all images in a single archive
-        let paletteCount = index.g1;
-        let palette = new Uint32Array(paletteCount);
+        const paletteCount = index.g1;
+        const palette = new Uint32Array(paletteCount);
         for (let i = 0; i < paletteCount - 1; i++) {
             // the first color (0) is reserved for transparency
             palette[i + 1] = index.g3;
@@ -54,19 +54,19 @@ export default class Pix8 {
         }
 
         // read sprite
-        let cropX = index.g1;
-        let cropY = index.g1;
-        let width = index.g2;
-        let height = index.g2;
+        const cropX = index.g1;
+        const cropY = index.g1;
+        const width = index.g2;
+        const height = index.g2;
 
-        let image = new Pix8(width, height);
+        const image = new Pix8(width, height);
         image.cropX = cropX;
         image.cropY = cropY;
         image.cropW = cropW;
         image.cropH = cropH;
         image.palette = palette;
 
-        let pixelOrder = index.g1;
+        const pixelOrder = index.g1;
         if (pixelOrder === 0) {
             const length = image.width * image.height;
             for (let i = 0; i < length; i++) {
@@ -110,7 +110,7 @@ export default class Pix8 {
         let srcStep = 0;
 
         if (y < Draw2D.top) {
-            let cutoff = Draw2D.top - y;
+            const cutoff = Draw2D.top - y;
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
@@ -122,7 +122,7 @@ export default class Pix8 {
         }
 
         if (x < Draw2D.left) {
-            let cutoff = Draw2D.left - x;
+            const cutoff = Draw2D.left - x;
             w -= cutoff;
             x = Draw2D.left;
             srcOff += cutoff;
@@ -132,7 +132,7 @@ export default class Pix8 {
         }
 
         if (x + w > Draw2D.right) {
-            let cutoff = (x + w) - Draw2D.right;
+            const cutoff = (x + w) - Draw2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
@@ -150,9 +150,9 @@ export default class Pix8 {
 
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
-                let off = x + (y * w);
+                const off = x + (y * w);
 
-                let p = src[srcOff + off];
+                const p = src[srcOff + off];
                 if (p != 0) {
                     dst[dstOff + off] = this.palette[p];
                 }

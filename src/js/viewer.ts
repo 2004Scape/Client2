@@ -23,8 +23,8 @@ import Archive from './jagex2/io/Archive.js';
 
 import Censor from './jagex2/util/Censor.js';
 import { downloadText, downloadUrl } from './jagex2/util/JsUtil.js';
-import GameShell from "./jagex2/client/GameShell.js";
-import Packet from "./jagex2/io/Packet";
+import GameShell from './jagex2/client/GameShell.js';
+import Packet from './jagex2/io/Packet';
 
 export default class Client extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
@@ -93,7 +93,7 @@ export default class Client extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            let checksums = new Packet(await downloadUrl(`${Client.HOST}/crc`));
+            const checksums = new Packet(await downloadUrl(`${Client.HOST}/crc`));
             for (let i = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -105,13 +105,13 @@ export default class Client extends GameShell {
             this.fontBold12 = Font.fromArchive(title, 'b12');
             this.fontQuill8 = Font.fromArchive(title, 'q8');
 
-            let config = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
-            let interfaces = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
-            let media = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
-            let models = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
-            let textures = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
-            let wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
-            let sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
+            const config = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
+            const interfaces = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
+            // const media = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
+            const models = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
+            const textures = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
+            const wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
+            const sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
             await this.showProgress(75, 'Unpacking media');
 
@@ -199,7 +199,7 @@ export default class Client extends GameShell {
 
     async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Archive> {
         await this.showProgress(progress, `Requesting ${displayName}`);
-        let data = await Archive.loadUrl(`${Client.HOST}/${filename}${crc}`);
+        const data = await Archive.loadUrl(`${Client.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
 
         return data;

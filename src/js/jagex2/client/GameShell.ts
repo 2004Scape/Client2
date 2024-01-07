@@ -1,7 +1,7 @@
-import PixMap from '../graphics/PixMap.js';
-import Draw3D from '../graphics/Draw3D.js';
+import PixMap from '../graphics/PixMap';
+import Draw3D from '../graphics/Draw3D';
 
-import { sleep } from '../util/JsUtil.js';
+import {sleep} from '../util/JsUtil';
 
 export default abstract class GameShell {
     static getParameter(name: string): string {
@@ -44,11 +44,11 @@ export default abstract class GameShell {
     constructor(resizetoFit = false) {
         const canvas = document.getElementById('canvas') as HTMLCanvasElement;
         if (!canvas) {
-            throw new Error("Canvas not found!!!!!!!!");
+            throw new Error('Canvas not found!!!!!!!!');
         }
         const canvas2d = canvas.getContext('2d');
         if (!canvas2d) {
-            throw new Error("Canvas 2d not found!!!!!!!!");
+            throw new Error('Canvas 2d not found!!!!!!!!');
         }
         this.canvas = canvas;
         this.ctx = canvas2d;
@@ -228,7 +228,7 @@ export default abstract class GameShell {
             this.redrawScreen = false;
         }
 
-        let y = height / 2 - 18;
+        const y = height / 2 - 18;
 
         // draw full progress bar
         ctx.fillStyle = 'rgb(140, 17, 17)';
@@ -251,7 +251,7 @@ export default abstract class GameShell {
     keyDown = (e: KeyboardEvent): void => {
         this.idleCycles = 0;
 
-        let code = e.keyCode;
+        const code = e.keyCode;
         let ch = e.key.charCodeAt(0);
 
         if (ch === 83) {

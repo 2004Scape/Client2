@@ -1,8 +1,8 @@
-import Draw2D from './Draw2D.js';
+import Draw2D from './Draw2D';
 
-import { decodeJpeg } from '../util/JsUtil.js';
-import Archive from "../io/Archive";
-import Packet from "../io/Packet";
+import {decodeJpeg} from '../util/JsUtil';
+import Archive from '../io/Archive';
+import Packet from '../io/Packet';
 
 export default class Pix24 {
     // constructor
@@ -22,15 +22,15 @@ export default class Pix24 {
     }
 
     static fromJpeg = async (archive: Archive, name: string): Promise<Pix24> => {
-        let dat = archive.read(name + '.dat');
-        let jpeg = await decodeJpeg(dat);
-        let image = new Pix24(jpeg.width, jpeg.height);
+        const dat = archive.read(name + '.dat');
+        const jpeg = await decodeJpeg(dat);
+        const image = new Pix24(jpeg.width, jpeg.height);
 
         // copy pixels (uint32) to imageData (uint8)
-        let pixels = image.pixels;
-        let data = jpeg.data;
+        const pixels = image.pixels;
+        const data = jpeg.data;
         for (let i = 0; i < pixels.length; i++) {
-            let index = i * 4;
+            const index = i * 4;
             pixels[i] = (data[index + 3] << 24) | (data[index + 0] << 16) | (data[index + 1] << 8) | (data[index + 2] << 0);
         }
 
@@ -38,17 +38,17 @@ export default class Pix24 {
     };
 
     static fromArchive = (archive: Archive, name: string, sprite: number = 0): Pix24 => {
-        let dat = new Packet(archive.read(name + '.dat'));
-        let index = new Packet(archive.read('index.dat'));
+        const dat = new Packet(archive.read(name + '.dat'));
+        const index = new Packet(archive.read('index.dat'));
 
         // cropW/cropH are shared across all sprites in a single image
         index.pos = dat.g2;
-        let cropW = index.g2;
-        let cropH = index.g2;
+        const cropW = index.g2;
+        const cropH = index.g2;
 
         // palette is shared across all images in a single archive
-        let paletteCount = index.g1;
-        let palette = new Uint32Array(paletteCount);
+        const paletteCount = index.g1;
+        const palette = new Uint32Array(paletteCount);
         const length = paletteCount - 1;
         for (let i = 0; i < length; i++) {
             // the first color (0) is reserved for transparency
@@ -68,18 +68,18 @@ export default class Pix24 {
         }
 
         // read sprite
-        let cropX = index.g1;
-        let cropY = index.g1;
-        let width = index.g2;
-        let height = index.g2;
+        const cropX = index.g1;
+        const cropY = index.g1;
+        const width = index.g2;
+        const height = index.g2;
 
-        let image = new Pix24(width, height);
+        const image = new Pix24(width, height);
         image.cropX = cropX;
         image.cropY = cropY;
         image.cropW = cropW;
         image.cropH = cropH;
 
-        let pixelOrder = index.g1;
+        const pixelOrder = index.g1;
         if (pixelOrder === 0) {
             const length = image.width * image.height;
             for (let i = 0; i < length; i++) {
@@ -115,7 +115,7 @@ export default class Pix24 {
         let srcStep = 0;
 
         if (y < Draw2D.top) {
-            let cutoff = Draw2D.top - y;
+            const cutoff = Draw2D.top - y;
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
@@ -127,7 +127,7 @@ export default class Pix24 {
         }
 
         if (x < Draw2D.left) {
-            let cutoff = Draw2D.left - x;
+            const cutoff = Draw2D.left - x;
             w -= cutoff;
             x = Draw2D.left;
             srcOff += cutoff;
@@ -137,7 +137,7 @@ export default class Pix24 {
         }
 
         if (x + w > Draw2D.right) {
-            let cutoff = (x + w) - Draw2D.right;
+            const cutoff = (x + w) - Draw2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
@@ -165,7 +165,7 @@ export default class Pix24 {
         let srcStep = 0;
 
         if (y < Draw2D.top) {
-            let cutoff = Draw2D.top - y;
+            const cutoff = Draw2D.top - y;
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
@@ -177,7 +177,7 @@ export default class Pix24 {
         }
 
         if (x < Draw2D.left) {
-            let cutoff = Draw2D.left - x;
+            const cutoff = Draw2D.left - x;
             w -= cutoff;
             x = Draw2D.left;
             srcOff += cutoff;
@@ -187,7 +187,7 @@ export default class Pix24 {
         }
 
         if (x + w > Draw2D.right) {
-            let cutoff = (x + w) - Draw2D.right;
+            const cutoff = (x + w) - Draw2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
@@ -199,17 +199,17 @@ export default class Pix24 {
     };
 
     flipHorizontally = (): void => {
-        let pixels = this.pixels;
-        let width = this.width;
-        let height = this.height;
+        const pixels = this.pixels;
+        const width = this.width;
+        const height = this.height;
 
         for (let y = 0; y < height; y++) {
             const div = width / 2;
             for (let x = 0; x < div; x++) {
-                let off1 = x + (y * width);
-                let off2 = width - x - 1 + (y * width);
+                const off1 = x + (y * width);
+                const off2 = width - x - 1 + (y * width);
 
-                let tmp = pixels[off1];
+                const tmp = pixels[off1];
                 pixels[off1] = pixels[off2];
                 pixels[off2] = tmp;
             }
@@ -217,16 +217,16 @@ export default class Pix24 {
     };
 
     flipVertically = (): void => {
-        let pixels = this.pixels;
-        let width = this.width;
-        let height = this.height;
+        const pixels = this.pixels;
+        const width = this.width;
+        const height = this.height;
 
         for (let y = 0; y < height / 2; y++) {
             for (let x = 0; x < width; x++) {
-                let off1 = x + (y * width);
-                let off2 = x + ((height - y - 1) * width);
+                const off1 = x + (y * width);
+                const off2 = x + ((height - y - 1) * width);
 
-                let tmp = pixels[off1];
+                const tmp = pixels[off1];
                 pixels[off1] = pixels[off2];
                 pixels[off2] = tmp;
             }
@@ -234,7 +234,7 @@ export default class Pix24 {
     };
 
     private copyImageBlitOpaque = (w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void => {
-        let qw = -(w >> 2);
+        const qw = -(w >> 2);
         w = -(w & 0x3);
 
         for (let y = -h; y < 0; y++) {
@@ -255,7 +255,7 @@ export default class Pix24 {
     };
 
     private copyImageDraw = (w: number, h: number, src: Uint32Array, srcOff: number, srcStep: number, dst: Uint32Array, dstOff: number, dstStep: number): void => {
-        let qw = -(w >> 2);
+        const qw = -(w >> 2);
         w = -(w & 0x3);
 
         for (let y = -h; y < 0; y++) {
@@ -290,7 +290,7 @@ export default class Pix24 {
             }
 
             for (let x = w; x < 0; x++) {
-                let rgb = src[srcOff++];
+                const rgb = src[srcOff++];
                 if (rgb === 0) {
                     dstOff++;
                 } else {

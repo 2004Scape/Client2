@@ -1,8 +1,8 @@
-import Archive from '../io/Archive.js';
-import Packet from '../io/Packet.js';
+import Archive from '../io/Archive';
+import Packet from '../io/Packet';
 
-import Draw2D from './Draw2D.js';
-import Draw3D from './Draw3D.js';
+import Draw2D from './Draw2D';
+import Draw3D from './Draw3D';
 
 class Metadata {
     vertexCount: number = 0;
@@ -441,7 +441,7 @@ export default class Model {
         let last = 0;
 
         for (let f = 0; f < this.faceCount; f++) {
-            let orientation = Model.vertex2.g1;
+            const orientation = Model.vertex2.g1;
 
             if (orientation === 1) {
                 a = Model.vertex1.gsmarts + last;

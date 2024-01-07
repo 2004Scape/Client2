@@ -9,17 +9,23 @@
   "devDependencies": {
     "@types/foundation-sites": "^6.4.3",
     "@types/jquery": "^3.5.29",
+    "@typescript-eslint/eslint-plugin": "^6.18.0",
+    "@typescript-eslint/parser": "^6.18.0",
     "autoprefixer": "^10.4.16",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",
     "eslint": "^8.56.0",
     "html-webpack-plugin": "^5.6.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
     "mini-css-extract-plugin": "^2.7.6",
     "postcss-loader": "^7.3.4",
+    "prettier": "^3.1.1",
     "sass": "^1.69.7",
     "sass-loader": "^13.3.3",
     "style-loader": "^3.3.3",
     "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
     "webpack": "^5.89.0",
     "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4",
@@ -29,7 +35,9 @@
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production --node-env=production",
-    "dev": "webpack-dev-server --hot --watch"
+    "dev": "webpack-dev-server --hot --watch",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix"
   },
   "repository": {
     "type": "git",
@@ -40,5 +48,17 @@
   "bugs": {
     "url": "https://github.com/2004scape/Client2/issues"
   },
-  "homepage": "https://github.com/2004scape/Client2#readme"
+  "homepage": "https://github.com/2004scape/Client2#readme",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "prettier --write",
+      "eslint --fix",
+      "git add"
+    ]
+  }
 }

@@ -1,6 +1,6 @@
-import { decompressBz2, downloadUrl } from '../util/JsUtil.js';
+import {decompressBz2, downloadUrl} from '../util/JsUtil';
 
-import Packet from "./Packet.js";
+import Packet from './Packet';
 
 export default class Archive {
     static loadUrl = async (url: string): Promise<Archive> => new Archive(await downloadUrl(url));

@@ -1,23 +1,24 @@
-import Draw2D from './Draw2D.js';
-import Image8 from './Pix8.js';
+import Draw2D from './Draw2D';
+import Pix8 from './Pix8';
+import Archive from '../io/Archive';
 
 export default class Draw3D {
-    static reciprocal15 = new Int32Array(512);
-    static reciprocal16 = new Int32Array(2048);
-    static sin = new Int32Array(2048);
-    static cos = new Int32Array(2048);
-    static palette = new Uint32Array(65536);
+    static reciprocal15: Int32Array = new Int32Array(512);
+    static reciprocal16: Int32Array = new Int32Array(2048);
+    static sin: Int32Array = new Int32Array(2048);
+    static cos: Int32Array = new Int32Array(2048);
+    static palette: Uint32Array = new Uint32Array(65536);
 
-    static textures = [];
-    static textureCount = 0;
+    static textures: Pix8[] = [];
+    static textureCount: number = 0;
 
-    static lineOffset = null;
-    static centerX = 0;
-    static centerY = 0;
+    static lineOffset: Int32Array = new Int32Array();
+    static centerX: number = 0;
+    static centerY: number = 0;
 
-    static jagged = true;
-    static clipX = false;
-    static alpha = 0;
+    static jagged: boolean = true;
+    static clipX: boolean = false;
+    static alpha: number = 0;
 
     static {
         for (let i = 1; i < 512; i++) {
@@ -36,37 +37,36 @@ export default class Draw3D {
         }
     }
 
-    static init2D() {
+    static init2D = (): void => {
         Draw3D.lineOffset = new Int32Array(Draw2D.height);
         for (let i = 0; i < Draw2D.height; i++) {
             Draw3D.lineOffset[i] = Draw2D.width * i;
         }
         this.centerX = Draw2D.width / 2;
         this.centerY = Draw2D.height / 2;
-    }
+    };
 
-    static unpackTextures(textures) {
+    static unpackTextures = (textures: Archive): void => {
         Draw3D.textureCount = 0;
 
         for (let i = 0; i < 50; i++) {
             try {
-                Draw3D.textures[i] = Image8.fromArchive(textures, i.toString());
+                Draw3D.textures[i] = Pix8.fromArchive(textures, i.toString());
                 Draw3D.textureCount++;
-            } catch (err) {
-            }
+            } catch (err) { /* empty */ }
         }
-    }
+    };
 
-    static setBrightness(brightness) {
+    static setBrightness = (brightness: number): void => {
         brightness += (Math.random() * 0.3) - 0.15;
 
         let offset = 0;
         for (let y = 0; y < 512; y++) {
-            let hue = ((y / 8) / 64) + 0.0078125;
-            let saturation = ((y & 7) / 8) + 0.0625;
+            const hue = ((y / 8) / 64) + 0.0078125;
+            const saturation = ((y & 7) / 8) + 0.0625;
 
             for (let x = 0; x < 128; x++) {
-                let lightness = x / 128;
+                const lightness = x / 128;
 
                 let r = lightness;
                 let g = lightness;
@@ -80,7 +80,7 @@ export default class Draw3D {
                         q = (lightness + saturation) - (lightness * saturation);
                     }
 
-                    let p = 2 * lightness - q;
+                    const p = 2 * lightness - q;
                     let t = hue + 0.3333333333333333;
                     if (t > 1) {
                         t--;
@@ -122,9 +122,9 @@ export default class Draw3D {
                     }
                 }
 
-                let intR = Math.trunc(r * 256);
-                let intG = Math.trunc(g * 256);
-                let intB = Math.trunc(b * 256);
+                const intR = Math.trunc(r * 256);
+                const intG = Math.trunc(g * 256);
+                const intB = Math.trunc(b * 256);
                 let rgb = (intR << 16) | (intG << 8) | intB;
                 rgb = Draw3D.setGamma(rgb, brightness);
                 if (rgb === 0) {
@@ -134,25 +134,25 @@ export default class Draw3D {
                 Draw3D.palette[offset++] = rgb;
             }
         }
-    }
+    };
 
-    static setGamma(rgb, gamma) {
+    private static setGamma = (rgb: number, gamma: number): number => {
         let r = (rgb >> 16) / 256;
         let g = (rgb >> 8 & 255) / 256;
         let b = (rgb & 255) / 256;
         r = Math.pow(r, gamma);
         g = Math.pow(g, gamma);
         b = Math.pow(b, gamma);
-        let intR = Math.trunc(r * 256);
-        let intG = Math.trunc(g * 256);
-        let intB = Math.trunc(b * 256);
+        const intR = Math.trunc(r * 256);
+        const intG = Math.trunc(g * 256);
+        const intB = Math.trunc(b * 256);
         return (intR << 16) | (intG << 8) | intB;
-    }
+    };
 
-    static initPool() {
-    }
+    static initPool = (): void => {
+    };
 
-    static fillGouraudTriangle(xA, xB, xC, yA, yB, yC, colorA, colorB, colorC) {
+    static fillGouraudTriangle = (xA: number, xB: number, xC: number, yA: number, yB: number, yC: number, colorA: number, colorB: number, colorC: number): void => {
         let xStepAB = 0;
         let xStepBC = 0;
         let xStepAC = 0;
@@ -536,9 +536,9 @@ export default class Draw3D {
             colorC += colorStepAC;
             yC += Draw2D.width;
         }
-    }
+    };
 
-    static drawGouraudScanline(dst, offset, x0, x1, color0, color1) {
+    private static drawGouraudScanline = (dst: Uint32Array, offset: number, x0: number, x1: number, color0: number, color1: number): void => {
         let rgb = 0;
         let length = 0;
 
@@ -603,8 +603,8 @@ export default class Draw3D {
                     return;
                 }
             } else {
-                let alpha = Draw3D.alpha;
-                let invAlpha = 256 - Draw3D.alpha;
+                const alpha = Draw3D.alpha;
+                const invAlpha = 256 - Draw3D.alpha;
 
                 while (--length >= 0) {
                     rgb = Draw3D.palette[color0 >> 8];
@@ -633,7 +633,7 @@ export default class Draw3D {
             return;
         }
 
-        let colorStep = (color1 - color0) / (x1 - x0);
+        const colorStep = (color1 - color0) / (x1 - x0);
 
         if (Draw3D.clipX) {
             if (x1 > Draw2D.right) {
@@ -659,8 +659,8 @@ export default class Draw3D {
             return;
         }
 
-        let alpha = Draw3D.alpha;
-        let invAlpha = 256 - Draw3D.alpha;
+        const alpha = Draw3D.alpha;
+        const invAlpha = 256 - Draw3D.alpha;
 
         do {
             rgb = Draw3D.palette[color0 >> 8];
@@ -668,11 +668,11 @@ export default class Draw3D {
             rgb = ((((rgb & 0xff00ff) * invAlpha) >> 8) & 0xff00ff) + ((((rgb & 0xff00) * invAlpha) >> 8) & 0xff00);
             dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
         } while (--length > 0);
-    }
+    };
 
-    static fillTriangle() {
-    }
+    static fillTriangle = (): void => {
+    };
 
-    static fillTexturedTriangle() {
-    }
+    static fillTexturedTriangle = (): void => {
+    };
 }

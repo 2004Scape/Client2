@@ -1,12 +1,12 @@
-import Archive from "../io/Archive.js";
-import Packet from "../io/Packet.js";
+import Archive from '../io/Archive';
+import Packet from '../io/Packet';
 
 export default class FloType {
     static count: number = 0;
     static instances: FloType[] = [];
 
     static unpack = (config: Archive): void => {
-        let dat = new Packet(config.read('flo.dat'));
+        const dat = new Packet(config.read('flo.dat'));
         FloType.count = dat.g2;
 
         for (let i = 0; i < FloType.count; i++) {
@@ -24,8 +24,9 @@ export default class FloType {
     name: string | null = null;
 
     decode = (dat: Packet): void => {
+        // eslint-disable-next-line no-constant-condition
         while (true) {
-            let opcode = dat.g1;
+            const opcode = dat.g1;
             if (opcode === 0) {
                 break;
             }

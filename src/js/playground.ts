@@ -23,7 +23,7 @@ import Archive from './jagex2/io/Archive.js';
 import Censor from './jagex2/util/Censor.js';
 import { downloadUrl } from './jagex2/util/JsUtil.js';
 import Draw2D from './jagex2/graphics/Draw2D.js';
-import Packet from "./jagex2/io/Packet.js";
+import Packet from './jagex2/io/Packet.js';
 
 class Playground extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
@@ -43,26 +43,26 @@ class Playground extends GameShell {
     load = async () => {
         await this.showProgress(10, 'Connecting to fileserver');
 
-        let checksums = new Packet(await downloadUrl(`${Playground.HOST}/crc`));
-        let archiveChecksums = [];
+        const checksums = new Packet(await downloadUrl(`${Playground.HOST}/crc`));
+        const archiveChecksums = [];
         for (let i = 0; i < 9; i++) {
             archiveChecksums[i] = checksums.g4;
         }
 
-        let title = await this.loadArchive('title', 'title screen', archiveChecksums[1], 10);
+        const title = await this.loadArchive('title', 'title screen', archiveChecksums[1], 10);
 
         this.fontPlain11 = Font.fromArchive(title, 'p11');
         this.fontPlain12 = Font.fromArchive(title, 'p12');
         this.fontBold12 = Font.fromArchive(title, 'b12');
         this.fontQuill8 = Font.fromArchive(title, 'q8');
 
-        let config = await this.loadArchive('config', 'config', archiveChecksums[2], 15);
-        let interfaces = await this.loadArchive('interface', 'interface', archiveChecksums[3], 20);
-        let media = await this.loadArchive('media', '2d graphics', archiveChecksums[4], 30);
-        let models = await this.loadArchive('models', '3d graphics', archiveChecksums[5], 40);
-        let textures = await this.loadArchive('textures', 'textures', archiveChecksums[6], 60);
-        let wordenc = await this.loadArchive('wordenc', 'chat system', archiveChecksums[7], 65);
-        let sounds = await this.loadArchive('sounds', 'sound effects', archiveChecksums[8], 70);
+        const config = await this.loadArchive('config', 'config', archiveChecksums[2], 15);
+        const interfaces = await this.loadArchive('interface', 'interface', archiveChecksums[3], 20);
+        // const media = await this.loadArchive('media', '2d graphics', archiveChecksums[4], 30);
+        const models = await this.loadArchive('models', '3d graphics', archiveChecksums[5], 40);
+        const textures = await this.loadArchive('textures', 'textures', archiveChecksums[6], 60);
+        const wordenc = await this.loadArchive('wordenc', 'chat system', archiveChecksums[7], 65);
+        const sounds = await this.loadArchive('sounds', 'sound effects', archiveChecksums[8], 70);
 
         await this.showProgress(75, 'Unpacking media');
 
@@ -164,7 +164,7 @@ class Playground extends GameShell {
         // }
 
         // draw a model
-        let model = new Model(this.model.id);
+        const model = new Model(this.model.id);
         model.calculateNormals(64, 850, -30, -50, -30, true);
         model.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
@@ -177,25 +177,25 @@ class Playground extends GameShell {
             let leftY = this.fontBold12.fontHeight;
             this.fontBold12.draw(0, leftY, `Model: ${this.model.id}`, 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `Controls:`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'Controls:', 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `r - reset camera and model rotation + movement speed`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'r - reset camera and model rotation + movement speed', 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `1 and 2 - change model`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, '1 and 2 - change model', 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `[ and ] - adjust movement speed`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, '[ and ] - adjust movement speed', 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `left and right - adjust model yaw`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'left and right - adjust model yaw', 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `up and down - adjust model pitch`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'up and down - adjust model pitch', 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `. and / - adjust model roll`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, '. and / - adjust model roll', 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `w and s - move camera along z axis`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'w and s - move camera along z axis', 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `a and d - move camera along x axis`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'a and d - move camera along x axis', 0xFFFF00);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `q and e - move camera along y axis`, 0xFFFF00);
+            this.fontBold12.draw(0, leftY, 'q and e - move camera along y axis', 0xFFFF00);
         }
 
         this.drawArea?.draw(0, 0);
@@ -205,7 +205,7 @@ class Playground extends GameShell {
 
     async loadArchive(filename: string, displayName: string, crc: number, progress: number) {
         await this.showProgress(progress, `Requesting ${displayName}`);
-        let data = await Archive.loadUrl(`${Playground.HOST}/${filename}${crc}`);
+        const data = await Archive.loadUrl(`${Playground.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
     }
@@ -225,8 +225,9 @@ class Playground extends GameShell {
     };
 
     updateKeysPressed() {
+        // eslint-disable-next-line no-constant-condition
         while (true) {
-            let key = this.pollKey();
+            const key = this.pollKey();
             if (key === -1) {
                 break;
             }

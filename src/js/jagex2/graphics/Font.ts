@@ -1,13 +1,13 @@
-import Draw2D from './Draw2D.js';
+import Draw2D from './Draw2D';
 
-import Archive from "../io/Archive";
-import Packet from "../io/Packet";
+import Archive from '../io/Archive';
+import Packet from '../io/Packet';
 
 export default class Font {
     static CHARSET: number[] = [];
 
     static {
-        let s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
+        const s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
 
         for (let i = 0; i < 256; i++) {
             let c = s.indexOf(String.fromCharCode(i));
@@ -35,7 +35,7 @@ export default class Font {
 
         index.pos = dat.g2 + 4; // skip cropW and cropH
 
-        let paletteCount = index.g1;
+        const paletteCount = index.g1;
         if (paletteCount > 0) {
             // skip palette
             index.pos += (paletteCount - 1) * 3;
@@ -192,7 +192,7 @@ export default class Font {
         let srcStep = 0;
 
         if (y < Draw2D.top) {
-            let cutoff = Draw2D.top - y;
+            const cutoff = Draw2D.top - y;
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
@@ -204,7 +204,7 @@ export default class Font {
         }
 
         if (x < Draw2D.left) {
-            let cutoff = Draw2D.left - x;
+            const cutoff = Draw2D.left - x;
             w -= cutoff;
             x = Draw2D.left;
             srcOff += cutoff;
@@ -214,7 +214,7 @@ export default class Font {
         }
 
         if (x + w > Draw2D.right) {
-            let cutoff = x + w + 1 - Draw2D.right;
+            const cutoff = x + w + 1 - Draw2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;

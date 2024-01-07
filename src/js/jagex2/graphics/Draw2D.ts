@@ -52,7 +52,7 @@ export default class Draw2D {
 
     // draw a 1px border rectangle
     static drawRect = (x: number, y: number, w: number, h: number, color: number): void => {
-        let pixels = this.pixels;
+        const pixels = this.pixels;
 
         let x0 = x;
         let y0 = y;
@@ -75,7 +75,7 @@ export default class Draw2D {
             y1 = this.bottom;
         }
 
-        let width = this.width;
+        const width = this.width;
 
         for (let xx = x0; xx < x1; xx++) {
             let off = xx + (y0 * width);
@@ -94,7 +94,7 @@ export default class Draw2D {
 
     // fill in a rectangle area
     static fillRect = (x: number, y: number, w: number, h: number, color: number): void => {
-        let pixels = this.pixels;
+        const pixels = this.pixels;
 
         let x0 = x;
         let y0 = y;
@@ -117,10 +117,10 @@ export default class Draw2D {
             y1 = this.bottom;
         }
 
-        let width = this.width;
+        const width = this.width;
 
         for (let yy = y0; yy < y1; yy++) {
-            let off = x0 + (yy * width);
+            const off = x0 + (yy * width);
             pixels.fill(color, off, off + (x1 - x0));
         }
     };
