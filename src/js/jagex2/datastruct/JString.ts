@@ -7,7 +7,7 @@ export default class JString {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
     ];
 
-    toBase37 = (string: string): bigint => {
+    static toBase37 = (string: string): bigint => {
         string = string.trim();
         let l: bigint = 0n;
 
