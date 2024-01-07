@@ -28,6 +28,7 @@ import GameShell from './jagex2/client/GameShell.js';
 import './vendor/midi.js';
 import Packet from './jagex2/io/Packet.js';
 import Wave from './jagex2/sound/Wave';
+import JString from './jagex2/datastruct/JString';
 
 class Client extends GameShell {
     static readonly HOST: string = 'https://w2.225.2004scape.org';
@@ -629,7 +630,7 @@ class Client extends GameShell {
             this.fontBold12?.drawStringTaggable(w / 2 - 90, y, `Username: ${this.username}${this.titleLoginField == 0 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, 0xffffff, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${this.password}${this.titleLoginField == 1 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, 0xffffff, true);
+            this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${JString.toAsterisks(this.password)}${this.titleLoginField == 1 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, 0xffffff, true);
 
             // x = w / 2 - 80; dead code
             y = h / 2 + 50;
@@ -884,8 +885,7 @@ class Client extends GameShell {
                     value = this.flameGradient[value];
                     if (this.imageTitle0) {
                         const background = this.imageTitle0.pixels[dstOffset];
-                        this.imageTitle0.pixels[dstOffset++] =
-                            ((((value & 0xff00ff) * alpha + (background & 0xff00ff) * invAlpha) & 0xff00ff00) + (((value & 0xff00) * alpha + (background & 0xff00) * invAlpha) & 0xff0000)) >> 8;
+                        this.imageTitle0.pixels[dstOffset++] = ((((value & 0xff00ff) * alpha + (background & 0xff00ff) * invAlpha) & 0xff00ff00) + (((value & 0xff00) * alpha + (background & 0xff00) * invAlpha) & 0xff0000)) >> 8;
                     }
                 }
             }
@@ -916,8 +916,7 @@ class Client extends GameShell {
                     value = this.flameGradient[value];
                     if (this.imageTitle1) {
                         const background = this.imageTitle1.pixels[dstOffset];
-                        this.imageTitle1.pixels[dstOffset++] =
-                            ((((value & 0xff00ff) * alpha + (background & 0xff00ff) * invAlpha) & 0xff00ff00) + (((value & 0xff00) * alpha + (background & 0xff00) * invAlpha) & 0xff0000)) >> 8;
+                        this.imageTitle1.pixels[dstOffset++] = ((((value & 0xff00ff) * alpha + (background & 0xff00ff) * invAlpha) & 0xff00ff00) + (((value & 0xff00) * alpha + (background & 0xff00) * invAlpha) & 0xff0000)) >> 8;
                     }
                 }
             }

@@ -351,9 +351,7 @@ export default class WordFilter {
                             let localSubStringIndex;
                             for (
                                 localSubStringIndex = 0;
-                                localSubStringIndex < 3 &&
-                                localIndex + localSubStringIndex < chars.length &&
-                                (!this.isSymbol(chars[localIndex + localSubStringIndex]) || chars[localIndex + localSubStringIndex] == "'");
+                                localSubStringIndex < 3 && localIndex + localSubStringIndex < chars.length && (!this.isSymbol(chars[localIndex + localSubStringIndex]) || chars[localIndex + localSubStringIndex] == "'");
                                 localSubStringIndex++
                             ) {
                                 localSubString[localSubStringIndex] = chars[localIndex + localSubStringIndex];

@@ -170,12 +170,7 @@ class Playground extends GameShell {
         // debug
         if (this.fontBold12) {
             this.fontBold12.drawRight(this.width, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xffff00);
-            this.fontBold12.drawRight(
-                this.width,
-                this.height,
-                `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`,
-                0xffff00
-            );
+            this.fontBold12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, 0xffff00);
 
             // controls
             let leftY = this.fontBold12.fontHeight;
