@@ -11,19 +11,19 @@ export default class LocType extends ConfigType {
 
     static unpack = (config: Jagfile): void => {
         this.dat = new Packet(config.read('loc.dat'));
-        const idx = new Packet(config.read('loc.idx'));
+        const idx: Packet = new Packet(config.read('loc.idx'));
 
         this.count = idx.g2;
         this.offsets = new Int32Array(this.count);
 
-        let offset = 2;
-        for (let id = 0; id < this.count; id++) {
+        let offset: number = 2;
+        for (let id: number = 0; id < this.count; id++) {
             this.offsets[id] = offset;
             offset += idx.g2;
         }
 
         this.cache = new Array(10);
-        for (let id = 0; id < 10; id++) {
+        for (let id: number = 0; id < 10; id++) {
             this.cache[id] = new LocType();
         }
     };
@@ -33,7 +33,7 @@ export default class LocType extends ConfigType {
             throw new Error('LocType not loaded!!!');
         }
 
-        for (let id = 0; id < 10; id++) {
+        for (let id: number = 0; id < 10; id++) {
             if (this.cache[id].index == id) {
                 return this.cache[id];
             }
@@ -92,11 +92,11 @@ export default class LocType extends ConfigType {
 
     decode = (_index: number, code: number, dat: Packet): void => {
         if (code === 1) {
-            const count = dat.g1;
+            const count: number = dat.g1;
             this.models = new Uint16Array(count);
             this.shapes = new Uint8Array(count);
 
-            for (let i = 0; i < count; i++) {
+            for (let i: number = 0; i < count; i++) {
                 this.models[i] = dat.g2;
                 this.shapes[i] = dat.g1;
             }
@@ -141,11 +141,11 @@ export default class LocType extends ConfigType {
                 this.ops[code - 30] = null;
             }
         } else if (code === 40) {
-            const count = dat.g1;
+            const count: number = dat.g1;
             this.recol_s = new Uint16Array(count);
             this.recol_d = new Uint16Array(count);
 
-            for (let i = 0; i < count; i++) {
+            for (let i: number = 0; i < count; i++) {
                 this.recol_s[i] = dat.g2;
                 this.recol_d[i] = dat.g2;
             }

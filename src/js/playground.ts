@@ -39,29 +39,29 @@ class Playground extends GameShell {
         super(true);
     }
 
-    load = async () => {
+    load = async (): Promise<void> => {
         await this.showProgress(10, 'Connecting to fileserver');
 
-        const checksums = new Packet(await downloadUrl(`${Playground.HOST}/crc`));
-        const archiveChecksums = [];
-        for (let i = 0; i < 9; i++) {
+        const checksums: Packet = new Packet(await downloadUrl(`${Playground.HOST}/crc`));
+        const archiveChecksums: number[] = [];
+        for (let i: number = 0; i < 9; i++) {
             archiveChecksums[i] = checksums.g4;
         }
 
-        const title = await this.loadArchive('title', 'title screen', archiveChecksums[1], 10);
+        const title: Jagfile = await this.loadArchive('title', 'title screen', archiveChecksums[1], 10);
 
         this.fontPlain11 = PixFont.fromArchive(title, 'p11');
         this.fontPlain12 = PixFont.fromArchive(title, 'p12');
         this.fontBold12 = PixFont.fromArchive(title, 'b12');
         this.fontQuill8 = PixFont.fromArchive(title, 'q8');
 
-        const config = await this.loadArchive('config', 'config', archiveChecksums[2], 15);
-        const interfaces = await this.loadArchive('interface', 'interface', archiveChecksums[3], 20);
-        const media = await this.loadArchive('media', '2d graphics', archiveChecksums[4], 30);
-        const models = await this.loadArchive('models', '3d graphics', archiveChecksums[5], 40);
-        const textures = await this.loadArchive('textures', 'textures', archiveChecksums[6], 60);
-        const wordenc = await this.loadArchive('wordenc', 'chat system', archiveChecksums[7], 65);
-        const sounds = await this.loadArchive('sounds', 'sound effects', archiveChecksums[8], 70);
+        const config: Jagfile = await this.loadArchive('config', 'config', archiveChecksums[2], 15);
+        const interfaces: Jagfile = await this.loadArchive('interface', 'interface', archiveChecksums[3], 20);
+        const media: Jagfile = await this.loadArchive('media', '2d graphics', archiveChecksums[4], 30);
+        const models: Jagfile = await this.loadArchive('models', '3d graphics', archiveChecksums[5], 40);
+        const textures: Jagfile = await this.loadArchive('textures', 'textures', archiveChecksums[6], 60);
+        const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', archiveChecksums[7], 65);
+        const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', archiveChecksums[8], 70);
 
         await this.showProgress(75, 'Unpacking media');
 
@@ -123,7 +123,7 @@ class Playground extends GameShell {
         }
     };
 
-    draw = async () => {
+    draw = async (): Promise<void> => {
         Draw2D.clear();
         Draw2D.fillRect(0, 0, this.width, this.height, 0x555555);
 
@@ -163,7 +163,7 @@ class Playground extends GameShell {
         // }
 
         // draw a model
-        const model = new Model(this.model.id);
+        const model: Model = new Model(this.model.id);
         model.calculateNormals(64, 850, -30, -50, -30, true);
         model.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
@@ -173,7 +173,7 @@ class Playground extends GameShell {
             this.fontBold12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, 0xffff00);
 
             // controls
-            let leftY = this.fontBold12.fontHeight;
+            let leftY: number = this.fontBold12.fontHeight;
             this.fontBold12.draw(0, leftY, `Model: ${this.model.id}`, 0xffff00);
             leftY += this.fontBold12.fontHeight;
             this.fontBold12.draw(0, leftY, 'Controls:', 0xffff00);
@@ -202,9 +202,9 @@ class Playground extends GameShell {
 
     // ----
 
-    async loadArchive(filename: string, displayName: string, crc: number, progress: number) {
+    async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
         await this.showProgress(progress, `Requesting ${displayName}`);
-        const data = await Jagfile.loadUrl(`${Playground.HOST}/${filename}${crc}`);
+        const data: Jagfile = await Jagfile.loadUrl(`${Playground.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
         return data;
     }
@@ -223,10 +223,10 @@ class Playground extends GameShell {
         pitch: parseInt(GameShell.getParameter('eyePitch')) || 0
     };
 
-    updateKeysPressed() {
+    updateKeysPressed(): void {
         // eslint-disable-next-line no-constant-condition
         while (true) {
-            const key = this.pollKey();
+            const key: number = this.pollKey();
             if (key === -1) {
                 break;
             }
@@ -262,7 +262,7 @@ class Playground extends GameShell {
         }
     }
 
-    updateKeysHeld() {
+    updateKeysHeld(): void {
         if (this.actionKey['['.charCodeAt(0)]) {
             this.modifier--;
         } else if (this.actionKey[']'.charCodeAt(0)]) {
@@ -327,5 +327,4 @@ class Playground extends GameShell {
     }
 }
 
-const playground = new Playground();
-playground.run().then(() => {});
+new Playground().run().then((): void => {});

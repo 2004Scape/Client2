@@ -22,12 +22,12 @@ export default class ClientStream {
             const ws: WebSocket = new WebSocket(`${protocol}://${host}:${socket.port}`, 'binary');
             ws.binaryType = 'arraybuffer';
 
-            ws.addEventListener('open', () => {
+            ws.addEventListener('open', (): void => {
                 console.log('connection open!');
                 resolve(ws);
             });
 
-            ws.addEventListener('error', () => {
+            ws.addEventListener('error', (): void => {
                 console.log('connection error!');
                 reject(ws);
             });
@@ -118,7 +118,7 @@ export default class ClientStream {
             return this.readBytes(dst, off, len);
         }
 
-        for (let index = 0; index < len; index++) {
+        for (let index: number = 0; index < len; index++) {
             dst[off + index] = await this.read();
         }
         return len;

@@ -11,7 +11,7 @@ export default class SeqFrame {
         const tran2: Packet = new Packet(models.read('frame_tran2.dat'));
         const del: Packet = new Packet(models.read('frame_del.dat'));
 
-        const total = head.g2;
+        const total: number = head.g2;
         head.pos += 2; // const count = head.g2;
 
         const labels: Int32Array = new Int32Array(500);
@@ -19,28 +19,28 @@ export default class SeqFrame {
         const y: Int32Array = new Int32Array(500);
         const z: Int32Array = new Int32Array(500);
 
-        for (let i = 0; i < total; i++) {
-            const id = head.g2;
+        for (let i: number = 0; i < total; i++) {
+            const id: number = head.g2;
             const frame: SeqFrame = (this.instances[id] = new SeqFrame());
             frame.delay = del.g1;
 
-            const baseId = head.g2;
+            const baseId: number = head.g2;
             const base: SeqBase = SeqBase.instances[baseId];
             frame.base = base;
 
-            const groupCount = head.g1;
-            let lastGroup = -1;
-            let current = 0;
+            const groupCount: number = head.g1;
+            let lastGroup: number = -1;
+            let current: number = 0;
 
-            for (let j = 0; j < groupCount; j++) {
+            for (let j: number = 0; j < groupCount; j++) {
                 if (!base.types) {
                     throw new Error('SeqBase not loaded!!!');
                 }
-                const flags = tran1.g1;
+                const flags: number = tran1.g1;
 
                 if (flags > 0) {
                     if (base.types[j] != 0) {
-                        for (let group = j - 1; group > lastGroup; group--) {
+                        for (let group: number = j - 1; group > lastGroup; group--) {
                             if (base.types[group] == 0) {
                                 labels[current] = group;
                                 x[current] = 0;
@@ -54,7 +54,7 @@ export default class SeqFrame {
 
                     labels[current] = j;
 
-                    let defaultValue = 0;
+                    let defaultValue: number = 0;
                     if (base.types[labels[current]] == 3) {
                         defaultValue = 128;
                     }
@@ -88,7 +88,7 @@ export default class SeqFrame {
             frame.y = new Int32Array(current);
             frame.z = new Int32Array(current);
 
-            for (let j = 0; j < current; j++) {
+            for (let j: number = 0; j < current; j++) {
                 frame.bases[j] = labels[j];
                 frame.x[j] = x[j];
                 frame.y[j] = y[j];

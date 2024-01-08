@@ -14,11 +14,11 @@ export default class WordPack {
     private static charBuffer: string[] = [];
 
     static unpack = (word: Packet, length: number): string => {
-        let pos = 0;
-        let carry = -1;
-        let nibble;
-        for (let index = 0; index < length && pos < 100; index++) {
-            const value = word.g1;
+        let pos: number = 0;
+        let carry: number = -1;
+        let nibble: number;
+        for (let index: number = 0; index < length && pos < 100; index++) {
+            const value: number = word.g1;
             nibble = (value >> 4) & 0xf;
             if (carry !== -1) {
                 this.charBuffer[pos++] = this.TABLE[(carry << 4) + nibble - 195];
@@ -38,9 +38,9 @@ export default class WordPack {
                 carry = nibble;
             }
         }
-        let uppercase = true;
-        for (let index = 0; index < pos; index++) {
-            const char = this.charBuffer[index];
+        let uppercase: boolean = true;
+        for (let index: number = 0; index < pos; index++) {
+            const char: string = this.charBuffer[index];
             if (uppercase && char >= 'a' && char <= 'z') {
                 this.charBuffer[index] = char.toUpperCase();
                 uppercase = false;
@@ -57,11 +57,11 @@ export default class WordPack {
             str = str.substring(0, 80);
         }
         str = str.toLowerCase();
-        let carry = -1;
-        for (let index = 0; index < str.length; index++) {
-            const char = str.charAt(index);
-            let currentChar = 0;
-            for (let lookupIndex = 0; lookupIndex < this.TABLE.length; lookupIndex++) {
+        let carry: number = -1;
+        for (let index: number = 0; index < str.length; index++) {
+            const char: string = str.charAt(index);
+            let currentChar: number = 0;
+            for (let lookupIndex: number = 0; lookupIndex < this.TABLE.length; lookupIndex++) {
                 if (char === this.TABLE[lookupIndex]) {
                     currentChar = lookupIndex;
                     break;

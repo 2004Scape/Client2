@@ -62,19 +62,19 @@ class Viewer extends GameShell {
     };
 
     async loadPack(url: string): Promise<Map<number, string>> {
-        const map = new Map();
+        const map: Map<number, string> = new Map();
 
-        const pack = await downloadText(url);
-        const lines = pack.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const idx = line.indexOf('=');
+        const pack: string = await downloadText(url);
+        const lines: string[] = pack.split('\n');
+        for (let i: number = 0; i < lines.length; i++) {
+            const line: string = lines[i];
+            const idx: number = line.indexOf('=');
             if (idx === -1) {
                 continue;
             }
 
-            const id = parseInt(line.substring(0, idx));
-            const name = line.substring(idx + 1);
+            const id: number = parseInt(line.substring(0, idx));
+            const name: string = line.substring(idx + 1);
             map.set(id, name);
         }
 
@@ -92,25 +92,25 @@ class Viewer extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            const checksums = new Packet(await downloadUrl(`${Viewer.HOST}/crc`));
-            for (let i = 0; i < 9; i++) {
+            const checksums: Packet = new Packet(await downloadUrl(`${Viewer.HOST}/crc`));
+            for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
 
-            const title = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
+            const title: Jagfile = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
 
             this.fontPlain11 = PixFont.fromArchive(title, 'p11');
             this.fontPlain12 = PixFont.fromArchive(title, 'p12');
             this.fontBold12 = PixFont.fromArchive(title, 'b12');
             this.fontQuill8 = PixFont.fromArchive(title, 'q8');
 
-            const config = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
-            const interfaces = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
-            const media = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
-            const models = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
-            const textures = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
-            const wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
-            const sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
+            const config: Jagfile = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
+            const interfaces: Jagfile = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
+            const media: Jagfile = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
+            const models: Jagfile = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
+            const textures: Jagfile = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
+            const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
+            const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
             await this.showProgress(75, 'Unpacking media');
 
@@ -198,7 +198,7 @@ class Viewer extends GameShell {
 
     async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
         await this.showProgress(progress, `Requesting ${displayName}`);
-        const data = await Jagfile.loadUrl(`${Viewer.HOST}/${filename}${crc}`);
+        const data: Jagfile = await Jagfile.loadUrl(`${Viewer.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
 
         return data;
@@ -219,7 +219,7 @@ class Viewer extends GameShell {
             this.ctx.textAlign = 'left';
             this.ctx.fillStyle = 'yellow';
 
-            let y = 35;
+            let y: number = 35;
             this.ctx.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
 
             y += 50;
@@ -258,7 +258,7 @@ class Viewer extends GameShell {
             this.ctx.textAlign = 'left';
             this.ctx.fillStyle = 'yellow';
 
-            let y = 35;
+            let y: number = 35;
             this.ctx.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
 
             y += 50;
@@ -274,22 +274,22 @@ class Viewer extends GameShell {
         }
     }
 
-    async showModels() {
+    async showModels(): Promise<void> {
         this.packfiles[0] = await this.loadPack(`${Viewer.REPO}/data/pack/model.pack`);
 
-        const leftPanel = document.getElementById('leftPanel');
+        const leftPanel: HTMLElement | null = document.getElementById('leftPanel');
         if (leftPanel) {
             leftPanel.innerHTML = '';
 
             {
-                const input = document.createElement('input');
+                const input: HTMLInputElement = document.createElement('input');
                 input.type = 'search';
                 input.placeholder = 'Search';
-                input.oninput = () => {
-                    const filter = input.value.toLowerCase().replaceAll(' ', '_');
+                input.oninput = (): void => {
+                    const filter: string = input.value.toLowerCase().replaceAll(' ', '_');
 
-                    for (let i = 0; i < ul.children.length; i++) {
-                        const child = ul.children[i] as HTMLElement;
+                    for (let i: number = 0; i < ul.children.length; i++) {
+                        const child: HTMLElement = ul.children[i] as HTMLElement;
 
                         if (child.id.indexOf(filter) > -1) {
                             child.style.display = '';
@@ -302,21 +302,21 @@ class Viewer extends GameShell {
             }
 
             // create a clickable list of all the files in the pack, that sets this.model.id on click
-            const ul = document.createElement('ul');
+            const ul: HTMLUListElement = document.createElement('ul');
             ul.className = 'list-group';
             leftPanel.appendChild(ul);
 
             for (const [id, name] of this.packfiles[0]) {
-                const li = document.createElement('li');
+                const li: HTMLLIElement = document.createElement('li');
                 li.id = name;
                 li.className = 'list-group-item';
                 if (id == 0) {
                     li.className += ' active';
                 }
                 li.innerText = name;
-                li.onclick = () => {
-                    // unmark the last selected item
-                    const last = ul.querySelector('.active');
+                li.onclick = (): void => {
+                    // unmark the last selected item have fun :)
+                    const last: Element | null = ul.querySelector('.active');
                     if (last) {
                         last.className = 'list-group-item';
                     }
@@ -333,5 +333,4 @@ class Viewer extends GameShell {
     }
 }
 
-const client = new Viewer();
-client.run().then(() => {});
+new Viewer().run().then((): void => {});

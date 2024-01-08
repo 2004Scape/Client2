@@ -1,6 +1,6 @@
 import {decompress} from '../../vendor/bz2.js';
 
-export const sleep = async (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = async (ms: number): Promise<void> => new Promise((resolve): NodeJS.Timeout => setTimeout(resolve, ms));
 export const downloadUrl = async (url: string): Promise<Uint8Array> => new Uint8Array(await (await fetch(url)).arrayBuffer());
 export const downloadText = async (url: string): Promise<string> => (await fetch(url)).text();
 
@@ -9,7 +9,7 @@ const bz2Header: Uint8Array = Uint8Array.from(['B'.charCodeAt(0), 'Z'.charCodeAt
 export const decompressBz2 = (data: Uint8Array, addMagic: boolean = true, prepend: boolean = true): Uint8Array => {
     if (addMagic) {
         if (prepend) {
-            const temp = data;
+            const temp: Uint8Array = data;
             data = new Uint8Array(bz2Header.length + data.length);
             data.set(temp, bz2Header.length);
         }
@@ -30,17 +30,17 @@ export const decodeJpeg = async (data: Uint8Array | null): Promise<ImageData> =>
     }
 
     // create img element
-    const img = document.createElement('img');
+    const img: HTMLImageElement = document.createElement('img');
     img.src = 'data:image/jpeg;base64,' + btoa(String.fromCharCode(...data));
 
     // wait for img to load
-    await new Promise(resolve => (img.onload = resolve));
+    await new Promise((resolve): ((value: PromiseLike<unknown> | unknown) => void) => (img.onload = resolve));
 
     // get imagedata from img element
-    const canvas = document.createElement('canvas');
+    const canvas: HTMLCanvasElement = document.createElement('canvas');
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
+    const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d');
     if (!ctx) {
         throw new Error('Canvas 2d not found!!!!!!!!');
     }
@@ -54,7 +54,7 @@ export const arraycopy = (src: Int32Array | Uint8Array, srcPos: number, dst: Int
 
 export const bytesToBigInt = (bytes: Uint8Array): bigint => {
     let result: bigint = BigInt(0);
-    for (let index = 0; index < bytes.length; index++) {
+    for (let index: number = 0; index < bytes.length; index++) {
         result = (result << BigInt(8)) + BigInt(bytes[index]);
     }
     return result;

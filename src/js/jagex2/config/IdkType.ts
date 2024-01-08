@@ -7,9 +7,9 @@ export default class IdkType extends ConfigType {
     static instances: IdkType[] = [];
 
     static unpack = (config: Jagfile): void => {
-        const dat = new Packet(config.read('idk.dat'));
+        const dat: Packet = new Packet(config.read('idk.dat'));
         this.count = dat.g2;
-        for (let i = 0; i < this.count; i++) {
+        for (let i: number = 0; i < this.count; i++) {
             this.instances[i] = new IdkType();
             this.instances[i].decodeType(i, dat);
         }
@@ -30,10 +30,10 @@ export default class IdkType extends ConfigType {
         if (code === 1) {
             this.type = dat.g1;
         } else if (code === 2) {
-            const count = dat.g1;
+            const count: number = dat.g1;
             this.models = new Uint16Array(count);
 
-            for (let i = 0; i < count; i++) {
+            for (let i: number = 0; i < count; i++) {
                 this.models[i] = dat.g2;
             }
         } else if (code === 3) {

@@ -9,9 +9,9 @@ export default class VarpType extends ConfigType {
     static code3Count: number = 0;
 
     static unpack = (config: Jagfile): void => {
-        const dat = new Packet(config.read('varp.dat'));
+        const dat: Packet = new Packet(config.read('varp.dat'));
         this.count = dat.g2;
-        for (let i = 0; i < this.count; i++) {
+        for (let i: number = 0; i < this.count; i++) {
             this.instances[i] = new VarpType();
             this.instances[i].decodeType(i, dat);
         }

@@ -7,10 +7,10 @@ export default class PixFont {
     static CHARSET: number[] = [];
 
     static {
-        const s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
+        const s: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
 
-        for (let i = 0; i < 256; i++) {
-            let c = s.indexOf(String.fromCharCode(i));
+        for (let i: number = 0; i < 256; i++) {
+            let c: number = s.indexOf(String.fromCharCode(i));
 
             if (c === -1) {
                 c = 74; // space
@@ -30,12 +30,12 @@ export default class PixFont {
     fontHeight: number = -1;
 
     static fromArchive = (archive: Jagfile, name: string): PixFont => {
-        const dat = new Packet(archive.read(name + '.dat'));
-        const index = new Packet(archive.read('index.dat'));
+        const dat: Packet = new Packet(archive.read(name + '.dat'));
+        const index: Packet = new Packet(archive.read('index.dat'));
 
         index.pos = dat.g2 + 4; // skip cropW and cropH
 
-        const paletteCount = index.g1;
+        const paletteCount: number = index.g1;
         if (paletteCount > 0) {
             // skip palette
             index.pos += (paletteCount - 1) * 3;
@@ -43,24 +43,24 @@ export default class PixFont {
 
         const font: PixFont = new PixFont();
 
-        for (let c = 0; c < 94; c++) {
+        for (let c: number = 0; c < 94; c++) {
             font.clipX[c] = index.g1;
             font.clipY[c] = index.g1;
 
-            const width = (font.charWidth[c] = index.g2);
-            const height = (font.charHeight[c] = index.g2);
+            const width: number = (font.charWidth[c] = index.g2);
+            const height: number = (font.charHeight[c] = index.g2);
 
-            const size = width * height;
+            const size: number = width * height;
             font.pixels[c] = new Uint8Array(size);
 
-            const pixelOrder = index.g1;
+            const pixelOrder: number = index.g1;
             if (pixelOrder === 0) {
-                for (let i = 0; i < width * height; i++) {
+                for (let i: number = 0; i < width * height; i++) {
                     font.pixels[c][i] = dat.g1;
                 }
             } else if (pixelOrder === 1) {
-                for (let x = 0; x < width; x++) {
-                    for (let y = 0; y < height; y++) {
+                for (let x: number = 0; x < width; x++) {
+                    for (let y: number = 0; y < height; y++) {
                         font.pixels[c][x + y * width] = dat.g1;
                     }
                 }
@@ -74,8 +74,8 @@ export default class PixFont {
             font.charSpace[c] = width + 2;
 
             {
-                let i = 0;
-                for (let y = height / 7; y < height; y++) {
+                let i: number = 0;
+                for (let y: number = height / 7; y < height; y++) {
                     i += font.pixels[c][width + y * width];
                 }
 
@@ -86,8 +86,8 @@ export default class PixFont {
             }
 
             {
-                let i = 0;
-                for (let y = height / 7; y < height; y++) {
+                let i: number = 0;
+                for (let y: number = height / 7; y < height; y++) {
                     i += font.pixels[c][width + y * width - 1];
                 }
 
@@ -98,7 +98,7 @@ export default class PixFont {
         }
 
         font.charSpace[94] = font.charSpace[8];
-        for (let i = 0; i < 256; i++) {
+        for (let i: number = 0; i < 256; i++) {
             font.drawWidth[i] = font.charSpace[PixFont.CHARSET[i]];
         }
 
@@ -109,10 +109,10 @@ export default class PixFont {
         x = x | 0;
         y = y | 0;
 
-        const length = str.length;
+        const length: number = str.length;
         y -= this.fontHeight;
-        for (let i = 0; i < length; i++) {
-            const c = PixFont.CHARSET[str.charCodeAt(i)];
+        for (let i: number = 0; i < length; i++) {
+            const c: number = PixFont.CHARSET[str.charCodeAt(i)];
 
             if (c !== 94) {
                 this.copyCharacter(x + this.clipX[c], y + this.clipY[c], this.charWidth[c], this.charHeight[c], this.pixels[c], color);
@@ -126,14 +126,14 @@ export default class PixFont {
         x = x | 0;
         y = y | 0;
 
-        const length = str.length;
+        const length: number = str.length;
         y -= this.fontHeight;
-        for (let i = 0; i < length; i++) {
+        for (let i: number = 0; i < length; i++) {
             if (str.charAt(i) === '@' && i + 4 < length && str.charAt(i + 4) === '@') {
                 color = this.evaluateTag(str.substring(i + 1, i + 4));
                 i += 4;
             } else {
-                const c = PixFont.CHARSET[str.charCodeAt(i)];
+                const c: number = PixFont.CHARSET[str.charCodeAt(i)];
 
                 if (c !== 94) {
                     if (shadowed) {
@@ -148,9 +148,9 @@ export default class PixFont {
     };
 
     stringWidth = (str: string): number => {
-        const length = str.length;
-        let w = 0;
-        for (let i = 0; i < length; i++) {
+        const length: number = str.length;
+        let w: number = 0;
+        for (let i: number = 0; i < length; i++) {
             if (str.charAt(i) === '@' && i + 4 < length && str.charAt(i + 4) === '@') {
                 i += 4;
             } else {
@@ -162,10 +162,10 @@ export default class PixFont {
     };
 
     drawString = (x: number, y: number, str: string, color: number): void => {
-        const offY = y - this.fontHeight;
+        const offY: number = y - this.fontHeight;
 
-        for (let i = 0; i < str.length; i++) {
-            const c = PixFont.CHARSET[str.charCodeAt(i)];
+        for (let i: number = 0; i < str.length; i++) {
+            const c: number = PixFont.CHARSET[str.charCodeAt(i)];
             if (c != 94) {
                 this.drawChar(this.pixels[c], x + this.clipX[c], offY + this.clipY[c], this.charWidth[c], this.charHeight[c], color);
             }
@@ -195,14 +195,14 @@ export default class PixFont {
         w = w | 0;
         h = h | 0;
 
-        let dstOff = x + y * Draw2D.width;
-        let dstStep = Draw2D.width - w;
+        let dstOff: number = x + y * Draw2D.width;
+        let dstStep: number = Draw2D.width - w;
 
-        let srcStep = 0;
-        let srcOff = 0;
+        let srcStep: number = 0;
+        let srcOff: number = 0;
 
         if (y < Draw2D.top) {
-            const cutoff = Draw2D.top - y;
+            const cutoff: number = Draw2D.top - y;
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
@@ -214,7 +214,7 @@ export default class PixFont {
         }
 
         if (x < Draw2D.left) {
-            const cutoff = Draw2D.left - x;
+            const cutoff: number = Draw2D.left - x;
             w -= cutoff;
             x = Draw2D.left;
             srcOff += cutoff;
@@ -224,7 +224,7 @@ export default class PixFont {
         }
 
         if (x + w >= Draw2D.right) {
-            const cutoff = x + w + 1 - Draw2D.right;
+            const cutoff: number = x + w + 1 - Draw2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
@@ -239,11 +239,11 @@ export default class PixFont {
         w = w | 0;
         h = h | 0;
 
-        const hw = -(w >> 2);
+        const hw: number = -(w >> 2);
         w = -(w & 0x3);
 
-        for (let y = -h; y < 0; y++) {
-            for (let x = hw; x < 0; x++) {
+        for (let y: number = -h; y < 0; y++) {
+            for (let x: number = hw; x < 0; x++) {
                 if (src[srcOff++] == 0) {
                     dstOff++;
                 } else {
@@ -269,7 +269,7 @@ export default class PixFont {
                 }
             }
 
-            for (let x = w; x < 0; x++) {
+            for (let x: number = w; x < 0; x++) {
                 if (src[srcOff++] == 0) {
                     dstOff++;
                 } else {
@@ -288,14 +288,14 @@ export default class PixFont {
         w = w | 0;
         h = h | 0;
 
-        let dstOff = x + y * Draw2D.width;
-        let srcOff = 0;
+        let dstOff: number = x + y * Draw2D.width;
+        let srcOff: number = 0;
 
-        let dstStep = Draw2D.width - w;
-        let srcStep = 0;
+        let dstStep: number = Draw2D.width - w;
+        let srcStep: number = 0;
 
         if (y < Draw2D.top) {
-            const cutoff = Draw2D.top - y;
+            const cutoff: number = Draw2D.top - y;
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
@@ -307,7 +307,7 @@ export default class PixFont {
         }
 
         if (x < Draw2D.left) {
-            const cutoff = Draw2D.left - x;
+            const cutoff: number = Draw2D.left - x;
             w -= cutoff;
             x = Draw2D.left;
             srcOff += cutoff;
@@ -317,7 +317,7 @@ export default class PixFont {
         }
 
         if (x + w > Draw2D.right) {
-            const cutoff = x + w + 1 - Draw2D.right;
+            const cutoff: number = x + w + 1 - Draw2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
@@ -329,8 +329,8 @@ export default class PixFont {
     };
 
     copyImageMasked = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, color: number): void => {
-        for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
+        for (let y: number = 0; y < h; y++) {
+            for (let x: number = 0; x < w; x++) {
                 if (src[srcOff++] != 0) {
                     dst[dstOff++] = color;
                 } else {

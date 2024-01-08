@@ -270,8 +270,8 @@ class Client extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            const checksums = new Packet(await downloadUrl(`${Client.HOST}/crc`));
-            for (let i = 0; i < 9; i++) {
+            const checksums: Packet = new Packet(await downloadUrl(`${Client.HOST}/crc`));
+            for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
 
@@ -287,13 +287,13 @@ class Client extends GameShell {
             await this.loadTitleBackground();
             this.loadTitleImages();
 
-            const config = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
-            const interfaces = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
-            const media = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
-            const models = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
-            const textures = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
-            const wordenc = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
-            const sounds = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
+            const config: Jagfile = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
+            const interfaces: Jagfile = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
+            const media: Jagfile = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
+            const models: Jagfile = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
+            const textures: Jagfile = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
+            const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
+            const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
             await this.showProgress(75, 'Unpacking media');
             this.imageInvback = Pix8.fromArchive(media, 'invback', 0);
@@ -302,13 +302,13 @@ class Client extends GameShell {
             this.imageBackbase1 = Pix8.fromArchive(media, 'backbase1', 0);
             this.imageBackbase2 = Pix8.fromArchive(media, 'backbase2', 0);
             this.imageBackhmid1 = Pix8.fromArchive(media, 'backhmid1', 0);
-            for (let i = 0; i < 13; i++) {
+            for (let i: number = 0; i < 13; i++) {
                 this.imageSideicons[i] = Pix8.fromArchive(media, 'sideicons', i);
             }
             this.imageCompass = Pix24.fromArchive(media, 'compass', 0);
 
             try {
-                for (let i = 0; i < 50; i++) {
+                for (let i: number = 0; i < 50; i++) {
                     this.imageMapscene[i] = Pix8.fromArchive(media, 'mapscene', i);
                 }
             } catch (e) {
@@ -316,7 +316,7 @@ class Client extends GameShell {
             }
 
             try {
-                for (let i = 0; i < 50; i++) {
+                for (let i: number = 0; i < 50; i++) {
                     this.imageMapfunction[i] = Pix24.fromArchive(media, 'mapfunction', i);
                 }
             } catch (e) {
@@ -324,7 +324,7 @@ class Client extends GameShell {
             }
 
             try {
-                for (let i = 0; i < 20; i++) {
+                for (let i: number = 0; i < 20; i++) {
                     this.imageHitmarks[i] = Pix24.fromArchive(media, 'hitmarks', i);
                 }
             } catch (e) {
@@ -332,7 +332,7 @@ class Client extends GameShell {
             }
 
             try {
-                for (let i = 0; i < 20; i++) {
+                for (let i: number = 0; i < 20; i++) {
                     this.imageHeadicons[i] = Pix24.fromArchive(media, 'headicons', i);
                 }
             } catch (e) {
@@ -340,7 +340,7 @@ class Client extends GameShell {
             }
 
             this.imageMapflag = Pix24.fromArchive(media, 'mapflag', 0);
-            for (let i = 0; i < 8; i++) {
+            for (let i: number = 0; i < 8; i++) {
                 this.imageCrosses[i] = Pix24.fromArchive(media, 'cross', i);
             }
             this.imageMapdot0 = Pix24.fromArchive(media, 'mapdots', 0);
@@ -368,43 +368,43 @@ class Client extends GameShell {
             this.imageRedstone2hv = Pix8.fromArchive(media, 'redstone2', 0);
             this.imageRedstone2hv?.flipHorizontally();
             this.imageRedstone2hv?.flipVertically();
-            const canvas = this.canvas;
-            const backleft1 = Pix24.fromArchive(media, 'backleft1', 0);
+            const canvas: HTMLCanvasElement = this.canvas;
+            const backleft1: Pix24 = Pix24.fromArchive(media, 'backleft1', 0);
             this.areaBackleft1 = new PixMap(canvas, backleft1.width, backleft1.height);
             backleft1.blitOpaque(0, 0);
-            const backleft2 = Pix24.fromArchive(media, 'backleft2', 0);
+            const backleft2: Pix24 = Pix24.fromArchive(media, 'backleft2', 0);
             this.areaBackleft2 = new PixMap(canvas, backleft2.width, backleft2.height);
             backleft2.blitOpaque(0, 0);
-            const backright1 = Pix24.fromArchive(media, 'backright1', 0);
+            const backright1: Pix24 = Pix24.fromArchive(media, 'backright1', 0);
             this.areaBackright1 = new PixMap(canvas, backright1.width, backright1.height);
             backright1.blitOpaque(0, 0);
-            const backright2 = Pix24.fromArchive(media, 'backright2', 0);
+            const backright2: Pix24 = Pix24.fromArchive(media, 'backright2', 0);
             this.areaBackright2 = new PixMap(canvas, backright2.width, backright2.height);
             backright2.blitOpaque(0, 0);
-            const backtop1 = Pix24.fromArchive(media, 'backtop1', 0);
+            const backtop1: Pix24 = Pix24.fromArchive(media, 'backtop1', 0);
             this.areaBacktop1 = new PixMap(canvas, backtop1.width, backtop1.height);
             backtop1.blitOpaque(0, 0);
-            const backtop2 = Pix24.fromArchive(media, 'backtop2', 0);
+            const backtop2: Pix24 = Pix24.fromArchive(media, 'backtop2', 0);
             this.areaBacktop2 = new PixMap(canvas, backtop2.width, backtop2.height);
             backtop2.blitOpaque(0, 0);
-            const backvmid1 = Pix24.fromArchive(media, 'backvmid1', 0);
+            const backvmid1: Pix24 = Pix24.fromArchive(media, 'backvmid1', 0);
             this.areaBackvmid1 = new PixMap(canvas, backvmid1.width, backvmid1.height);
             backvmid1.blitOpaque(0, 0);
-            const backvmid2 = Pix24.fromArchive(media, 'backvmid2', 0);
+            const backvmid2: Pix24 = Pix24.fromArchive(media, 'backvmid2', 0);
             this.areaBackvmid2 = new PixMap(canvas, backvmid2.width, backvmid2.height);
             backvmid2.blitOpaque(0, 0);
-            const backvmid3 = Pix24.fromArchive(media, 'backvmid3', 0);
+            const backvmid3: Pix24 = Pix24.fromArchive(media, 'backvmid3', 0);
             this.areaBackvmid3 = new PixMap(canvas, backvmid3.width, backvmid3.height);
             backvmid3.blitOpaque(0, 0);
-            const backhmid2 = Pix24.fromArchive(media, 'backhmid2', 0);
+            const backhmid2: Pix24 = Pix24.fromArchive(media, 'backhmid2', 0);
             this.areaBackhmid2 = new PixMap(canvas, backhmid2.width, backhmid2.height);
             backhmid2.blitOpaque(0, 0);
 
-            const randR = Math.trunc(Math.random() * 21.0) - 10;
-            const randG = Math.trunc(Math.random() * 21.0) - 10;
-            const randB = Math.trunc(Math.random() * 21.0) - 10;
-            const rand = Math.trunc(Math.random() * 41.0) - 20;
-            for (let i = 0; i < 50; i++) {
+            const randR: number = Math.trunc(Math.random() * 21.0) - 10;
+            const randG: number = Math.trunc(Math.random() * 21.0) - 10;
+            const randB: number = Math.trunc(Math.random() * 21.0) - 10;
+            const rand: number = Math.trunc(Math.random() * 41.0) - 20;
+            for (let i: number = 0; i < 50; i++) {
                 if (this.imageMapfunction[i] != null) {
                     this.imageMapfunction[i].translate(randR + rand, randG + rand, randB + rand);
                 }
@@ -443,10 +443,10 @@ class Client extends GameShell {
             ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
             await this.showProgress(97, 'Preparing game engine');
-            for (let y = 0; y < 33; y++) {
-                let left = 999;
-                let right = 0;
-                for (let x = 0; x < 35; x++) {
+            for (let y: number = 0; y < 33; y++) {
+                let left: number = 999;
+                let right: number = 0;
+                for (let x: number = 0; x < 35; x++) {
                     if (this.imageMapback.pixels[x + y * this.imageMapback.width] == 0) {
                         if (left == 999) {
                             left = x;
@@ -460,10 +460,10 @@ class Client extends GameShell {
                 this.compassMaskLineLengths[y] = right - left;
             }
 
-            for (let y = 9; y < 160; y++) {
-                let left = 999;
-                let right = 0;
-                for (let x = 10; x < 168; x++) {
+            for (let y: number = 9; y < 160; y++) {
+                let left: number = 999;
+                let right: number = 0;
+                for (let x: number = 10; x < 168; x++) {
                     if (this.imageMapback.pixels[x + y * this.imageMapback.width] == 0 && (x > 34 || y > 34)) {
                         if (left == 999) {
                             left = x;
@@ -485,10 +485,10 @@ class Client extends GameShell {
             this.areaViewportOffsets = Draw3D.lineOffset;
 
             const distance: Int32Array = new Int32Array(9);
-            for (let x = 0; x < 9; x++) {
-                const angle = x * 32 + 128 + 15;
-                const offset = angle * 3 + 600;
-                const sin = Draw3D.sin[angle];
+            for (let x: number = 0; x < 9; x++) {
+                const angle: number = x * 32 + 128 + 15;
+                const offset: number = angle * 3 + 600;
+                const sin: number = Draw3D.sin[angle];
                 distance[x] = (offset * sin) >> 16;
             }
 
@@ -540,12 +540,12 @@ class Client extends GameShell {
 
         this.imageTitle4?.bind();
 
-        const x = 360;
-        const y = 200;
+        const x: number = 360;
+        const y: number = 200;
 
-        const offsetY = 20;
+        const offsetY: number = 20;
         this.fontBold12?.drawStringCenter(x / 2, y / 2 - offsetY - 26, 'RuneScape is loading - please wait...', 0xffffff);
-        const midY = y / 2 - 18 - offsetY;
+        const midY: number = y / 2 - 18 - offsetY;
 
         Draw2D.drawRect(x / 2 - 152, midY, 304, 34, 0x8c1111);
         Draw2D.drawRect(x / 2 - 151, midY + 1, 302, 32, 0x000000);
@@ -585,7 +585,7 @@ class Client extends GameShell {
             this.areaBackbase2 = null;
             this.areaBackhmid1 = null;
 
-            const canvas = this.canvas;
+            const canvas: HTMLCanvasElement = this.canvas;
             this.imageTitle0 = new PixMap(canvas, 128, 265);
             Draw2D.clear();
 
@@ -625,7 +625,7 @@ class Client extends GameShell {
         if (!this.titleArchive) {
             return;
         }
-        const background = await Pix24.fromJpeg(this.titleArchive, 'title');
+        const background: Pix24 = await Pix24.fromJpeg(this.titleArchive, 'title');
 
         this.imageTitle0?.bind();
         background.blitOpaque(0, 0);
@@ -684,49 +684,49 @@ class Client extends GameShell {
         this.imageTitle8?.bind();
         background.blitOpaque(-180, -186);
 
-        const logo = Pix24.fromArchive(this.titleArchive, 'logo');
+        const logo: Pix24 = Pix24.fromArchive(this.titleArchive, 'logo');
         this.imageTitle2?.bind();
         logo.draw(this.width / 2 - logo.width / 2 - 128, 18);
     };
 
     private updateFlameBuffer = (image: Pix8 | null): void => {
-        const flameHeight = 256;
+        const flameHeight: number = 256;
 
         // Clears the initial flame buffer
-        for (let i = 0; i < 32768; i++) {
+        for (let i: number = 0; i < 32768; i++) {
             this.flameBuffer0[i] = 0;
         }
 
         // Blends the fire at random
-        for (let i = 0; i < 5000; i++) {
-            const rand = Math.trunc(Math.random() * 128.0 * flameHeight);
+        for (let i: number = 0; i < 5000; i++) {
+            const rand: number = Math.trunc(Math.random() * 128.0 * flameHeight);
             this.flameBuffer0[rand] = Math.trunc(Math.random() * 256.0);
         }
 
         // changes color between last few flames
-        for (let i = 0; i < 20; i++) {
-            for (let y = 1; y < Math.trunc(flameHeight) - 1; y++) {
-                for (let x = 1; x < 127; x++) {
-                    const index = x + (y << 7);
+        for (let i: number = 0; i < 20; i++) {
+            for (let y: number = 1; y < Math.trunc(flameHeight) - 1; y++) {
+                for (let x: number = 1; x < 127; x++) {
+                    const index: number = x + (y << 7);
                     this.flameBuffer1[index] = ((this.flameBuffer0[index - 1] + this.flameBuffer0[index + 1] + this.flameBuffer0[index - 128] + this.flameBuffer0[index + 128]) / 4) | 0;
                 }
             }
 
-            const last = this.flameBuffer0;
+            const last: number[] = this.flameBuffer0;
             this.flameBuffer0 = this.flameBuffer1;
             this.flameBuffer1 = last;
         }
 
         // Renders the rune images
         if (image != null) {
-            let off = 0;
+            let off: number = 0;
 
-            for (let y = 0; y < image.height; y++) {
-                for (let x = 0; x < image.width; x++) {
+            for (let y: number = 0; y < image.height; y++) {
+                for (let x: number = 0; x < image.width; x++) {
                     if (image.pixels[off++] != 0) {
-                        const x0 = x + image.cropX + 16;
-                        const y0 = y + image.cropY + 16;
-                        const index = x0 + (y0 << 7);
+                        const x0: number = x + image.cropX + 16;
+                        const y0: number = y + image.cropY + 16;
+                        const index: number = x0 + (y0 << 7);
                         this.flameBuffer0[index] = 0;
                     }
                 }
@@ -740,7 +740,7 @@ class Client extends GameShell {
         }
         this.imageTitlebox = Pix8.fromArchive(this.titleArchive, 'titlebox');
         this.imageTitlebutton = Pix8.fromArchive(this.titleArchive, 'titlebutton');
-        for (let i = 0; i < 12; i++) {
+        for (let i: number = 0; i < 12; i++) {
             this.imageRunes[i] = Pix8.fromArchive(this.titleArchive, 'runes', i);
         }
         this.imageFlamesLeft = new Pix24(128, 265);
@@ -750,42 +750,42 @@ class Client extends GameShell {
         if (this.imageTitle1) arraycopy(this.imageTitle1.pixels, 0, this.imageFlamesRight.pixels, 0, 33920);
 
         this.flameGradient0 = [];
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient0[index] = index * 262144;
         }
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient0[index + 64] = index * 1024 + 16711680;
         }
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient0[index + 128] = index * 4 + 16776960;
         }
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient0[index + 192] = 16777215;
         }
         this.flameGradient1 = [];
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient1[index] = index * 1024;
         }
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient1[index + 64] = index * 4 + 65280;
         }
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient1[index + 128] = index * 262144 + 65535;
         }
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient1[index + 192] = 16777215;
         }
         this.flameGradient2 = [];
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient2[index] = index * 4;
         }
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient2[index + 64] = index * 262144 + 255;
         }
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient2[index + 128] = index * 1024 + 16711935;
         }
-        for (let index = 0; index < 64; index++) {
+        for (let index: number = 0; index < 64; index++) {
             this.flameGradient2[index + 192] = 16777215;
         }
 
@@ -796,7 +796,7 @@ class Client extends GameShell {
         this.flameBuffer3 = [];
         this.flameBuffer2 = [];
 
-        this.showProgress(10, 'Connecting to fileserver').then(() => {
+        this.showProgress(10, 'Connecting to fileserver').then((): void => {
             if (!this.flameActive) {
                 this.flameActive = true;
                 this.flamesInterval = setInterval(this.runFlames, 35);
@@ -806,8 +806,8 @@ class Client extends GameShell {
 
     private updateTitleScreen = async (): Promise<void> => {
         if (this.titleScreenState === 0) {
-            let x = this.width / 2 - 80;
-            let y = this.height / 2 + 20;
+            let x: number = this.width / 2 - 80;
+            let y: number = this.height / 2 + 20;
 
             y += 20;
             if (this.mouseClickButton == 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
@@ -823,7 +823,7 @@ class Client extends GameShell {
                 this.titleLoginField = 0;
             }
         } else if (this.titleScreenState == 2) {
-            let y = this.height / 2 - 40;
+            let y: number = this.height / 2 - 40;
             y += 30;
             y += 25;
 
@@ -837,8 +837,8 @@ class Client extends GameShell {
             }
             // y += 15; dead code
 
-            let buttonX = this.width / 2 - 80;
-            let buttonY = this.height / 2 + 50;
+            let buttonX: number = this.width / 2 - 80;
+            let buttonY: number = this.height / 2 + 50;
             buttonY += 20;
 
             if (this.mouseClickButton == 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
@@ -854,13 +854,13 @@ class Client extends GameShell {
 
             // eslint-disable-next-line no-constant-condition
             while (true) {
-                const key = this.pollKey();
+                const key: number = this.pollKey();
                 if (key == -1) {
                     return;
                 }
 
-                let valid = false;
-                for (let i = 0; i < Client.CHARSET.length; i++) {
+                let valid: boolean = false;
+                for (let i: number = 0; i < Client.CHARSET.length; i++) {
                     if (String.fromCharCode(key) === Client.CHARSET.charAt(i)) {
                         valid = true;
                         break;
@@ -902,8 +902,8 @@ class Client extends GameShell {
                 }
             }
         } else if (this.titleScreenState == 3) {
-            const x = this.width / 2;
-            let y = this.height / 2 + 50;
+            const x: number = this.width / 2;
+            let y: number = this.height / 2 + 50;
             y += 20;
 
             if (this.mouseClickButton == 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
@@ -917,12 +917,12 @@ class Client extends GameShell {
         this.imageTitle4?.bind();
         this.imageTitlebox?.draw(0, 0);
 
-        const w = 360;
-        const h = 200;
+        const w: number = 360;
+        const h: number = 200;
 
         if (this.titleScreenState === 0) {
-            let x = w / 2;
-            let y = h / 2 - 20;
+            let x: number = w / 2;
+            let y: number = h / 2 - 20;
             this.fontBold12?.drawStringTaggableCenter(x, y, 'Welcome to RuneScape', 0xffffff00, true);
 
             x = w / 2 - 80;
@@ -934,8 +934,8 @@ class Client extends GameShell {
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Existing User', 0xffffffff, true);
         } else if (this.titleScreenState === 2) {
-            let x = w / 2 - 80;
-            let y = h / 2 - 40;
+            let x: number = w / 2 - 80;
+            let y: number = h / 2 - 40;
             if (this.loginMessage0.length > 0) {
                 this.fontBold12?.drawStringTaggableCenter(w / 2, y - 15, this.loginMessage0, 0xffff00, true);
                 this.fontBold12?.drawStringTaggableCenter(w / 2, y, this.loginMessage1, 0xffff00, true);
@@ -961,8 +961,8 @@ class Client extends GameShell {
         } else if (this.titleScreenState == 3) {
             this.fontBold12?.drawStringTaggableCenter(w / 2, 16776960, 'Create a free account', h / 2 - 60, true);
 
-            const x = w / 2;
-            let y = h / 2 - 35;
+            const x: number = w / 2;
+            let y: number = h / 2 - 35;
 
             this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'To create a new account you need to', 0xffffff, true);
             y += 15;
@@ -1026,12 +1026,12 @@ class Client extends GameShell {
             this.loginout.p1(this.out.pos + 36 + 1 + 1);
             this.loginout.p1(225);
             this.loginout.p1(Client.LOW_MEMORY ? 1 : 0);
-            for (let i = 0; i < 9; i++) {
+            for (let i: number = 0; i < 9; i++) {
                 this.loginout.p4(this.archiveChecksums[i]);
             }
             this.loginout.pdata(this.out.data, this.out.pos, 0);
             this.stream.write(this.loginout.data, this.loginout.pos, 0);
-            const reply = await this.stream.read();
+            const reply: number = await this.stream.read();
             console.log(`Login reply was: ${reply}`);
 
             if (reply === 1) {
@@ -1224,7 +1224,7 @@ class Client extends GameShell {
             this.idleTimeout--;
         }
 
-        for (let i = 0; i < 5 && (await this.read()); i++) {
+        for (let i: number = 0; i < 5 && (await this.read()); i++) {
             /* empty */
         }
 
@@ -1413,7 +1413,7 @@ class Client extends GameShell {
                 // this.applyCutscene();
             }
 
-            for (let i = 0; i < 5; i++) {
+            for (let i: number = 0; i < 5; i++) {
                 // this.cameraModifierCycle[i]++;
             }
 
@@ -1428,7 +1428,7 @@ class Client extends GameShell {
             this.cameraOffsetCycle++;
             if (this.cameraOffsetCycle > 500) {
                 this.cameraOffsetCycle = 0;
-                const rand = Math.trunc(Math.random() * 8.0);
+                const rand: number = Math.trunc(Math.random() * 8.0);
                 if ((rand & 0x1) == 1) {
                     this.cameraAnticheatOffsetX += this.cameraOffsetXModifier;
                 }
@@ -1462,7 +1462,7 @@ class Client extends GameShell {
             this.minimapOffsetCycle++;
             if (this.minimapOffsetCycle > 500) {
                 this.minimapOffsetCycle = 0;
-                const rand = Math.trunc(Math.random() * 8.0);
+                const rand: number = Math.trunc(Math.random() * 8.0);
                 if ((rand & 0x1) == 1) {
                     this.minimapAnticheatAngle += this.minimapAngleModifier;
                 }
@@ -1527,7 +1527,7 @@ class Client extends GameShell {
         if (this.menuVisible && this.menuArea == 1) {
             this.redrawSidebar = true;
         }
-        let redraw = false;
+        let redraw: boolean = false;
         if (this.sidebarInterfaceId != -1) {
             redraw = this.updateInterfaceAnimation(this.sidebarInterfaceId, this.sceneDelta);
             if (redraw) {
@@ -1550,7 +1550,7 @@ class Client extends GameShell {
                 this.handleScrollInput(this.mouseX - 22, this.mouseY - 375, this.chatScrollHeight, 77, false, 463, 0, this.chatInterface);
             }
 
-            let offset = this.chatScrollHeight - this.chatInterface.scrollPosition - 77;
+            let offset: number = this.chatScrollHeight - this.chatInterface.scrollPosition - 77;
             if (offset < 0) {
                 offset = 0;
             }
@@ -1787,13 +1787,13 @@ class Client extends GameShell {
         } else if (this.chatInterfaceId != -1) {
             this.drawInterface(ComType.instances[this.chatInterfaceId], 0, 0, 0);
         } else if (this.stickyChatInterfaceId == -1) {
-            const font = this.fontPlain12;
-            let line = 0;
+            const font: PixFont | null = this.fontPlain12;
+            let line: number = 0;
             Draw2D.setBounds(77, 463, 0, 0);
-            for (let i = 0; i < 100; i++) {
+            for (let i: number = 0; i < 100; i++) {
                 if (this.messageText[i] != null) {
-                    const type = this.messageType[i];
-                    const offset = this.chatScrollOffset + 70 - line * 14;
+                    const type: number = this.messageType[i];
+                    const offset: number = this.chatScrollOffset + 70 - line * 14;
                     if (type === 0) {
                         if (offset > 0 && offset < 110) {
                             font?.drawString(4, offset, this.messageText[i], 0);
@@ -1875,12 +1875,12 @@ class Client extends GameShell {
         this.imageScrollbar1?.draw(x, y + height - 16);
         Draw2D.fillRect(x, y + 16, 16, height - 32, this.SCROLLBAR_TRACK);
 
-        let gripSize = (((height - 32) * height) / scrollHeight) | 0;
+        let gripSize: number = (((height - 32) * height) / scrollHeight) | 0;
         if (gripSize < 8) {
             gripSize = 8;
         }
 
-        const gripY = (((height - gripSize - 32) * scrollY) / (scrollHeight - height)) | 0;
+        const gripY: number = (((height - gripSize - 32) * scrollY) / (scrollHeight - height)) | 0;
         Draw2D.fillRect(x, y + gripY + 16, 16, gripSize, this.SCROLLBAR_GRIP_FOREGROUND);
 
         Draw2D.drawVerticalLine(x, y + gripY + 16, this.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
@@ -1901,23 +1901,23 @@ class Client extends GameShell {
             return;
         }
 
-        const left = Draw2D.left;
-        const top = Draw2D.top;
-        const right = Draw2D.right;
-        const bottom = Draw2D.bottom;
+        const left: number = Draw2D.left;
+        const top: number = Draw2D.top;
+        const right: number = Draw2D.right;
+        const bottom: number = Draw2D.bottom;
 
         Draw2D.setBounds(y + com.height, x + com.width, y, x);
-        const children = com.childId.length;
+        const children: number = com.childId.length;
 
-        for (let i = 0; i < children; i++) {
+        for (let i: number = 0; i < children; i++) {
             if (!com.childX || !com.childY) {
                 continue;
             }
 
-            let childX = com.childX[i] + x;
-            let childY = com.childY[i] + y - scrollY;
+            let childX: number = com.childX[i] + x;
+            let childY: number = com.childY[i] + y - scrollY;
 
-            const child = ComType.instances[com.childId[i]];
+            const child: ComType = ComType.instances[com.childId[i]];
             childX += child.x;
             childY += child.y;
 
@@ -1939,16 +1939,16 @@ class Client extends GameShell {
                     this.drawScrollbar(childX + child.width, childY, child.scrollPosition, child.scrollableHeight, child.height);
                 }
             } else if (child.type == 2) {
-                let slot = 0;
+                let slot: number = 0;
 
-                for (let row = 0; row < child.height; row++) {
-                    for (let col = 0; col < child.width; col++) {
+                for (let row: number = 0; row < child.height; row++) {
+                    for (let col: number = 0; col < child.width; col++) {
                         if (!child.inventorySlotOffsetX || !child.inventorySlotOffsetY || !child.inventorySlotObjId || !child.inventorySlotObjCount) {
                             continue;
                         }
 
-                        let slotX = childX + col * (child.inventoryMarginX + 32);
-                        let slotY = childY + row * (child.inventoryMarginY + 32);
+                        let slotX: number = childX + col * (child.inventoryMarginX + 32);
+                        let slotY: number = childY + row * (child.inventoryMarginY + 32);
 
                         if (slot < 20) {
                             slotX += child.inventorySlotOffsetX[slot];
@@ -1956,12 +1956,12 @@ class Client extends GameShell {
                         }
 
                         if (child.inventorySlotObjId[slot] > 0) {
-                            let dx = 0;
-                            let dy = 0;
-                            const id = child.inventorySlotObjId[slot] - 1;
+                            let dx: number = 0;
+                            let dy: number = 0;
+                            const id: number = child.inventorySlotObjId[slot] - 1;
 
                             if ((slotX >= -32 && slotX <= 512 && slotY >= -32 && slotY <= 334) || (this.objDragArea != 0 && this.objDragSlot == slot)) {
-                                const icon = ObjType.getIcon(id, child.inventorySlotObjCount[slot]);
+                                const icon: Pix24 = ObjType.getIcon(id, child.inventorySlotObjCount[slot]);
                                 if (this.objDragArea != 0 && this.objDragSlot == slot && this.objDragInterfaceId == child.id) {
                                     dx = this.mouseX - this.objGrabX;
                                     dy = this.mouseY - this.objGrabY;
@@ -1987,13 +1987,13 @@ class Client extends GameShell {
                                 }
 
                                 if (icon.cropW == 33 || child.inventorySlotObjCount[slot] != 1) {
-                                    const count = child.inventorySlotObjCount[slot];
+                                    const count: number = child.inventorySlotObjCount[slot];
                                     this.fontPlain11?.drawString(slotX + dx + 1, slotY + 10 + dy, this.formatObjCount(count), 0);
                                     this.fontPlain11?.drawString(slotX + dx, slotY + 9 + dy, this.formatObjCount(count), 0xffff00);
                                 }
                             }
                         } else if (child.inventorySlotImage != null && slot < 20) {
-                            const image = child.inventorySlotImage[slot];
+                            const image: Pix24 = child.inventorySlotImage[slot];
 
                             if (image != null) {
                                 image.draw(slotX, slotY);
@@ -2010,9 +2010,9 @@ class Client extends GameShell {
                     Draw2D.drawRect(childX, childY, child.color, child.width, child.height);
                 }
             } else if (child.type == 4) {
-                const font = child.font;
-                let color = child.color;
-                let text = child.text;
+                const font: PixFont | null = child.font;
+                let color: number = child.color;
+                let text: string | null = child.text;
 
                 if ((this.chatHoveredInterfaceIndex == child.id || this.sidebarHoveredInterfaceIndex == child.id || this.viewportHoveredInterfaceIndex == child.id) && child.hoverColor != 0) {
                     color = child.hoverColor;
@@ -2035,10 +2035,10 @@ class Client extends GameShell {
                     continue;
                 }
 
-                for (let lineY = childY + font.fontHeight; text.length > 0; lineY += font.fontHeight) {
+                for (let lineY: number = childY + font.fontHeight; text.length > 0; lineY += font.fontHeight) {
                     if (text.indexOf('%') != -1) {
                         do {
-                            const index = text.indexOf('%1');
+                            const index: number = text.indexOf('%1');
                             if (index == -1) {
                                 break;
                             }
@@ -2048,7 +2048,7 @@ class Client extends GameShell {
                         } while (true);
 
                         do {
-                            const index = text.indexOf('%2');
+                            const index: number = text.indexOf('%2');
                             if (index == -1) {
                                 break;
                             }
@@ -2058,7 +2058,7 @@ class Client extends GameShell {
                         } while (true);
 
                         do {
-                            const index = text.indexOf('%3');
+                            const index: number = text.indexOf('%3');
                             if (index == -1) {
                                 break;
                             }
@@ -2068,7 +2068,7 @@ class Client extends GameShell {
                         } while (true);
 
                         do {
-                            const index = text.indexOf('%4');
+                            const index: number = text.indexOf('%4');
                             if (index == -1) {
                                 break;
                             }
@@ -2078,7 +2078,7 @@ class Client extends GameShell {
                         } while (true);
 
                         do {
-                            const index = text.indexOf('%5');
+                            const index: number = text.indexOf('%5');
                             if (index == -1) {
                                 break;
                             }
@@ -2088,7 +2088,7 @@ class Client extends GameShell {
                         } while (true);
                     }
 
-                    const newline = text.indexOf('\\n');
+                    const newline: number = text.indexOf('\\n');
                     let split: string;
                     if (newline != -1) {
                         split = text.substring(0, newline);
@@ -2116,16 +2116,16 @@ class Client extends GameShell {
                     image.draw(childX, childY);
                 }
             } else if (child.type == 6) {
-                const tmpX = Draw3D.centerX;
-                const tmpY = Draw3D.centerY;
+                const tmpX: number = Draw3D.centerX;
+                const tmpY: number = Draw3D.centerY;
 
                 Draw3D.centerX = childX + child.width / 2;
                 Draw3D.centerY = childY + child.height / 2;
 
-                const eyeY = (Draw3D.sin[child.modelPitch] * child.modelZoom) >> 16;
-                const eyeZ = (Draw3D.cos[child.modelPitch] * child.modelZoom) >> 16;
+                const eyeY: number = (Draw3D.sin[child.modelPitch] * child.modelZoom) >> 16;
+                const eyeZ: number = (Draw3D.cos[child.modelPitch] * child.modelZoom) >> 16;
 
-                const active = this.executeInterfaceScript(child);
+                const active: boolean = this.executeInterfaceScript(child);
                 let seqId: number;
                 if (active) {
                     seqId = child.activeSeqId;
@@ -2137,7 +2137,7 @@ class Client extends GameShell {
                 if (seqId == -1) {
                     model = child.getModel(-1, -1, active);
                 } else {
-                    const seq = SeqType.instances[seqId];
+                    const seq: SeqType = SeqType.instances[seqId];
                     if (seq.frames && seq.iframes) {
                         model = child.getModel(seq.frames[child.seqFrame], seq.iframes[child.seqFrame], active);
                     }
@@ -2150,17 +2150,17 @@ class Client extends GameShell {
                 Draw3D.centerX = tmpX;
                 Draw3D.centerY = tmpY;
             } else if (child.type == 7) {
-                const font = child.font;
+                const font: PixFont | null = child.font;
                 if (!font || !child.inventorySlotObjId || !child.inventorySlotObjCount) {
                     continue;
                 }
 
-                let slot = 0;
-                for (let row = 0; row < child.height; row++) {
-                    for (let col = 0; col < child.width; col++) {
+                let slot: number = 0;
+                for (let row: number = 0; row < child.height; row++) {
+                    for (let col: number = 0; col < child.width; col++) {
                         if (child.inventorySlotObjId[slot] > 0) {
-                            const obj = ObjType.get(child.inventorySlotObjId[slot] - 1);
-                            let text = obj.name;
+                            const obj: ObjType = ObjType.get(child.inventorySlotObjId[slot] - 1);
+                            let text: string | null = obj.name;
                             if (obj.stackable || child.inventorySlotObjCount[slot] != 1) {
                                 text = text + ' x' + this.formatObjCountTagged(child.inventorySlotObjCount[slot]);
                             }
@@ -2169,8 +2169,8 @@ class Client extends GameShell {
                                 continue;
                             }
 
-                            const textX = childX + col * (child.inventoryMarginX + 115);
-                            const textY = childY + row * (child.inventoryMarginY + 12);
+                            const textX: number = childX + col * (child.inventoryMarginX + 115);
+                            const textY: number = childY + row * (child.inventoryMarginY + 12);
 
                             if (child.center) {
                                 font.drawStringTaggableCenter(textX + child.width / 2, textY, text, child.color, child.shadow);
@@ -2193,34 +2193,34 @@ class Client extends GameShell {
     };
 
     private drawMenu = (): void => {
-        const x = this.menuX;
-        const y = this.menuY;
-        const w = this.menuWidth;
-        const h = this.menuHeight;
-        const background = 0x5d5447;
+        const x: number = this.menuX;
+        const y: number = this.menuY;
+        const w: number = this.menuWidth;
+        const h: number = this.menuHeight;
+        const background: number = 0x5d5447;
         Draw2D.fillRect(x, y, w, h, background);
         Draw2D.fillRect(x + 1, y + 1, w - 2, 16, 0);
         Draw2D.drawRect(x + 1, y + 18, w - 2, h - 19, 0);
 
         this.fontBold12?.drawString(x + 3, y + 14, 'Choose Option', background);
-        let mouseX = this.mouseX;
-        let mouseY = this.mouseY;
+        let mouseX: number = this.mouseX;
+        let mouseY: number = this.mouseY;
         if (this.menuArea == 0) {
             mouseX -= 8;
             mouseY -= 11;
         }
-        if (this.menuArea == 1) {
+        if (this.menuArea === 1) {
             mouseX -= 562;
             mouseY -= 231;
         }
-        if (this.menuArea == 2) {
+        if (this.menuArea === 2) {
             mouseX -= 22;
             mouseY -= 375;
         }
 
-        for (let i = 0; i < this.menuSize; i++) {
-            const optionY = y + (this.menuSize - 1 - i) * 15 + 31;
-            let rgb = 0xffffff;
+        for (let i: number = 0; i < this.menuSize; i++) {
+            const optionY: number = y + (this.menuSize - 1 - i) * 15 + 31;
+            let rgb: number = 0xffffff;
             if (mouseX > x && mouseX < x + w && mouseY > optionY - 13 && mouseY < optionY + 3) {
                 rgb = 0xffff00;
             }
@@ -2253,12 +2253,12 @@ class Client extends GameShell {
                 this.redrawSidebar = true;
             }
         } else if (mouseX >= left - this.scrollInputPadding && mouseX < left + this.scrollInputPadding + 16 && mouseY >= top + 16 && mouseY < top + height - 16 && this.dragCycles > 0) {
-            let gripSize = ((height - 32) * height) / scrollableHeight;
+            let gripSize: number = ((height - 32) * height) / scrollableHeight;
             if (gripSize < 8) {
                 gripSize = 8;
             }
-            const gripY = mouseY - top - gripSize / 2 - 16;
-            const maxY = height - gripSize - 32;
+            const gripY: number = mouseY - top - gripSize / 2 - 16;
+            const maxY: number = height - gripSize - 32;
             component.scrollPosition = ((scrollableHeight - height) * gripY) / maxY;
             if (redraw) {
                 this.redrawSidebar = true;
@@ -2268,7 +2268,7 @@ class Client extends GameShell {
     };
 
     private prepareGameScreen = (): void => {
-        if (this.areaChatback == null) {
+        if (this.areaChatback === null) {
             this.unloadTitle();
             this.drawArea = null;
             this.imageTitle2 = null;
@@ -2280,7 +2280,7 @@ class Client extends GameShell {
             this.imageTitle6 = null;
             this.imageTitle7 = null;
             this.imageTitle8 = null;
-            const canvas = this.canvas;
+            const canvas: HTMLCanvasElement = this.canvas;
             this.areaChatback = new PixMap(canvas, 479, 96);
             this.areaMapback = new PixMap(canvas, 168, 160);
             Draw2D.clear();
@@ -2305,7 +2305,7 @@ class Client extends GameShell {
     };
 
     private formatObjCountTagged = (amount: number): string => {
-        let s = String(amount);
+        let s: string = String(amount);
         for (let i: number = s.length - 3; i > 0; i -= 3) {
             s = s.substring(0, i) + ',' + s.substring(i);
         }
@@ -2328,7 +2328,7 @@ class Client extends GameShell {
     };
 
     private executeClientscript1 = (component: ComType, scriptId: number): number => {
-        if (component.scripts == null || scriptId >= component.scripts.length) {
+        if (!component.scripts || scriptId >= component.scripts.length) {
             return -2;
         }
 
@@ -2345,23 +2345,23 @@ class Client extends GameShell {
             return false;
         }
 
-        for (let i = 0; i < com.scriptComparator.length; i++) {
-            const value = this.executeClientscript1(com, i);
-            const operand = com.scriptOperand[i];
+        for (let i: number = 0; i < com.scriptComparator.length; i++) {
+            const value: number = this.executeClientscript1(com, i);
+            const operand: number = com.scriptOperand[i];
 
-            if (com.scriptComparator[i] == 2) {
+            if (com.scriptComparator[i] === 2) {
                 if (value >= operand) {
                     return false;
                 }
-            } else if (com.scriptComparator[i] == 3) {
+            } else if (com.scriptComparator[i] === 3) {
                 if (value <= operand) {
                     return false;
                 }
-            } else if (com.scriptComparator[i] == 4) {
-                if (value == operand) {
+            } else if (com.scriptComparator[i] === 4) {
+                if (value === operand) {
                     return false;
                 }
-            } else if (value != operand) {
+            } else if (value !== operand) {
                 return false;
             }
         }
@@ -2395,7 +2395,7 @@ class Client extends GameShell {
     };
 
     private logout = (): void => {
-        if (this.stream != null) {
+        if (this.stream !== null) {
             this.stream.close();
         }
 
@@ -2486,7 +2486,7 @@ class Client extends GameShell {
             this.ctx.textAlign = 'left';
             this.ctx.fillStyle = 'yellow';
 
-            let y = 35;
+            let y: number = 35;
             this.ctx.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
 
             y += 50;
@@ -2529,7 +2529,7 @@ class Client extends GameShell {
             this.ctx.textAlign = 'left';
             this.ctx.fillStyle = 'yellow';
 
-            let y = 35;
+            let y: number = 35;
             this.ctx.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
 
             y += 50;
@@ -2546,23 +2546,23 @@ class Client extends GameShell {
     };
 
     private updateFlames = (): void => {
-        const height = 256;
+        const height: number = 256;
 
-        for (let x = 10; x < 117; x++) {
-            const rand = Math.trunc(Math.random() * 100.0);
+        for (let x: number = 10; x < 117; x++) {
+            const rand: number = Math.trunc(Math.random() * 100.0);
             if (rand < 50) this.flameBuffer3[x + ((height - 2) << 7)] = 255;
         }
 
-        for (let l = 0; l < 100; l++) {
-            const x = Math.trunc(Math.random() * 124.0 + 2);
-            const y = Math.trunc(Math.random() * 128.0 + 128);
-            const index = x + (y << 7);
+        for (let l: number = 0; l < 100; l++) {
+            const x: number = Math.trunc(Math.random() * 124.0 + 2);
+            const y: number = Math.trunc(Math.random() * 128.0 + 128);
+            const index: number = x + (y << 7);
             this.flameBuffer3[index] = 192;
         }
 
-        for (let y = 1; y < height - 1; y++) {
-            for (let x = 1; x < 127; x++) {
-                const index = x + (y << 7);
+        for (let y: number = 1; y < height - 1; y++) {
+            for (let x: number = 1; x < 127; x++) {
+                const index: number = x + (y << 7);
                 this.flameBuffer2[index] = ((this.flameBuffer3[index - 1] + this.flameBuffer3[index + 1] + this.flameBuffer3[index - 128] + this.flameBuffer3[index + 128]) / 4) | 0;
             }
         }
@@ -2570,14 +2570,14 @@ class Client extends GameShell {
         this.flameCycle0 += 128;
         if (this.flameCycle0 > 32768) {
             this.flameCycle0 -= 32768;
-            const rand = Math.trunc(Math.random() * 12.0);
+            const rand: number = Math.trunc(Math.random() * 12.0);
             this.updateFlameBuffer(this.imageRunes[rand]);
         }
 
-        for (let y = 1; y < height - 1; y++) {
-            for (let x = 1; x < 127; x++) {
-                const index = x + (y << 7);
-                let intensity = (this.flameBuffer2[index + 128] - this.flameBuffer0[(index + this.flameCycle0) & (32768 - 1)] / 5) | 0;
+        for (let y: number = 1; y < height - 1; y++) {
+            for (let x: number = 1; x < 127; x++) {
+                const index: number = x + (y << 7);
+                let intensity: number = (this.flameBuffer2[index + 128] - this.flameBuffer0[(index + this.flameCycle0) & (32768 - 1)] / 5) | 0;
                 if (intensity < 0) {
                     intensity = 0;
                 }
@@ -2585,7 +2585,7 @@ class Client extends GameShell {
             }
         }
 
-        for (let y = 0; y < height - 1; y++) {
+        for (let y: number = 0; y < height - 1; y++) {
             this.flameLineOffset[y] = this.flameLineOffset[y + 1];
         }
 
@@ -2600,7 +2600,7 @@ class Client extends GameShell {
         }
 
         if (this.flameGradientCycle0 == 0 && this.flameGradientCycle1 == 0) {
-            const rand = Math.trunc(Math.random() * 2000.0);
+            const rand: number = Math.trunc(Math.random() * 2000.0);
 
             if (rand == 0) {
                 this.flameGradientCycle0 = 1024;
@@ -2610,17 +2610,17 @@ class Client extends GameShell {
         }
     };
 
-    private mix = (src: number, alpha: number, dst: number) => {
-        const invAlpha = 256 - alpha;
+    private mix = (src: number, alpha: number, dst: number): number => {
+        const invAlpha: number = 256 - alpha;
         return ((((src & 0xff00ff) * invAlpha + (dst & 0xff00ff) * alpha) & 0xff00ff00) + (((src & 0xff00) * invAlpha + (dst & 0xff00) * alpha) & 0xff0000)) >> 8;
     };
 
     private drawFlames = (): void => {
-        const height = 256;
+        const height: number = 256;
 
         // just colors
         if (this.flameGradientCycle0 > 0) {
-            for (let i = 0; i < 256; i++) {
+            for (let i: number = 0; i < 256; i++) {
                 if (this.flameGradientCycle0 > 768) {
                     this.flameGradient[i] = this.mix(this.flameGradient0[i], 1024 - this.flameGradientCycle0, this.flameGradient1[i]);
                 } else if (this.flameGradientCycle0 > 256) {
@@ -2630,7 +2630,7 @@ class Client extends GameShell {
                 }
             }
         } else if (this.flameGradientCycle1 > 0) {
-            for (let i = 0; i < 256; i++) {
+            for (let i: number = 0; i < 256; i++) {
                 if (this.flameGradientCycle1 > 768) {
                     this.flameGradient[i] = this.mix(this.flameGradient0[i], 1024 - this.flameGradientCycle1, this.flameGradient2[i]);
                 } else if (this.flameGradientCycle1 > 256) {
@@ -2640,34 +2640,34 @@ class Client extends GameShell {
                 }
             }
         } else {
-            for (let i = 0; i < 256; i++) {
+            for (let i: number = 0; i < 256; i++) {
                 this.flameGradient[i] = this.flameGradient0[i];
             }
         }
-        for (let i = 0; i < 33920; i++) {
+        for (let i: number = 0; i < 33920; i++) {
             if (this.imageTitle0 && this.imageFlamesLeft) this.imageTitle0.pixels[i] = this.imageFlamesLeft.pixels[i];
         }
 
-        let srcOffset = 0;
-        let dstOffset = 1152;
+        let srcOffset: number = 0;
+        let dstOffset: number = 1152;
 
-        for (let y = 1; y < height - 1; y++) {
-            const offset = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
-            let step = offset + 22;
+        for (let y: number = 1; y < height - 1; y++) {
+            const offset: number = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
+            let step: number = offset + 22;
             if (step < 0) {
                 step = 0;
             }
             srcOffset += step;
-            for (let x = step; x < 128; x++) {
-                let value = this.flameBuffer3[srcOffset++] | 0;
+            for (let x: number = step; x < 128; x++) {
+                let value: number = this.flameBuffer3[srcOffset++] | 0;
                 if (value == 0) {
                     dstOffset++;
                 } else {
-                    const alpha = value;
-                    const invAlpha = 256 - value;
+                    const alpha: number = value;
+                    const invAlpha: number = 256 - value;
                     value = this.flameGradient[value];
                     if (this.imageTitle0) {
-                        const background = this.imageTitle0.pixels[dstOffset];
+                        const background: number = this.imageTitle0.pixels[dstOffset];
                         this.imageTitle0.pixels[dstOffset++] = ((((value & 0xff00ff) * alpha + (background & 0xff00ff) * invAlpha) & 0xff00ff00) + (((value & 0xff00) * alpha + (background & 0xff00) * invAlpha) & 0xff0000)) >> 8;
                     }
                 }
@@ -2677,7 +2677,7 @@ class Client extends GameShell {
 
         this.imageTitle0?.draw(0, 0);
 
-        for (let i = 0; i < 33920; i++) {
+        for (let i: number = 0; i < 33920; i++) {
             if (this.imageTitle1 && this.imageFlamesRight) {
                 this.imageTitle1.pixels[i] = this.imageFlamesRight.pixels[i];
             }
@@ -2685,20 +2685,20 @@ class Client extends GameShell {
 
         srcOffset = 0;
         dstOffset = 1176;
-        for (let y = 1; y < height - 1; y++) {
-            const offset = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
-            const step = 103 - offset;
+        for (let y: number = 1; y < height - 1; y++) {
+            const offset: number = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
+            const step: number = 103 - offset;
             dstOffset += offset;
-            for (let x = 0; x < step; x++) {
-                let value = this.flameBuffer3[srcOffset++] | 0;
+            for (let x: number = 0; x < step; x++) {
+                let value: number = this.flameBuffer3[srcOffset++] | 0;
                 if (value == 0) {
                     dstOffset++;
                 } else {
-                    const alpha = value;
-                    const invAlpha = 256 - value;
+                    const alpha: number = value;
+                    const invAlpha: number = 256 - value;
                     value = this.flameGradient[value];
                     if (this.imageTitle1) {
-                        const background = this.imageTitle1.pixels[dstOffset];
+                        const background: number = this.imageTitle1.pixels[dstOffset];
                         this.imageTitle1.pixels[dstOffset++] = ((((value & 0xff00ff) * alpha + (background & 0xff00ff) * invAlpha) & 0xff00ff00) + (((value & 0xff00) * alpha + (background & 0xff00) * invAlpha) & 0xff0000)) >> 8;
                     }
                 }
@@ -2711,5 +2711,4 @@ class Client extends GameShell {
     };
 }
 
-const client = new Client();
-client.run().then(() => {});
+new Client().run().then((): void => {});

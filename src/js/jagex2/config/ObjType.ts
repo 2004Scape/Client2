@@ -13,19 +13,19 @@ export default class ObjType extends ConfigType {
 
     static unpack = (config: Jagfile): void => {
         this.dat = new Packet(config.read('obj.dat'));
-        const idx = new Packet(config.read('obj.idx'));
+        const idx: Packet = new Packet(config.read('obj.idx'));
 
         this.count = idx.g2;
         this.offsets = new Int32Array(this.count);
 
-        let offset = 2;
-        for (let id = 0; id < this.count; id++) {
+        let offset: number = 2;
+        for (let id: number = 0; id < this.count; id++) {
             this.offsets[id] = offset;
             offset += idx.g2;
         }
 
         this.cache = new Array(10);
-        for (let id = 0; id < 10; id++) {
+        for (let id: number = 0; id < 10; id++) {
             this.cache[id] = new ObjType();
         }
     };
@@ -35,7 +35,7 @@ export default class ObjType extends ConfigType {
             throw new Error('ObjType not loaded!!!');
         }
 
-        for (let id = 0; id < 10; id++) {
+        for (let id: number = 0; id < 10; id++) {
             if (this.cache[id].index == id) {
                 return this.cache[id];
             }
@@ -163,11 +163,11 @@ export default class ObjType extends ConfigType {
         } else if (code >= 35 && code < 40) {
             this.iops[code - 35] = dat.gjstr;
         } else if (code === 40) {
-            const count = dat.g1;
+            const count: number = dat.g1;
             this.recol_s = new Uint16Array(count);
             this.recol_d = new Uint16Array(count);
 
-            for (let i = 0; i < count; i++) {
+            for (let i: number = 0; i < count; i++) {
                 this.recol_s[i] = dat.g2;
                 this.recol_d[i] = dat.g2;
             }
@@ -218,8 +218,8 @@ export default class ObjType extends ConfigType {
         this.members = link.members;
         this.cost = link.cost;
 
-        let article = 'a';
-        const c = (link.name || '').toLowerCase().charAt(0);
+        let article: string = 'a';
+        const c: string = (link.name || '').toLowerCase().charAt(0);
         if (c === 'a' || c === 'e' || c === 'i' || c === 'o' || c === 'u') {
             article = 'an';
         }

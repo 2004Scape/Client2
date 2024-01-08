@@ -60,9 +60,9 @@ export default class Model {
     static vertexViewSpaceZ: Int32Array | null = new Int32Array(4096);
 
     static tmpDepthFaceCount: Int32Array | null = new Int32Array(1500);
-    static tmpDepthFaces: Int32Array[] | null = new Array(1500).fill(null).map(() => new Int32Array(512));
+    static tmpDepthFaces: Int32Array[] | null = new Array(1500).fill(null).map((): Int32Array => new Int32Array(512));
     static tmpPriorityFaceCount: Int32Array | null = new Int32Array(12);
-    static tmpPriorityFaces: Int32Array[] | null = new Array(12).fill(null).map(() => new Int32Array(2000));
+    static tmpPriorityFaces: Int32Array[] | null = new Array(12).fill(null).map((): Int32Array => new Int32Array(2000));
     static tmpPriority10FaceDepth: Int32Array | null = new Int32Array(2000);
     static tmpPriority11FaceDepth: Int32Array | null = new Int32Array(2000);
     static tmpPriorityDepthSum: Int32Array | null = new Int32Array(12);
@@ -81,7 +81,7 @@ export default class Model {
     static pickedCount: number = 0;
     static pickedBitsets: Int32Array = new Int32Array(1000);
 
-    static unpack(models: Jagfile) {
+    static unpack(models: Jagfile): void {
         try {
             Model.head = new Packet(models.read('ob_head.dat'));
             Model.face1 = new Packet(models.read('ob_face1.dat'));
@@ -106,7 +106,7 @@ export default class Model {
             Model.vertex1.pos = 0;
             Model.vertex2.pos = 0;
 
-            const count = Model.head.g2;
+            const count: number = Model.head.g2;
             Model.metadata = new Array(count + 100);
 
             let vertexTextureDataOffset: number = 0;
@@ -117,7 +117,7 @@ export default class Model {
             let triangleAlphaDataOffset: number = 0;
             let triangleSkinDataOffset: number = 0;
 
-            for (let i = 0; i < count; i++) {
+            for (let i: number = 0; i < count; i++) {
                 const id: number = Model.head.g2;
                 const meta: Metadata = new Metadata();
 
@@ -138,7 +138,7 @@ export default class Model {
                 const hasSkins: number = Model.head.g1;
                 const hasLabels: number = Model.head.g1;
 
-                for (let v = 0; v < meta.vertexCount; v++) {
+                for (let v: number = 0; v < meta.vertexCount; v++) {
                     const flags: number = Model.point1.g1;
 
                     if ((flags & 0x1) !== 0) {
@@ -154,7 +154,7 @@ export default class Model {
                     }
                 }
 
-                for (let v = 0; v < meta.faceCount; v++) {
+                for (let v: number = 0; v < meta.faceCount; v++) {
                     const type: number = Model.vertex2.g1;
 
                     if (type === 1) {
@@ -206,7 +206,7 @@ export default class Model {
         }
     }
 
-    static unload() {
+    static unload(): void {
         Model.metadata = null;
         Model.head = null;
         Model.face1 = null;
@@ -239,7 +239,7 @@ export default class Model {
         Model.tmpPriorityDepthSum = null;
     }
 
-    static mulColorLightness(hsl: number, scalar: number, faceInfo: number) {
+    static mulColorLightness(hsl: number, scalar: number, faceInfo: number): number {
         if ((faceInfo & 0x2) == 2) {
             if (scalar < 0) {
                 scalar = 0;
@@ -332,7 +332,7 @@ export default class Model {
             return;
         }
 
-        const meta = Model.metadata[id];
+        const meta: Metadata = Model.metadata[id];
         if (typeof meta === 'undefined') {
             console.log(`Error model:${id} not found!`);
             return;
@@ -384,15 +384,15 @@ export default class Model {
         Model.point4.pos = meta.vertexZOffset;
         Model.point5.pos = meta.vertexLabelsOffset;
 
-        let dx = 0;
-        let dy = 0;
-        let dz = 0;
+        let dx: number = 0;
+        let dy: number = 0;
+        let dz: number = 0;
         let a: number;
         let b: number;
         let c: number;
 
-        for (let v = 0; v < this.vertexCount; v++) {
-            const flags = Model.point1.g1;
+        for (let v: number = 0; v < this.vertexCount; v++) {
+            const flags: number = Model.point1.g1;
 
             a = 0;
             if ((flags & 0x1) != 0) {
@@ -427,7 +427,7 @@ export default class Model {
         Model.face4.pos = meta.faceAlphasOffset;
         Model.face5.pos = meta.faceLabelsOffset;
 
-        for (let f = 0; f < this.faceCount; f++) {
+        for (let f: number = 0; f < this.faceCount; f++) {
             this.faceColor[f] = Model.face1.g2;
 
             if (this.faceInfo != null) {
@@ -453,10 +453,10 @@ export default class Model {
         a = 0;
         b = 0;
         c = 0;
-        let last = 0;
+        let last: number = 0;
 
-        for (let f = 0; f < this.faceCount; f++) {
-            const orientation = Model.vertex2.g1;
+        for (let f: number = 0; f < this.faceCount; f++) {
+            const orientation: number = Model.vertex2.g1;
 
             if (orientation === 1) {
                 a = Model.vertex1.gsmarts + last;
@@ -474,7 +474,7 @@ export default class Model {
                 c = Model.vertex1.gsmarts + last;
                 last = c;
             } else if (orientation === 4) {
-                const tmp = a;
+                const tmp: number = a;
                 a = b;
                 b = tmp;
                 c = Model.vertex1.gsmarts + last;
@@ -487,29 +487,29 @@ export default class Model {
         }
 
         Model.axis.pos = meta.faceTextureAxisOffset * 6;
-        for (let f = 0; f < this.texturedFaceCount; f++) {
+        for (let f: number = 0; f < this.texturedFaceCount; f++) {
             this.texturedVertexA[f] = Model.axis.g2;
             this.texturedVertexB[f] = Model.axis.g2;
             this.texturedVertexC[f] = Model.axis.g2;
         }
     }
 
-    addVertex(src: Model, vertexId: number) {
+    addVertex(src: Model, vertexId: number): number {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
-            return;
+            throw new Error('Model not loaded!!!!');
         }
 
         if (src.vertexX === null || src.vertexY === null || src.vertexZ === null) {
-            return;
+            throw new Error('Model not loaded!!!!');
         }
 
-        let identical = -1;
+        let identical: number = -1;
 
-        const x = src.vertexX[vertexId];
-        const y = src.vertexY[vertexId];
-        const z = src.vertexZ[vertexId];
+        const x: number = src.vertexX[vertexId];
+        const y: number = src.vertexY[vertexId];
+        const z: number = src.vertexZ[vertexId];
 
-        for (let v = 0; v < this.vertexCount; v++) {
+        for (let v: number = 0; v < this.vertexCount; v++) {
             if (x == this.vertexX[v] && y == this.vertexY[v] && z == this.vertexZ[v]) {
                 identical = v;
                 break;
@@ -531,7 +531,7 @@ export default class Model {
         return identical;
     }
 
-    calculateBoundsCylinder() {
+    calculateBoundsCylinder(): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -540,10 +540,10 @@ export default class Model {
         this.radius = 0;
         this.minY = 0;
 
-        for (let i = 0; i < this.vertexCount; i++) {
-            const x = this.vertexX[i];
-            const y = this.vertexY[i];
-            const z = this.vertexZ[i];
+        for (let i: number = 0; i < this.vertexCount; i++) {
+            const x: number = this.vertexX[i];
+            const y: number = this.vertexY[i];
+            const z: number = this.vertexZ[i];
 
             if (-y > this.maxY) {
                 this.maxY = -y;
@@ -553,7 +553,7 @@ export default class Model {
                 this.minY = y;
             }
 
-            const radiusSqr = x * x + z * z;
+            const radiusSqr: number = x * x + z * z;
             if (radiusSqr > this.radius) {
                 this.radius = radiusSqr;
             }
@@ -564,7 +564,7 @@ export default class Model {
         this.maxDepth = this.minDepth + Math.trunc(Math.sqrt(this.radius * this.radius + this.minY * this.minY) + 0.99);
     }
 
-    calculateBoundsY() {
+    calculateBoundsY(): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -572,8 +572,8 @@ export default class Model {
         this.maxY = 0;
         this.minY = 0;
 
-        for (let v = 0; v < this.vertexCount; v++) {
-            const y = this.vertexY[v];
+        for (let v: number = 0; v < this.vertexCount; v++) {
+            const y: number = this.vertexY[v];
 
             if (-y > this.maxY) {
                 this.maxY = -y;
@@ -588,7 +588,7 @@ export default class Model {
         this.maxDepth = this.minDepth + Math.trunc(Math.sqrt(this.radius * this.radius + this.minY * this.minY) + 0.99);
     }
 
-    calculateBoundsAABB() {
+    calculateBoundsAABB(): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -601,10 +601,10 @@ export default class Model {
         this.maxZ = -99999;
         this.minZ = 99999;
 
-        for (let v = 0; v < this.vertexCount; v++) {
-            const x = this.vertexX[v];
-            const y = this.vertexY[v];
-            const z = this.vertexZ[v];
+        for (let v: number = 0; v < this.vertexCount; v++) {
+            const x: number = this.vertexX[v];
+            const y: number = this.vertexY[v];
+            const z: number = this.vertexZ[v];
 
             if (x < this.minX) {
                 this.minX = x;
@@ -630,7 +630,7 @@ export default class Model {
                 this.minY = y;
             }
 
-            const radiusSqr = x * x + z * z;
+            const radiusSqr: number = x * x + z * z;
             if (radiusSqr > this.radius) {
                 this.radius = radiusSqr;
             }
@@ -641,66 +641,66 @@ export default class Model {
         this.maxDepth = this.minDepth + Math.trunc(Math.sqrt(this.radius * this.radius + this.minY * this.minY));
     }
 
-    createLabelReferences() {
+    createLabelReferences(): void {
         // TODO
     }
 
-    applyTransform(id: number) {
+    applyTransform(id: number): void {
         // TODO
     }
 
-    rotateY90() {
+    rotateY90(): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
 
-        for (let v = 0; v < this.vertexCount; v++) {
-            const tmp = this.vertexX[v];
+        for (let v: number = 0; v < this.vertexCount; v++) {
+            const tmp: number = this.vertexX[v];
             this.vertexX[v] = this.vertexZ[v];
             this.vertexZ[v] = -tmp;
         }
     }
 
-    rotateX(angle: number) {
+    rotateX(angle: number): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
 
-        const sin = Draw3D.sin[angle];
-        const cos = Draw3D.cos[angle];
+        const sin: number = Draw3D.sin[angle];
+        const cos: number = Draw3D.cos[angle];
 
-        for (let v = 0; v < this.vertexCount; v++) {
-            const tmp = (this.vertexY[v] * cos - this.vertexZ[v] * sin) >> 16;
+        for (let v: number = 0; v < this.vertexCount; v++) {
+            const tmp: number = (this.vertexY[v] * cos - this.vertexZ[v] * sin) >> 16;
             this.vertexZ[v] = (this.vertexY[v] * sin + this.vertexZ[v] * cos) >> 16;
             this.vertexY[v] = tmp;
         }
     }
 
-    translate(x: number, y: number, z: number) {
+    translate(x: number, y: number, z: number): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
 
-        for (let v = 0; v < this.vertexCount; v++) {
+        for (let v: number = 0; v < this.vertexCount; v++) {
             this.vertexX[v] += x;
             this.vertexY[v] += y;
             this.vertexZ[v] += z;
         }
     }
 
-    recolor(src: number, dst: number) {
+    recolor(src: number, dst: number): void {
         if (this.faceColor === null) {
             return;
         }
 
-        for (let f = 0; f < this.faceCount; f++) {
+        for (let f: number = 0; f < this.faceCount; f++) {
             if (this.faceColor[f] == src) {
                 this.faceColor[f] = dst;
             }
         }
     }
 
-    rotateY180() {
+    rotateY180(): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -709,36 +709,36 @@ export default class Model {
             return;
         }
 
-        for (let v = 0; v < this.vertexCount; v++) {
+        for (let v: number = 0; v < this.vertexCount; v++) {
             this.vertexZ[v] = -this.vertexZ[v];
         }
 
-        for (let f = 0; f < this.faceCount; f++) {
-            const temp = this.faceVertexA[f];
+        for (let f: number = 0; f < this.faceCount; f++) {
+            const temp: number = this.faceVertexA[f];
             this.faceVertexA[f] = this.faceVertexC[f];
             this.faceVertexC[f] = temp;
         }
     }
 
-    scale(x: number, y: number, z: number) {
+    scale(x: number, y: number, z: number): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
 
-        for (let v = 0; v < this.vertexCount; v++) {
+        for (let v: number = 0; v < this.vertexCount; v++) {
             this.vertexX[v] = (this.vertexX[v] * x) / 128;
             this.vertexY[v] = (this.vertexY[v] * y) / 128;
             this.vertexZ[v] = (this.vertexZ[v] * z) / 128;
         }
     }
 
-    calculateNormals(lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number, applyLighting: boolean) {
+    calculateNormals(lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number, applyLighting: boolean): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null || this.faceVertexA === null || this.faceVertexB === null || this.faceVertexC === null || this.faceColor === null) {
             return;
         }
 
-        const lightMagnitude = Math.sqrt(lightSrcX * lightSrcX + lightSrcY * lightSrcY + lightSrcZ * lightSrcZ);
-        const attenuation = (lightAttenuation * lightMagnitude) >> 8;
+        const lightMagnitude: number = Math.sqrt(lightSrcX * lightSrcX + lightSrcY * lightSrcY + lightSrcZ * lightSrcZ);
+        const attenuation: number = (lightAttenuation * lightMagnitude) >> 8;
 
         if (this.faceColorA === null || this.faceColorB === null || this.faceColorC === null) {
             this.faceColorA = new Int32Array(this.faceCount);
@@ -749,27 +749,27 @@ export default class Model {
         if (this.vertexNormal === null) {
             this.vertexNormal = new Array(this.vertexCount);
 
-            for (let v = 0; v < this.vertexCount; v++) {
+            for (let v: number = 0; v < this.vertexCount; v++) {
                 this.vertexNormal[v] = new VertexNormal();
             }
         }
 
-        for (let f = 0; f < this.faceCount; f++) {
-            const a = this.faceVertexA[f];
-            const b = this.faceVertexB[f];
-            const c = this.faceVertexC[f];
+        for (let f: number = 0; f < this.faceCount; f++) {
+            const a: number = this.faceVertexA[f];
+            const b: number = this.faceVertexB[f];
+            const c: number = this.faceVertexC[f];
 
-            const dxAB = this.vertexX[b] - this.vertexX[a];
-            const dyAB = this.vertexY[b] - this.vertexY[a];
-            const dzAB = this.vertexZ[b] - this.vertexZ[a];
+            const dxAB: number = this.vertexX[b] - this.vertexX[a];
+            const dyAB: number = this.vertexY[b] - this.vertexY[a];
+            const dzAB: number = this.vertexZ[b] - this.vertexZ[a];
 
-            const dxAC = this.vertexX[c] - this.vertexX[a];
-            const dyAC = this.vertexY[c] - this.vertexY[a];
-            const dzAC = this.vertexZ[c] - this.vertexZ[a];
+            const dxAC: number = this.vertexX[c] - this.vertexX[a];
+            const dyAC: number = this.vertexY[c] - this.vertexY[a];
+            const dzAC: number = this.vertexZ[c] - this.vertexZ[a];
 
-            let nx = dyAB * dzAC - dyAC * dzAB;
-            let ny = dzAB * dxAC - dzAC * dxAB;
-            let nz = dxAB * dyAC - dxAC * dyAB;
+            let nx: number = dyAB * dzAC - dyAC * dzAB;
+            let ny: number = dzAB * dxAC - dzAC * dxAB;
+            let nz: number = dxAB * dyAC - dxAC * dyAB;
 
             while (nx > 8192 || ny > 8192 || nz > 8192 || nx < -8192 || ny < -8192 || nz < -8192) {
                 nx >>= 1;
@@ -777,7 +777,7 @@ export default class Model {
                 nz >>= 1;
             }
 
-            let length = Math.sqrt(nx * nx + ny * ny + nz * nz);
+            let length: number = Math.sqrt(nx * nx + ny * ny + nz * nz);
             if (length <= 0) {
                 length = 1;
             }
@@ -787,7 +787,7 @@ export default class Model {
             nz = (nz * 256) / length;
 
             if (this.faceInfo === null || (this.faceInfo[f] & 0x1) === 0) {
-                let n = this.vertexNormal[a];
+                let n: VertexNormal = this.vertexNormal[a];
                 n.x += nx;
                 n.y += ny;
                 n.z += nz;
@@ -805,7 +805,7 @@ export default class Model {
                 n.z += nz;
                 n.w++;
             } else {
-                const lightness = lightAmbient + (lightSrcX * nx + lightSrcY * ny + lightSrcZ * nz) / (attenuation + attenuation / 2);
+                const lightness: number = lightAmbient + (lightSrcX * nx + lightSrcY * ny + lightSrcZ * nz) / (attenuation + attenuation / 2);
                 this.faceColorA[f] = Model.mulColorLightness(this.faceColor[f], lightness, this.faceInfo[f]);
             }
         }
@@ -815,9 +815,9 @@ export default class Model {
         } else {
             this.vertexNormalOriginal = new Array(this.vertexCount);
 
-            for (let v = 0; v < this.vertexCount; v++) {
-                const normal = this.vertexNormal[v];
-                const copy = new VertexNormal();
+            for (let v: number = 0; v < this.vertexCount; v++) {
+                const normal: VertexNormal = this.vertexNormal[v];
+                const copy: VertexNormal = new VertexNormal();
 
                 copy.x = normal.x;
                 copy.y = normal.y;
@@ -835,7 +835,7 @@ export default class Model {
         }
     }
 
-    applyLighting(lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number) {
+    applyLighting(lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number): void {
         if (this.faceVertexA === null || this.faceVertexB === null || this.faceVertexC === null || this.faceColor === null || this.vertexNormal === null) {
             return;
         }
@@ -844,16 +844,16 @@ export default class Model {
             return;
         }
 
-        for (let f = 0; f < this.faceCount; f++) {
-            const a = this.faceVertexA[f];
-            const b = this.faceVertexB[f];
-            const c = this.faceVertexC[f];
+        for (let f: number = 0; f < this.faceCount; f++) {
+            const a: number = this.faceVertexA[f];
+            const b: number = this.faceVertexB[f];
+            const c: number = this.faceVertexC[f];
 
             if (this.faceInfo === null) {
-                const color = this.faceColor[f];
+                const color: number = this.faceColor[f];
 
-                let n = this.vertexNormal[a];
-                let lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
+                let n: VertexNormal = this.vertexNormal[a];
+                let lightness: number = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
                 this.faceColorA[f] = Model.mulColorLightness(color, lightness, 0);
 
                 n = this.vertexNormal[b];
@@ -864,11 +864,11 @@ export default class Model {
                 lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
                 this.faceColorC[f] = Model.mulColorLightness(color, lightness, 0);
             } else if ((this.faceInfo[f] & 0x1) === 0) {
-                const color = this.faceColor[f];
-                const info = this.faceInfo[f];
+                const color: number = this.faceColor[f];
+                const info: number = this.faceInfo[f];
 
-                let n = this.vertexNormal[a];
-                let lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
+                let n: VertexNormal = this.vertexNormal[a];
+                let lightness: number = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
                 this.faceColorA[f] = Model.mulColorLightness(color, lightness, info);
 
                 n = this.vertexNormal[b];
@@ -887,7 +887,7 @@ export default class Model {
         this.faceLabel = null;
 
         if (this.faceInfo !== null) {
-            for (let f = 0; f < this.faceCount; f++) {
+            for (let f: number = 0; f < this.faceCount; f++) {
                 if ((this.faceInfo[f] & 0x2) === 2) {
                     return;
                 }
@@ -898,7 +898,7 @@ export default class Model {
     }
 
     // todo: better name, Java relies on overloads
-    drawSimple(pitch: number, yaw: number, roll: number, eyePitch: number, eyeX: number, eyeY: number, eyeZ: number) {
+    drawSimple(pitch: number, yaw: number, roll: number, eyePitch: number, eyeX: number, eyeY: number, eyeZ: number): void {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -911,24 +911,24 @@ export default class Model {
             return;
         }
 
-        const sinPitch = Draw3D.sin[pitch];
-        const cosPitch = Draw3D.cos[pitch];
+        const sinPitch: number = Draw3D.sin[pitch];
+        const cosPitch: number = Draw3D.cos[pitch];
 
-        const sinYaw = Draw3D.sin[yaw];
-        const cosYaw = Draw3D.cos[yaw];
+        const sinYaw: number = Draw3D.sin[yaw];
+        const cosYaw: number = Draw3D.cos[yaw];
 
-        const sinRoll = Draw3D.sin[roll];
-        const cosRoll = Draw3D.cos[roll];
+        const sinRoll: number = Draw3D.sin[roll];
+        const cosRoll: number = Draw3D.cos[roll];
 
-        const sinEyePitch = Draw3D.sin[eyePitch];
-        const cosEyePitch = Draw3D.cos[eyePitch];
+        const sinEyePitch: number = Draw3D.sin[eyePitch];
+        const cosEyePitch: number = Draw3D.cos[eyePitch];
 
-        const midZ = (eyeY * sinEyePitch + eyeZ * cosEyePitch) >> 16;
+        const midZ: number = (eyeY * sinEyePitch + eyeZ * cosEyePitch) >> 16;
 
-        for (let v = 0; v < this.vertexCount; v++) {
-            let x = this.vertexX[v];
-            let y = this.vertexY[v];
-            let z = this.vertexZ[v];
+        for (let v: number = 0; v < this.vertexCount; v++) {
+            let x: number = this.vertexX[v];
+            let y: number = this.vertexY[v];
+            let z: number = this.vertexZ[v];
 
             let tmp: number;
             if (roll !== 0) {
@@ -976,10 +976,10 @@ export default class Model {
     }
 
     // todo: better name, Java relies on overloads
-    draw(yaw: number, sinEyePitch: number, cosEyePitch: number, sinEyeYaw: number, cosEyeYaw: number, relativeX: number, relativeY: number, relativeZ: number, bitset: number) {}
+    draw(yaw: number, sinEyePitch: number, cosEyePitch: number, sinEyeYaw: number, cosEyeYaw: number, relativeX: number, relativeY: number, relativeZ: number, bitset: number): void {}
 
     // todo: better name, Java relies on overloads
-    draw2(clipped: boolean, picking: boolean, bitset: number) {
+    draw2(clipped: boolean, picking: boolean, bitset: number): void {
         if (Model.vertexScreenX === null || Model.vertexScreenY === null || Model.vertexScreenZ === null) {
             return;
         }
@@ -1008,11 +1008,11 @@ export default class Model {
             return;
         }
 
-        for (let depth = 0; depth < this.maxDepth; depth++) {
+        for (let depth: number = 0; depth < this.maxDepth; depth++) {
             Model.tmpDepthFaceCount[depth] = 0;
         }
 
-        for (let f = 0; f < this.faceCount; f++) {
+        for (let f: number = 0; f < this.faceCount; f++) {
             if (this.faceInfo && this.faceInfo[f] == -1) {
                 continue;
             }
@@ -1021,14 +1021,14 @@ export default class Model {
             const b: number = this.faceVertexB[f];
             const c: number = this.faceVertexC[f];
 
-            const xA = Model.vertexScreenX[a];
-            const xB = Model.vertexScreenX[b];
-            const xC = Model.vertexScreenX[c];
+            const xA: number = Model.vertexScreenX[a];
+            const xB: number = Model.vertexScreenX[b];
+            const xC: number = Model.vertexScreenX[c];
 
             if (clipped && (xA == -5000 || xB == -5000 || xC == -5000)) {
                 Model.faceNearClipped[f] = true;
 
-                const depthAverage = Math.trunc((Model.vertexScreenZ[a] + Model.vertexScreenZ[b] + Model.vertexScreenZ[c]) / 3 + this.minDepth);
+                const depthAverage: number = Math.trunc((Model.vertexScreenZ[a] + Model.vertexScreenZ[b] + Model.vertexScreenZ[c]) / 3 + this.minDepth);
                 Model.tmpDepthFaces[depthAverage][Model.tmpDepthFaceCount[depthAverage]++] = f;
             } else {
                 if (picking && this.pointWithinTriangle(Model.mouseX, Model.mouseZ, Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], xA, xB, xC)) {
@@ -1036,10 +1036,10 @@ export default class Model {
                     picking = false;
                 }
 
-                const dxAB = xA - xB;
-                const dyAB = Model.vertexScreenY[a] - Model.vertexScreenY[b];
-                const dxCB = xC - xB;
-                const dyCB = Model.vertexScreenY[c] - Model.vertexScreenY[b];
+                const dxAB: number = xA - xB;
+                const dyAB: number = Model.vertexScreenY[a] - Model.vertexScreenY[b];
+                const dxCB: number = xC - xB;
+                const dyCB: number = Model.vertexScreenY[c] - Model.vertexScreenY[b];
 
                 if (dxAB * dyCB - dyAB * dxCB <= 0) {
                     continue;
@@ -1048,20 +1048,20 @@ export default class Model {
                 Model.faceNearClipped[f] = false;
                 Model.faceClippedX[f] = xA < 0 || xB < 0 || xC < 0 || xA > Draw2D.boundX || xB > Draw2D.boundX || xC > Draw2D.boundX;
 
-                const depthAverage = Math.trunc((Model.vertexScreenZ[a] + Model.vertexScreenZ[b] + Model.vertexScreenZ[c]) / 3 + this.minDepth);
+                const depthAverage: number = Math.trunc((Model.vertexScreenZ[a] + Model.vertexScreenZ[b] + Model.vertexScreenZ[c]) / 3 + this.minDepth);
                 Model.tmpDepthFaces[depthAverage][Model.tmpDepthFaceCount[depthAverage]++] = f;
             }
         }
 
         if (this.facePriority == null) {
-            for (let depth = this.maxDepth - 1; depth >= 0; depth--) {
-                const count = Model.tmpDepthFaceCount[depth];
+            for (let depth: number = this.maxDepth - 1; depth >= 0; depth--) {
+                const count: number = Model.tmpDepthFaceCount[depth];
                 if (count <= 0) {
                     continue;
                 }
 
-                const faces = Model.tmpDepthFaces[depth];
-                for (let f = 0; f < count; f++) {
+                const faces: Int32Array = Model.tmpDepthFaces[depth];
+                for (let f: number = 0; f < count; f++) {
                     this.drawFace(faces[f]);
                 }
             }
@@ -1069,21 +1069,21 @@ export default class Model {
             return;
         }
 
-        for (let priority = 0; priority < 12; priority++) {
+        for (let priority: number = 0; priority < 12; priority++) {
             Model.tmpPriorityFaceCount[priority] = 0;
             Model.tmpPriorityDepthSum[priority] = 0;
         }
 
-        for (let depth = this.maxDepth - 1; depth >= 0; depth--) {
-            const faceCount = Model.tmpDepthFaceCount[depth];
+        for (let depth: number = this.maxDepth - 1; depth >= 0; depth--) {
+            const faceCount: number = Model.tmpDepthFaceCount[depth];
 
             if (faceCount > 0) {
                 const faces: Int32Array = Model.tmpDepthFaces[depth];
 
-                for (let i = 0; i < faceCount; i++) {
+                for (let i: number = 0; i < faceCount; i++) {
                     const priorityDepth: number = faces[i];
                     const priorityFace: number = this.facePriority[priorityDepth];
-                    const priorityFaceCount = Model.tmpPriorityFaceCount[priorityFace]++;
+                    const priorityFaceCount: number = Model.tmpPriorityFaceCount[priorityFace]++;
 
                     Model.tmpPriorityFaces[priorityFace][priorityFaceCount] = priorityDepth;
 
@@ -1098,26 +1098,26 @@ export default class Model {
             }
         }
 
-        let averagePriorityDepthSum1_2 = 0;
+        let averagePriorityDepthSum1_2: number = 0;
         if (Model.tmpPriorityFaceCount[1] > 0 || Model.tmpPriorityFaceCount[2] > 0) {
             averagePriorityDepthSum1_2 = Math.trunc((Model.tmpPriorityDepthSum[1] + Model.tmpPriorityDepthSum[2]) / (Model.tmpPriorityFaceCount[1] + Model.tmpPriorityFaceCount[2]));
         }
 
-        let averagePriorityDepthSum3_4 = 0;
+        let averagePriorityDepthSum3_4: number = 0;
         if (Model.tmpPriorityFaceCount[3] > 0 || Model.tmpPriorityFaceCount[4] > 0) {
             averagePriorityDepthSum3_4 = Math.trunc((Model.tmpPriorityDepthSum[3] + Model.tmpPriorityDepthSum[4]) / (Model.tmpPriorityFaceCount[3] + Model.tmpPriorityFaceCount[4]));
         }
 
-        let averagePriorityDepthSum6_8 = 0;
+        let averagePriorityDepthSum6_8: number = 0;
         if (Model.tmpPriorityFaceCount[6] > 0 || Model.tmpPriorityFaceCount[8] > 0) {
             averagePriorityDepthSum6_8 = Math.trunc((Model.tmpPriorityDepthSum[6] + Model.tmpPriorityDepthSum[8]) / (Model.tmpPriorityFaceCount[6] + Model.tmpPriorityFaceCount[8]));
         }
 
-        let priorityFace = 0;
-        let priorityFaceCount = Model.tmpPriorityFaceCount[10];
+        let priorityFace: number = 0;
+        let priorityFaceCount: number = Model.tmpPriorityFaceCount[10];
 
-        let priorityFaces = Model.tmpPriorityFaces[10];
-        let priorityFaceDepths = Model.tmpPriority10FaceDepth;
+        let priorityFaces: Int32Array = Model.tmpPriorityFaces[10];
+        let priorityFaceDepths: Int32Array = Model.tmpPriority10FaceDepth;
         if (priorityFace == priorityFaceCount) {
             priorityFace = 0;
             priorityFaceCount = Model.tmpPriorityFaceCount[11];
@@ -1125,14 +1125,14 @@ export default class Model {
             priorityFaceDepths = Model.tmpPriority11FaceDepth;
         }
 
-        let priorityDepth;
+        let priorityDepth: number;
         if (priorityFace < priorityFaceCount) {
             priorityDepth = priorityFaceDepths[priorityFace];
         } else {
             priorityDepth = -1000;
         }
 
-        for (let priority = 0; priority < 10; priority++) {
+        for (let priority: number = 0; priority < 10; priority++) {
             while (priority == 0 && priorityDepth > averagePriorityDepthSum1_2) {
                 this.drawFace(priorityFaces[priorityFace++]);
 
@@ -1184,10 +1184,10 @@ export default class Model {
                 }
             }
 
-            const count = Model.tmpPriorityFaceCount[priority];
-            const faces = Model.tmpPriorityFaces[priority];
+            const count: number = Model.tmpPriorityFaceCount[priority];
+            const faces: Int32Array = Model.tmpPriorityFaces[priority];
 
-            for (let i = 0; i < count; i++) {
+            for (let i: number = 0; i < count; i++) {
                 this.drawFace(faces[i]);
             }
         }
@@ -1210,7 +1210,7 @@ export default class Model {
         }
     }
 
-    drawFace(face: number) {
+    drawFace(face: number): void {
         if (Model.faceNearClipped !== null && Model.faceNearClipped[face]) {
             this.drawNearClippedFace(face);
             return;
@@ -1232,9 +1232,9 @@ export default class Model {
             return;
         }
 
-        const a = this.faceVertexA[face];
-        const b = this.faceVertexB[face];
-        const c = this.faceVertexC[face];
+        const a: number = this.faceVertexA[face];
+        const b: number = this.faceVertexB[face];
+        const c: number = this.faceVertexC[face];
 
         Draw3D.clipX = Model.faceClippedX[face];
 
@@ -1280,9 +1280,9 @@ export default class Model {
         }
     }
 
-    drawNearClippedFace(face: number) {}
+    drawNearClippedFace(face: number): void {}
 
-    pointWithinTriangle(x: number, y: number, xA: number, xB: number, xC: number, yA: number, yB: number, yC: number) {
+    pointWithinTriangle(x: number, y: number, xA: number, xB: number, xC: number, yA: number, yB: number, yC: number): boolean {
         if (y < yA && y < yB && y < yC) {
             return false;
         } else if (y > yA && y > yB && y > yC) {

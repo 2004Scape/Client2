@@ -1,5 +1,4 @@
-import forge from 'node-forge';
-import {arraycopy, bigIntToBytes, bytesToBigInt, bigIntModPow} from '../util/JsUtil';
+import {bigIntToBytes, bytesToBigInt, bigIntModPow, arraycopy} from '../util/JsUtil';
 
 export default class Packet {
     static crctable: Int32Array = new Int32Array(256);
@@ -7,15 +6,15 @@ export default class Packet {
     static bitmask: Uint32Array = new Uint32Array(33);
 
     static {
-        for (let i = 0; i < 32; i++) {
+        for (let i: number = 0; i < 32; i++) {
             Packet.bitmask[i] = (1 << i) - 1;
         }
         Packet.bitmask[32] = 0xffffffff;
 
-        for (let i = 0; i < 256; i++) {
-            let remainder = i;
+        for (let i: number = 0; i < 256; i++) {
+            let remainder: number = i;
 
-            for (let bit = 0; bit < 8; bit++) {
+            for (let bit: number = 0; bit < 8; bit++) {
                 if ((remainder & 1) == 1) {
                     remainder = (remainder >>> 1) ^ Packet.CRC32_POLYNOMIAL;
                 } else {
@@ -95,7 +94,7 @@ export default class Packet {
     }
 
     get gjstr(): string {
-        let str = '';
+        let str: string = '';
         while (this.data[this.pos] != 10 && this.pos < this.data.length) {
             str += String.fromCharCode(this.data[this.pos++]);
         }
@@ -145,14 +144,14 @@ export default class Packet {
     };
 
     pjstr = (str: string): void => {
-        for (let i = 0; i < str.length; i++) {
+        for (let i: number = 0; i < str.length; i++) {
             this.data[this.pos++] = str.charCodeAt(i);
         }
         this.data[this.pos++] = 10;
     };
 
     pdata = (src: Uint8Array, length: number, offset: number): void => {
-        for (let i = offset; i < offset + length; i++) {
+        for (let i: number = offset; i < offset + length; i++) {
             this.data[this.pos++] = src[i];
         }
     };
@@ -170,9 +169,9 @@ export default class Packet {
     };
 
     gBit = (n: number): number => {
-        let bytePos = this.bitPos >>> 3;
-        let remaining = 8 - (this.bitPos & 7);
-        let value = 0;
+        let bytePos: number = this.bitPos >>> 3;
+        let remaining: number = 8 - (this.bitPos & 7);
+        let value: number = 0;
         this.bitPos += n;
 
         for (; n > remaining; remaining = 8) {

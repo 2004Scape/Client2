@@ -7,7 +7,7 @@ export default class Isaac {
     private c: number = 0;
 
     constructor(seed: number[] = [0, 0, 0, 0]) {
-        for (let i = 0; i < seed.length; i++) {
+        for (let i: number = 0; i < seed.length; i++) {
             this.rsl[i] = seed[i];
         }
         this.init();
@@ -22,16 +22,16 @@ export default class Isaac {
     }
 
     private init = (): void => {
-        let a = 0x9e3779b9,
-            b = 0x9e3779b9,
-            c = 0x9e3779b9,
-            d = 0x9e3779b9,
-            e = 0x9e3779b9,
-            f = 0x9e3779b9,
-            g = 0x9e3779b9,
-            h = 0x9e3779b9;
+        let a: number = 0x9e3779b9,
+            b: number = 0x9e3779b9,
+            c: number = 0x9e3779b9,
+            d: number = 0x9e3779b9,
+            e: number = 0x9e3779b9,
+            f: number = 0x9e3779b9,
+            g: number = 0x9e3779b9,
+            h: number = 0x9e3779b9;
 
-        for (let i = 0; i < 4; i++) {
+        for (let i: number = 0; i < 4; i++) {
             a ^= b << 11;
             d += a;
             b += c;
@@ -58,7 +58,7 @@ export default class Isaac {
             a += b;
         }
 
-        for (let i = 0; i < 256; i += 8) {
+        for (let i: number = 0; i < 256; i += 8) {
             a += this.rsl[i];
             b += this.rsl[i + 1];
             c += this.rsl[i + 2];
@@ -103,7 +103,7 @@ export default class Isaac {
             this.mem[i + 7] = h;
         }
 
-        for (let i = 0; i < 256; i += 8) {
+        for (let i: number = 0; i < 256; i += 8) {
             a += this.mem[i];
             b += this.mem[i + 1];
             c += this.mem[i + 2];
@@ -156,10 +156,10 @@ export default class Isaac {
         this.c++;
         this.b += this.c;
 
-        for (let i = 0; i < 256; i++) {
-            const x = this.mem[i];
+        for (let i: number = 0; i < 256; i++) {
+            const x: number = this.mem[i];
 
-            const mem = i & 3;
+            const mem: number = i & 3;
             if (mem === 0) {
                 this.a ^= this.a << 13;
             } else if (mem === 1) {
@@ -172,7 +172,7 @@ export default class Isaac {
 
             this.a += this.mem[(i + 128) & 0xff];
 
-            let y;
+            let y: number;
             this.mem[i] = y = this.mem[(x >>> 2) & 0xff] + this.a + this.b;
             this.rsl[i] = this.b = this.mem[((y >>> 8) >>> 2) & 0xff] + x;
         }

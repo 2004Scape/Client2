@@ -25,15 +25,15 @@ export default class Draw3D {
     static poolSize: number = 0;
 
     static {
-        for (let i = 1; i < 512; i++) {
+        for (let i: number = 1; i < 512; i++) {
             this.reciprocal15[i] = 32768 / i;
         }
 
-        for (let i = 1; i < 2048; i++) {
+        for (let i: number = 1; i < 2048; i++) {
             this.reciprocal16[i] = 65536 / i;
         }
 
-        for (let i = 0; i < 2048; i++) {
+        for (let i: number = 0; i < 2048; i++) {
             // angular frequency: 2 * pi / 2048 = 0.0030679615757712823
             // * 65536 = maximum amplitude
             this.sin[i] = Math.trunc(Math.sin(i * 0.0030679615757712823) * 65536);
@@ -43,7 +43,7 @@ export default class Draw3D {
 
     static init2D = (): void => {
         this.lineOffset = new Int32Array(Draw2D.height);
-        for (let y = 0; y < Draw2D.height; y++) {
+        for (let y: number = 0; y < Draw2D.height; y++) {
             this.lineOffset[y] = Draw2D.width * y;
         }
         this.centerX = Draw2D.width / 2;
@@ -52,7 +52,7 @@ export default class Draw3D {
 
     static init3D = (width: number, height: number): void => {
         this.lineOffset = new Int32Array(height);
-        for (let y = 0; y < height; y++) {
+        for (let y: number = 0; y < height; y++) {
             this.lineOffset[y] = width * y;
         }
         this.centerX = width / 2;
@@ -62,7 +62,7 @@ export default class Draw3D {
     static unpackTextures = (textures: Jagfile): void => {
         this.textureCount = 0;
 
-        for (let i = 0; i < 50; i++) {
+        for (let i: number = 0; i < 50; i++) {
             try {
                 this.textures[i] = Pix8.fromArchive(textures, i.toString());
                 this.textureCount++;
@@ -75,33 +75,33 @@ export default class Draw3D {
     static setBrightness = (brightness: number): void => {
         brightness += Math.random() * 0.3 - 0.15;
 
-        let offset = 0;
-        for (let y = 0; y < 512; y++) {
-            const hue = y / 8 / 64 + 0.0078125;
-            const saturation = (y & 7) / 8 + 0.0625;
+        let offset: number = 0;
+        for (let y: number = 0; y < 512; y++) {
+            const hue: number = y / 8 / 64 + 0.0078125;
+            const saturation: number = (y & 7) / 8 + 0.0625;
 
-            for (let x = 0; x < 128; x++) {
-                const lightness = x / 128;
+            for (let x: number = 0; x < 128; x++) {
+                const lightness: number = x / 128;
 
-                let r = lightness;
-                let g = lightness;
-                let b = lightness;
+                let r: number = lightness;
+                let g: number = lightness;
+                let b: number = lightness;
 
                 if (saturation) {
-                    let q;
+                    let q: number;
                     if (lightness < 0.5) {
                         q = lightness * (1 + saturation);
                     } else {
                         q = lightness + saturation - lightness * saturation;
                     }
 
-                    const p = 2 * lightness - q;
-                    let t = hue + 0.3333333333333333;
+                    const p: number = 2 * lightness - q;
+                    let t: number = hue + 0.3333333333333333;
                     if (t > 1) {
                         t--;
                     }
 
-                    let d11 = hue - 0.3333333333333333;
+                    let d11: number = hue - 0.3333333333333333;
                     if (d11 < 0) {
                         d11++;
                     }
@@ -137,10 +137,10 @@ export default class Draw3D {
                     }
                 }
 
-                const intR = Math.trunc(r * 256);
-                const intG = Math.trunc(g * 256);
-                const intB = Math.trunc(b * 256);
-                let rgb = (intR << 16) | (intG << 8) | intB;
+                const intR: number = Math.trunc(r * 256);
+                const intG: number = Math.trunc(g * 256);
+                const intB: number = Math.trunc(b * 256);
+                let rgb: number = (intR << 16) | (intG << 8) | intB;
                 rgb = this.setGamma(rgb, brightness);
                 if (rgb === 0) {
                     rgb = 1;
@@ -152,15 +152,15 @@ export default class Draw3D {
     };
 
     private static setGamma = (rgb: number, gamma: number): number => {
-        let r = (rgb >> 16) / 256;
-        let g = ((rgb >> 8) & 255) / 256;
-        let b = (rgb & 255) / 256;
+        let r: number = (rgb >> 16) / 256;
+        let g: number = ((rgb >> 8) & 255) / 256;
+        let b: number = (rgb & 255) / 256;
         r = Math.pow(r, gamma);
         g = Math.pow(g, gamma);
         b = Math.pow(b, gamma);
-        const intR = Math.trunc(r * 256);
-        const intG = Math.trunc(g * 256);
-        const intB = Math.trunc(b * 256);
+        const intR: number = Math.trunc(r * 256);
+        const intG: number = Math.trunc(g * 256);
+        const intB: number = Math.trunc(b * 256);
         return (intR << 16) | (intG << 8) | intB;
     };
 
@@ -174,13 +174,13 @@ export default class Draw3D {
     };
 
     static fillGouraudTriangle = (xA: number, xB: number, xC: number, yA: number, yB: number, yC: number, colorA: number, colorB: number, colorC: number): void => {
-        let xStepAB = 0;
-        let xStepBC = 0;
-        let xStepAC = 0;
+        let xStepAB: number = 0;
+        let xStepBC: number = 0;
+        let xStepAC: number = 0;
 
-        let colorStepAB = 0;
-        let colorStepBC = 0;
-        let colorStepAC = 0;
+        let colorStepAB: number = 0;
+        let colorStepBC: number = 0;
+        let colorStepAC: number = 0;
 
         if (yB != yA) {
             xStepAB = ((xB - xA) << 16) / (yB - yA);
@@ -560,11 +560,11 @@ export default class Draw3D {
     };
 
     private static drawGouraudScanline = (dst: Int32Array, offset: number, x0: number, x1: number, color0: number, color1: number): void => {
-        let rgb = 0;
-        let length = 0;
+        let rgb: number = 0;
+        let length: number = 0;
 
         if (this.jagged) {
-            let colorStep = 0;
+            let colorStep: number = 0;
 
             if (this.clipX) {
                 if (x1 - x0 > 3) {
@@ -624,8 +624,8 @@ export default class Draw3D {
                     return;
                 }
             } else {
-                const alpha = this.alpha;
-                const invAlpha = 256 - this.alpha;
+                const alpha: number = this.alpha;
+                const invAlpha: number = 256 - this.alpha;
 
                 while (--length >= 0) {
                     rgb = this.palette[color0 >> 8];
@@ -654,7 +654,7 @@ export default class Draw3D {
             return;
         }
 
-        const colorStep = (color1 - color0) / (x1 - x0);
+        const colorStep: number = (color1 - color0) / (x1 - x0);
 
         if (this.clipX) {
             if (x1 > Draw2D.right) {
@@ -680,8 +680,8 @@ export default class Draw3D {
             return;
         }
 
-        const alpha = this.alpha;
-        const invAlpha = 256 - this.alpha;
+        const alpha: number = this.alpha;
+        const invAlpha: number = 256 - this.alpha;
 
         do {
             rgb = this.palette[color0 >> 8];

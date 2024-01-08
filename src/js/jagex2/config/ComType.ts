@@ -18,10 +18,10 @@ export default class ComType {
 
     static unpack = (interfaces: Jagfile, media: Jagfile, fonts: PixFont[]): void => {
         const dat: Packet = new Packet(interfaces.read('data'));
-        let parentId = -1;
+        let parentId: number = -1;
         dat.pos += 2; // const count = dat.g2;
         while (dat.pos < dat.data.length) {
-            let id = dat.g2;
+            let id: number = dat.g2;
             if (id === 65535) {
                 parentId = dat.g2;
                 id = dat.g2;
@@ -43,26 +43,26 @@ export default class ComType {
                 com.delegateHover = ((com.delegateHover - 1) << 8) + dat.g1;
             }
 
-            const comparatorCount = dat.g1;
+            const comparatorCount: number = dat.g1;
             if (comparatorCount > 0) {
                 com.scriptComparator = new Uint8Array(comparatorCount).fill(0);
                 com.scriptOperand = new Uint16Array(comparatorCount).fill(0);
 
-                for (let i = 0; i < comparatorCount; i++) {
+                for (let i: number = 0; i < comparatorCount; i++) {
                     com.scriptComparator[i] = dat.g1;
                     com.scriptOperand[i] = dat.g2;
                 }
             }
 
-            const scriptCount = dat.g1;
+            const scriptCount: number = dat.g1;
             if (scriptCount > 0) {
                 com.scripts = new Array(scriptCount).fill(null);
 
-                for (let i = 0; i < scriptCount; i++) {
-                    const opcodeCount = dat.g2;
+                for (let i: number = 0; i < scriptCount; i++) {
+                    const opcodeCount: number = dat.g2;
 
                     com.scripts[i] = new Uint16Array(opcodeCount).fill(0);
-                    for (let j = 0; j < opcodeCount; j++) {
+                    for (let j: number = 0; j < opcodeCount; j++) {
                         com.scripts[i][j] = dat.g2;
                     }
                 }
@@ -73,12 +73,12 @@ export default class ComType {
                     com.scrollableHeight = dat.g2;
                     com.hide = dat.g1 === 1;
 
-                    const childCount = dat.g1;
+                    const childCount: number = dat.g1;
                     com.childId = new Uint16Array(childCount).fill(0);
                     com.childX = new Uint16Array(childCount).fill(0);
                     com.childY = new Uint16Array(childCount).fill(0);
 
-                    for (let i = 0; i < childCount; i++) {
+                    for (let i: number = 0; i < childCount; i++) {
                         com.childId[i] = dat.g2;
                         com.childX[i] = dat.g2b;
                         com.childY[i] = dat.g2b;
@@ -102,20 +102,20 @@ export default class ComType {
                     com.inventorySlotOffsetY = new Uint16Array(20);
                     com.inventorySlotImage = [];
 
-                    for (let i = 0; i < 20; i++) {
+                    for (let i: number = 0; i < 20; i++) {
                         if (dat.g1 === 1) {
                             com.inventorySlotOffsetX[i] = dat.g2b;
                             com.inventorySlotOffsetY[i] = dat.g2b;
                             // com.inventorySlotImage[i] = dat.gjstr;
-                            const sprite = dat.gjstr;
+                            const sprite: string = dat.gjstr;
                             if (sprite.length > 0) {
-                                const spriteIndex = sprite.lastIndexOf(',');
+                                const spriteIndex: number = sprite.lastIndexOf(',');
                                 com.inventorySlotImage[i] = Pix24.fromArchive(media, sprite, spriteIndex);
                             }
                         }
                     }
 
-                    for (let i = 0; i < 5; i++) {
+                    for (let i: number = 0; i < 5; i++) {
                         com.inventoryOptions[i] = dat.gjstr;
 
                         if (com.inventoryOptions[i]?.length === 0) {
@@ -145,25 +145,25 @@ export default class ComType {
                     com.hoverColor = dat.g4;
                     break;
                 case ComType.TYPE_SPRITE: {
-                    const image = dat.gjstr;
+                    const image: string = dat.gjstr;
                     if (image.length > 0) {
-                        const spriteIndex = image.lastIndexOf(',');
+                        const spriteIndex: number = image.lastIndexOf(',');
                         com.image = Pix24.fromArchive(media, image.substring(0, spriteIndex), parseInt(image.substring(spriteIndex + 1)));
                     }
-                    const activeImage = dat.gjstr;
+                    const activeImage: string = dat.gjstr;
                     if (activeImage.length > 0) {
-                        const spriteIndex = activeImage.lastIndexOf(',');
+                        const spriteIndex: number = activeImage.lastIndexOf(',');
                         com.image = Pix24.fromArchive(media, activeImage.substring(0, spriteIndex), parseInt(activeImage.substring(spriteIndex + 1)));
                     }
                     break;
                 }
                 case ComType.TYPE_MODEL: {
-                    const model = dat.g1;
+                    const model: number = dat.g1;
                     if (model !== 0) {
                         com.model = this.getModel(((model - 1) << 8) + dat.g1);
                     }
 
-                    const activeModel = dat.g1;
+                    const activeModel: number = dat.g1;
                     if (activeModel !== 0) {
                         com.activeModel = this.getModel(((activeModel - 1) << 8) + dat.g1);
                     }
@@ -199,7 +199,7 @@ export default class ComType {
                     com.inventoryMarginY = dat.g2b;
                     com.inventoryInteractable = dat.g1 === 1;
                     com.inventoryOptions = new Array(5).fill(null);
-                    for (let i = 0; i < 5; i++) {
+                    for (let i: number = 0; i < 5; i++) {
                         com.inventoryOptions[i] = dat.gjstr;
                     }
                     break;
@@ -296,7 +296,7 @@ export default class ComType {
     seqFrame: number = 0;
 
     getModel = (primaryFrame: number, secondaryFrame: number, active: boolean): Model | null => {
-        let m = this.model;
+        let m: Model | null = this.model;
         if (active) {
             m = this.activeModel;
         }

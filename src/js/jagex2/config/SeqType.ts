@@ -8,9 +8,9 @@ export default class SeqType extends ConfigType {
     static instances: SeqType[] = [];
 
     static unpack = (config: Jagfile): void => {
-        const dat = new Packet(config.read('seq.dat'));
+        const dat: Packet = new Packet(config.read('seq.dat'));
         this.count = dat.g2;
-        for (let i = 0; i < this.count; i++) {
+        for (let i: number = 0; i < this.count; i++) {
             this.instances[i] = new SeqType();
             this.instances[i].decodeType(i, dat);
         }
@@ -40,7 +40,7 @@ export default class SeqType extends ConfigType {
             this.iframes = new Uint16Array(this.frameCount);
             this.delay = new Uint16Array(this.frameCount);
 
-            for (let i = 0; i < this.frameCount; i++) {
+            for (let i: number = 0; i < this.frameCount; i++) {
                 this.frames[i] = dat.g2;
 
                 this.iframes[i] = dat.g2;
@@ -62,10 +62,10 @@ export default class SeqType extends ConfigType {
         } else if (code === 2) {
             this.replayoff = dat.g2;
         } else if (code === 3) {
-            const count = dat.g1;
+            const count: number = dat.g1;
             this.labelGroups = new Uint32Array(count + 1);
 
-            for (let i = 0; i < count; i++) {
+            for (let i: number = 0; i < count; i++) {
                 this.labelGroups[i] = dat.g1;
             }
 

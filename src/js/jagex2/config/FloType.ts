@@ -7,9 +7,9 @@ export default class FloType extends ConfigType {
     static instances: FloType[] = [];
 
     static unpack = (config: Jagfile): void => {
-        const dat = new Packet(config.read('flo.dat'));
+        const dat: Packet = new Packet(config.read('flo.dat'));
         this.count = dat.g2;
-        for (let i = 0; i < this.count; i++) {
+        for (let i: number = 0; i < this.count; i++) {
             this.instances[i] = new FloType();
             this.instances[i].decodeType(i, dat);
         }
