@@ -25,8 +25,8 @@ export default class Pix8 {
     }
 
     static fromArchive = (archive: Jagfile, name: string, sprite: number = 0): Pix8 => {
-        const dat = new Packet(archive?.read(name + '.dat'));
-        const index = new Packet(archive?.read('index.dat'));
+        const dat = new Packet(archive.read(name + '.dat'));
+        const index = new Packet(archive.read('index.dat'));
 
         // cropW/cropH are shared across all sprites in a single image
         index.pos = dat.g2;

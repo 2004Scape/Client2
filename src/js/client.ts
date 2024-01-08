@@ -43,6 +43,8 @@ class Client extends GameShell {
     static MODULUS: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
     static MEMBERS: boolean = true;
     static LOW_MEMORY: boolean = false;
+    static UPDATE_COUNTER: number = 0;
+    static UPDATE2_COUNTER: number = 0;
 
     private SCROLLBAR_TRACK: number = 0x23201b;
     private SCROLLBAR_GRIP_FOREGROUND: number = 0x4d4233;
@@ -54,6 +56,7 @@ class Client extends GameShell {
     private errorLoading: boolean = false;
     private errorHost: boolean = false;
 
+    // important client stuff
     private loopCycle: number = 0;
     private ingame: boolean = false;
     private archiveChecksums: number[] = [];
@@ -62,6 +65,9 @@ class Client extends GameShell {
     private out: Packet = Packet.alloc(1);
     private loginout: Packet = Packet.alloc(1);
     private serverSeed: bigint = 0n;
+    private idleNetCycles: number = 0;
+    private idleTimeout: number = 0;
+    private systemUpdateTimer: number = 0;
 
     // login screen properties
     private redrawTitleBackground: boolean = true;
@@ -171,8 +177,8 @@ class Client extends GameShell {
     private redrawSideicons: boolean = false;
     private redrawPrivacySettings: boolean = false;
     private dragCycles: number = 0;
-    private sceneState: number = 0;
-    private sceneDelta: number = 0;
+    private crossMode: number = 0;
+    private crossCycle: number = 0;
     private menuVisible: boolean = false;
     private menuArea: number = 0;
     private menuX: number = 0;
@@ -215,12 +221,34 @@ class Client extends GameShell {
     private objGrabX: number = 0;
     private objGrabY: number = 0;
     private objDragCycles: number = 0;
+    private objGrabThreshold: boolean = false;
     private selectedArea: number = 0;
     private selectedItem: number = 0;
     private selectedInterface: number = 0;
     private selectedCycle: number = 0;
     private pressedContinueOption: boolean = false;
     private awaitingLogin: boolean = false;
+
+    // scene
+    private scene: World3D | null = null;
+    private sceneState: number = 0;
+    private sceneDelta: number = 0;
+    private flagSceneTileX: number = 0;
+    private flagSceneTileZ: number = 0;
+    private cutscene: boolean = false;
+    private cameraOffsetCycle: number = 0;
+    private cameraAnticheatOffsetX: number = 0;
+    private cameraAnticheatOffsetZ: number = 0;
+    private cameraAnticheatAngle: number = 0;
+    private cameraOffsetXModifier: number = 2;
+    private cameraOffsetZModifier: number = 2;
+    private cameraOffsetYawModifier: number = 1;
+    private minimapOffsetCycle: number = 0;
+    private minimapAnticheatAngle: number = 0;
+    private minimapZoom: number = 0;
+    private minimapZoomModifier: number = 1;
+    private minimapAngleModifier: number = 2;
+    private heartbeatTimer: number = 0;
 
     runFlames = (): void => {
         if (!this.flameActive) {
@@ -478,7 +506,7 @@ class Client extends GameShell {
         }
         this.loopCycle++;
         if (this.ingame) {
-            this.updateGame();
+            await this.updateGame();
         } else {
             await this.updateTitleScreen();
         }
@@ -1023,9 +1051,9 @@ class Client extends GameShell {
                 // this.lastPacketType1 = -1;
                 // this.lastPacketType2 = -1;
                 // this.packetSize = 0;
-                // this.idleNetCycles = 0;
-                // this.systemUpdateTimer = 0;
-                // this.idleTimeout = 0;
+                this.idleNetCycles = 0;
+                this.systemUpdateTimer = 0;
+                this.idleTimeout = 0;
                 // this.hintType = 0;
                 this.menuSize = 0;
                 this.menuVisible = false;
@@ -1035,15 +1063,15 @@ class Client extends GameShell {
                 // this.spellSelected = 0;
                 this.sceneState = 0;
                 // this.waveCount = 0;
-                // this.cameraAnticheatOffsetX = (int) (Math.random() * 100.0D) - 50;
-                // this.cameraAnticheatOffsetZ = (int) (Math.random() * 110.0D) - 55;
-                // this.cameraAnticheatAngle = (int) (Math.random() * 80.0D) - 40;
-                // this.minimapAnticheatAngle = (int) (Math.random() * 120.0D) - 60;
-                // this.minimapZoom = (int) (Math.random() * 30.0D) - 20;
+                this.cameraAnticheatOffsetX = Math.trunc(Math.random() * 100.0) - 50;
+                this.cameraAnticheatOffsetZ = Math.trunc(Math.random() * 110.0) - 55;
+                this.cameraAnticheatAngle = Math.trunc(Math.random() * 80.0) - 40;
+                this.minimapAnticheatAngle = Math.trunc(Math.random() * 120.0) - 60;
+                this.minimapZoom = Math.trunc(Math.random() * 30.0) - 20;
                 // this.orbitCameraYaw = (int) (Math.random() * 20.0D) - 10 & 0x7FF;
                 // this.minimapLevel = -1;
-                // this.flagSceneTileX = 0;
-                // this.flagSceneTileZ = 0;
+                this.flagSceneTileX = 0;
+                this.flagSceneTileZ = 0;
                 // this.playerCount = 0;
                 // this.npcCount = 0;
                 // for (let i = 0; i < this.MAX_PLAYER_COUNT; i++) {
@@ -1165,8 +1193,8 @@ class Client extends GameShell {
                 // this.lastPacketType1 = -1;
                 // this.lastPacketType2 = -1;
                 // this.packetSize = 0;
-                // this.idleNetCycles = 0;
-                // this.systemUpdateTimer = 0;
+                this.idleNetCycles = 0;
+                this.systemUpdateTimer = 0;
                 this.menuSize = 0;
                 this.menuVisible = false;
                 return;
@@ -1187,12 +1215,286 @@ class Client extends GameShell {
         }
     };
 
-    private updateGame = (): void => {
+    private updateGame = async (): Promise<void> => {
+        if (this.systemUpdateTimer > 1) {
+            this.systemUpdateTimer--;
+        }
+
+        if (this.idleTimeout > 0) {
+            this.idleTimeout--;
+        }
+
+        for (let i = 0; i < 5 && (await this.read()); i++) {
+            /* empty */
+        }
+
         if (this.ingame) {
-            // TODO
+            // for (let wave = 0; wave < this.waveCount; wave++) {
+            //     if (this.waveDelay[wave] <= 0) {
+            //         let failed = false;
+            //         try {
+            //             if (this.waveIds[wave] != this.lastWaveId || this.waveLoops[wave] != this.lastWaveLoops) {
+            //                 let buf = Wave.generate(this.waveIds[wave], this.waveLoops[wave]);
+            //
+            //                 if (System.currentTimeMillis() + (long) (buf.pos / 22) > this.lastWaveStartTime + (long) (this.lastWaveLength / 22)) {
+            //                     this.lastWaveLength = buf.pos;
+            //                     this.lastWaveStartTime = System.currentTimeMillis();
+            //                     if (this.saveWave(buf.data, buf.pos)) {
+            //                         this.lastWaveId = this.waveIds[wave];
+            //                         this.lastWaveLoops = this.waveLoops[wave];
+            //                     } else {
+            //                         failed = true;
+            //                     }
+            //                 }
+            //             } else if (!this.replayWave()) {
+            //                 failed = true;
+            //             }
+            //         } catch (@Pc(139) Exception ignored) {
+            //         }
+            //
+            //         if (failed && this.waveDelay[wave] != -5) {
+            //             this.waveDelay[wave] = -5;
+            //         } else {
+            //             this.waveCount--;
+            //             for (let i = wave; i < this.waveCount; i++) {
+            //                 this.waveIds[i] = this.waveIds[i + 1];
+            //                 this.waveLoops[i] = this.waveLoops[i + 1];
+            //                 this.waveDelay[i] = this.waveDelay[i + 1];
+            //             }
+            //             wave--;
+            //         }
+            //     } else {
+            //         this.waveDelay[wave]--;
+            //     }
+            // }
+            //
+            // if (this.nextMusicDelay > 0) {
+            //     this.nextMusicDelay -= 20;
+            //     if (this.nextMusicDelay < 0) {
+            //         this.nextMusicDelay = 0;
+            //     }
+            //     if (this.nextMusicDelay == 0 && this.midiActive && !lowMemory) {
+            //         this.setMidi(this.currentMidi, this.midiCrc, this.midiSize);
+            //     }
+            // }
+            //
+            // let tracking = InputTracking.flush();
+            // if (tracking != null) {
+            //     this.out.p1isaac(81);
+            //     this.out.p2(tracking.pos);
+            //     this.out.pdata(tracking.data, tracking.pos, 0);
+            //     tracking.release();
+            // }
+
+            this.idleNetCycles++;
+            if (this.idleNetCycles > 750) {
+                await this.tryReconnect();
+            }
+
+            // this.updatePlayers();
+            // this.updateNpcs();
+            // this.updateEntityChats();
+            // this.updateTemporaryLocs();
+            //
+            // if ((this.actionKey[1] == 1 || this.actionKey[2] == 1 || this.actionKey[3] == 1 || this.actionKey[4] == 1) && this.cameraMovedWrite++ > 5) {
+            //     this.cameraMovedWrite = 0;
+            //     this.out.p1isaac(189);
+            //     this.out.p2(this.orbitCameraPitch);
+            //     this.out.p2(this.orbitCameraYaw);
+            //     this.out.p1(this.minimapAnticheatAngle);
+            //     this.out.p1(this.minimapZoom);
+            // }
+
             this.sceneDelta++;
+            if (this.crossMode != 0) {
+                this.crossCycle += 20;
+                if (this.crossCycle >= 400) {
+                    this.crossMode = 0;
+                }
+            }
+
+            if (this.selectedArea != 0) {
+                this.selectedCycle++;
+                if (this.selectedCycle >= 15) {
+                    if (this.selectedArea == 2) {
+                        this.redrawSidebar = true;
+                    }
+                    if (this.selectedArea == 3) {
+                        this.redrawChatback = true;
+                    }
+                    this.selectedArea = 0;
+                }
+            }
+
+            if (this.objDragArea != 0) {
+                this.objDragCycles++;
+                if (this.mouseX > this.objGrabX + 5 || this.mouseX < this.objGrabX - 5 || this.mouseY > this.objGrabY + 5 || this.mouseY < this.objGrabY - 5) {
+                    this.objGrabThreshold = true;
+                }
+
+                if (this.mouseButton == 0) {
+                    if (this.objDragArea == 2) {
+                        this.redrawSidebar = true;
+                    }
+                    if (this.objDragArea == 3) {
+                        this.redrawChatback = true;
+                    }
+
+                    this.objDragArea = 0;
+                    // if (this.objGrabThreshold && this.objDragCycles >= 5) {
+                    //     this.hoveredSlotParentId = -1;
+                    //     this.handleInput();
+                    //     if (this.hoveredSlotParentId == this.objDragInterfaceId && this.hoveredSlot != this.objDragSlot) {
+                    //         let com = ComType.instances[this.objDragInterfaceId];
+                    //         int obj = com.inventorySlotObjId[this.hoveredSlot];
+                    //         com.inventorySlotObjId[this.hoveredSlot] = com.inventorySlotObjId[this.objDragSlot];
+                    //         com.inventorySlotObjId[this.objDragSlot] = obj;
+                    //
+                    //     @Pc(530) int count = com.inventorySlotObjCount[this.hoveredSlot];
+                    //         com.inventorySlotObjCount[this.hoveredSlot] = com.inventorySlotObjCount[this.objDragSlot];
+                    //         com.inventorySlotObjCount[this.objDragSlot] = count;
+                    //
+                    //         this.out.p1isaac(159);
+                    //         this.out.p2(this.objDragInterfaceId);
+                    //         this.out.p2(this.objDragSlot);
+                    //         this.out.p2(this.hoveredSlot);
+                    //     }
+                    // } else if ((this.mouseButtonsOption == 1 || this.isAddFriendOption(this.menuSize - 1)) && this.menuSize > 2) {
+                    //     this.showContextMenu();
+                    // } else if (this.menuSize > 0) {
+                    //     this.useMenuOption(this.menuSize - 1);
+                    // }
+
+                    this.selectedCycle = 10;
+                    this.mouseClickButton = 0;
+                }
+            }
+
+            Client.UPDATE_COUNTER++;
+            if (Client.UPDATE_COUNTER > 127) {
+                Client.UPDATE_COUNTER = 0;
+                // this.out.p1isaac(215);
+                // this.out.p3(4991788);
+            }
+
+            // if (World3D.clickTileX != -1) {
+            //     const x = World3D.clickTileX;
+            //     const z = World3D.clickTileZ;
+            //     const success = this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], x, z, 0, 0, 0, 0, 0, 0, true);
+            //     World3D.clickTileX = -1;
+            //
+            //     if (success) {
+            //         this.crossX = this.mouseClickX;
+            //         this.crossY = this.mouseClickY;
+            //         this.crossMode = 1;
+            //         this.crossCycle = 0;
+            //     }
+            // }
+
+            if (this.mouseClickButton == 1 && this.modalMessage != null) {
+                this.modalMessage = null;
+                this.redrawChatback = true;
+                this.mouseClickButton = 0;
+            }
+
+            // this.handleMouseInput();
+            // this.handleMinimapInput();
+            // this.handleTabInput();
+            // this.handleChatSettingsInput();
+
             if (this.mouseButton == 1 || this.mouseClickButton == 1) {
                 this.dragCycles++;
+            }
+
+            if (this.sceneState == 2) {
+                // this.updateOrbitCamera();
+            }
+            if (this.sceneState == 2 && this.cutscene) {
+                // this.applyCutscene();
+            }
+
+            for (let i = 0; i < 5; i++) {
+                // this.cameraModifierCycle[i]++;
+            }
+
+            // this.handleInputKey();
+            this.idleCycles++;
+            if (this.idleCycles > 4500) {
+                this.idleTimeout = 250;
+                this.idleCycles -= 500;
+                // this.out.p1isaac(70);
+            }
+
+            this.cameraOffsetCycle++;
+            if (this.cameraOffsetCycle > 500) {
+                this.cameraOffsetCycle = 0;
+                const rand = Math.trunc(Math.random() * 8.0);
+                if ((rand & 0x1) == 1) {
+                    this.cameraAnticheatOffsetX += this.cameraOffsetXModifier;
+                }
+                if ((rand & 0x2) == 2) {
+                    this.cameraAnticheatOffsetZ += this.cameraOffsetZModifier;
+                }
+                if ((rand & 0x4) == 4) {
+                    this.cameraAnticheatAngle += this.cameraOffsetYawModifier;
+                }
+            }
+
+            if (this.cameraAnticheatOffsetX < -50) {
+                this.cameraOffsetXModifier = 2;
+            }
+            if (this.cameraAnticheatOffsetX > 50) {
+                this.cameraOffsetXModifier = -2;
+            }
+            if (this.cameraAnticheatOffsetZ < -55) {
+                this.cameraOffsetZModifier = 2;
+            }
+            if (this.cameraAnticheatOffsetZ > 55) {
+                this.cameraOffsetZModifier = -2;
+            }
+            if (this.cameraAnticheatAngle < -40) {
+                this.cameraOffsetYawModifier = 1;
+            }
+            if (this.cameraAnticheatAngle > 40) {
+                this.cameraOffsetYawModifier = -1;
+            }
+
+            this.minimapOffsetCycle++;
+            if (this.minimapOffsetCycle > 500) {
+                this.minimapOffsetCycle = 0;
+                const rand = Math.trunc(Math.random() * 8.0);
+                if ((rand & 0x1) == 1) {
+                    this.minimapAnticheatAngle += this.minimapAngleModifier;
+                }
+                if ((rand & 0x2) == 2) {
+                    this.minimapZoom += this.minimapZoomModifier;
+                }
+            }
+
+            if (this.minimapAnticheatAngle < -60) {
+                this.minimapAngleModifier = 2;
+            }
+            if (this.minimapAnticheatAngle > 60) {
+                this.minimapAngleModifier = -2;
+            }
+
+            if (this.minimapZoom < -20) {
+                this.minimapZoomModifier = 1;
+            }
+            if (this.minimapZoom > 10) {
+                this.minimapZoomModifier = -1;
+            }
+
+            Client.UPDATE2_COUNTER++;
+            if (Client.UPDATE2_COUNTER > 110) {
+                Client.UPDATE2_COUNTER = 0;
+                // this.out.p1isaac(236);
+                // this.out.p4(0);
+            }
+
+            this.heartbeatTimer++;
+            if (this.heartbeatTimer > 50) {
+                // this.out.p1isaac(108);
             }
         }
     };
@@ -2069,6 +2371,70 @@ class Client extends GameShell {
 
     private updateInterfaceContent = (component: ComType): void => {
         // TODO
+    };
+
+    private tryReconnect = async (): Promise<void> => {
+        if (this.idleTimeout > 0) {
+            this.logout();
+        } else {
+            this.areaViewport?.bind();
+            this.fontPlain12?.drawStringCenter(257, 144, 'Connection lost', 0);
+            this.fontPlain12?.drawStringCenter(256, 143, 'Connection lost', 16777215);
+            this.fontPlain12?.drawStringCenter(257, 159, 'Please wait - attempting to reestablish', 0);
+            this.fontPlain12?.drawStringCenter(256, 158, 'Please wait - attempting to reestablish', 16777215);
+            this.areaViewport?.draw(8, 11);
+            this.flagSceneTileX = 0;
+            const stream: ClientStream | null = this.stream;
+            this.ingame = false;
+            await this.login(this.username, this.password, true);
+            if (!this.ingame) {
+                this.logout();
+            }
+            stream?.close();
+        }
+    };
+
+    private logout = (): void => {
+        if (this.stream != null) {
+            this.stream.close();
+        }
+
+        this.stream = null;
+        this.ingame = false;
+        this.titleScreenState = 0;
+        this.username = '';
+        this.password = '';
+
+        // InputTracking.setDisabled();
+        // this.clearCaches();
+        this.scene?.reset();
+
+        // for (let level = 0; level < 4; level++) {
+        //     this.levelCollisionMap[level].reset();
+        // }
+
+        // this.stopMidi();
+        // this.currentMidi = null;
+        // this.nextMusicDelay = 0;
+    };
+
+    private read = async (): Promise<boolean> => {
+        if (this.stream == null) {
+            return false;
+        }
+
+        try {
+            const available: number = this.stream.available;
+            if (available === 0) {
+                return false;
+            }
+
+            this.logout();
+        } catch (e) {
+            await this.tryReconnect();
+            // TODO extra logic for logout??
+        }
+        return true;
     };
 
     private unloadTitle = (): void => {

@@ -4,17 +4,17 @@ export const sleep = async (ms: number): Promise<void> => new Promise(resolve =>
 export const downloadUrl = async (url: string): Promise<Uint8Array> => new Uint8Array(await (await fetch(url)).arrayBuffer());
 export const downloadText = async (url: string): Promise<string> => (await fetch(url)).text();
 
+const bz2Header: Uint8Array = Uint8Array.from(['B'.charCodeAt(0), 'Z'.charCodeAt(0), 'h'.charCodeAt(0), '1'.charCodeAt(0)]);
+
 export const decompressBz2 = (data: Uint8Array, addMagic: boolean = true, prepend: boolean = true): Uint8Array => {
     if (addMagic) {
-        const magic = Uint8Array.from(['B'.charCodeAt(0), 'Z'.charCodeAt(0), 'h'.charCodeAt(0), '1'.charCodeAt(0)]);
-
         if (prepend) {
             const temp = data;
-            data = new Uint8Array(magic.length + data.length);
-            data.set(temp, magic.length);
+            data = new Uint8Array(bz2Header.length + data.length);
+            data.set(temp, bz2Header.length);
         }
 
-        data.set(magic, 0);
+        data.set(bz2Header, 0);
     }
 
     return decompress(data);

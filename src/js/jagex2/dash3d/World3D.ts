@@ -110,6 +110,10 @@ export default class World3D {
         }
     };
 
+    reset = (): void => {
+        // TODO
+    };
+
     private static testPoint = (x: number, z: number, y: number): boolean => {
         const px = (z * this.sinEyeYaw + x * this.cosEyeYaw) >> 16;
         const tmp = (z * this.cosEyeYaw - x * this.sinEyeYaw) >> 16;
