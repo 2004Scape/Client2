@@ -6,7 +6,7 @@ export default class Isaac {
     private b: number = 0;
     private c: number = 0;
 
-    constructor(seed: number[] = [0, 0, 0, 0]) {
+    constructor(seed: Int32Array) {
         for (let i: number = 0; i < seed.length; i++) {
             this.rsl[i] = seed[i];
         }

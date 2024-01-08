@@ -294,6 +294,7 @@ export default class ComType {
     inventorySlotObjId: Int32Array | null = null;
     inventorySlotObjCount: Int32Array | null = null;
     seqFrame: number = 0;
+    seqCycle: number = 0;
 
     getModel = (primaryFrame: number, secondaryFrame: number, active: boolean): Model | null => {
         let m: Model | null = this.model;

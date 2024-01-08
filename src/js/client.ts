@@ -31,6 +31,8 @@ import Wave from './jagex2/sound/Wave';
 import JString from './jagex2/datastruct/JString';
 import World3D from './jagex2/dash3d/World3D';
 import ClientStream from './jagex2/io/ClientStream';
+import Protocol from './jagex2/io/Protocol';
+import Isaac from './jagex2/io/Isaac';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -68,6 +70,12 @@ class Client extends GameShell {
     private idleNetCycles: number = 0;
     private idleTimeout: number = 0;
     private systemUpdateTimer: number = 0;
+    private randomIn: Isaac | null = null;
+    private packetType: number = 0;
+    private packetSize: number = 0;
+    private lastPacketType0: number = 0;
+    private lastPacketType1: number = 0;
+    private lastPacketType2: number = 0;
 
     // login screen properties
     private redrawTitleBackground: boolean = true;
@@ -176,6 +184,7 @@ class Client extends GameShell {
     private redrawChatback: boolean = false;
     private redrawSideicons: boolean = false;
     private redrawPrivacySettings: boolean = false;
+    private viewportInterfaceID: number = -1;
     private dragCycles: number = 0;
     private crossMode: number = 0;
     private crossCycle: number = 0;
@@ -249,6 +258,14 @@ class Client extends GameShell {
     private minimapZoomModifier: number = 1;
     private minimapAngleModifier: number = 2;
     private heartbeatTimer: number = 0;
+    private baseX: number = 0;
+    private baseZ: number = 0;
+
+    // other
+    private energy: number = 0;
+    private inMultizone: number = 0;
+    private localPid: number = -1;
+    private weightCarried: number = 0;
 
     runFlames = (): void => {
         if (!this.flameActive) {
@@ -1012,10 +1029,10 @@ class Client extends GameShell {
             this.out.p4(seed[2]);
             this.out.p4(seed[3]);
             this.out.p4(0); // TODO signlink UUID
-            this.out.pjstr(username);
-            this.out.pjstr(password);
-            // this.out.pjstr('jordan');
-            // this.out.pjstr('retardeddeveloper69');
+            // this.out.pjstr(username);
+            // this.out.pjstr(password);
+            this.out.pjstr('jordan');
+            this.out.pjstr('retardeddeveloper69');
             this.out.rsaenc(Client.MODULUS, Client.EXPONENT);
             this.loginout.pos = 0;
             if (reconnect) {
@@ -1030,6 +1047,11 @@ class Client extends GameShell {
                 this.loginout.p4(this.archiveChecksums[i]);
             }
             this.loginout.pdata(this.out.data, this.out.pos, 0);
+            this.out.random = new Isaac(seed);
+            for (let i: number = 0; i < 4; i++) {
+                seed[i] += 50;
+            }
+            this.randomIn = new Isaac(seed);
             this.stream.write(this.loginout.data, this.loginout.pos, 0);
             const reply: number = await this.stream.read();
             console.log(`Login reply was: ${reply}`);
@@ -1046,11 +1068,11 @@ class Client extends GameShell {
                 this.ingame = true;
                 this.out.pos = 0;
                 this.in.pos = 0;
-                // this.packetType = -1;
-                // this.lastPacketType0 = -1;
-                // this.lastPacketType1 = -1;
-                // this.lastPacketType2 = -1;
-                // this.packetSize = 0;
+                this.packetType = -1;
+                this.lastPacketType0 = -1;
+                this.lastPacketType1 = -1;
+                this.lastPacketType2 = -1;
+                this.packetSize = 0;
                 this.idleNetCycles = 0;
                 this.systemUpdateTimer = 0;
                 this.idleTimeout = 0;
@@ -1104,7 +1126,7 @@ class Client extends GameShell {
                 this.menuVisible = false;
                 this.showSocialInput = false;
                 this.modalMessage = null;
-                // this.inMultizone = 0;
+                this.inMultizone = 0;
                 this.flashingTab = -1;
                 // this.designGenderMale = true;
                 // this.validateCharacterDesign();
@@ -1187,12 +1209,11 @@ class Client extends GameShell {
                 this.ingame = true;
                 this.out.pos = 0;
                 this.in.pos = 0;
-                // TODO
-                // this.packetType = -1;
-                // this.lastPacketType0 = -1;
-                // this.lastPacketType1 = -1;
-                // this.lastPacketType2 = -1;
-                // this.packetSize = 0;
+                this.packetType = -1;
+                this.lastPacketType0 = -1;
+                this.lastPacketType1 = -1;
+                this.lastPacketType2 = -1;
+                this.packetSize = 0;
                 this.idleNetCycles = 0;
                 this.systemUpdateTimer = 0;
                 this.menuSize = 0;
@@ -2424,17 +2445,1144 @@ class Client extends GameShell {
         }
 
         try {
-            const available: number = this.stream.available;
+            let available: number = this.stream.available;
             if (available === 0) {
                 return false;
             }
 
+            if (this.packetType == -1) {
+                await this.stream.readBytes(this.in.data, 0, 1);
+                this.packetType = this.in.data[0] & 0xff;
+                if (this.randomIn != null) {
+                    this.packetType = (this.packetType - this.randomIn.nextInt) & 0xff;
+                }
+                this.packetSize = Protocol.SERVERPROT_SIZES[this.packetType];
+                available--;
+            }
+
+            if (this.packetSize == -1) {
+                if (available <= 0) {
+                    return false;
+                }
+
+                await this.stream.readBytes(this.in.data, 0, 1);
+                this.packetSize = this.in.data[0] & 0xff;
+                available--;
+            }
+
+            if (this.packetSize == -2) {
+                if (available <= 1) {
+                    return false;
+                }
+
+                await this.stream.readBytes(this.in.data, 0, 2);
+                this.in.pos = 0;
+                this.packetSize = this.in.g2;
+                available -= 2;
+            }
+
+            if (available < this.packetSize) {
+                return false;
+            }
+
+            this.in.pos = 0;
+            await this.stream.readBytes(this.in.data, 0, this.packetSize);
+            this.idleNetCycles = 0;
+            this.lastPacketType2 = this.lastPacketType1;
+            this.lastPacketType1 = this.lastPacketType0;
+            this.lastPacketType0 = this.packetType;
+
+            console.log(`Incoming packet: ${this.packetType}`);
+
+            if (this.packetType == 150) {
+                // VARP_SMALL
+                const varp: number = this.in.g2;
+                const value: number = this.in.g1b;
+                // this.varCache[varp] = value;
+                // if (this.varps[varp] != value) {
+                //     this.varps[varp] = value;
+                //     this.updateVarp(varp);
+                //     this.redrawSidebar = true;
+                //     if (this.stickyChatInterfaceId != -1) {
+                //         this.redrawChatback = true;
+                //     }
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 152) {
+                // UPDATE_FRIENDLIST
+                const username: bigint = this.in.g8;
+                const world: number = this.in.g1;
+                const displayName: string = JString.formatName(JString.fromBase37(username));
+                // for (int i = 0; i < this.friendCount; i++) {
+                //     if (username == this.friendName37[i]) {
+                //         if (this.friendWorld[i] != world) {
+                //             this.friendWorld[i] = world;
+                //             this.redrawSidebar = true;
+                //             if (world > 0) {
+                //                 this.addMessage(5, displayName + " has logged in.", "");
+                //             }
+                //             if (world == 0) {
+                //                 this.addMessage(5, displayName + " has logged out.", "");
+                //             }
+                //         }
+                //         displayName = null;
+                //         break;
+                //     }
+                // }
+                // if (displayName != null && this.friendCount < 100) {
+                //     this.friendName37[this.friendCount] = username;
+                //     this.friendName[this.friendCount] = displayName;
+                //     this.friendWorld[this.friendCount] = world;
+                //     this.friendCount++;
+                //     this.redrawSidebar = true;
+                // }
+                // @Pc(315) boolean sorted = false;
+                //     while (!sorted) {
+                //         sorted = true;
+                //         for (int i = 0; i < this.friendCount - 1; i++) {
+                //             if (this.friendWorld[i] != nodeId && this.friendWorld[i + 1] == nodeId || this.friendWorld[i] == 0 && this.friendWorld[i + 1] != 0) {
+                //                 int oldWorld = this.friendWorld[i];
+                //                 this.friendWorld[i] = this.friendWorld[i + 1];
+                //                 this.friendWorld[i + 1] = oldWorld;
+                //
+                //             @Pc(376) String oldName = this.friendName[i];
+                //                 this.friendName[i] = this.friendName[i + 1];
+                //                 this.friendName[i + 1] = oldName;
+                //
+                //             @Pc(398) long oldName37 = this.friendName37[i];
+                //                 this.friendName37[i] = this.friendName37[i + 1];
+                //                 this.friendName37[i + 1] = oldName37;
+                //                 this.redrawSidebar = true;
+                //                 sorted = false;
+                //             }
+                //         }
+                //     }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 43) {
+                // UPDATE_REBOOT_TIMER
+                this.systemUpdateTimer = this.in.g2 * 30;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 80) {
+                // DATA_LAND_DONE
+                const x: number = this.in.g1;
+                const z: number = this.in.g1;
+                // let index = -1;
+                // for (int i = 0; i < this.sceneMapIndex.length; i++) {
+                //     if (this.sceneMapIndex[i] == (x << 8) + z) {
+                //         index = i;
+                //     }
+                // }
+                // if (index != -1) {
+                //     signlink.cachesave("m" + x + "_" + z, this.sceneMapLandData[index]);
+                //     this.sceneState = 1;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 1) {
+                // NPC_INFO
+                // this.readNpcInfo(this.in, this.packetSize);
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 237) {
+                // LOAD_AREA
+                const zoneX: number = this.in.g2;
+                const zoneZ: number = this.in.g2;
+                //     if (this.sceneCenterZoneX == zoneX && this.sceneCenterZoneZ == zoneZ && this.sceneState != 0) {
+                //         this.packetType = -1;
+                //         return true;
+                //     }
+                //     this.sceneCenterZoneX = zoneX;
+                //     this.sceneCenterZoneZ = zoneZ;
+                //     this.sceneBaseTileX = (this.sceneCenterZoneX - 6) * 8;
+                //     this.sceneBaseTileZ = (this.sceneCenterZoneZ - 6) * 8;
+                //     this.sceneState = 1;
+                //     this.areaViewport?.bind();
+                //     this.fontPlain12?.drawStringCenter(257, 151, "Loading - please wait.", 0);
+                //     this.fontPlain12?.drawStringCenter(256, 150, "Loading - please wait.", 16777215);
+                //     this.areaViewport?.draw(super.graphics, 8, 11);
+                //     signlink.looprate(5);
+                //     int regions = (this.packetSize - 2) / 10;
+                //     this.sceneMapLandData = new byte[regions][];
+                //     this.sceneMapLocData = new byte[regions][];
+                //     this.sceneMapIndex = new int[regions];
+                //     this.out.p1isaac(150);
+                //     this.out.p1(0);
+                //     int mapCount = 0;
+                //     for (int i = 0; i < regions; i++) {
+                //         int mapsquareX = this.in.g1;
+                //         int mapsquareZ = this.in.g1;
+                //         int landCrc = this.in.g4;
+                //         int locCrc = this.in.g4;
+                //         this.sceneMapIndex[i] = (mapsquareX << 8) + mapsquareZ;
+                //     @Pc(686) byte[] data;
+                //         if (landCrc != 0) {
+                //             data = signlink.cacheload("m" + mapsquareX + "_" + mapsquareZ);
+                //             if (data != null) {
+                //                 this.crc32.reset();
+                //                 this.crc32.update(data);
+                //                 if ((int) this.crc32.getValue() != landCrc) {
+                //                     data = null;
+                //                 }
+                //             }
+                //             if (data == null) {
+                //                 this.sceneState = 0;
+                //                 this.out.p1(0);
+                //                 this.out.p1(mapsquareX);
+                //                 this.out.p1(mapsquareZ);
+                //                 mapCount += 3;
+                //             } else {
+                //                 this.sceneMapLandData[i] = data;
+                //             }
+                //         }
+                //         if (locCrc != 0) {
+                //             data = signlink.cacheload("l" + mapsquareX + "_" + mapsquareZ);
+                //             if (data != null) {
+                //                 this.crc32.reset();
+                //                 this.crc32.update(data);
+                //                 if ((int) this.crc32.getValue() != locCrc) {
+                //                     data = null;
+                //                 }
+                //             }
+                //             if (data == null) {
+                //                 this.sceneState = 0;
+                //                 this.out.p1(1);
+                //                 this.out.p1(mapsquareX);
+                //                 this.out.p1(mapsquareZ);
+                //                 mapCount += 3;
+                //             } else {
+                //                 this.sceneMapLocData[i] = data;
+                //             }
+                //         }
+                //     }
+                //     this.out.psize1(mapCount);
+                //     signlink.looprate(50);
+                //     this.areaViewport.bind();
+                //     if (this.sceneState == 0) {
+                //         this.fontPlain12.drawStringCenter(257, 166, "Map area updated since last visit, so load will take longer this time only", 0);
+                //         this.fontPlain12.drawStringCenter(256, 165, "Map area updated since last visit, so load will take longer this time only", 16777215);
+                //     }
+                //     this.areaViewport.draw(super.graphics, 8, 11);
+                //     int dx = this.sceneBaseTileX - this.mapLastBaseX;
+                //     int dz = this.sceneBaseTileZ - this.mapLastBaseZ;
+                //     this.mapLastBaseX = this.sceneBaseTileX;
+                //     this.mapLastBaseZ = this.sceneBaseTileZ;
+                //     for (int i = 0; i < 8192; i++) {
+                //     @Pc(856) NpcEntity npc = this.npcs[i];
+                //         if (npc != null) {
+                //             for (@Pc(860) int j = 0; j < 10; j++) {
+                //                 npc.pathTileX[j] -= dx;
+                //                 npc.pathTileZ[j] -= dz;
+                //             }
+                //             npc.x -= dx * 128;
+                //             npc.z -= dz * 128;
+                //         }
+                //     }
+                //     for (int i = 0; i < this.MAX_PLAYER_COUNT; i++) {
+                //     @Pc(911) PlayerEntity player = this.players[i];
+                //         if (player != null) {
+                //             for (@Pc(915) int j = 0; j < 10; j++) {
+                //                 player.pathTileX[j] -= dx;
+                //                 player.pathTileZ[j] -= dz;
+                //             }
+                //             player.x -= dx * 128;
+                //             player.z -= dz * 128;
+                //         }
+                //     }
+                // @Pc(960) byte startTileX = 0;
+                // @Pc(962) byte endTileX = 104;
+                // @Pc(964) byte dirX = 1;
+                //     if (dx < 0) {
+                //         startTileX = 103;
+                //         endTileX = -1;
+                //         dirX = -1;
+                //     }
+                // @Pc(974) byte startTileZ = 0;
+                // @Pc(976) byte endTileZ = 104;
+                // @Pc(978) byte dirZ = 1;
+                //     if (dz < 0) {
+                //         startTileZ = 103;
+                //         endTileZ = -1;
+                //         dirZ = -1;
+                //     }
+                //     for (@Pc(988) int x = startTileX; x != endTileX; x += dirX) {
+                //         for (@Pc(992) int z = startTileZ; z != endTileZ; z += dirZ) {
+                //         @Pc(998) int lastX = x + dx;
+                //         @Pc(1002) int lastZ = z + dz;
+                //             for (@Pc(1004) int level = 0; level < 4; level++) {
+                //                 if (lastX >= 0 && lastZ >= 0 && lastX < 104 && lastZ < 104) {
+                //                     this.levelObjStacks[level][x][z] = this.levelObjStacks[level][lastX][lastZ];
+                //                 } else {
+                //                     this.levelObjStacks[level][x][z] = null;
+                //                 }
+                //             }
+                //         }
+                //     }
+                //     for (@Pc(1066) LocTemporary loc = (LocTemporary) this.spawnedLocations.peekFront(); loc != null; loc = (LocTemporary) this.spawnedLocations.prev()) {
+                //         loc.x -= dx;
+                //         loc.z -= dz;
+                //         if (loc.x < 0 || loc.z < 0 || loc.x >= 104 || loc.z >= 104) {
+                //             loc.unlink();
+                //         }
+                //     }
+                //     if (this.flagSceneTileX != 0) {
+                //         this.flagSceneTileX -= dx;
+                //         this.flagSceneTileZ -= dz;
+                //     }
+                this.cutscene = false;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 197) {
+                // IF_SETPLAYERHEAD
+                const com: number = this.in.g2;
+                // ComType.instances[com].model = this.localPlayer.getHeadModel();
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 25) {
+                // this.hintType = this.in.g1;
+                // if (this.hintType == 1) {
+                //     this.hintNpc = this.in.g2;
+                // }
+                // if (this.hintType >= 2 && this.hintType <= 6) {
+                //     if (this.hintType == 2) {
+                //         this.hintOffsetX = 64;
+                //         this.hintOffsetZ = 64;
+                //     }
+                //     if (this.hintType == 3) {
+                //         this.hintOffsetX = 0;
+                //         this.hintOffsetZ = 64;
+                //     }
+                //     if (this.hintType == 4) {
+                //         this.hintOffsetX = 128;
+                //         this.hintOffsetZ = 64;
+                //     }
+                //     if (this.hintType == 5) {
+                //         this.hintOffsetX = 64;
+                //         this.hintOffsetZ = 0;
+                //     }
+                //     if (this.hintType == 6) {
+                //         this.hintOffsetX = 64;
+                //         this.hintOffsetZ = 128;
+                //     }
+                //     this.hintType = 2;
+                //     this.hintTileX = this.in.g2;
+                //     this.hintTileZ = this.in.g2;
+                //     this.hintHeight = this.in.g1;
+                // }
+                // if (this.hintType == 10) {
+                //     this.hintPlayer = this.in.g2;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 54) {
+                // MIDI_SONG
+                const name: string = this.in.gjstr;
+                const crc: number = this.in.g4;
+                const length: number = this.in.g4;
+                // if (!name.equals(this.currentMidi) && this.midiActive && !lowMemory) {
+                //     this.setMidi(name, crc, length);
+                // }
+                // this.currentMidi = name;
+                // this.midiCrc = crc;
+                // this.midiSize = length;
+                // this.nextMusicDelay = 0;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 142) {
+                // LOGOUT
+                this.logout();
+                this.packetType = -1;
+                return false;
+            }
+            if (this.packetType == 20) {
+                // DATA_LOC_DONE
+                const x: number = this.in.g1;
+                const z: number = this.in.g1;
+                // let index: number = -1;
+                // for (int i = 0; i < this.sceneMapIndex.length; i++) {
+                //     if (this.sceneMapIndex[i] == (x << 8) + z) {
+                //         index = i;
+                //     }
+                // }
+                // if (index != -1) {
+                //     signlink.cachesave("l" + x + "_" + z, this.sceneMapLocData[index]);
+                //     this.sceneState = 1;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 19) {
+                // CLEAR_WALKING_QUEUE
+                this.flagSceneTileX = 0;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 139) {
+                // UPDATE_UID192
+                this.localPid = this.in.g2;
+                this.packetType = -1;
+                return true;
+            }
+            if (
+                this.packetType == 151 ||
+                this.packetType == 23 ||
+                this.packetType == 50 ||
+                this.packetType == 191 ||
+                this.packetType == 69 ||
+                this.packetType == 49 ||
+                this.packetType == 223 ||
+                this.packetType == 42 ||
+                this.packetType == 76 ||
+                this.packetType == 59
+            ) {
+                // Zone Protocol
+                // this.readZonePacket(this.in, this.packetType);
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 28) {
+                // IF_OPENMAINMODALSIDEOVERLAY
+                const main: number = this.in.g2;
+                const side: number = this.in.g2;
+                if (this.chatInterfaceId != -1) {
+                    this.chatInterfaceId = -1;
+                    this.redrawChatback = true;
+                }
+                if (this.chatbackInputOpen) {
+                    this.chatbackInputOpen = false;
+                    this.redrawChatback = true;
+                }
+                this.viewportInterfaceID = main;
+                this.sidebarInterfaceId = side;
+                this.redrawSidebar = true;
+                this.redrawSideicons = true;
+                this.pressedContinueOption = false;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 175) {
+                // VARP_LARGE
+                const varp: number = this.in.g2;
+                const value: number = this.in.g4;
+                // this.varCache[varp] = value;
+                // if (this.varps[varp] != value) {
+                //     this.varps[varp] = value;
+                //     this.updateVarp(varp);
+                //     this.redrawSidebar = true;
+                //     if (this.stickyChatInterfaceId != -1) {
+                //         this.redrawChatback = true;
+                //     }
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 146) {
+                // IF_SETANIM
+                const com: number = this.in.g2;
+                const seqId: number = this.in.g2;
+                ComType.instances[com].seqId = seqId;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 167) {
+                // IF_SETTAB
+                let com: number = this.in.g2;
+                const tab: number = this.in.g1;
+                if (com == 65535) {
+                    com = -1;
+                }
+                this.tabInterfaceId[tab] = com;
+                this.redrawSidebar = true;
+                this.redrawSideicons = true;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 220) {
+                // DATA_LOC
+                const x: number = this.in.g1;
+                const z: number = this.in.g1;
+                const off: number = this.in.g2;
+                const length: number = this.in.g2;
+                // let index = -1;
+                // for (int i = 0; i < this.sceneMapIndex.length; i++) {
+                //     if (this.sceneMapIndex[i] == (x << 8) + z) {
+                //         index = i;
+                //     }
+                // }
+                // if (index != -1) {
+                //     if (this.sceneMapLocData[index] == null || this.sceneMapLocData[index].length != length) {
+                //         this.sceneMapLocData[index] = new byte[length];
+                //     }
+                //     this.in.gdata(this.packetSize - 6, off, this.sceneMapLocData[index]);
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 133) {
+                // FINISH_TRACKING
+                // const tracking = InputTracking.stop();
+                // if (tracking != null) {
+                //     this.out.p1isaac(81);
+                //     this.out.p2(tracking.pos);
+                //     this.out.pdata(tracking.data, tracking.pos, 0);
+                //     tracking.release();
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 98) {
+                // UPDATE_INV_FULL
+                this.redrawSidebar = true;
+                const com: number = this.in.g2;
+                const inv: ComType = ComType.instances[com];
+                const size: number = this.in.g1;
+                // for (let i = 0; i < size; i++) {
+                //     inv.inventorySlotObjId[i] = this.in.g2;
+                //     let count = this.in.g1;
+                //     if (count == 255) {
+                //         count = this.in.g4;
+                //     }
+                //     inv.inventorySlotObjCount[i] = count;
+                // }
+                // for (let i = size; i < inv.inventorySlotObjId.length; i++) {
+                //     inv.inventorySlotObjId[i] = 0;
+                //     inv.inventorySlotObjCount[i] = 0;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 226) {
+                // ENABLE_TRACKING
+                // InputTracking.setEnabled();
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 243) {
+                // IF_IAMOUNT
+                this.showSocialInput = false;
+                this.chatbackInputOpen = true;
+                this.chatbackInput = '';
+                this.redrawChatback = true;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 15) {
+                // UPDATE_INV_STOP_TRANSMIT
+                const com: number = this.in.g2;
+                const inv: ComType = ComType.instances[com];
+                // for (let i = 0; i < inv.inventorySlotObjId.length; i++) {
+                //     inv.inventorySlotObjId[i] = -1;
+                //     inv.inventorySlotObjId[i] = 0;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 140) {
+                // LAST_LOGIN_INFO
+                // this.lastAddress = this.in.g4;
+                // this.daysSinceLastLogin = this.in.g2;
+                // this.daysSinceRecoveriesChanged = this.in.g1;
+                // this.unreadMessages = this.in.g2;
+                // if (this.lastAddress != 0 && this.viewportInterfaceID == -1) {
+                //     signlink.dnslookup(JString.formatIPv4(this.lastAddress));
+                //     this.closeInterfaces();
+                // @Pc(1915) short contentType = 650;
+                //     if (this.daysSinceRecoveriesChanged != 201) {
+                //         contentType = 655;
+                //     }
+                //     this.reportAbuseInput = "";
+                //     this.reportAbuseMuteOption = false;
+                //     for (int i = 0; i < ComType.instances.length; i++) {
+                //         if (ComType.instances[i] != null && ComType.instances[i].contentType == contentType) {
+                //             this.viewportInterfaceID = ComType.instances[i].parentId;
+                //             break;
+                //         }
+                //     }
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 126) {
+                // IF_SETTAB_FLASH
+                this.flashingTab = this.in.g1;
+                if (this.flashingTab == this.selectedTab) {
+                    if (this.flashingTab == 3) {
+                        this.selectedTab = 1;
+                    } else {
+                        this.selectedTab = 3;
+                    }
+                    this.redrawSidebar = true;
+                }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 212) {
+                // MIDI_JINGLE
+                // if (this.midiActive && !lowMemory) {
+                //     int delay = this.in.g2;
+                //     int length = this.in.g4;
+                //     int remaining = this.packetSize - 6;
+                // @Pc(2018) byte[] src = new byte[length];
+                //     BZip2.read(src, length, this.in.data, remaining, this.in.pos);
+                //     this.saveMidi(src, length, 0);
+                //     this.nextMusicDelay = delay;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 254) {
+                // IF_MULTIZONE
+                this.inMultizone = this.in.g1;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 12) {
+                // SYNTH_SOUND
+                const id: number = this.in.g2;
+                const loop: number = this.in.g1;
+                const delay: number = this.in.g2;
+                // if (this.waveEnabled && !lowMemory && this.waveCount < 50) {
+                //     this.waveIds[this.waveCount] = id;
+                //     this.waveLoops[this.waveCount] = loop;
+                //     this.waveDelay[this.waveCount] = delay + Wave.delays[id];
+                //     this.waveCount++;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 204) {
+                // IF_SETNPCHEAD
+                const com: number = this.in.g2;
+                const npcId: number = this.in.g2;
+                const npc: NpcType = NpcType.get(npcId);
+                // ComType.instances[com].model = npc.getHeadModel();
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 7) {
+                // UPDATE_ZONE_PARTIAL_FOLLOWS
+                this.baseX = this.in.g1;
+                this.baseZ = this.in.g1;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 103) {
+                // IF_SETMODEL_COLOUR
+                const com: number = this.in.g2;
+                const src: number = this.in.g2;
+                const dst: number = this.in.g2;
+                const inter: ComType = ComType.instances[com];
+                const model: Model | null = inter.model;
+                if (model != null) {
+                    model.recolor(src, dst);
+                }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 32) {
+                // CHAT_FILTER_SETTINGS
+                this.publicChatSetting = this.in.g1;
+                this.privateChatSetting = this.in.g1;
+                this.tradeChatSetting = this.in.g1;
+                this.redrawPrivacySettings = true;
+                this.redrawChatback = true;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 195) {
+                // IF_OPENSIDEOVERLAY
+                const com: number = this.in.g2;
+                this.resetInterfaceAnimation(com);
+                if (this.chatInterfaceId != -1) {
+                    this.chatInterfaceId = -1;
+                    this.redrawChatback = true;
+                }
+                if (this.chatbackInputOpen) {
+                    this.chatbackInputOpen = false;
+                    this.redrawChatback = true;
+                }
+                this.sidebarInterfaceId = com;
+                this.redrawSidebar = true;
+                this.redrawSideicons = true;
+                this.viewportInterfaceID = -1;
+                this.pressedContinueOption = false;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 14) {
+                // IF_OPENCHAT
+                const com: number = this.in.g2;
+                this.resetInterfaceAnimation(com);
+                if (this.sidebarInterfaceId != -1) {
+                    this.sidebarInterfaceId = -1;
+                    this.redrawSidebar = true;
+                    this.redrawSideicons = true;
+                }
+                this.chatInterfaceId = com;
+                this.redrawChatback = true;
+                this.viewportInterfaceID = -1;
+                this.pressedContinueOption = false;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 209) {
+                // IF_SETPOSITION
+                const com: number = this.in.g2;
+                const x: number = this.in.g2b;
+                const z: number = this.in.g2b;
+                const inter: ComType = ComType.instances[com];
+                inter.x = x;
+                inter.y = z;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 3) {
+                // CAM_LOOKAT
+                this.cutscene = true;
+                // this.cutsceneSrcLocalTileX = this.in.g1;
+                // this.cutsceneSrcLocalTileZ = this.in.g1;
+                // this.cutsceneSrcHeight = this.in.g2;
+                // this.cutsceneMoveSpeed = this.in.g1;
+                // this.cutsceneMoveAcceleration = this.in.g1;
+                // if (this.cutsceneMoveAcceleration >= 100) {
+                //     this.cameraX = this.cutsceneSrcLocalTileX * 128 + 64;
+                //     this.cameraZ = this.cutsceneSrcLocalTileZ * 128 + 64;
+                //     this.cameraY = this.getHeightmapY(this.currentLevel, this.cutsceneSrcLocalTileX, this.cutsceneSrcLocalTileZ) - this.cutsceneSrcHeight;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 135) {
+                // UPDATE_ZONE_FULL_FOLLOWS
+                this.baseX = this.in.g1;
+                this.baseZ = this.in.g1;
+                for (let x: number = this.baseX; x < this.baseX + 8; x++) {
+                    for (let z: number = this.baseZ; z < this.baseZ + 8; z++) {
+                        // if (this.levelObjStacks[this.currentLevel][x][z] != null) {
+                        //     this.levelObjStacks[this.currentLevel][x][z] = null;
+                        //     this.sortObjStacks(x, z);
+                        // }
+                    }
+                }
+                // for (@Pc(2487) LocTemporary loc = (LocTemporary) this.spawnedLocations.peekFront(); loc != null; loc = (LocTemporary) this.spawnedLocations.prev()) {
+                //     if (loc.x >= this.baseX && loc.x < this.baseX + 8 && loc.z >= this.baseZ && loc.z < this.baseZ + 8 && loc.plane == this.currentLevel) {
+                //         this.addLoc(loc.plane, loc.x, loc.z, loc.lastLocIndex, loc.lastAngle, loc.lastShape, loc.layer);
+                //         loc.unlink();
+                //     }
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 132) {
+                // DATA_LAND
+                const x: number = this.in.g1;
+                const z: number = this.in.g1;
+                const offset: number = this.in.g2;
+                const length: number = this.in.g2;
+                // let index = -1;
+                // for (let i = 0; i < this.sceneMapIndex.length; i++) {
+                //     if (this.sceneMapIndex[i] == (x << 8) + z) {
+                //         index = i;
+                //     }
+                // }
+                // if (index != -1) {
+                //     if (this.sceneMapLandData[index] == null || this.sceneMapLandData[index].length != length) {
+                //         this.sceneMapLandData[index] = new byte[length];
+                //     }
+                //     this.in.gdata(this.packetSize - 6, offset, this.sceneMapLandData[index]);
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 41) {
+                // MESSAGE_PRIVATE
+                const from: bigint = this.in.g8;
+                const messageId: number = this.in.g4;
+                const staffModLevel: number = this.in.g1;
+                // let ignored = false;
+                //   for (let i = 0; i < 100; i++) {
+                //       if (this.messageIds[i] == messageId) {
+                //           ignored = true;
+                //           break;
+                //       }
+                //   }
+                //   if (staffModLevel <= 1) {
+                //       for (let i = 0; i < this.ignoreCount; i++) {
+                //           if (this.ignoreName37[i] == from) {
+                //               ignored = true;
+                //               break;
+                //           }
+                //       }
+                //   }
+                //   if (!ignored && this.overrideChat == 0) {
+                //       try {
+                //           this.messageIds[this.privateMessageCount] = messageId;
+                //           this.privateMessageCount = (this.privateMessageCount + 1) % 100;
+                //       @Pc(2721) String uncompressed = WordPack.unpack(this.in, this.packetSize - 13);
+                //       @Pc(2725) String filtered = WordFilter.filter(uncompressed);
+                //           if (staffModLevel > 1) {
+                //               this.addMessage(7, filtered, JString.formatName(JString.fromBase37(from)));
+                //           } else {
+                //               this.addMessage(3, filtered, JString.formatName(JString.fromBase37(from)));
+                //           }
+                //       } catch (@Pc(2752) Exception ex) {
+                //           signlink.reporterror("cde1");
+                //       }
+                //   }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 193) {
+                // RESET_CLIENT_VARCACHE
+                // for (int i = 0; i < this.varps.length; i++) {
+                //     if (this.varps[i] != this.varCache[i]) {
+                //         this.varps[i] = this.varCache[i];
+                //         this.updateVarp(i);
+                //         this.redrawSidebar = true;
+                //     }
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 87) {
+                // IF_SETMODEL
+                const com: number = this.in.g2;
+                const model: number = this.in.g2;
+                ComType.instances[com].model = new Model(model);
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 185) {
+                // IF_OPENCHATSTICKY
+                this.stickyChatInterfaceId = this.in.g2b;
+                this.redrawChatback = true;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 68) {
+                // UPDATE_RUNENERGY
+                if (this.selectedTab == 12) {
+                    this.redrawSidebar = true;
+                }
+                this.energy = this.in.g1;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 74) {
+                // CAM_MOVETO
+                this.cutscene = true;
+                // this.cutsceneDstLocalTileX = this.in.g1;
+                // this.cutsceneDstLocalTileZ = this.in.g1;
+                // this.cutsceneDstHeight = this.in.g2;
+                // this.cutsceneRotateSpeed = this.in.g1;
+                // this.cutsceneRotateAcceleration = this.in.g1;
+                // if (this.cutsceneRotateAcceleration >= 100) {
+                //     const sceneX = this.cutsceneDstLocalTileX * 128 + 64;
+                //     const sceneZ = this.cutsceneDstLocalTileZ * 128 + 64;
+                //     const sceneY = this.getHeightmapY(this.currentLevel, this.cutsceneDstLocalTileX, this.cutsceneDstLocalTileZ) - this.cutsceneDstHeight;
+                //     const deltaX = sceneX - this.cameraX;
+                //     const deltaY = sceneY - this.cameraY;
+                //     const deltaZ = sceneZ - this.cameraZ;
+                //     const distance = (int) Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
+                //     this.cameraPitch = (int) (Math.atan2(deltaY, distance) * 325.949D) & 0x7FF;
+                //     this.cameraYaw = (int) (Math.atan2(deltaX, deltaZ) * -325.949D) & 0x7FF;
+                //     if (this.cameraPitch < 128) {
+                //         this.cameraPitch = 128;
+                //     }
+                //     if (this.cameraPitch > 383) {
+                //         this.cameraPitch = 383;
+                //     }
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 84) {
+                // IF_SETTAB_ACTIVE
+                this.selectedTab = this.in.g1;
+                this.redrawSidebar = true;
+                this.redrawSideicons = true;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 4) {
+                // MESSAGE_GAME
+                const message: string = this.in.gjstr;
+                // @Pc(3043) long username;
+                //     if (message.endsWith(":tradereq:")) {
+                //         String player = message.substring(0, message.indexOf(":"));
+                //         username = JString.toBase37(player);
+                //         boolean ignored = false;
+                //         for (int i = 0; i < this.ignoreCount; i++) {
+                //             if (this.ignoreName37[i] == username) {
+                //                 ignored = true;
+                //                 break;
+                //             }
+                //         }
+                //         if (!ignored && this.overrideChat == 0) {
+                //             this.addMessage(4, "wishes to trade with you.", player);
+                //         }
+                //     } else if (message.endsWith(":duelreq:")) {
+                //         String player = message.substring(0, message.indexOf(":"));
+                //         username = JString.toBase37(player);
+                //         boolean ignored = false;
+                //         for (int i = 0; i < this.ignoreCount; i++) {
+                //             if (this.ignoreName37[i] == username) {
+                //                 ignored = true;
+                //                 break;
+                //             }
+                //         }
+                //         if (!ignored && this.overrideChat == 0) {
+                //             this.addMessage(8, "wishes to duel with you.", player);
+                //         }
+                //     } else {
+                //         this.addMessage(0, message, "");
+                //     }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 46) {
+                // IF_SETOBJECT
+                const com: number = this.in.g2;
+                const objId: number = this.in.g2;
+                const zoom: number = this.in.g2;
+                const obj: ObjType = ObjType.get(objId);
+                // ComType.instances[com].model = obj.getInterfaceModel(50);
+                // ComType.instances[com].modelPitch = obj.xan2d;
+                // ComType.instances[com].modelYaw = obj.yan2d;
+                // ComType.instances[com].modelZoom = (obj.zoom2d * 100) / zoom;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 168) {
+                // IF_OPENMAIN
+                const com: number = this.in.g2;
+                this.resetInterfaceAnimation(com);
+                if (this.sidebarInterfaceId != -1) {
+                    this.sidebarInterfaceId = -1;
+                    this.redrawSidebar = true;
+                    this.redrawSideicons = true;
+                }
+                if (this.chatInterfaceId != -1) {
+                    this.chatInterfaceId = -1;
+                    this.redrawChatback = true;
+                }
+                if (this.chatbackInputOpen) {
+                    this.chatbackInputOpen = false;
+                    this.redrawChatback = true;
+                }
+                this.viewportInterfaceID = com;
+                this.pressedContinueOption = false;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 2) {
+                // IF_SETCOLOUR
+                const com: number = this.in.g2;
+                const color: number = this.in.g2;
+                const r: number = (color >> 10) & 0x1f;
+                const g: number = (color >> 5) & 0x1f;
+                const b: number = color & 0x1f;
+                // ComType.instances[com].color = (r << 19) + (g << 11) + (b << 3);
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 136) {
+                // RESET_ANIMS
+                // for (let i = 0; i < this.players.length; i++) {
+                //     if (this.players[i] != null) {
+                //         this.players[i].primarySeqId = -1;
+                //     }
+                // }
+                // for (let i = 0; i < this.npcs.length; i++) {
+                //     if (this.npcs[i] != null) {
+                //         this.npcs[i].primarySeqId = -1;
+                //     }
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 26) {
+                // IF_SETHIDE
+                const com: number = this.in.g2;
+                ComType.instances[com].hide = this.in.g1 == 1;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 21) {
+                // UPDATE_IGNORELIST
+                // this.ignoreCount = this.packetSize / 8;
+                // for (int i = 0; i < this.ignoreCount; i++) {
+                //     this.ignoreName37[i] = this.in.g8;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 239) {
+                // CAM_RESET
+                this.cutscene = false;
+                // for (let i = 0; i < 5; i++) {
+                //     this.cameraModifierEnabled[i] = false;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 129) {
+                // IF_CLOSE
+                if (this.sidebarInterfaceId != -1) {
+                    this.sidebarInterfaceId = -1;
+                    this.redrawSidebar = true;
+                    this.redrawSideicons = true;
+                }
+                if (this.chatInterfaceId != -1) {
+                    this.chatInterfaceId = -1;
+                    this.redrawChatback = true;
+                }
+                if (this.chatbackInputOpen) {
+                    this.chatbackInputOpen = false;
+                    this.redrawChatback = true;
+                }
+                this.viewportInterfaceID = -1;
+                this.pressedContinueOption = false;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 201) {
+                // IF_SETTEXT
+                const com: number = this.in.g2;
+                // ComType.instances[com].text = this.in.gjstr;
+                // if (ComType.instances[com].parentId == this.tabInterfaceId[this.selectedTab]) {
+                //     this.redrawSidebar = true;
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 44) {
+                // UPDATE_STAT
+                this.redrawSidebar = true;
+                const stat: number = this.in.g1;
+                const xp: number = this.in.g4;
+                const level: number = this.in.g1;
+                // this.skillExperience[stat] = xp;
+                // this.skillLevel[stat] = level;
+                // this.skillBaseLevel[stat] = 1;
+                // for (let i = 0; i < 98; i++) {
+                //     if (xp >= levelExperience[i]) {
+                //         this.skillBaseLevel[stat] = i + 2;
+                //     }
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 162) {
+                // UPDATE_ZONE_PARTIAL_ENCLOSED
+                this.baseX = this.in.g1;
+                this.baseZ = this.in.g1;
+                while (this.in.pos < this.packetSize) {
+                    const opcode: number = this.in.g1;
+                    // this.readZonePacket(this.in, opcode);
+                }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 22) {
+                // UPDATE_RUNWEIGHT
+                if (this.selectedTab == 12) {
+                    this.redrawSidebar = true;
+                }
+                this.weightCarried = this.in.g2b;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 13) {
+                // CAM_SHAKE
+                const type: number = this.in.g1;
+                const jitter: number = this.in.g1;
+                const wobbleScale: number = this.in.g1;
+                const wobbleSpeed: number = this.in.g1;
+                // this.cameraModifierEnabled[type] = true;
+                // this.cameraModifierJitter[type] = jitter;
+                // this.cameraModifierWobbleScale[type] = wobbleScale;
+                // this.cameraModifierWobbleSpeed[type] = wobbleSpeed;
+                // this.cameraModifierCycle[type] = 0;
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 213) {
+                // UPDATE_INV_PARTIAL
+                this.redrawSidebar = true;
+                const com: number = this.in.g2;
+                const inv: ComType = ComType.instances[com];
+                // while (this.in.pos < this.packetSize) {
+                //     const slot = this.in.g1;
+                //     const id = this.in.g2;
+                //     let count = this.in.g1;
+                //     if (count == 255) {
+                //         count = this.in.g4;
+                //     }
+                //     if (slot >= 0 && slot < inv.inventorySlotObjId.length) {
+                //         inv.inventorySlotObjId[slot] = id;
+                //         inv.inventorySlotObjCount[slot] = count;
+                //     }
+                // }
+                this.packetType = -1;
+                return true;
+            }
+            if (this.packetType == 184) {
+                // PLAYER_INFO
+                // this.readPlayerInfo(this.in, this.packetSize);
+                // if (this.sceneState == 1) {
+                //     this.sceneState = 2;
+                //     World.levelBuilt = this.currentLevel;
+                //     this.buildScene();
+                // }
+                // if (lowMemory && this.sceneState == 2 && World.levelBuilt != this.currentLevel) {
+                //     this.areaViewport.bind();
+                //     this.fontPlain12.drawStringCenter(257, 151, "Loading - please wait.", 0);
+                //     this.fontPlain12.drawStringCenter(256, 150, "Loading - please wait.", 16777215);
+                //     this.areaViewport.draw(super.graphics, 8, 11);
+                //     World.levelBuilt = this.currentLevel;
+                //     this.buildScene();
+                // }
+                // if (this.currentLevel != this.minimapLevel && this.sceneState == 2) {
+                //     this.minimapLevel = this.currentLevel;
+                //     this.createMinimap(this.currentLevel);
+                // }
+                this.packetType = -1;
+                return true;
+            }
             this.logout();
         } catch (e) {
+            console.log(e);
             await this.tryReconnect();
             // TODO extra logic for logout??
         }
         return true;
+    };
+
+    private resetInterfaceAnimation = (id: number): void => {
+        const parent: ComType = ComType.instances[id];
+        if (!parent.childId) {
+            return;
+        }
+        for (let i: number = 0; i < parent.childId.length && parent.childId[i] != -1; i++) {
+            const child: ComType = ComType.instances[parent.childId[i]];
+            if (child.type == 1) {
+                this.resetInterfaceAnimation(child.id);
+            }
+            child.seqFrame = 0;
+            child.seqCycle = 0;
+        }
     };
 
     private unloadTitle = (): void => {

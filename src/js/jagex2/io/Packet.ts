@@ -1,4 +1,5 @@
 import {bigIntToBytes, bytesToBigInt, bigIntModPow, arraycopy} from '../util/JsUtil';
+import Isaac from './Isaac';
 
 export default class Packet {
     static crctable: Int32Array = new Int32Array(256);
@@ -32,6 +33,7 @@ export default class Packet {
 
     // runtime
     bitPos: number = 0;
+    random: Isaac | null = null;
 
     constructor(src: Uint8Array | null) {
         if (!src) {
