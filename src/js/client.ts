@@ -33,10 +33,10 @@ import World3D from './jagex2/dash3d/World3D';
 import ClientStream from './jagex2/io/ClientStream';
 
 class Client extends GameShell {
-    static readonly HOST: string = 'http://localhost';
-    static readonly PORT: number = 43595;
-    // static readonly HOST: string = 'https://w2.225.2004scape.org';
-    // static readonly PORT: number = 43599
+    // static readonly HOST: string = 'http://localhost';
+    // static readonly PORT: number = 43595;
+    static readonly HOST: string = 'https://w2.225.2004scape.org';
+    static readonly PORT: number = 43599;
     static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
 
     static EXPONENT: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
