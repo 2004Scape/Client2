@@ -30,6 +30,7 @@ import Packet from './jagex2/io/Packet.js';
 import Wave from './jagex2/sound/Wave';
 import JString from './jagex2/datastruct/JString';
 import World3D from './jagex2/dash3d/World3D';
+import ClientStream from './jagex2/io/ClientStream';
 
 class Client extends GameShell {
     static readonly HOST: string = 'https://w2.225.2004scape.org';
@@ -51,6 +52,10 @@ class Client extends GameShell {
     private loopCycle: number = 0;
     private ingame: boolean = false;
     private archiveChecksums: number[] = [];
+    private stream: ClientStream | null = null;
+    private in: Packet = Packet.alloc(1);
+    private out: Packet = Packet.alloc(1);
+    private serverSeed: bigint = 0n;
 
     // login screen properties
     private redrawTitleBackground: boolean = true;
@@ -956,6 +961,10 @@ class Client extends GameShell {
     private login = async (username: string, password: string, reconnect: boolean): Promise<void> => {
         try {
             this.ingame = true;
+            this.stream = new ClientStream(await ClientStream.openSocket({host: Client.HOST, port: 43599}));
+            await this.stream?.readBytes(this.in.data, 0, 8);
+            this.in.pos = 0;
+            this.serverSeed = this.in.g8;
             this.prepareGameScreen();
         } catch (err) {
             this.loginMessage0 = '';

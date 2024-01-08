@@ -48,6 +48,6 @@ export const decodeJpeg = async (data: Uint8Array | null): Promise<ImageData> =>
     return ctx.getImageData(0, 0, canvas.width, canvas.height);
 };
 
-export const arraycopy = (src: Int32Array, srcPos: number, dst: Int32Array, dstPos: number, length: number): void => {
+export const arraycopy = (src: Int32Array | Uint8Array, srcPos: number, dst: Int32Array | Uint8Array, dstPos: number, length: number): void => {
     while (length--) dst[dstPos++] = src[srcPos++];
 };
