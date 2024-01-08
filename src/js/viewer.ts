@@ -155,7 +155,7 @@ export default class Client extends GameShell {
         }
     };
 
-    update = (): void => {
+    update = async (): Promise<void> => {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             return;
         }

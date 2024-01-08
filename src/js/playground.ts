@@ -99,7 +99,7 @@ class Playground extends GameShell {
         Draw3D.init2D();
     };
 
-    update = () => {
+    update = async (): Promise<void> => {
         this.updateKeysPressed();
         this.updateKeysHeld();
 

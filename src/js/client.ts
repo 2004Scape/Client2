@@ -472,7 +472,7 @@ class Client extends GameShell {
         }
     };
 
-    update = (): void => {
+    update = async (): Promise<void> => {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
             return;
         }
@@ -480,7 +480,7 @@ class Client extends GameShell {
         if (this.ingame) {
             this.updateGame();
         } else {
-            this.updateTitleScreen();
+            await this.updateTitleScreen();
         }
     };
 
@@ -776,7 +776,7 @@ class Client extends GameShell {
         });
     };
 
-    private updateTitleScreen = (): void => {
+    private updateTitleScreen = async (): Promise<void> => {
         if (this.titleScreenState === 0) {
             let x = this.width / 2 - 80;
             let y = this.height / 2 + 20;
@@ -814,12 +814,7 @@ class Client extends GameShell {
             buttonY += 20;
 
             if (this.mouseClickButton == 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
-                if (!this.awaitingLogin) {
-                    this.awaitingLogin = true; // this is custom from java client because javascript
-                    this.login(this.username, this.password, false).then((): void => {
-                        this.awaitingLogin = false;
-                    });
-                }
+                await this.login(this.username, this.password, false);
             }
 
             buttonX = this.width / 2 + 80;
@@ -991,6 +986,8 @@ class Client extends GameShell {
             this.out.p4(0); // TODO signlink UUID
             this.out.pjstr(username);
             this.out.pjstr(password);
+            // this.out.pjstr('jordan');
+            // this.out.pjstr('retardeddeveloper69');
             this.out.rsaenc(Client.MODULUS, Client.EXPONENT);
             this.loginout.pos = 0;
             if (reconnect) {

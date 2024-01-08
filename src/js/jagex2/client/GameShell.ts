@@ -160,7 +160,7 @@ export default abstract class GameShell {
             await sleep(delta);
 
             while (count < 256) {
-                this.update();
+                await this.update();
                 this.mouseClickButton = 0;
                 this.keyQueueReadPos = this.keyQueueWritePos;
                 count += ratio;
@@ -214,7 +214,7 @@ export default abstract class GameShell {
 
     async load(): Promise<void> {}
 
-    update(): void {}
+    async update(): Promise<void> {}
 
     unload(): void {}
 
