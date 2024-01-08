@@ -33,9 +33,14 @@ import World3D from './jagex2/dash3d/World3D';
 import ClientStream from './jagex2/io/ClientStream';
 
 class Client extends GameShell {
-    static readonly HOST: string = 'https://w2.225.2004scape.org';
+    static readonly HOST: string = 'http://localhost';
+    static readonly PORT: number = 43595;
+    // static readonly HOST: string = 'https://w2.225.2004scape.org';
+    // static readonly PORT: number = 43599
     static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
 
+    static EXPONENT: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
+    static MODULUS: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
     static MEMBERS: boolean = true;
     static LOW_MEMORY: boolean = false;
 
@@ -55,6 +60,7 @@ class Client extends GameShell {
     private stream: ClientStream | null = null;
     private in: Packet = Packet.alloc(1);
     private out: Packet = Packet.alloc(1);
+    private loginout: Packet = Packet.alloc(1);
     private serverSeed: bigint = 0n;
 
     // login screen properties
@@ -901,7 +907,7 @@ class Client extends GameShell {
         } else if (this.titleScreenState === 2) {
             let x = w / 2 - 80;
             let y = h / 2 - 40;
-            if (this.loginMessage0.length === 0) {
+            if (this.loginMessage0.length > 0) {
                 this.fontBold12?.drawStringTaggableCenter(w / 2, y - 15, this.loginMessage0, 0xffff00, true);
                 this.fontBold12?.drawStringTaggableCenter(w / 2, y, this.loginMessage1, 0xffff00, true);
                 y += 30;
@@ -960,13 +966,219 @@ class Client extends GameShell {
 
     private login = async (username: string, password: string, reconnect: boolean): Promise<void> => {
         try {
-            this.ingame = true;
-            this.stream = new ClientStream(await ClientStream.openSocket({host: Client.HOST, port: 43599}));
+            if (!reconnect) {
+                this.loginMessage0 = '';
+                this.loginMessage1 = 'Connecting to server...';
+                await this.drawTitleScreen();
+            }
+            this.stream = new ClientStream(await ClientStream.openSocket({host: Client.HOST, port: Client.PORT}));
             await this.stream?.readBytes(this.in.data, 0, 8);
             this.in.pos = 0;
             this.serverSeed = this.in.g8;
-            this.prepareGameScreen();
+            const seed: Int32Array = new Int32Array([Math.floor(Math.random() * 99999999), Math.floor(Math.random() * 99999999), Number(this.serverSeed >> BigInt(32)), Number(this.serverSeed & BigInt(0xffffffff))]);
+            this.out.pos = 0;
+            this.out.p1(10);
+            this.out.p4(seed[0]);
+            this.out.p4(seed[1]);
+            this.out.p4(seed[2]);
+            this.out.p4(seed[3]);
+            this.out.p4(0); // TODO signlink UUID
+            this.out.pjstr(username);
+            this.out.pjstr(password);
+            this.out.rsaenc(Client.MODULUS, Client.EXPONENT);
+            this.loginout.pos = 0;
+            if (reconnect) {
+                this.loginout.p1(18);
+            } else {
+                this.loginout.p1(16);
+            }
+            this.loginout.p1(this.out.pos + 36 + 1 + 1);
+            this.loginout.p1(225);
+            this.loginout.p1(Client.LOW_MEMORY ? 1 : 0);
+            for (let i = 0; i < 9; i++) {
+                this.loginout.p4(this.archiveChecksums[i]);
+            }
+            this.loginout.pdata(this.out.data, this.out.pos, 0);
+            this.stream.write(this.loginout.data, this.loginout.pos, 0);
+            const reply = await this.stream.read();
+            console.log(`Login reply was: ${reply}`);
+
+            if (reply === 1) {
+                await sleep(2000);
+                await this.login(username, password, reconnect);
+                return;
+            }
+            if (reply === 2 || reply === 18) {
+                // TODO
+                // this.rights = reply == 18;
+                // InputTracking.setDisabled();
+                this.ingame = true;
+                this.out.pos = 0;
+                this.in.pos = 0;
+                // this.packetType = -1;
+                // this.lastPacketType0 = -1;
+                // this.lastPacketType1 = -1;
+                // this.lastPacketType2 = -1;
+                // this.packetSize = 0;
+                // this.idleNetCycles = 0;
+                // this.systemUpdateTimer = 0;
+                // this.idleTimeout = 0;
+                // this.hintType = 0;
+                this.menuSize = 0;
+                this.menuVisible = false;
+                this.idleCycles = 0;
+                this.messageText = [];
+                // this.objSelected = 0;
+                // this.spellSelected = 0;
+                this.sceneState = 0;
+                // this.waveCount = 0;
+                // this.cameraAnticheatOffsetX = (int) (Math.random() * 100.0D) - 50;
+                // this.cameraAnticheatOffsetZ = (int) (Math.random() * 110.0D) - 55;
+                // this.cameraAnticheatAngle = (int) (Math.random() * 80.0D) - 40;
+                // this.minimapAnticheatAngle = (int) (Math.random() * 120.0D) - 60;
+                // this.minimapZoom = (int) (Math.random() * 30.0D) - 20;
+                // this.orbitCameraYaw = (int) (Math.random() * 20.0D) - 10 & 0x7FF;
+                // this.minimapLevel = -1;
+                // this.flagSceneTileX = 0;
+                // this.flagSceneTileZ = 0;
+                // this.playerCount = 0;
+                // this.npcCount = 0;
+                // for (let i = 0; i < this.MAX_PLAYER_COUNT; i++) {
+                //     this.players[i] = null;
+                //     this.playerAppearanceBuffer[i] = null;
+                // }
+                // for (let i = 0; i < 8192; i++) {
+                //     this.npcs[i] = null;
+                // }
+                // this.localPlayer = this.players[this.LOCAL_PLAYER_INDEX] = new PlayerEntity();
+                // this.projectiles.clear();
+                // this.spotanims.clear();
+                // this.temporaryLocs.clear();
+                // for (let level = 0; level < 4; level++) {
+                //     for (let x = 0; x < 104; x++) {
+                //         for (let z = 0; z < 104; z++) {
+                //             this.levelObjStacks[level][x][z] = null;
+                //         }
+                //     }
+                // }
+                // this.spawnedLocations = new LinkList();
+                // this.friendCount = 0;
+                this.stickyChatInterfaceId = -1;
+                this.chatInterfaceId = -1;
+                // this.viewportInterfaceID = -1;
+                this.sidebarInterfaceId = -1;
+                this.pressedContinueOption = false;
+                this.selectedTab = 3;
+                this.chatbackInputOpen = false;
+                this.menuVisible = false;
+                this.showSocialInput = false;
+                this.modalMessage = null;
+                // this.inMultizone = 0;
+                this.flashingTab = -1;
+                // this.designGenderMale = true;
+                // this.validateCharacterDesign();
+                // for (let i = 0; i < 5; i++) {
+                //     this.designColors[i] = 0;
+                // }
+                // opLoc4Counter = 0;
+                // opNpc3Counter = 0;
+                // opHeld4Counter = 0;
+                // opNpc5Counter = 0;
+                // opHeld1Counter = 0;
+                // opLoc5Counter = 0;
+                // ifButton5Counter = 0;
+                // opPlayer2Counter = 0;
+                // opHeld9Counter = 0;
+                this.prepareGameScreen();
+                return;
+            }
+            if (reply == 3) {
+                this.loginMessage0 = '';
+                this.loginMessage1 = 'Invalid username or password.';
+                return;
+            }
+            if (reply == 4) {
+                this.loginMessage0 = 'Your account has been disabled.';
+                this.loginMessage1 = 'Please check your message-centre for details.';
+                return;
+            }
+            if (reply == 5) {
+                this.loginMessage0 = 'Your account is already logged in.';
+                this.loginMessage1 = 'Try again in 60 secs...';
+                return;
+            }
+            if (reply == 6) {
+                this.loginMessage0 = 'RuneScape has been updated!';
+                this.loginMessage1 = 'Please reload this page.';
+                return;
+            }
+            if (reply == 7) {
+                this.loginMessage0 = 'This world is full.';
+                this.loginMessage1 = 'Please use a different world.';
+                return;
+            }
+            if (reply == 8) {
+                this.loginMessage0 = 'Unable to connect.';
+                this.loginMessage1 = 'Login server offline.';
+                return;
+            }
+            if (reply == 9) {
+                this.loginMessage0 = 'Login limit exceeded.';
+                this.loginMessage1 = 'Too many connections from your address.';
+                return;
+            }
+            if (reply == 10) {
+                this.loginMessage0 = 'Unable to connect.';
+                this.loginMessage1 = 'Bad session id.';
+                return;
+            }
+            if (reply == 11) {
+                this.loginMessage1 = 'Login server rejected session.';
+                this.loginMessage1 = 'Please try again.';
+                return;
+            }
+            if (reply == 12) {
+                this.loginMessage0 = 'You need a members account to login to this world.';
+                this.loginMessage1 = 'Please subscribe, or use a different world.';
+                return;
+            }
+            if (reply == 13) {
+                this.loginMessage0 = 'Could not complete login.';
+                this.loginMessage1 = 'Please try using a different world.';
+                return;
+            }
+            if (reply == 14) {
+                this.loginMessage0 = 'The server is being updated.';
+                this.loginMessage1 = 'Please wait 1 minute and try again.';
+                return;
+            }
+            if (reply == 15) {
+                this.ingame = true;
+                this.out.pos = 0;
+                this.in.pos = 0;
+                // TODO
+                // this.packetType = -1;
+                // this.lastPacketType0 = -1;
+                // this.lastPacketType1 = -1;
+                // this.lastPacketType2 = -1;
+                // this.packetSize = 0;
+                // this.idleNetCycles = 0;
+                // this.systemUpdateTimer = 0;
+                this.menuSize = 0;
+                this.menuVisible = false;
+                return;
+            }
+            if (reply == 16) {
+                this.loginMessage0 = 'Login attempts exceeded.';
+                this.loginMessage1 = 'Please wait 1 minute and try again.';
+                return;
+            }
+            if (reply == 17) {
+                this.loginMessage0 = 'You are standing in a members-only area.';
+                this.loginMessage1 = 'To play on this world move to a free area first';
+            }
         } catch (err) {
+            console.log(err);
             this.loginMessage0 = '';
             this.loginMessage1 = 'Error connecting to server.';
         }

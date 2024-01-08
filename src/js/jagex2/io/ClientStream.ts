@@ -10,8 +10,8 @@ export default class ClientStream {
     private readonly socket: WebSocket;
 
     // runtime
-    private readonly queue: Uint8Array[] = [];
-    private buffer: Uint8Array | undefined = undefined;
+    private readonly queue: Int8Array[] = [];
+    private buffer: Int8Array | undefined = undefined;
     private remaining: number = 0;
     private offset: number = 0;
 
@@ -19,6 +19,7 @@ export default class ClientStream {
         return new Promise<WebSocket>((resolve, reject): void => {
             const protocol: string = socket.host.startsWith('https') ? 'wss' : 'ws';
             const host: string = socket.host.substring(socket.host.indexOf('//') + 2);
+            console.log(host);
             const ws: WebSocket = new WebSocket(`${protocol}://${host}:${socket.port}`, 'binary');
             ws.binaryType = 'arraybuffer';
 
@@ -55,7 +56,7 @@ export default class ClientStream {
 
     onmessage = (event: MessageEvent): void => {
         console.log('connection message!');
-        const data: Uint8Array = new Uint8Array(event.data);
+        const data: Int8Array = new Int8Array(event.data);
         this.remaining += data.length;
         this.queue.push(data);
     };
@@ -70,11 +71,13 @@ export default class ClientStream {
 
     write = (src: Uint8Array, len: number, off: number): void => {
         if (this.socket.readyState !== 1) {
+            console.log('shit');
             throw new Error('Socket is not able to write!');
         }
         const data: Uint8Array = new Uint8Array(len);
         arraycopy(src, off, data, 0, len);
         this.socket.send(data);
+        console.log('written');
     };
 
     read = async (): Promise<number> => {

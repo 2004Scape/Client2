@@ -1,3 +1,6 @@
+import forge from 'node-forge';
+import {arraycopy, bigIntToBytes, bytesToBigInt, bigIntModPow} from '../util/JsUtil';
+
 export default class Packet {
     static crctable: Int32Array = new Int32Array(256);
     static CRC32_POLYNOMIAL: number = 0xedb88320;
@@ -184,5 +187,18 @@ export default class Packet {
         }
 
         return value;
+    };
+
+    rsaenc = (mod: bigint, exp: bigint): void => {
+        const temp: Uint8Array = new Uint8Array(this.pos);
+        arraycopy(this.data, 0, temp, 0, this.pos);
+
+        const bigRaw: bigint = bytesToBigInt(temp);
+        const bigEnc: bigint = bigIntModPow(bigRaw, exp, mod);
+        const rawEnc: Uint8Array = bigIntToBytes(bigEnc);
+
+        this.pos = 0;
+        this.p1(rawEnc.length);
+        this.pdata(rawEnc, rawEnc.length, 0);
     };
 }
