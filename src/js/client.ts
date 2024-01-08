@@ -220,6 +220,7 @@ class Client extends GameShell {
     private selectedInterface: number = 0;
     private selectedCycle: number = 0;
     private pressedContinueOption: boolean = false;
+    private awaitingLogin: boolean = false;
 
     runFlames = (): void => {
         if (!this.flameActive) {
@@ -813,7 +814,12 @@ class Client extends GameShell {
             buttonY += 20;
 
             if (this.mouseClickButton == 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
-                this.login(this.username, this.password, false).then(() => {});
+                if (!this.awaitingLogin) {
+                    this.awaitingLogin = true; // this is custom from java client because javascript
+                    this.login(this.username, this.password, false).then((): void => {
+                        this.awaitingLogin = false;
+                    });
+                }
             }
 
             buttonX = this.width / 2 + 80;
