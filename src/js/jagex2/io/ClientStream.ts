@@ -19,7 +19,6 @@ export default class ClientStream {
         return new Promise<WebSocket>((resolve, reject): void => {
             const protocol: string = socket.host.startsWith('https') ? 'wss' : 'ws';
             const host: string = socket.host.substring(socket.host.indexOf('//') + 2);
-            console.log(host);
             const ws: WebSocket = new WebSocket(`${protocol}://${host}:${socket.port}`, 'binary');
             ws.binaryType = 'arraybuffer';
 
@@ -71,13 +70,11 @@ export default class ClientStream {
 
     write = (src: Uint8Array, len: number, off: number): void => {
         if (this.socket.readyState !== 1) {
-            console.log('shit');
             throw new Error('Socket is not able to write!');
         }
         const data: Uint8Array = new Uint8Array(len);
         arraycopy(src, off, data, 0, len);
         this.socket.send(data);
-        console.log('written');
     };
 
     read = async (): Promise<number> => {
@@ -91,7 +88,7 @@ export default class ClientStream {
         }
 
         if (!this.buffer) {
-            this.buffer = this.queue.pop();
+            this.buffer = this.queue.shift();
             if (this.buffer) {
                 this.offset = 0;
             }
