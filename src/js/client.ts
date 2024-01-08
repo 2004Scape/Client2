@@ -1240,7 +1240,21 @@ class Client extends GameShell {
     };
 
     private drawSidebar = (): void => {
-        // TODO
+        this.areaSidebar?.bind();
+        if(this.areaSidebarOffsets) {
+            Draw3D.lineOffset = this.areaSidebarOffsets;
+        }
+        this.imageInvback?.draw(0, 0);
+        if(this.sidebarInterfaceId != -1) {
+            // TODO Draw sidebar interface
+        } else if(this.tabInterfaceId[this.selectedTab] != -1) {
+            // TODO Draw tab interface
+        }
+        if(this.menuVisible && (this.menuArea == 1)) {
+            this.drawMenu();
+        }
+        this.areaSidebar?.draw(562, 231);
+        // TODO Viewport Drawing
     };
 
     private drawChatback = (): void => {
