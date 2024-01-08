@@ -4,34 +4,59 @@ import Packet from '../io/Packet';
 
 export default class LocType extends ConfigType {
     static count: number = 0;
-    static instances: LocType[] = [];
+    static cache: Array<LocType> | null = null;
+    static dat: Packet | null = null;
+    static offsets: Int32Array | null = null;
+    static cachePos: number = 0;
 
     static unpack = (config: Jagfile): void => {
-        const dat = new Packet(config.read('loc.dat'));
-        this.count = dat.g2;
-        for (let i = 0; i < this.count; i++) {
-            const type = new LocType(i);
-            this.instances[i] = type;
-            type.decodeType(dat);
+        this.dat = new Packet(config.read('loc.dat'));
+        const idx = new Packet(config.read('loc.idx'));
 
-            if (!type.shapes) {
-                type.shapes = new Uint8Array(0);
-            }
+        this.count = idx.g2;
+        this.offsets = new Int32Array(this.count);
 
-            if (type.active === -1) {
-                type.active = type.shapes.length > 0 && type.shapes[0] == 10 ? 1 : 0;
+        let offset = 2;
+        for (let id = 0; id < this.count; id++) {
+            this.offsets[id] = offset;
+            offset += idx.g2;
+        }
 
-                if (type.ops.length > 0) {
-                    type.active = 1;
-                }
-            }
+        this.cache = new Array(10);
+        for (let id = 0; id < 10; id++) {
+            this.cache[id] = new LocType();
         }
     };
 
-    static get = (id: number): LocType => LocType.instances[id];
+    static get = (id: number): LocType => {
+        if (!this.cache || !this.offsets || !this.dat) {
+            throw new Error('LocType not loaded!!!');
+        }
+
+        for (let id = 0; id < 10; id++) {
+            if (this.cache[id].index == id) {
+                return this.cache[id];
+            }
+        }
+
+        this.cachePos = (this.cachePos + 1) % 10;
+        const loc: LocType = this.cache[this.cachePos];
+        this.dat.pos = this.offsets[id];
+        loc.index = id;
+        loc.reset();
+        loc.decodeType(id, this.dat);
+        return loc;
+    };
+
+    static unload = (): void => {
+        this.offsets = null;
+        this.cache = null;
+        this.dat = null;
+    };
 
     // ----
 
+    index: number = -1;
     models: Uint16Array | null = null;
     shapes: Uint8Array | null = null;
     name: string | null = null;
@@ -47,7 +72,7 @@ export default class LocType extends ConfigType {
     sharelight: boolean = false;
     occlude: boolean = false;
     anim: number = -1;
-    hasalpha: boolean = false;
+    disposeAlpha: boolean = false;
     walloff: number = 16;
     ambient: number = 0;
     contrast: number = 0;
@@ -65,7 +90,7 @@ export default class LocType extends ConfigType {
     zoff: number = 0;
     forcedecor: boolean = false;
 
-    decode = (code: number, dat: Packet): void => {
+    decode = (_index: number, code: number, dat: Packet): void => {
         if (code === 1) {
             const count = dat.g1;
             this.models = new Uint16Array(count);
@@ -102,7 +127,7 @@ export default class LocType extends ConfigType {
                 this.anim = -1;
             }
         } else if (code === 25) {
-            this.hasalpha = true;
+            this.disposeAlpha = true;
         } else if (code === 28) {
             this.walloff = dat.g1;
         } else if (code === 29) {
@@ -151,5 +176,40 @@ export default class LocType extends ConfigType {
         } else {
             throw new Error(`Unrecognized loc config code: ${code}`);
         }
+    };
+
+    private reset = (): void => {
+        this.models = null;
+        this.shapes = null;
+        this.name = null;
+        this.desc = null;
+        this.recol_s = null;
+        this.recol_d = null;
+        this.width = 1;
+        this.length = 1;
+        this.blockwalk = true;
+        this.blockrange = true;
+        this.active = 0;
+        this.hillskew = false;
+        this.sharelight = false;
+        this.occlude = false;
+        this.anim = -1;
+        this.walloff = 16;
+        this.ambient = 0;
+        this.contrast = 0;
+        this.ops = [];
+        this.disposeAlpha = false;
+        this.mapfunction = -1;
+        this.mapscene = -1;
+        this.mirror = false;
+        this.shadow = true;
+        this.resizex = 128;
+        this.resizey = 128;
+        this.resizez = 128;
+        this.forceapproach = 0;
+        this.xoff = 0;
+        this.yoff = 0;
+        this.zoff = 0;
+        this.forcedecor = false;
     };
 }

@@ -11,8 +11,8 @@ export default class SeqType extends ConfigType {
         const dat = new Packet(config.read('seq.dat'));
         this.count = dat.g2;
         for (let i = 0; i < this.count; i++) {
-            this.instances[i] = new SeqType(i);
-            this.instances[i].decodeType(dat);
+            this.instances[i] = new SeqType();
+            this.instances[i].decodeType(i, dat);
         }
     };
 
@@ -33,7 +33,7 @@ export default class SeqType extends ConfigType {
     replaycount: number = 99;
     duration: number = 0;
 
-    decode = (code: number, dat: Packet): void => {
+    decode = (_index: number, code: number, dat: Packet): void => {
         if (code === 1) {
             this.frameCount = dat.g1;
             this.frames = new Uint16Array(this.frameCount);

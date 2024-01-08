@@ -5,32 +5,68 @@ import Pix24 from '../graphics/Pix24';
 
 export default class ObjType extends ConfigType {
     static count: number = 0;
-    static instances: ObjType[] = [];
+    static cache: Array<ObjType> | null = null;
+    static dat: Packet | null = null;
+    static offsets: Int32Array | null = null;
+    static cachePos: number = 0;
+    static membersWorld: boolean = true;
 
-    static unpack = (config: Jagfile, members: boolean): void => {
-        const dat = new Packet(config.read('obj.dat'));
-        this.count = dat.g2;
-        for (let i = 0; i < this.count; i++) {
-            this.instances[i] = new ObjType(i);
-            this.instances[i].decodeType(dat);
+    static unpack = (config: Jagfile): void => {
+        this.dat = new Packet(config.read('obj.dat'));
+        const idx = new Packet(config.read('obj.idx'));
+
+        this.count = idx.g2;
+        this.offsets = new Int32Array(this.count);
+
+        let offset = 2;
+        for (let id = 0; id < this.count; id++) {
+            this.offsets[id] = offset;
+            offset += idx.g2;
         }
-        for (let i = 0; i < this.count; i++) {
-            const obj = this.instances[i];
 
-            if (obj.certtemplate !== -1) {
-                obj.toCertificate();
-            }
-
-            if (!members && obj.members) {
-                obj.name = 'Members Object';
-                obj.desc = "Login to a members' server to use this object.";
-                obj.ops = [];
-                obj.iops = [];
-            }
+        this.cache = new Array(10);
+        for (let id = 0; id < 10; id++) {
+            this.cache[id] = new ObjType();
         }
     };
 
-    static get = (id: number): ObjType => ObjType.instances[id];
+    static get = (id: number): ObjType => {
+        if (!this.cache || !this.offsets || !this.dat) {
+            throw new Error('ObjType not loaded!!!');
+        }
+
+        for (let id = 0; id < 10; id++) {
+            if (this.cache[id].index == id) {
+                return this.cache[id];
+            }
+        }
+
+        this.cachePos = (this.cachePos + 1) % 10;
+        const obj: ObjType = this.cache[this.cachePos];
+        this.dat.pos = this.offsets[id];
+        obj.index = id;
+        obj.reset();
+        obj.decodeType(id, this.dat);
+
+        if (obj.certtemplate != -1) {
+            obj.toCertificate();
+        }
+
+        if (!this.membersWorld && obj.members) {
+            obj.name = 'Members Object';
+            obj.desc = "Login to a members' server to use this object.";
+            obj.ops = [];
+            obj.iops = [];
+        }
+
+        return obj;
+    };
+
+    static unload = (): void => {
+        this.offsets = null;
+        this.cache = null;
+        this.dat = null;
+    };
 
     static getIcon = (id: number, count: number): Pix24 => {
         // TODO
@@ -39,6 +75,7 @@ export default class ObjType extends ConfigType {
 
     // ----
 
+    index: number = -1;
     model: number = 0;
     name: string | null = null;
     desc: string | null = null;
@@ -74,7 +111,7 @@ export default class ObjType extends ConfigType {
     certlink: number = -1;
     certtemplate: number = -1;
 
-    decode = (code: number, dat: Packet): void => {
+    decode = (_index: number, code: number, dat: Packet): void => {
         if (code === 1) {
             this.model = dat.g2;
         } else if (code === 2) {
@@ -189,5 +226,42 @@ export default class ObjType extends ConfigType {
         this.desc = `Swap this note at any bank for ${article} ${link.name}.`;
 
         this.stackable = true;
+    };
+
+    private reset = (): void => {
+        this.model = 0;
+        this.name = null;
+        this.desc = null;
+        this.recol_s = null;
+        this.recol_d = null;
+        this.zoom2d = 2000;
+        this.xan2d = 0;
+        this.yan2d = 0;
+        this.zan2d = 0;
+        this.xof2d = 0;
+        this.yof2d = 0;
+        this.code9 = false;
+        this.code10 = -1;
+        this.stackable = false;
+        this.cost = 1;
+        this.members = false;
+        this.ops = [];
+        this.iops = [];
+        this.manwear = -1;
+        this.manwear2 = -1;
+        this.manwearOffsetY = 0;
+        this.womanwear = -1;
+        this.womanwear2 = -1;
+        this.womanwearOffsetY = 0;
+        this.manwear3 = -1;
+        this.womanwear3 = -1;
+        this.manhead = -1;
+        this.manhead2 = -1;
+        this.womanhead = -1;
+        this.womanhead2 = -1;
+        this.countobj = null;
+        this.countco = null;
+        this.certlink = -1;
+        this.certtemplate = -1;
     };
 }

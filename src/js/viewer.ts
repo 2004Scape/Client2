@@ -1,31 +1,31 @@
 import 'style/viewer.scss';
 
-import SeqType from './jagex2/config/SeqType.js';
-import LocType from './jagex2/config/LocType.js';
-import FloType from './jagex2/config/FloType.js';
-import ObjType from './jagex2/config/ObjType.js';
-import NpcType from './jagex2/config/NpcType.js';
-import IdkType from './jagex2/config/IdkType.js';
-import SpotAnimType from './jagex2/config/SpotAnimType.js';
-import VarpType from './jagex2/config/VarpType.js';
-import ComType from './jagex2/config/ComType.js';
+import SeqType from './jagex2/config/SeqType';
+import LocType from './jagex2/config/LocType';
+import FloType from './jagex2/config/FloType';
+import ObjType from './jagex2/config/ObjType';
+import NpcType from './jagex2/config/NpcType';
+import IdkType from './jagex2/config/IdkType';
+import SpotAnimType from './jagex2/config/SpotAnimType';
+import VarpType from './jagex2/config/VarpType';
+import ComType from './jagex2/config/ComType';
 
-import Draw2D from './jagex2/graphics/Draw2D.js';
-import Draw3D from './jagex2/graphics/Draw3D.js';
-import PixFont from './jagex2/graphics/PixFont.js';
-import Model from './jagex2/graphics/Model.js';
-import SeqBase from './jagex2/graphics/SeqBase.js';
-import SeqFrame from './jagex2/graphics/SeqFrame.js';
+import Draw2D from './jagex2/graphics/Draw2D';
+import Draw3D from './jagex2/graphics/Draw3D';
+import PixFont from './jagex2/graphics/PixFont';
+import Model from './jagex2/graphics/Model';
+import SeqBase from './jagex2/graphics/SeqBase';
+import SeqFrame from './jagex2/graphics/SeqFrame';
 
-import Jagfile from './jagex2/io/Jagfile.js';
+import Jagfile from './jagex2/io/Jagfile';
 
-import WordFilter from './jagex2/wordenc/WordFilter.js';
-import {downloadText, downloadUrl} from './jagex2/util/JsUtil.js';
-import GameShell from './jagex2/client/GameShell.js';
+import WordFilter from './jagex2/wordenc/WordFilter';
+import {downloadText, downloadUrl} from './jagex2/util/JsUtil';
+import GameShell from './jagex2/client/GameShell';
 import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 
-export default class Client extends GameShell {
+class Viewer extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
     static REPO: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
 
@@ -92,7 +92,7 @@ export default class Client extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            const checksums = new Packet(await downloadUrl(`${Client.HOST}/crc`));
+            const checksums = new Packet(await downloadUrl(`${Viewer.HOST}/crc`));
             for (let i = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -128,7 +128,7 @@ export default class Client extends GameShell {
             SeqType.unpack(config);
             LocType.unpack(config);
             FloType.unpack(config);
-            ObjType.unpack(config, true);
+            ObjType.unpack(config);
             NpcType.unpack(config);
             IdkType.unpack(config);
             SpotAnimType.unpack(config);
@@ -198,7 +198,7 @@ export default class Client extends GameShell {
 
     async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
         await this.showProgress(progress, `Requesting ${displayName}`);
-        const data = await Jagfile.loadUrl(`${Client.HOST}/${filename}${crc}`);
+        const data = await Jagfile.loadUrl(`${Viewer.HOST}/${filename}${crc}`);
         await this.showProgress(progress, `Loading ${displayName} - 100%`);
 
         return data;
@@ -275,7 +275,7 @@ export default class Client extends GameShell {
     }
 
     async showModels() {
-        this.packfiles[0] = await this.loadPack(`${Client.REPO}/data/pack/model.pack`);
+        this.packfiles[0] = await this.loadPack(`${Viewer.REPO}/data/pack/model.pack`);
 
         const leftPanel = document.getElementById('leftPanel');
         if (leftPanel) {
@@ -333,5 +333,5 @@ export default class Client extends GameShell {
     }
 }
 
-const client = new Client();
+const client = new Viewer();
 client.run().then(() => {});

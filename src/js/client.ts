@@ -1,32 +1,32 @@
-import SeqType from './jagex2/config/SeqType.js';
-import LocType from './jagex2/config/LocType.js';
-import FloType from './jagex2/config/FloType.js';
-import ObjType from './jagex2/config/ObjType.js';
-import NpcType from './jagex2/config/NpcType.js';
-import IdkType from './jagex2/config/IdkType.js';
-import SpotAnimType from './jagex2/config/SpotAnimType.js';
-import VarpType from './jagex2/config/VarpType.js';
-import ComType from './jagex2/config/ComType.js';
+import SeqType from './jagex2/config/SeqType';
+import LocType from './jagex2/config/LocType';
+import FloType from './jagex2/config/FloType';
+import ObjType from './jagex2/config/ObjType';
+import NpcType from './jagex2/config/NpcType';
+import IdkType from './jagex2/config/IdkType';
+import SpotAnimType from './jagex2/config/SpotAnimType';
+import VarpType from './jagex2/config/VarpType';
+import ComType from './jagex2/config/ComType';
 
-import PixMap from './jagex2/graphics/PixMap.js';
-import Draw2D from './jagex2/graphics/Draw2D.js';
-import Draw3D from './jagex2/graphics/Draw3D.js';
-import Pix8 from './jagex2/graphics/Pix8.js';
-import Pix24 from './jagex2/graphics/Pix24.js';
-import PixFont from './jagex2/graphics/PixFont.js';
-import Model from './jagex2/graphics/Model.js';
-import SeqBase from './jagex2/graphics/SeqBase.js';
-import SeqFrame from './jagex2/graphics/SeqFrame.js';
+import PixMap from './jagex2/graphics/PixMap';
+import Draw2D from './jagex2/graphics/Draw2D';
+import Draw3D from './jagex2/graphics/Draw3D';
+import Pix8 from './jagex2/graphics/Pix8';
+import Pix24 from './jagex2/graphics/Pix24';
+import PixFont from './jagex2/graphics/PixFont';
+import Model from './jagex2/graphics/Model';
+import SeqBase from './jagex2/graphics/SeqBase';
+import SeqFrame from './jagex2/graphics/SeqFrame';
 
-import Jagfile from './jagex2/io/Jagfile.js';
+import Jagfile from './jagex2/io/Jagfile';
 
-import WordFilter from './jagex2/wordenc/WordFilter.js';
-import {arraycopy, decompressBz2, downloadUrl, sleep} from './jagex2/util/JsUtil.js';
+import WordFilter from './jagex2/wordenc/WordFilter';
+import {arraycopy, decompressBz2, downloadUrl, sleep} from './jagex2/util/JsUtil';
 import {playMidi} from './jagex2/util/AudioUtil.js';
-import GameShell from './jagex2/client/GameShell.js';
+import GameShell from './jagex2/client/GameShell';
 
 import './vendor/midi.js';
-import Packet from './jagex2/io/Packet.js';
+import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import JString from './jagex2/datastruct/JString';
 import World3D from './jagex2/dash3d/World3D';
@@ -400,7 +400,7 @@ class Client extends GameShell {
             SeqType.unpack(config);
             LocType.unpack(config);
             FloType.unpack(config);
-            ObjType.unpack(config, Client.MEMBERS);
+            ObjType.unpack(config);
             NpcType.unpack(config);
             IdkType.unpack(config);
             SpotAnimType.unpack(config);

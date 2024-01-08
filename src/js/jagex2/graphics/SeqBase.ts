@@ -16,14 +16,14 @@ export default class SeqBase {
             const id = head.g2;
             const length = head.g1;
 
-            const transformTypes: number[] = [];
-            const groupLabels: number[][] = [];
+            const transformTypes = new Uint8Array(length);
+            const groupLabels = new Array<Uint8Array>(length);
 
             for (let j = 0; j < length; j++) {
                 transformTypes[j] = type.g1;
 
                 const groupCount = label.g1;
-                groupLabels[j] = [];
+                groupLabels[j] = new Uint8Array(groupCount);
 
                 for (let k = 0; k < groupCount; k++) {
                     groupLabels[j][k] = label.g1;
@@ -40,6 +40,6 @@ export default class SeqBase {
     // ----
 
     length: number = 0;
-    types: number[] = [];
-    labels: number[][] = [];
+    types: Uint8Array | null = null;
+    labels: Array<Uint8Array> | null = null;
 }

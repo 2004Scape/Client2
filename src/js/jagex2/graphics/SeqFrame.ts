@@ -14,10 +14,10 @@ export default class SeqFrame {
         const total = head.g2;
         head.pos += 2; // const count = head.g2;
 
-        const labels: Uint32Array = new Uint32Array(500);
-        const x: Uint32Array = new Uint32Array(500);
-        const y: Uint32Array = new Uint32Array(500);
-        const z: Uint32Array = new Uint32Array(500);
+        const labels: Int32Array = new Int32Array(500);
+        const x: Int32Array = new Int32Array(500);
+        const y: Int32Array = new Int32Array(500);
+        const z: Int32Array = new Int32Array(500);
 
         for (let i = 0; i < total; i++) {
             const id = head.g2;
@@ -33,6 +33,9 @@ export default class SeqFrame {
             let current = 0;
 
             for (let j = 0; j < groupCount; j++) {
+                if (!base.types) {
+                    throw new Error('SeqBase not loaded!!!');
+                }
                 const flags = tran1.g1;
 
                 if (flags > 0) {
@@ -80,10 +83,10 @@ export default class SeqFrame {
             }
 
             frame.length = current;
-            frame.bases = new Uint32Array(current);
-            frame.x = new Uint32Array(current);
-            frame.y = new Uint32Array(current);
-            frame.z = new Uint32Array(current);
+            frame.bases = new Int32Array(current);
+            frame.x = new Int32Array(current);
+            frame.y = new Int32Array(current);
+            frame.z = new Int32Array(current);
 
             for (let j = 0; j < current; j++) {
                 frame.bases[j] = labels[j];
@@ -99,8 +102,8 @@ export default class SeqFrame {
     delay: number = 0;
     base: SeqBase | null = null;
     length: number = 0;
-    bases: Uint32Array | null = null;
-    x: Uint32Array | null = null;
-    y: Uint32Array | null = null;
-    z: Uint32Array | null = null;
+    bases: Int32Array | null = null;
+    x: Int32Array | null = null;
+    y: Int32Array | null = null;
+    z: Int32Array | null = null;
 }

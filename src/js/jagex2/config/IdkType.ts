@@ -10,8 +10,8 @@ export default class IdkType extends ConfigType {
         const dat = new Packet(config.read('idk.dat'));
         this.count = dat.g2;
         for (let i = 0; i < this.count; i++) {
-            this.instances[i] = new IdkType(i);
-            this.instances[i].decodeType(dat);
+            this.instances[i] = new IdkType();
+            this.instances[i].decodeType(i, dat);
         }
     };
 
@@ -26,7 +26,7 @@ export default class IdkType extends ConfigType {
     recol_d: Uint16Array = new Uint16Array(6);
     disable: boolean = false;
 
-    decode = (code: number, dat: Packet): void => {
+    decode = (_index: number, code: number, dat: Packet): void => {
         if (code === 1) {
             this.type = dat.g1;
         } else if (code === 2) {
