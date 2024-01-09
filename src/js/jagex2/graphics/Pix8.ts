@@ -15,7 +15,7 @@ export default class Pix8 {
     cropH: number;
 
     // runtime
-    palette: Uint32Array = new Uint32Array(0);
+    palette: number[] = [];
 
     constructor(width: number, height: number) {
         this.pixels = new Uint8Array(width * height);
@@ -35,7 +35,7 @@ export default class Pix8 {
 
         // palette is shared across all images in a single archive
         const paletteCount: number = index.g1;
-        const palette: Uint32Array = new Uint32Array(paletteCount);
+        const palette: number[] = [];
         for (let i: number = 0; i < paletteCount - 1; i++) {
             // the first color (0) is reserved for transparency
             palette[i + 1] = index.g3;

@@ -48,7 +48,7 @@ export default class Pix24 {
 
         // palette is shared across all images in a single archive
         const paletteCount: number = index.g1;
-        const palette: Int32Array = new Int32Array(paletteCount);
+        const palette: number[] = [];
         const length: number = paletteCount - 1;
         for (let i: number = 0; i < length; i++) {
             // the first color (0) is reserved for transparency

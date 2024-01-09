@@ -16,7 +16,10 @@ export default class ComType {
     static TYPE_MODEL: number = 6;
     static TYPE_INVENTORY_TEXT: number = 7;
 
+    static MEDIA: Jagfile | null = null;
+
     static unpack = (interfaces: Jagfile, media: Jagfile, fonts: PixFont[]): void => {
+        this.MEDIA = media;
         const dat: Packet = new Packet(interfaces.read('data'));
         let parentId: number = -1;
         dat.pos += 2; // const count = dat.g2;
@@ -45,8 +48,8 @@ export default class ComType {
 
             const comparatorCount: number = dat.g1;
             if (comparatorCount > 0) {
-                com.scriptComparator = new Uint8Array(comparatorCount).fill(0);
-                com.scriptOperand = new Uint16Array(comparatorCount).fill(0);
+                com.scriptComparator = [];
+                com.scriptOperand = [];
 
                 for (let i: number = 0; i < comparatorCount; i++) {
                     com.scriptComparator[i] = dat.g1;
@@ -56,12 +59,12 @@ export default class ComType {
 
             const scriptCount: number = dat.g1;
             if (scriptCount > 0) {
-                com.scripts = new Array(scriptCount).fill(null);
+                com.scripts = [];
 
                 for (let i: number = 0; i < scriptCount; i++) {
                     const opcodeCount: number = dat.g2;
 
-                    com.scripts[i] = new Uint16Array(opcodeCount).fill(0);
+                    com.scripts[i] = [];
                     for (let j: number = 0; j < opcodeCount; j++) {
                         com.scripts[i][j] = dat.g2;
                     }
@@ -74,9 +77,9 @@ export default class ComType {
                     com.hide = dat.g1 === 1;
 
                     const childCount: number = dat.g1;
-                    com.childId = new Uint16Array(childCount).fill(0);
-                    com.childX = new Uint16Array(childCount).fill(0);
-                    com.childY = new Uint16Array(childCount).fill(0);
+                    com.childId = [];
+                    com.childX = [];
+                    com.childY = [];
 
                     for (let i: number = 0; i < childCount; i++) {
                         com.childId[i] = dat.g2;
@@ -86,11 +89,11 @@ export default class ComType {
                     break;
                 }
                 case ComType.TYPE_UNUSED:
-                    dat.pos += 10;
+                    dat.pos += 3;
                     break;
                 case ComType.TYPE_INVENTORY: {
-                    com.inventorySlotObjId = new Int32Array(com.width * com.height);
-                    com.inventorySlotObjCount = new Int32Array(com.width * com.height);
+                    com.inventorySlotObjId = [];
+                    com.inventorySlotObjCount = [];
 
                     com.inventoryDraggable = dat.g1 === 1;
                     com.inventoryInteractable = dat.g1 === 1;
@@ -98,8 +101,8 @@ export default class ComType {
                     com.inventoryMarginX = dat.g1;
                     com.inventoryMarginY = dat.g1;
 
-                    com.inventorySlotOffsetX = new Uint16Array(20);
-                    com.inventorySlotOffsetY = new Uint16Array(20);
+                    com.inventorySlotOffsetX = [];
+                    com.inventorySlotOffsetY = [];
                     com.inventorySlotImage = [];
 
                     for (let i: number = 0; i < 20; i++) {
@@ -110,7 +113,7 @@ export default class ComType {
                             const sprite: string = dat.gjstr;
                             if (sprite.length > 0) {
                                 const spriteIndex: number = sprite.lastIndexOf(',');
-                                com.inventorySlotImage[i] = Pix24.fromArchive(media, sprite, spriteIndex);
+                                com.inventorySlotImage[i] = Pix24.fromArchive(media, sprite.substring(0, spriteIndex), parseInt(sprite.substring(spriteIndex + 1), 10));
                             }
                         }
                     }
@@ -148,12 +151,12 @@ export default class ComType {
                     const image: string = dat.gjstr;
                     if (image.length > 0) {
                         const spriteIndex: number = image.lastIndexOf(',');
-                        com.image = Pix24.fromArchive(media, image.substring(0, spriteIndex), parseInt(image.substring(spriteIndex + 1)));
+                        com.image = {name: image.substring(0, spriteIndex), sprite: parseInt(image.substring(spriteIndex + 1), 10)}; // Pix24.fromArchive(media, image.substring(0, spriteIndex), parseInt(image.substring(spriteIndex + 1), 10));
                     }
                     const activeImage: string = dat.gjstr;
                     if (activeImage.length > 0) {
                         const spriteIndex: number = activeImage.lastIndexOf(',');
-                        com.image = Pix24.fromArchive(media, activeImage.substring(0, spriteIndex), parseInt(activeImage.substring(spriteIndex + 1)));
+                        com.activeImage = {name: activeImage.substring(0, spriteIndex), sprite: parseInt(activeImage.substring(spriteIndex + 1), 10)}; // Pix24.fromArchive(media, activeImage.substring(0, spriteIndex), parseInt(activeImage.substring(spriteIndex + 1), 10));
                     }
                     break;
                 }
@@ -188,8 +191,8 @@ export default class ComType {
                     break;
                 }
                 case ComType.TYPE_INVENTORY_TEXT: {
-                    com.inventorySlotObjId = new Int32Array(com.width * com.height);
-                    com.inventorySlotObjCount = new Int32Array(com.width * com.height);
+                    com.inventorySlotObjId = [];
+                    com.inventorySlotObjCount = [];
 
                     com.center = dat.g1 === 1;
                     com.font = fonts[dat.g1];
@@ -206,7 +209,7 @@ export default class ComType {
                 }
             }
 
-            if (com.optionType == 2 || com.type == 2) {
+            if (com.optionType == 2) {
                 com.spellAction = dat.gjstr;
                 com.spellName = dat.gjstr;
                 com.spellFlags = dat.g2;
@@ -246,9 +249,9 @@ export default class ComType {
     width: number = 0;
     height: number = 0;
     delegateHover: number = -1;
-    scriptComparator: Uint8Array | null = null;
-    scriptOperand: Uint16Array | null = null;
-    scripts: Array<Uint16Array> | null = null;
+    scriptComparator: number[] | null = null;
+    scriptOperand: number[] | null = null;
+    scripts: Array<number[]> | null = null;
     scrollableHeight: number = 0;
     hide = false;
     inventoryDraggable = false;
@@ -256,8 +259,8 @@ export default class ComType {
     inventoryUsable = false;
     inventoryMarginX: number = 0;
     inventoryMarginY: number = 0;
-    inventorySlotOffsetX: Uint16Array | null = null;
-    inventorySlotOffsetY: Uint16Array | null = null;
+    inventorySlotOffsetX: number[] | null = null;
+    inventorySlotOffsetY: number[] | null = null;
     inventorySlotImage: Pix24[] | null = null;
     // inventoryOptions: (string | null)[] = [];
     inventoryOptions: Array<string | null> = [];
@@ -270,8 +273,8 @@ export default class ComType {
     color: number = 0;
     activeColor: number = 0;
     hoverColor: number = 0;
-    image: Pix24 | null = null;
-    activeImage: Pix24 | null = null;
+    image: {name: string; sprite: number} | null = null;
+    activeImage: {name: string; sprite: number} | null = null;
     model: Model | null = null;
     activeModel: Model | null = null;
     seqId: number = -1;
@@ -283,16 +286,16 @@ export default class ComType {
     spellName: string | null = null;
     spellFlags: number = -1;
     option: string | null = null;
-    childId: Uint16Array | null = null;
-    childX: Uint16Array | null = null;
-    childY: Uint16Array | null = null;
+    childId: number[] | null = null;
+    childX: number[] | null = null;
+    childY: number[] | null = null;
 
     // other
     x: number = 0;
     y: number = 0;
     scrollPosition: number = 0;
-    inventorySlotObjId: Int32Array | null = null;
-    inventorySlotObjCount: Int32Array | null = null;
+    inventorySlotObjId: number[] | null = null;
+    inventorySlotObjCount: number[] | null = null;
     seqFrame: number = 0;
     seqCycle: number = 0;
 

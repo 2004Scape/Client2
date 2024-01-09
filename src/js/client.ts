@@ -2126,15 +2126,16 @@ class Client extends GameShell {
                     }
                 }
             } else if (child.type == 5) {
-                let image: Pix24 | null;
+                let image: {name: string; sprite: number} | null;
                 if (this.executeInterfaceScript(child)) {
                     image = child.activeImage;
                 } else {
                     image = child.image;
                 }
 
-                if (image != null) {
-                    image.draw(childX, childY);
+                if (image != null && ComType.MEDIA) {
+                    const pix24: Pix24 = Pix24.fromArchive(ComType.MEDIA, image.name, image.sprite);
+                    pix24.draw(childX, childY);
                 }
             } else if (child.type == 6) {
                 const tmpX: number = Draw3D.centerX;
@@ -3358,9 +3359,9 @@ class Client extends GameShell {
                 const zoom: number = this.in.g2;
                 const obj: ObjType = ObjType.get(objId);
                 // ComType.instances[com].model = obj.getInterfaceModel(50);
-                // ComType.instances[com].modelPitch = obj.xan2d;
-                // ComType.instances[com].modelYaw = obj.yan2d;
-                // ComType.instances[com].modelZoom = (obj.zoom2d * 100) / zoom;
+                ComType.instances[com].modelPitch = obj.xan2d;
+                ComType.instances[com].modelYaw = obj.yan2d;
+                ComType.instances[com].modelZoom = (obj.zoom2d * 100) / zoom;
                 this.packetType = -1;
                 return true;
             }
@@ -3393,7 +3394,7 @@ class Client extends GameShell {
                 const r: number = (color >> 10) & 0x1f;
                 const g: number = (color >> 5) & 0x1f;
                 const b: number = color & 0x1f;
-                // ComType.instances[com].color = (r << 19) + (g << 11) + (b << 3);
+                ComType.instances[com].color = (r << 19) + (g << 11) + (b << 3);
                 this.packetType = -1;
                 return true;
             }
@@ -3460,10 +3461,10 @@ class Client extends GameShell {
             if (this.packetType == 201) {
                 // IF_SETTEXT
                 const com: number = this.in.g2;
-                // ComType.instances[com].text = this.in.gjstr;
-                // if (ComType.instances[com].parentId == this.tabInterfaceId[this.selectedTab]) {
-                //     this.redrawSidebar = true;
-                // }
+                ComType.instances[com].text = this.in.gjstr;
+                if (ComType.instances[com].parentId == this.tabInterfaceId[this.selectedTab]) {
+                    this.redrawSidebar = true;
+                }
                 this.packetType = -1;
                 return true;
             }
