@@ -81,7 +81,6 @@ class Client extends GameShell {
     private redrawTitleBackground: boolean = true;
     private titleScreenState: number = 0;
     private titleLoginField: number = 0;
-    private titleArchive: Jagfile | null = null;
     private imageTitle2: PixMap | null = null;
     private imageTitle3: PixMap | null = null;
     private imageTitle4: PixMap | null = null;
@@ -267,6 +266,16 @@ class Client extends GameShell {
     private localPid: number = -1;
     private weightCarried: number = 0;
 
+    // archives
+    private titleArchive: Jagfile | null = null;
+    private configArchive: Jagfile | null = null;
+    private interfaceArchive: Jagfile | null = null;
+    private modelsArchive: Jagfile | null = null;
+    private texturesArchive: Jagfile | null = null;
+    private wordencArchive: Jagfile | null = null;
+    private soundsArchive: Jagfile | null = null;
+    private mediaArchive: Jagfile | null = null;
+
     runFlames = (): void => {
         if (!this.flameActive) {
             return;
@@ -294,12 +303,13 @@ class Client extends GameShell {
 
             await this.setMidi('scape_main', 12345678);
 
-            this.titleArchive = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
+            const title: Jagfile = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
+            this.titleArchive = title;
 
-            this.fontPlain11 = PixFont.fromArchive(this.titleArchive, 'p11');
-            this.fontPlain12 = PixFont.fromArchive(this.titleArchive, 'p12');
-            this.fontBold12 = PixFont.fromArchive(this.titleArchive, 'b12');
-            this.fontQuill8 = PixFont.fromArchive(this.titleArchive, 'q8');
+            this.fontPlain11 = PixFont.fromArchive(title, 'p11');
+            this.fontPlain12 = PixFont.fromArchive(title, 'p12');
+            this.fontBold12 = PixFont.fromArchive(title, 'b12');
+            this.fontQuill8 = PixFont.fromArchive(title, 'q8');
 
             await this.loadTitleBackground();
             this.loadTitleImages();
@@ -311,6 +321,14 @@ class Client extends GameShell {
             const textures: Jagfile = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
             const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
             const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
+
+            this.configArchive = config;
+            this.interfaceArchive = interfaces;
+            this.mediaArchive = media;
+            this.modelsArchive = models;
+            this.texturesArchive = textures;
+            this.wordencArchive = wordenc;
+            this.soundsArchive = sounds;
 
             await this.showProgress(75, 'Unpacking media');
             this.imageInvback = Pix8.fromArchive(media, 'invback', 0);
@@ -2133,8 +2151,8 @@ class Client extends GameShell {
                     image = child.image;
                 }
 
-                if (image != null && ComType.MEDIA) {
-                    const pix24: Pix24 = Pix24.fromArchive(ComType.MEDIA, image.name, image.sprite);
+                if (image != null && this.mediaArchive) {
+                    const pix24: Pix24 = Pix24.fromArchive(this.mediaArchive, image.name, image.sprite);
                     pix24.draw(childX, childY);
                 }
             } else if (child.type == 6) {
