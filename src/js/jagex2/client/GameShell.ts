@@ -2,6 +2,7 @@ import PixMap from '../graphics/PixMap';
 import Draw3D from '../graphics/Draw3D';
 
 import {sleep} from '../util/JsUtil';
+import {CANVAS_PREVENTED, KEY_CODES} from './KeyCodes';
 
 export default abstract class GameShell {
     static getParameter(name: string): string {
@@ -254,14 +255,24 @@ export default abstract class GameShell {
     }
 
     keyDown = (e: KeyboardEvent): void => {
+        const key: string = e.key;
+
+        if (CANVAS_PREVENTED.includes(key)) {
+            // prevent canvas from using tab and other blacklisted keys. no function in 225?
+            e.preventDefault();
+        }
+
         this.idleCycles = 0;
 
-        const code: number = e.keyCode;
-        let ch: number = e.key.charCodeAt(0);
+        const mappedKey: {key: number; ch: number} = KEY_CODES[key];
 
-        if (ch === 83) {
-            return; // Custom for shift key.
+        if (!mappedKey) {
+            console.error(`Unhandled key ${key}`);
+            return;
         }
+
+        const code: number = mappedKey.key;
+        let ch: number = mappedKey.ch;
 
         if (ch < 30) {
             ch = 0;
@@ -309,20 +320,63 @@ export default abstract class GameShell {
     };
 
     keyUp = (e: KeyboardEvent): void => {
-        this.idleCycles = 0;
+        const key: string = e.key;
 
-        let ch: number = e.key.charCodeAt(0);
-        if (e.key == 'ArrowLeft') {
-            ch = 1;
-        } else if (e.key == 'ArrowRight') {
-            ch = 2;
-        } else if (e.key == 'ArrowUp') {
-            ch = 3;
-        } else if (e.key == 'ArrowDown') {
-            ch = 4;
+        if (CANVAS_PREVENTED.includes(key)) {
+            // prevent canvas from using tab and other blacklisted keys. no function in 225?
+            e.preventDefault();
         }
 
-        this.actionKey[ch] = 0;
+        this.idleCycles = 0;
+
+        const mappedKey: {key: number; ch: number} = KEY_CODES[key];
+
+        if (!mappedKey) {
+            console.error(`Unhandled key ${key}`);
+            return;
+        }
+
+        const code: number = mappedKey.key;
+        let ch: number = mappedKey.ch;
+
+        if (ch < 30) {
+            ch = 0;
+        }
+
+        if (code == 37) {
+            ch = 1;
+        } else if (code == 39) {
+            ch = 2;
+        } else if (code == 38) {
+            ch = 3;
+        } else if (code == 40) {
+            ch = 4;
+        } else if (code == 17) {
+            ch = 5;
+        } else if (code == 8) {
+            ch = 8;
+        } else if (code == 127) {
+            ch = 8;
+        } else if (code == 9) {
+            ch = 9;
+        } else if (code == 10) {
+            ch = 10;
+        } else if (code >= 112 && code <= 123) {
+            ch = code + 1008 - 112;
+        } else if (code == 36) {
+            ch = 1000;
+        } else if (code == 35) {
+            ch = 1001;
+        } else if (code == 33) {
+            ch = 1002;
+        } else if (code == 34) {
+            ch = 1003;
+        }
+
+        if (ch > 0 && ch < 128) {
+            this.actionKey[ch] = 0;
+        }
+        // TODO input tracking
     };
 
     pollKey(): number {
