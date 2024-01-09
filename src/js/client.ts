@@ -77,6 +77,16 @@ class Client extends GameShell {
     private lastPacketType1: number = 0;
     private lastPacketType2: number = 0;
 
+    // archives
+    private titleArchive: Jagfile | null = null;
+    private configArchive: Jagfile | null = null;
+    private interfaceArchive: Jagfile | null = null;
+    private modelsArchive: Jagfile | null = null;
+    private texturesArchive: Jagfile | null = null;
+    private wordencArchive: Jagfile | null = null;
+    private soundsArchive: Jagfile | null = null;
+    private mediaArchive: Jagfile | null = null;
+
     // login screen properties
     private redrawTitleBackground: boolean = true;
     private titleScreenState: number = 0;
@@ -256,25 +266,22 @@ class Client extends GameShell {
     private minimapZoom: number = 0;
     private minimapZoomModifier: number = 1;
     private minimapAngleModifier: number = 2;
-    private heartbeatTimer: number = 0;
     private baseX: number = 0;
     private baseZ: number = 0;
+    private sceneCenterZoneX: number = 0;
+    private sceneCenterZoneZ: number = 0;
+    private sceneBaseTileX: number = 0;
+    private sceneBaseTileZ: number = 0;
+    private sceneMapLandData: number[][] = [];
+    private sceneMapLocData: number[][] = [];
+    private sceneMapIndex: number[] = [];
 
     // other
     private energy: number = 0;
     private inMultizone: number = 0;
     private localPid: number = -1;
     private weightCarried: number = 0;
-
-    // archives
-    private titleArchive: Jagfile | null = null;
-    private configArchive: Jagfile | null = null;
-    private interfaceArchive: Jagfile | null = null;
-    private modelsArchive: Jagfile | null = null;
-    private texturesArchive: Jagfile | null = null;
-    private wordencArchive: Jagfile | null = null;
-    private soundsArchive: Jagfile | null = null;
-    private mediaArchive: Jagfile | null = null;
+    private heartbeatTimer: number = 0;
 
     runFlames = (): void => {
         if (!this.flameActive) {
@@ -1047,10 +1054,10 @@ class Client extends GameShell {
             this.out.p4(seed[2]);
             this.out.p4(seed[3]);
             this.out.p4(0); // TODO signlink UUID
-            // this.out.pjstr(username);
-            // this.out.pjstr(password);
-            this.out.pjstr('jordan');
-            this.out.pjstr('retardeddeveloper69');
+            this.out.pjstr(username);
+            this.out.pjstr(password);
+            // this.out.pjstr('jordan');
+            // this.out.pjstr('retardeddeveloper69');
             this.out.rsaenc(Client.MODULUS, Client.EXPONENT);
             this.loginout.pos = 0;
             if (reconnect) {
@@ -2614,6 +2621,66 @@ class Client extends GameShell {
                 // LOAD_AREA
                 const zoneX: number = this.in.g2;
                 const zoneZ: number = this.in.g2;
+
+                if (this.sceneCenterZoneX === zoneX && this.sceneCenterZoneZ === zoneZ && this.sceneState !== 0) {
+                    this.packetType = -1;
+                    return true;
+                }
+                this.sceneCenterZoneX = zoneX;
+                this.sceneCenterZoneZ = zoneZ;
+                this.sceneBaseTileX = (this.sceneCenterZoneX - 6) * 8;
+                this.sceneBaseTileZ = (this.sceneCenterZoneZ - 6) * 8;
+                this.sceneState = 1;
+                this.areaViewport?.bind();
+                this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', 0);
+                this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', 16777215);
+                this.areaViewport?.draw(8, 11);
+                this.setLoopRate(5);
+
+                const regions: number = (this.packetSize - 2) / 10;
+
+                this.sceneMapLandData = [];
+                this.sceneMapLocData = [];
+                this.sceneMapIndex = [];
+
+                this.out.p1isaac(150);
+                this.out.p1(0);
+
+                let mapCount: number = 0;
+
+                for (let i: number = 0; i < regions; i++) {
+                    const mapsquareX: number = this.in.g1;
+                    const mapsquareZ: number = this.in.g1;
+                    const landCrc: number = this.in.g4;
+                    const locCrc: number = this.in.g4;
+                    this.sceneMapIndex[i] = (mapsquareX << 8) + mapsquareZ;
+
+                    if (landCrc != 0) {
+                        // TODO
+                        let data: Uint8Array | null = null; // await downloadUrl(`https://2004scape.org:8080/m${mapsquareX}_${mapsquareZ}`);
+                        // data = signlink.cacheload("m" + mapsquareX + "_" + mapsquareZ);
+                        if (data) {
+                            if (Packet.crc32(data) !== landCrc) {
+                                data = null;
+                            }
+                            // this.crc32.reset();
+                            // this.crc32.update(data);
+                            // if (this.crc32.getValue() != landCrc) {
+                            //     data = null;
+                            // }
+                        }
+                        if (!data) {
+                            this.sceneState = 0;
+                            this.out.p1(0);
+                            this.out.p1(mapsquareX);
+                            this.out.p1(mapsquareZ);
+                            mapCount += 3;
+                        } else {
+                            // this.sceneMapLandData[i] = data;
+                        }
+                    }
+                }
+
                 //     if (this.sceneCenterZoneX == zoneX && this.sceneCenterZoneZ == zoneZ && this.sceneState != 0) {
                 //         this.packetType = -1;
                 //         return true;
@@ -2909,8 +2976,7 @@ class Client extends GameShell {
             if (this.packetType == 146) {
                 // IF_SETANIM
                 const com: number = this.in.g2;
-                const seqId: number = this.in.g2;
-                ComType.instances[com].seqId = seqId;
+                ComType.instances[com].seqId = this.in.g2;
                 this.packetType = -1;
                 return true;
             }
@@ -3560,19 +3626,19 @@ class Client extends GameShell {
             if (this.packetType == 184) {
                 // PLAYER_INFO
                 // this.readPlayerInfo(this.in, this.packetSize);
-                // if (this.sceneState == 1) {
-                //     this.sceneState = 2;
-                //     World.levelBuilt = this.currentLevel;
-                //     this.buildScene();
-                // }
-                // if (lowMemory && this.sceneState == 2 && World.levelBuilt != this.currentLevel) {
-                //     this.areaViewport.bind();
-                //     this.fontPlain12.drawStringCenter(257, 151, "Loading - please wait.", 0);
-                //     this.fontPlain12.drawStringCenter(256, 150, "Loading - please wait.", 16777215);
-                //     this.areaViewport.draw(super.graphics, 8, 11);
-                //     World.levelBuilt = this.currentLevel;
-                //     this.buildScene();
-                // }
+                if (this.sceneState == 1) {
+                    this.sceneState = 2;
+                    // World.levelBuilt = this.currentLevel;
+                    // this.buildScene();
+                }
+                if (Client.LOW_MEMORY && this.sceneState == 2 /* && World.levelBuilt != this.currentLevel*/) {
+                    this.areaViewport?.bind();
+                    this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', 0);
+                    this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', 16777215);
+                    this.areaViewport?.draw(8, 11);
+                    // World.levelBuilt = this.currentLevel;
+                    // this.buildScene();
+                }
                 // if (this.currentLevel != this.minimapLevel && this.sceneState == 2) {
                 //     this.minimapLevel = this.currentLevel;
                 //     this.createMinimap(this.currentLevel);

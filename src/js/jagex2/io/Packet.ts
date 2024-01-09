@@ -27,6 +27,14 @@ export default class Packet {
         }
     }
 
+    static crc32 = (src: Uint8Array, length: number = src.length, offset: number = 0): number => {
+        let crc: number = 0xffffffff;
+        for (let i: number = offset; i < offset + length; i++) {
+            crc = (crc >>> 8) ^ Packet.crctable[(crc ^ src[i]) & 0xff];
+        }
+        return ~crc;
+    };
+
     // constructor
     readonly data: Uint8Array;
     pos: number;
@@ -105,6 +113,10 @@ export default class Packet {
     }
 
     gdata = (offset: number, length: number): Uint8Array => this.data.subarray(offset, offset + length);
+
+    p1isaac = (opcode: number): void => {
+        this.data[this.pos++] = (opcode + (this.random?.nextInt ?? 0)) & 0xff;
+    };
 
     p1 = (value: number): void => {
         this.data[this.pos++] = value;
