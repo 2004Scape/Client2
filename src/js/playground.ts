@@ -19,13 +19,16 @@ import SeqFrame from './jagex2/graphics/SeqFrame';
 import Jagfile from './jagex2/io/Jagfile';
 
 import WordFilter from './jagex2/wordenc/WordFilter';
-import {downloadUrl} from './jagex2/util/JsUtil';
+import {downloadUrl, sleep} from './jagex2/util/JsUtil';
 import Draw2D from './jagex2/graphics/Draw2D';
 import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
+import Database from './jagex2/io/Database';
 
 class Playground extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
+
+    private db: Database | null = null;
 
     private fontPlain11: PixFont | null = null;
     private fontPlain12: PixFont | null = null;
@@ -42,7 +45,9 @@ class Playground extends GameShell {
     load = async (): Promise<void> => {
         await this.showProgress(10, 'Connecting to fileserver');
 
-        const checksums: Packet = new Packet(await downloadUrl(`${Playground.HOST}/crc`));
+        this.db = new Database(await Database.openDatabase());
+
+        const checksums: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Playground.HOST}/crc`)));
         const archiveChecksums: number[] = [];
         for (let i: number = 0; i < 9; i++) {
             archiveChecksums[i] = checksums.g4;
@@ -79,7 +84,7 @@ class Playground extends GameShell {
         SeqType.unpack(config);
         LocType.unpack(config);
         FloType.unpack(config);
-        ObjType.unpack(config);
+        ObjType.unpack(config, true);
         NpcType.unpack(config);
         IdkType.unpack(config);
         SpotAnimType.unpack(config);
@@ -89,7 +94,7 @@ class Playground extends GameShell {
         Wave.unpack(sounds);
 
         await this.showProgress(92, 'Unpacking interfaces');
-        ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+        ComType.unpack(interfaces, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
         await this.showProgress(97, 'Preparing game engine');
         WordFilter.unpack(wordenc);
@@ -203,10 +208,43 @@ class Playground extends GameShell {
     // ----
 
     async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
-        await this.showProgress(progress, `Requesting ${displayName}`);
-        const data: Jagfile = await Jagfile.loadUrl(`${Playground.HOST}/${filename}${crc}`);
-        await this.showProgress(progress, `Loading ${displayName} - 100%`);
-        return data;
+        let retry: number = 5;
+        let data: Int8Array | undefined = await this.db?.cacheload(filename);
+        if (data) {
+            if (Packet.crc32(data) !== crc) {
+                data = undefined;
+            }
+        }
+
+        if (data) {
+            return new Jagfile(Uint8Array.from(data));
+        }
+
+        while (!data) {
+            await this.showProgress(progress, `Requesting ${displayName}`);
+
+            try {
+                await downloadUrl(`${Playground.HOST}/${filename}${crc}`)
+                    .then((downloaded: Int8Array): void => {
+                        data = downloaded;
+                    })
+                    .catch((): void => {
+                        throw new Error(`error requesting cache file!: ${filename}`);
+                    });
+            } catch (e) {
+                data = undefined;
+                for (let i: number = retry; i > 0; i--) {
+                    await this.showProgress(progress, `Error loading - Will retry in ${i} secs.`);
+                    await sleep(1000);
+                }
+                retry *= 2;
+                if (retry > 60) {
+                    retry = 60;
+                }
+            }
+        }
+        this.db?.cachesave(filename, data);
+        return new Jagfile(Uint8Array.from(data));
     }
 
     modifier = 2;

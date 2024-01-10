@@ -1,6 +1,5 @@
 import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
-import Pix24 from '../graphics/Pix24';
 import PixFont from '../graphics/PixFont';
 import Model from '../graphics/Model';
 
@@ -16,10 +15,7 @@ export default class ComType {
     static TYPE_MODEL: number = 6;
     static TYPE_INVENTORY_TEXT: number = 7;
 
-    static MEDIA: Jagfile | null = null;
-
-    static unpack = (interfaces: Jagfile, media: Jagfile, fonts: PixFont[]): void => {
-        this.MEDIA = media;
+    static unpack = (interfaces: Jagfile, fonts: PixFont[]): void => {
         const dat: Packet = new Packet(interfaces.read('data'));
         let parentId: number = -1;
         dat.pos += 2; // const count = dat.g2;
@@ -109,11 +105,10 @@ export default class ComType {
                         if (dat.g1 === 1) {
                             com.inventorySlotOffsetX[i] = dat.g2b;
                             com.inventorySlotOffsetY[i] = dat.g2b;
-                            // com.inventorySlotImage[i] = dat.gjstr;
                             const sprite: string = dat.gjstr;
                             if (sprite.length > 0) {
                                 const spriteIndex: number = sprite.lastIndexOf(',');
-                                com.inventorySlotImage[i] = Pix24.fromArchive(media, sprite.substring(0, spriteIndex), parseInt(sprite.substring(spriteIndex + 1), 10));
+                                com.inventorySlotImage[i] = {name: sprite.substring(0, spriteIndex), sprite: parseInt(sprite.substring(spriteIndex + 1), 10)}; // Pix24.fromArchive(media, sprite.substring(0, spriteIndex), parseInt(sprite.substring(spriteIndex + 1), 10));
                             }
                         }
                     }
@@ -261,7 +256,7 @@ export default class ComType {
     inventoryMarginY: number = 0;
     inventorySlotOffsetX: number[] | null = null;
     inventorySlotOffsetY: number[] | null = null;
-    inventorySlotImage: Pix24[] | null = null;
+    inventorySlotImage: {name: string; sprite: number}[] | null = null;
     // inventoryOptions: (string | null)[] = [];
     inventoryOptions: Array<string | null> = [];
     fill: boolean = false;

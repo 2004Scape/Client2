@@ -11,7 +11,8 @@ export default class ObjType extends ConfigType {
     static cachePos: number = 0;
     static membersWorld: boolean = true;
 
-    static unpack = (config: Jagfile): void => {
+    static unpack = (config: Jagfile, members: boolean): void => {
+        this.membersWorld = members;
         this.dat = new Packet(config.read('obj.dat'));
         const idx: Packet = new Packet(config.read('obj.idx'));
 
@@ -141,7 +142,7 @@ export default class ObjType extends ConfigType {
         } else if (code === 11) {
             this.stackable = true;
         } else if (code === 12) {
-            this.cost = dat.g4s;
+            this.cost = dat.g4;
         } else if (code === 16) {
             this.members = true;
         } else if (code === 23) {

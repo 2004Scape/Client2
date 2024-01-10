@@ -33,6 +33,7 @@ import World3D from './jagex2/dash3d/World3D';
 import ClientStream from './jagex2/io/ClientStream';
 import Protocol from './jagex2/io/Protocol';
 import Isaac from './jagex2/io/Isaac';
+import Database from './jagex2/io/Database';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -59,6 +60,7 @@ class Client extends GameShell {
     private errorHost: boolean = false;
 
     // important client stuff
+    private db: Database | null = null;
     private loopCycle: number = 0;
     private ingame: boolean = false;
     private archiveChecksums: number[] = [];
@@ -303,7 +305,15 @@ class Client extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            const checksums: Packet = new Packet(await downloadUrl(`${Client.HOST}/crc`));
+            await Database.openDatabase()
+                .then((result: IDBDatabase): void => {
+                    this.db = new Database(result);
+                })
+                .catch((): void => {
+                    this.errorLoading = true;
+                });
+
+            const checksums: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Client.HOST}/crc`)));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -470,7 +480,7 @@ class Client extends GameShell {
             SeqType.unpack(config);
             LocType.unpack(config);
             FloType.unpack(config);
-            ObjType.unpack(config);
+            ObjType.unpack(config, Client.MEMBERS);
             NpcType.unpack(config);
             IdkType.unpack(config);
             SpotAnimType.unpack(config);
@@ -482,7 +492,7 @@ class Client extends GameShell {
             }
 
             await this.showProgress(92, 'Unpacking interfaces');
-            ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+            ComType.unpack(interfaces, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
             await this.showProgress(97, 'Preparing game engine');
             for (let y: number = 0; y < 33; y++) {
@@ -1042,7 +1052,13 @@ class Client extends GameShell {
                 this.loginMessage1 = 'Connecting to server...';
                 await this.drawTitleScreen();
             }
-            this.stream = new ClientStream(await ClientStream.openSocket({host: Client.HOST, port: Client.PORT}));
+            ClientStream.openSocket({host: Client.HOST, port: Client.PORT})
+                .then((socket: WebSocket): void => {
+                    this.stream = new ClientStream(socket);
+                })
+                .catch((): void => {
+                    throw new Error('error opening login socket!!!!');
+                });
             await this.stream?.readBytes(this.in.data, 0, 8);
             this.in.pos = 0;
             this.serverSeed = this.in.g8;
@@ -1077,8 +1093,8 @@ class Client extends GameShell {
                 seed[i] += 50;
             }
             this.randomIn = new Isaac(seed);
-            this.stream.write(this.loginout.data, this.loginout.pos, 0);
-            const reply: number = await this.stream.read();
+            this.stream?.write(this.loginout.data, this.loginout.pos, 0);
+            const reply: number | undefined = await this.stream?.read();
             console.log(`Login reply was: ${reply}`);
 
             if (reply === 1) {
@@ -2039,10 +2055,11 @@ class Client extends GameShell {
                                 }
                             }
                         } else if (child.inventorySlotImage != null && slot < 20) {
-                            const image: Pix24 = child.inventorySlotImage[slot];
+                            const image: {name: string; sprite: number} = child.inventorySlotImage[slot];
 
-                            if (image != null) {
-                                image.draw(slotX, slotY);
+                            if (image != null && this.mediaArchive) {
+                                const pix24: Pix24 = Pix24.fromArchive(this.mediaArchive, image.name, image.sprite);
+                                pix24.draw(slotX, slotY);
                             }
                         }
 
@@ -3692,17 +3709,47 @@ class Client extends GameShell {
     };
 
     private loadArchive = async (filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> => {
-        // TODO: caching
-        // TODO: download progress, retry
+        let retry: number = 5;
+        let data: Int8Array | undefined = await this.db?.cacheload(filename);
+        if (data) {
+            if (Packet.crc32(data) !== crc) {
+                data = undefined;
+            }
+        }
 
-        await this.showProgress(progress, `Requesting ${displayName}`);
-        const data: Jagfile = await Jagfile.loadUrl(`${Client.HOST}/${filename}${crc}`);
-        await this.showProgress(progress, `Loading ${displayName} - 100%`);
-        return data;
+        if (data) {
+            return new Jagfile(Uint8Array.from(data));
+        }
+
+        while (!data) {
+            await this.showProgress(progress, `Requesting ${displayName}`);
+
+            try {
+                downloadUrl(`${Client.HOST}/${filename}${crc}`)
+                    .then((downloaded: Int8Array): void => {
+                        data = downloaded;
+                    })
+                    .catch((): void => {
+                        throw new Error(`error requesting cache file!: ${filename}`);
+                    });
+            } catch (e) {
+                data = undefined;
+                for (let i: number = retry; i > 0; i--) {
+                    await this.showProgress(progress, `Error loading - Will retry in ${i} secs.`);
+                    await sleep(1000);
+                }
+                retry *= 2;
+                if (retry > 60) {
+                    retry = 60;
+                }
+            }
+        }
+        await this.db?.cachesave(filename, data);
+        return new Jagfile(Uint8Array.from(data));
     };
 
     private setMidi = async (name: string, crc: number): Promise<void> => {
-        const file: Packet = new Packet(await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`));
+        const file: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`)));
         playMidi(decompressBz2(file.data, true, false), 192);
     };
 

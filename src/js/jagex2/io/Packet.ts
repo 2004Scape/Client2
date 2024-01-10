@@ -27,9 +27,9 @@ export default class Packet {
         }
     }
 
-    static crc32 = (src: Uint8Array, length: number = src.length, offset: number = 0): number => {
+    static crc32 = (src: Int8Array): number => {
         let crc: number = 0xffffffff;
-        for (let i: number = offset; i < offset + length; i++) {
+        for (let i: number = 0; i < src.length; i++) {
             crc = (crc >>> 8) ^ Packet.crctable[(crc ^ src[i]) & 0xff];
         }
         return ~crc;
@@ -70,7 +70,7 @@ export default class Packet {
     }
 
     get g2(): number {
-        return ((this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
+        return (this.data[this.pos++] << 8) | this.data[this.pos++];
     }
 
     get g2b(): number {
@@ -78,15 +78,10 @@ export default class Packet {
     }
 
     get g3(): number {
-        return ((this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
+        return (this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++];
     }
 
     get g4(): number {
-        return ((this.data[this.pos++] << 24) | (this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
-    }
-
-    // signed
-    get g4s(): number {
         return (this.data[this.pos++] << 24) | (this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++];
     }
 

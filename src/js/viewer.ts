@@ -20,14 +20,17 @@ import SeqFrame from './jagex2/graphics/SeqFrame';
 import Jagfile from './jagex2/io/Jagfile';
 
 import WordFilter from './jagex2/wordenc/WordFilter';
-import {downloadText, downloadUrl} from './jagex2/util/JsUtil';
+import {downloadText, downloadUrl, sleep} from './jagex2/util/JsUtil';
 import GameShell from './jagex2/client/GameShell';
 import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
+import Database from './jagex2/io/Database';
 
 class Viewer extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
     static REPO: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
+
+    private db: Database | null = null;
 
     alreadyStarted: boolean = false;
     errorStarted: boolean = false;
@@ -92,7 +95,9 @@ class Viewer extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            const checksums: Packet = new Packet(await downloadUrl(`${Viewer.HOST}/crc`));
+            this.db = new Database(await Database.openDatabase());
+
+            const checksums: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Viewer.HOST}/crc`)));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -128,7 +133,7 @@ class Viewer extends GameShell {
             SeqType.unpack(config);
             LocType.unpack(config);
             FloType.unpack(config);
-            ObjType.unpack(config);
+            ObjType.unpack(config, true);
             NpcType.unpack(config);
             IdkType.unpack(config);
             SpotAnimType.unpack(config);
@@ -138,7 +143,7 @@ class Viewer extends GameShell {
             Wave.unpack(sounds);
 
             await this.showProgress(92, 'Unpacking interfaces');
-            ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+            ComType.unpack(interfaces, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
             await this.showProgress(97, 'Preparing game engine');
             WordFilter.unpack(wordenc);
@@ -197,11 +202,43 @@ class Viewer extends GameShell {
     //
 
     async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
-        await this.showProgress(progress, `Requesting ${displayName}`);
-        const data: Jagfile = await Jagfile.loadUrl(`${Viewer.HOST}/${filename}${crc}`);
-        await this.showProgress(progress, `Loading ${displayName} - 100%`);
+        let retry: number = 5;
+        let data: Int8Array | undefined = await this.db?.cacheload(filename);
+        if (data) {
+            if (Packet.crc32(data) !== crc) {
+                data = undefined;
+            }
+        }
 
-        return data;
+        if (data) {
+            return new Jagfile(Uint8Array.from(data));
+        }
+
+        while (!data) {
+            await this.showProgress(progress, `Requesting ${displayName}`);
+
+            try {
+                await downloadUrl(`${Viewer.HOST}/${filename}${crc}`)
+                    .then((downloaded: Int8Array): void => {
+                        data = downloaded;
+                    })
+                    .catch((): void => {
+                        throw new Error(`error requesting cache file!: ${filename}`);
+                    });
+            } catch (e) {
+                data = undefined;
+                for (let i: number = retry; i > 0; i--) {
+                    await this.showProgress(progress, `Error loading - Will retry in ${i} secs.`);
+                    await sleep(1000);
+                }
+                retry *= 2;
+                if (retry > 60) {
+                    retry = 60;
+                }
+            }
+        }
+        this.db?.cachesave(filename, data);
+        return new Jagfile(Uint8Array.from(data));
     }
 
     drawErrorScreen(): void {

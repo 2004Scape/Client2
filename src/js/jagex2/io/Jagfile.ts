@@ -1,15 +1,13 @@
-import {decompressBz2, downloadUrl} from '../util/JsUtil';
+import {decompressBz2} from '../util/JsUtil';
 
 import Packet from './Packet';
 
 export default class Jagfile {
-    static loadUrl = async (url: string): Promise<Jagfile> => new Jagfile(await downloadUrl(url));
-
     static genHash = (name: string): number => {
         let hash: number = 0;
         name = name.toUpperCase();
         for (let i: number = 0; i < name.length; i++) {
-            hash = (hash * 61 + name.charCodeAt(i) - 32) >>> 0;
+            hash = (hash * 61 + name.charCodeAt(i) - 32) | 0; // wtf?
         }
         return hash;
     };
