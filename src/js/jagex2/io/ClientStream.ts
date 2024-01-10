@@ -15,8 +15,8 @@ export default class ClientStream {
     private remaining: number = 0;
     private offset: number = 0;
 
-    static openSocket = (socket: Socket): Promise<WebSocket> => {
-        return new Promise<WebSocket>((resolve, reject): void => {
+    static openSocket = async (socket: Socket): Promise<WebSocket> => {
+        return await new Promise<WebSocket>((resolve, reject): void => {
             const protocol: string = socket.host.startsWith('https') ? 'wss' : 'ws';
             const host: string = socket.host.substring(socket.host.indexOf('//') + 2);
             const ws: WebSocket = new WebSocket(`${protocol}://${host}:${socket.port}`, 'binary');

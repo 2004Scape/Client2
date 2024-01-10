@@ -7,8 +7,8 @@ export default class Database {
         this.db = db;
     }
 
-    static openDatabase = (): Promise<IDBDatabase> => {
-        return new Promise<IDBDatabase>((resolve, reject): void => {
+    static openDatabase = async (): Promise<IDBDatabase> => {
+        return await new Promise<IDBDatabase>((resolve, reject): void => {
             const request: IDBOpenDBRequest = indexedDB.open('lostcity', 1);
 
             request.onsuccess = (event: Event): void => {
@@ -30,8 +30,8 @@ export default class Database {
         });
     };
 
-    cacheload = (name: string): Promise<Int8Array | undefined> => {
-        return new Promise<Int8Array | undefined>((resolve): void => {
+    cacheload = async (name: string): Promise<Int8Array | undefined> => {
+        return await new Promise<Int8Array | undefined>((resolve): void => {
             const transaction: IDBTransaction = this.db.transaction('cache', 'readonly');
             const store: IDBObjectStore = transaction.objectStore('cache');
             const request: IDBRequest<Int8Array> = store.get(this.genHash(name));
@@ -48,8 +48,8 @@ export default class Database {
         });
     };
 
-    cachesave = (name: string, src: Int8Array): Promise<void> => {
-        return new Promise<void>((resolve, reject): void => {
+    cachesave = async (name: string, src: Int8Array): Promise<void> => {
+        return await new Promise<void>((resolve, reject): void => {
             if (src.length > 2000000) {
                 reject();
                 return;

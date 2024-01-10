@@ -305,13 +305,7 @@ class Client extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            await Database.openDatabase()
-                .then((result: IDBDatabase): void => {
-                    this.db = new Database(result);
-                })
-                .catch((): void => {
-                    this.errorLoading = true;
-                });
+            this.db = new Database(await Database.openDatabase());
 
             const checksums: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Client.HOST}/crc`)));
             for (let i: number = 0; i < 9; i++) {
@@ -1052,13 +1046,7 @@ class Client extends GameShell {
                 this.loginMessage1 = 'Connecting to server...';
                 await this.drawTitleScreen();
             }
-            await ClientStream.openSocket({host: Client.HOST, port: Client.PORT})
-                .then((socket: WebSocket): void => {
-                    this.stream = new ClientStream(socket);
-                })
-                .catch((): void => {
-                    throw new Error('error opening login socket!!!!');
-                });
+            this.stream = new ClientStream(await ClientStream.openSocket({host: Client.HOST, port: Client.PORT}));
             await this.stream?.readBytes(this.in.data, 0, 8);
             this.in.pos = 0;
             this.serverSeed = this.in.g8;
@@ -1094,7 +1082,7 @@ class Client extends GameShell {
             }
             this.randomIn = new Isaac(seed);
             this.stream?.write(this.loginout.data, this.loginout.pos, 0);
-            const reply: number | undefined = await this.stream?.read();
+            const reply: number = await this.stream.read();
             console.log(`Login reply was: ${reply}`);
 
             if (reply === 1) {
@@ -3725,13 +3713,7 @@ class Client extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                downloadUrl(`${Client.HOST}/${filename}${crc}`)
-                    .then((downloaded: Int8Array): void => {
-                        data = downloaded;
-                    })
-                    .catch((): void => {
-                        throw new Error(`error requesting cache file!: ${filename}`);
-                    });
+                data = await downloadUrl(`${Client.HOST}/${filename}${crc}`);
             } catch (e) {
                 data = undefined;
                 for (let i: number = retry; i > 0; i--) {

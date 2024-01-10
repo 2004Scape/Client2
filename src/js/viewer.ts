@@ -218,13 +218,7 @@ class Viewer extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                await downloadUrl(`${Viewer.HOST}/${filename}${crc}`)
-                    .then((downloaded: Int8Array): void => {
-                        data = downloaded;
-                    })
-                    .catch((): void => {
-                        throw new Error(`error requesting cache file!: ${filename}`);
-                    });
+                data = await downloadUrl(`${Viewer.HOST}/${filename}${crc}`);
             } catch (e) {
                 data = undefined;
                 for (let i: number = retry; i > 0; i--) {
