@@ -1052,7 +1052,7 @@ class Client extends GameShell {
                 this.loginMessage1 = 'Connecting to server...';
                 await this.drawTitleScreen();
             }
-            ClientStream.openSocket({host: Client.HOST, port: Client.PORT})
+            await ClientStream.openSocket({host: Client.HOST, port: Client.PORT})
                 .then((socket: WebSocket): void => {
                     this.stream = new ClientStream(socket);
                 })
