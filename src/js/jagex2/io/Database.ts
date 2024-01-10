@@ -1,5 +1,5 @@
 export default class Database {
-    protected readonly db: IDBDatabase;
+    private readonly db: IDBDatabase;
 
     constructor(db: IDBDatabase) {
         db.onerror = this.onerror;
