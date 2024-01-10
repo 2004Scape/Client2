@@ -3699,10 +3699,8 @@ class Client extends GameShell {
     private loadArchive = async (filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> => {
         let retry: number = 5;
         let data: Int8Array | undefined = await this.db?.cacheload(filename);
-        if (data) {
-            if (Packet.crc32(data) !== crc) {
-                data = undefined;
-            }
+        if (data && Packet.crc32(data) !== crc) {
+            data = undefined;
         }
 
         if (data) {
