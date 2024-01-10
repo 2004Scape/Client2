@@ -237,7 +237,7 @@ class Viewer extends GameShell {
                 }
             }
         }
-        this.db?.cachesave(filename, data);
+        await this.db?.cachesave(filename, data);
         return new Jagfile(Uint8Array.from(data));
     }
 

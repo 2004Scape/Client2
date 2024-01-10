@@ -224,7 +224,7 @@ class Playground extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                await downloadUrl(`${Playground.HOST}/${filename}${crc}`)
+                downloadUrl(`${Playground.HOST}/${filename}${crc}`)
                     .then((downloaded: Int8Array): void => {
                         data = downloaded;
                     })
@@ -243,7 +243,7 @@ class Playground extends GameShell {
                 }
             }
         }
-        this.db?.cachesave(filename, data);
+        await this.db?.cachesave(filename, data);
         return new Jagfile(Uint8Array.from(data));
     }
 

@@ -53,21 +53,6 @@ export default class ClientStream {
         return this.remaining;
     }
 
-    onmessage = (event: MessageEvent): void => {
-        console.log('connection message!');
-        const data: Int8Array = new Int8Array(event.data);
-        this.remaining += data.length;
-        this.queue.push(data);
-    };
-
-    onclose = (event: CloseEvent): void => {
-        console.log('connection close!');
-    };
-
-    onerror = (event: Event): void => {
-        console.log('connection error!');
-    };
-
     write = (src: Uint8Array, len: number, off: number): void => {
         if (this.socket.readyState !== 1) {
             throw new Error('Socket is not able to write!');
@@ -139,5 +124,20 @@ export default class ClientStream {
         this.remaining = 0;
         this.buffer = undefined;
         this.offset = 0;
+    };
+
+    private onmessage = (event: MessageEvent): void => {
+        console.log('connection message!');
+        const data: Int8Array = new Int8Array(event.data);
+        this.remaining += data.length;
+        this.queue.push(data);
+    };
+
+    private onclose = (event: CloseEvent): void => {
+        console.log('connection close!');
+    };
+
+    private onerror = (event: Event): void => {
+        console.log('connection error!');
     };
 }

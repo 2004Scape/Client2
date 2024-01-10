@@ -71,11 +71,11 @@ export default class Database {
         });
     };
 
-    onclose = (event: Event): void => {
+    private onclose = (event: Event): void => {
         console.log('database close!');
     };
 
-    onerror = (event: Event): void => {
+    private onerror = (event: Event): void => {
         console.log('database error!');
     };
 
