@@ -199,6 +199,7 @@ class Client extends GameShell {
     private dragCycles: number = 0;
     private crossMode: number = 0;
     private crossCycle: number = 0;
+    private overrideChat: number = 0;
     private menuVisible: boolean = false;
     private menuArea: number = 0;
     private menuX: number = 0;
@@ -212,6 +213,20 @@ class Client extends GameShell {
     private chatInterface: ComType = new ComType();
     private chatScrollHeight: number = 78;
     private chatScrollOffset: number = 0;
+    private ignoreCount: number = 0;
+    private ignoreName37: bigint[] = [];
+    private hintType: number = 0;
+    private hintNpc: number = 0;
+    private hintOffsetX: number = 0;
+    private hintOffsetZ: number = 0;
+    private hintPlayer: number = 0;
+    private hintTileX: number = 0;
+    private hintTileZ: number = 0;
+    private hintHeight: number = 0;
+    private skillExperience: number[] = [];
+    private skillLevel: number[] = [];
+    private skillBaseLevel: number[] = [];
+    private levelExperience: number[] = [];
     private modalMessage: string | null = null;
     private flashingTab: number = -1;
     private selectedTab: number = 3;
@@ -248,6 +263,8 @@ class Client extends GameShell {
     private selectedCycle: number = 0;
     private pressedContinueOption: boolean = false;
     private awaitingLogin: boolean = false;
+    private varps: number[] = [];
+    private varCache: number[] = [];
 
     // scene
     private scene: World3D | null = null;
@@ -540,6 +557,7 @@ class Client extends GameShell {
 
             World3D.init(512, 334, 500, 800, distance);
             WordFilter.unpack(wordenc);
+            this.initializeLevelExperience();
         } catch (err) {
             console.error(err);
             this.errorLoading = true;
@@ -1060,8 +1078,6 @@ class Client extends GameShell {
             this.out.p4(0); // TODO signlink UUID
             this.out.pjstr(username);
             this.out.pjstr(password);
-            // this.out.pjstr('jordan');
-            // this.out.pjstr('retardeddeveloper69');
             this.out.rsaenc(Client.MODULUS, Client.EXPONENT);
             this.loginout.pos = 0;
             if (reconnect) {
@@ -1092,7 +1108,7 @@ class Client extends GameShell {
             }
             if (reply === 2 || reply === 18) {
                 // TODO
-                // this.rights = reply == 18;
+                //this.rights = reply == 18;
                 // InputTracking.setDisabled();
                 this.ingame = true;
                 this.out.pos = 0;
@@ -1105,7 +1121,7 @@ class Client extends GameShell {
                 this.idleNetCycles = 0;
                 this.systemUpdateTimer = 0;
                 this.idleTimeout = 0;
-                // this.hintType = 0;
+                this.hintType = 0;
                 this.menuSize = 0;
                 this.menuVisible = false;
                 this.idleCycles = 0;
@@ -1147,7 +1163,7 @@ class Client extends GameShell {
                 // this.friendCount = 0;
                 this.stickyChatInterfaceId = -1;
                 this.chatInterfaceId = -1;
-                // this.viewportInterfaceID = -1;
+                this.viewportInterfaceID = -1;
                 this.sidebarInterfaceId = -1;
                 this.pressedContinueOption = false;
                 this.selectedTab = 3;
@@ -1816,7 +1832,21 @@ class Client extends GameShell {
     };
 
     private drawSidebar = (): void => {
-        // TODO
+        this.areaSidebar?.bind();
+        if (this.areaSidebarOffsets) {
+            Draw3D.lineOffset = this.areaSidebarOffsets;
+        }
+        this.imageInvback?.draw(0, 0);
+        if (this.sidebarInterfaceId != -1) {
+            this.drawInterface(ComType.instances[this.sidebarInterfaceId], 0, 0, 0);
+        } else if (this.tabInterfaceId[this.selectedTab] != -1) {
+            this.drawInterface(ComType.instances[this.tabInterfaceId[this.selectedTab]], 0, 0, 0);
+        }
+        if (this.menuVisible && this.menuArea == 1) {
+            this.drawMenu();
+        }
+        this.areaSidebar?.draw(562, 231);
+        // TODO Viewport Drawing
     };
 
     private drawChatback = (): void => {
@@ -2529,15 +2559,15 @@ class Client extends GameShell {
                 // VARP_SMALL
                 const varp: number = this.in.g2;
                 const value: number = this.in.g1b;
-                // this.varCache[varp] = value;
-                // if (this.varps[varp] != value) {
-                //     this.varps[varp] = value;
-                //     this.updateVarp(varp);
-                //     this.redrawSidebar = true;
-                //     if (this.stickyChatInterfaceId != -1) {
-                //         this.redrawChatback = true;
-                //     }
-                // }
+                this.varCache[varp] = value;
+                if (this.varps[varp] != value) {
+                    this.varps[varp] = value;
+                    this.updateVarp(varp);
+                    this.redrawSidebar = true;
+                    if (this.stickyChatInterfaceId != -1) {
+                        this.redrawChatback = true;
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -2839,39 +2869,39 @@ class Client extends GameShell {
                 return true;
             }
             if (this.packetType == 25) {
-                // this.hintType = this.in.g1;
-                // if (this.hintType == 1) {
-                //     this.hintNpc = this.in.g2;
-                // }
-                // if (this.hintType >= 2 && this.hintType <= 6) {
-                //     if (this.hintType == 2) {
-                //         this.hintOffsetX = 64;
-                //         this.hintOffsetZ = 64;
-                //     }
-                //     if (this.hintType == 3) {
-                //         this.hintOffsetX = 0;
-                //         this.hintOffsetZ = 64;
-                //     }
-                //     if (this.hintType == 4) {
-                //         this.hintOffsetX = 128;
-                //         this.hintOffsetZ = 64;
-                //     }
-                //     if (this.hintType == 5) {
-                //         this.hintOffsetX = 64;
-                //         this.hintOffsetZ = 0;
-                //     }
-                //     if (this.hintType == 6) {
-                //         this.hintOffsetX = 64;
-                //         this.hintOffsetZ = 128;
-                //     }
-                //     this.hintType = 2;
-                //     this.hintTileX = this.in.g2;
-                //     this.hintTileZ = this.in.g2;
-                //     this.hintHeight = this.in.g1;
-                // }
-                // if (this.hintType == 10) {
-                //     this.hintPlayer = this.in.g2;
-                // }
+                this.hintType = this.in.g1;
+                if (this.hintType == 1) {
+                    this.hintNpc = this.in.g2;
+                }
+                if (this.hintType >= 2 && this.hintType <= 6) {
+                    if (this.hintType == 2) {
+                        this.hintOffsetX = 64;
+                        this.hintOffsetZ = 64;
+                    }
+                    if (this.hintType == 3) {
+                        this.hintOffsetX = 0;
+                        this.hintOffsetZ = 64;
+                    }
+                    if (this.hintType == 4) {
+                        this.hintOffsetX = 128;
+                        this.hintOffsetZ = 64;
+                    }
+                    if (this.hintType == 5) {
+                        this.hintOffsetX = 64;
+                        this.hintOffsetZ = 0;
+                    }
+                    if (this.hintType == 6) {
+                        this.hintOffsetX = 64;
+                        this.hintOffsetZ = 128;
+                    }
+                    this.hintType = 2;
+                    this.hintTileX = this.in.g2;
+                    this.hintTileZ = this.in.g2;
+                    this.hintHeight = this.in.g1;
+                }
+                if (this.hintType == 10) {
+                    this.hintPlayer = this.in.g2;
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3335,13 +3365,13 @@ class Client extends GameShell {
             }
             if (this.packetType == 193) {
                 // RESET_CLIENT_VARCACHE
-                // for (int i = 0; i < this.varps.length; i++) {
-                //     if (this.varps[i] != this.varCache[i]) {
-                //         this.varps[i] = this.varCache[i];
-                //         this.updateVarp(i);
-                //         this.redrawSidebar = true;
-                //     }
-                // }
+                for (var i = 0; i < this.varps.length; i++) {
+                    if (this.varps[i] != this.varCache[i]) {
+                        this.varps[i] = this.varCache[i];
+                        this.updateVarp(i);
+                        this.redrawSidebar = true;
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3408,36 +3438,36 @@ class Client extends GameShell {
             if (this.packetType == 4) {
                 // MESSAGE_GAME
                 const message: string = this.in.gjstr;
-                // @Pc(3043) long username;
-                //     if (message.endsWith(":tradereq:")) {
-                //         String player = message.substring(0, message.indexOf(":"));
-                //         username = JString.toBase37(player);
-                //         boolean ignored = false;
-                //         for (int i = 0; i < this.ignoreCount; i++) {
-                //             if (this.ignoreName37[i] == username) {
-                //                 ignored = true;
-                //                 break;
-                //             }
-                //         }
-                //         if (!ignored && this.overrideChat == 0) {
-                //             this.addMessage(4, "wishes to trade with you.", player);
-                //         }
-                //     } else if (message.endsWith(":duelreq:")) {
-                //         String player = message.substring(0, message.indexOf(":"));
-                //         username = JString.toBase37(player);
-                //         boolean ignored = false;
-                //         for (int i = 0; i < this.ignoreCount; i++) {
-                //             if (this.ignoreName37[i] == username) {
-                //                 ignored = true;
-                //                 break;
-                //             }
-                //         }
-                //         if (!ignored && this.overrideChat == 0) {
-                //             this.addMessage(8, "wishes to duel with you.", player);
-                //         }
-                //     } else {
-                //         this.addMessage(0, message, "");
-                //     }
+                var username: bigint;
+                if (message.endsWith(':tradereq:')) {
+                    var player: string = message.substring(0, message.indexOf(':'));
+                    username = JString.toBase37(player);
+                    var ignored: boolean = false;
+                    for (var i = 0; i < this.ignoreCount; i++) {
+                        if (this.ignoreName37[i] == username) {
+                            ignored = true;
+                            break;
+                        }
+                    }
+                    if (!ignored && this.overrideChat == 0) {
+                        this.addMessage(4, 'wishes to trade with you.', player);
+                    }
+                } else if (message.endsWith(':duelreq:')) {
+                    var player: string = message.substring(0, message.indexOf(':'));
+                    username = JString.toBase37(player);
+                    var ignored: boolean = false;
+                    for (var i = 0; i < this.ignoreCount; i++) {
+                        if (this.ignoreName37[i] == username) {
+                            ignored = true;
+                            break;
+                        }
+                    }
+                    if (!ignored && this.overrideChat == 0) {
+                        this.addMessage(8, 'wishes to duel with you.', player);
+                    }
+                } else {
+                    this.addMessage(0, message, '');
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3563,14 +3593,14 @@ class Client extends GameShell {
                 const stat: number = this.in.g1;
                 const xp: number = this.in.g4;
                 const level: number = this.in.g1;
-                // this.skillExperience[stat] = xp;
-                // this.skillLevel[stat] = level;
-                // this.skillBaseLevel[stat] = 1;
-                // for (let i = 0; i < 98; i++) {
-                //     if (xp >= levelExperience[i]) {
-                //         this.skillBaseLevel[stat] = i + 2;
-                //     }
-                // }
+                this.skillExperience[stat] = xp;
+                this.skillLevel[stat] = level;
+                this.skillBaseLevel[stat] = 1;
+                for (let i = 0; i < 98; i++) {
+                    if (xp >= this.levelExperience[i]) {
+                        this.skillBaseLevel[stat] = i + 2;
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3672,6 +3702,123 @@ class Client extends GameShell {
             }
             child.seqFrame = 0;
             child.seqCycle = 0;
+        }
+    };
+
+    private initializeLevelExperience = (): void => {
+        let acc = 0;
+        for (let i = 0; i < 99; i++) {
+            let level = i + 1;
+            let delta = Math.floor((level + Math.pow(2.0, level / 7.0)) * 300.0);
+            acc += delta;
+            this.levelExperience[i] = Math.floor(acc / 4);
+        }
+    };
+
+    private addMessage = (type: number, text: string, sender: string): void => {
+        if (type == 0 && this.stickyChatInterfaceId != -1) {
+            this.modalMessage = text;
+            this.mouseClickButton = 0;
+        }
+        if (this.chatInterfaceId == -1) {
+            this.redrawChatback = true;
+        }
+        for (var i = 99; i > 0; i--) {
+            this.messageType[i] = this.messageType[i - 1];
+            this.messageSender[i] = this.messageSender[i - 1];
+            this.messageText[i] = this.messageText[i - 1];
+        }
+        this.messageType[0] = type;
+        this.messageSender[0] = sender;
+        this.messageText[0] = text;
+    };
+
+    private updateVarp = (id: number): void => {
+        var clientcode: number = VarpType.instances[id].clientcode;
+        if (clientcode != 0) {
+            var value: number = this.varps[id];
+            if (clientcode == 1) {
+                if (value == 1) {
+                    Draw3D.setBrightness(0.9);
+                }
+                if (value == 2) {
+                    Draw3D.setBrightness(0.8);
+                }
+                if (value == 3) {
+                    Draw3D.setBrightness(0.7);
+                }
+                if (value == 4) {
+                    Draw3D.setBrightness(0.6);
+                }
+                //TODO obj sprite cache
+                //ObjType.iconCache.clear();
+                this.redrawTitleBackground = true;
+            }
+            if (clientcode == 3) {
+                //TODO midi states
+                //var lastMidiActive: boolean = this.midiActive;
+                // if (value == 0) {
+                //     this.setMidiVolume(0);
+                //     this.midiActive = true;
+                // }
+                // if (value == 1) {
+                //     this.setMidiVolume(-400);
+                //     this.midiActive = true;
+                // }
+                // if (value == 2) {
+                //     this.setMidiVolume(-800);
+                //     this.midiActive = true;
+                // }
+                // if (value == 3) {
+                //     this.setMidiVolume(-1200);
+                //     this.midiActive = true;
+                // }
+                // if (value == 4) {
+                //     this.midiActive = false;
+                // }
+                // if (this.midiActive != lastMidiActive) {
+                //     if (this.midiActive) {
+                //         this.setMidi(this.currentMidi, this.midiCrc, this.midiSize);
+                //     } else {
+                //         this.stopMidi();
+                //     }
+                //     this.nextMusicDelay = 0;
+                // }
+            }
+            if (clientcode == 4) {
+                //TODO wave states
+                // if (value == 0) {
+                //     this.waveEnabled = true;
+                //     this.setWaveVolume = 0;
+                // }
+                // if (value == 1) {
+                //     this.waveEnabled = true;
+                //     this.setWaveVolume = -400;
+                // }
+                // if (value == 2) {
+                //     this.waveEnabled = true;
+                //     this.setWaveVolume = -800;
+                // }
+                // if (value == 3) {
+                //     this.waveEnabled = true;
+                //     this.setWaveVolume = -1200;
+                // }
+                // if (value == 4) {
+                //     this.waveEnabled = false;
+                // }
+            }
+            if (clientcode == 5) {
+                //TODO mouseButtonOption
+                //this.mouseButtonOption = value;
+            }
+            if (clientcode == 6) {
+                //TODO chatEffects
+                //this.chatEffects = value;
+            }
+            if (clientcode == 8) {
+                this.splitPrivateChat = value;
+                this.redrawChatback = true;
+            }
         }
     };
 
