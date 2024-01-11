@@ -73,8 +73,13 @@ export default class Packet {
         return (this.data[this.pos++] << 8) | this.data[this.pos++];
     }
 
+    // signed
     get g2b(): number {
-        return (this.data[this.pos++] << 8) | this.data[this.pos++];
+        let value: number = (this.data[this.pos++] << 8) | this.data[this.pos++];
+        if (value > 0x7fff) {
+            value -= 0x10000;
+        }
+        return value;
     }
 
     get g3(): number {
