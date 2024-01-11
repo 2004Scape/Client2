@@ -9,23 +9,23 @@ export default class SeqBase {
         const type: Packet = new Packet(models.read('base_type.dat'));
         const label: Packet = new Packet(models.read('base_label.dat'));
 
-        const total = head.g2;
+        const total: number = head.g2;
         head.pos += 2; // const count = head.g2;
 
-        for (let i = 0; i < total; i++) {
-            const id = head.g2;
-            const length = head.g1;
+        for (let i: number = 0; i < total; i++) {
+            const id: number = head.g2;
+            const length: number = head.g1;
 
-            const transformTypes: number[] = [];
-            const groupLabels: number[][] = [];
+            const transformTypes: Uint8Array = new Uint8Array(length);
+            const groupLabels: Uint8Array[] = new Array<Uint8Array>(length);
 
-            for (let j = 0; j < length; j++) {
+            for (let j: number = 0; j < length; j++) {
                 transformTypes[j] = type.g1;
 
-                const groupCount = label.g1;
-                groupLabels[j] = [];
+                const groupCount: number = label.g1;
+                groupLabels[j] = new Uint8Array(groupCount);
 
-                for (let k = 0; k < groupCount; k++) {
+                for (let k: number = 0; k < groupCount; k++) {
                     groupLabels[j][k] = label.g1;
                 }
             }
@@ -40,6 +40,6 @@ export default class SeqBase {
     // ----
 
     length: number = 0;
-    types: number[] = [];
-    labels: number[][] = [];
+    types: Uint8Array | null = null;
+    labels: Uint8Array[] | null = null;
 }

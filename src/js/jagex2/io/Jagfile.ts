@@ -1,15 +1,13 @@
-import {decompressBz2, downloadUrl} from '../util/JsUtil';
+import {decompressBz2} from '../util/JsUtil';
 
 import Packet from './Packet';
 
 export default class Jagfile {
-    static loadUrl = async (url: string): Promise<Jagfile> => new Jagfile(await downloadUrl(url));
-
     static genHash = (name: string): number => {
-        let hash = 0;
+        let hash: number = 0;
         name = name.toUpperCase();
-        for (let i = 0; i < name.length; i++) {
-            hash = (hash * 61 + name.charCodeAt(i) - 32) >>> 0;
+        for (let i: number = 0; i < name.length; i++) {
+            hash = (hash * 61 + name.charCodeAt(i) - 32) | 0; // wtf?
         }
         return hash;
     };
@@ -24,16 +22,16 @@ export default class Jagfile {
     fileOffset: number[];
 
     constructor(src: Uint8Array) {
-        const data = new Packet(src);
-        const compressedSize = data.g3;
-        const uncompressedSize = data.g3;
+        const data: Packet = new Packet(src);
+        const compressedSize: number = data.g3;
+        const uncompressedSize: number = data.g3;
 
         let buffer: Packet;
         if (compressedSize == uncompressedSize) {
             buffer = data;
             this.compressedWhole = false;
         } else {
-            const compressed = data.gdata(data.pos, compressedSize);
+            const compressed: Uint8Array = data.gdata(data.pos, compressedSize);
             buffer = new Packet(new Uint8Array(decompressBz2(compressed)));
             this.compressedWhole = true;
         }
@@ -45,8 +43,8 @@ export default class Jagfile {
         this.fileSizeDeflated = [];
         this.fileOffset = [];
 
-        let offset = buffer.pos + this.fileCount * 10;
-        for (let i = 0; i < this.fileCount; i++) {
+        let offset: number = buffer.pos + this.fileCount * 10;
+        for (let i: number = 0; i < this.fileCount; i++) {
             this.fileHash.push(buffer.g4);
             this.fileSizeInflated.push(buffer.g3);
             this.fileSizeDeflated.push(buffer.g3);
@@ -56,8 +54,8 @@ export default class Jagfile {
     }
 
     read = (name: string): Uint8Array | null => {
-        const hash = Jagfile.genHash(name);
-        const index = this.fileHash.indexOf(hash);
+        const hash: number = Jagfile.genHash(name);
+        const index: number = this.fileHash.indexOf(hash);
         if (index == -1) {
             return null;
         }
@@ -72,7 +70,7 @@ export default class Jagfile {
         if (this.compressedWhole) {
             return this.buffer.gdata(this.fileOffset[index], this.fileOffset[index] + this.fileSizeDeflated[index]);
         } else {
-            const data = this.buffer.gdata(this.fileOffset[index], this.fileOffset[index] + this.fileSizeDeflated[index]);
+            const data: Uint8Array = this.buffer.gdata(this.fileOffset[index], this.fileOffset[index] + this.fileSizeDeflated[index]);
             return decompressBz2(data);
         }
     };

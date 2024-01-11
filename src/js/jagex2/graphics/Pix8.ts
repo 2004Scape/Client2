@@ -15,7 +15,7 @@ export default class Pix8 {
     cropH: number;
 
     // runtime
-    palette: Uint32Array = new Uint32Array(0);
+    palette: number[] = [];
 
     constructor(width: number, height: number) {
         this.pixels = new Uint8Array(width * height);
@@ -25,18 +25,18 @@ export default class Pix8 {
     }
 
     static fromArchive = (archive: Jagfile, name: string, sprite: number = 0): Pix8 => {
-        const dat = new Packet(archive?.read(name + '.dat'));
-        const index = new Packet(archive?.read('index.dat'));
+        const dat: Packet = new Packet(archive.read(name + '.dat'));
+        const index: Packet = new Packet(archive.read('index.dat'));
 
         // cropW/cropH are shared across all sprites in a single image
         index.pos = dat.g2;
-        const cropW = index.g2;
-        const cropH = index.g2;
+        const cropW: number = index.g2;
+        const cropH: number = index.g2;
 
         // palette is shared across all images in a single archive
-        const paletteCount = index.g1;
-        const palette = new Uint32Array(paletteCount);
-        for (let i = 0; i < paletteCount - 1; i++) {
+        const paletteCount: number = index.g1;
+        const palette: number[] = [];
+        for (let i: number = 0; i < paletteCount - 1; i++) {
             // the first color (0) is reserved for transparency
             palette[i + 1] = index.g3;
 
@@ -47,36 +47,36 @@ export default class Pix8 {
         }
 
         // advance to sprite
-        for (let i = 0; i < sprite; i++) {
+        for (let i: number = 0; i < sprite; i++) {
             index.pos += 2;
             dat.pos += index.g2 * index.g2;
             index.pos += 1;
         }
 
         // read sprite
-        const cropX = index.g1;
-        const cropY = index.g1;
-        const width = index.g2;
-        const height = index.g2;
+        const cropX: number = index.g1;
+        const cropY: number = index.g1;
+        const width: number = index.g2;
+        const height: number = index.g2;
 
-        const image = new Pix8(width, height);
+        const image: Pix8 = new Pix8(width, height);
         image.cropX = cropX;
         image.cropY = cropY;
         image.cropW = cropW;
         image.cropH = cropH;
         image.palette = palette;
 
-        const pixelOrder = index.g1;
+        const pixelOrder: number = index.g1;
         if (pixelOrder === 0) {
-            const length = image.width * image.height;
-            for (let i = 0; i < length; i++) {
+            const length: number = image.width * image.height;
+            for (let i: number = 0; i < length; i++) {
                 image.pixels[i] = dat.g1;
             }
         } else if (pixelOrder === 1) {
-            const width = image.width;
-            for (let x = 0; x < width; x++) {
-                const height = image.height;
-                for (let y = 0; y < height; y++) {
+            const width: number = image.width;
+            for (let x: number = 0; x < width; x++) {
+                const height: number = image.height;
+                for (let y: number = 0; y < height; y++) {
                     image.pixels[x + y * width] = dat.g1;
                 }
             }
@@ -92,11 +92,11 @@ export default class Pix8 {
         x += this.cropX;
         y += this.cropY;
 
-        let dstOff = x + y * Draw2D.width;
-        let srcOff = 0;
+        let dstOff: number = x + y * Draw2D.width;
+        let srcOff: number = 0;
 
-        let h = this.height;
-        let w = this.width;
+        let h: number = this.height;
+        let w: number = this.width;
 
         if (newW !== -1) {
             w = newW;
@@ -106,11 +106,11 @@ export default class Pix8 {
             h = newH;
         }
 
-        let dstStep = Draw2D.width - w;
-        let srcStep = 0;
+        let dstStep: number = Draw2D.width - w;
+        let srcStep: number = 0;
 
         if (y < Draw2D.top) {
-            const cutoff = Draw2D.top - y;
+            const cutoff: number = Draw2D.top - y;
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
@@ -122,7 +122,7 @@ export default class Pix8 {
         }
 
         if (x < Draw2D.left) {
-            const cutoff = Draw2D.left - x;
+            const cutoff: number = Draw2D.left - x;
             w -= cutoff;
             x = Draw2D.left;
             srcOff += cutoff;
@@ -132,7 +132,7 @@ export default class Pix8 {
         }
 
         if (x + w > Draw2D.right) {
-            const cutoff = x + w - Draw2D.right;
+            const cutoff: number = x + w - Draw2D.right;
             w -= cutoff;
             srcStep += cutoff;
             dstStep += cutoff;
@@ -144,17 +144,17 @@ export default class Pix8 {
     };
 
     flipHorizontally = (): void => {
-        const pixels = this.pixels;
-        const width = this.width;
-        const height = this.height;
+        const pixels: Uint8Array = this.pixels;
+        const width: number = this.width;
+        const height: number = this.height;
 
-        for (let y = 0; y < height; y++) {
-            const div = width / 2;
-            for (let x = 0; x < div; x++) {
-                const off1 = x + y * width;
-                const off2 = width - x - 1 + y * width;
+        for (let y: number = 0; y < height; y++) {
+            const div: number = width / 2;
+            for (let x: number = 0; x < div; x++) {
+                const off1: number = x + y * width;
+                const off2: number = width - x - 1 + y * width;
 
-                const tmp = pixels[off1];
+                const tmp: number = pixels[off1];
                 pixels[off1] = pixels[off2];
                 pixels[off2] = tmp;
             }
@@ -162,16 +162,16 @@ export default class Pix8 {
     };
 
     flipVertically = (): void => {
-        const pixels = this.pixels;
-        const width = this.width;
-        const height = this.height;
+        const pixels: Uint8Array = this.pixels;
+        const width: number = this.width;
+        const height: number = this.height;
 
-        for (let y = 0; y < height / 2; y++) {
-            for (let x = 0; x < width; x++) {
-                const off1 = x + y * width;
-                const off2 = x + (height - y - 1) * width;
+        for (let y: number = 0; y < height / 2; y++) {
+            for (let x: number = 0; x < width; x++) {
+                const off1: number = x + y * width;
+                const off2: number = x + (height - y - 1) * width;
 
-                const tmp = pixels[off1];
+                const tmp: number = pixels[off1];
                 pixels[off1] = pixels[off2];
                 pixels[off2] = tmp;
             }
@@ -179,8 +179,8 @@ export default class Pix8 {
     };
 
     translate = (r: number, g: number, b: number): void => {
-        for (let i = 0; i < this.palette.length; i++) {
-            let red = (this.palette[i] >> 16) & 0xff;
+        for (let i: number = 0; i < this.palette.length; i++) {
+            let red: number = (this.palette[i] >> 16) & 0xff;
             red += r;
             if (red < 0) {
                 red = 0;
@@ -188,7 +188,7 @@ export default class Pix8 {
                 red = 255;
             }
 
-            let green = (this.palette[i] >> 8) & 0xff;
+            let green: number = (this.palette[i] >> 8) & 0xff;
             green += g;
             if (green < 0) {
                 green = 0;
@@ -196,7 +196,7 @@ export default class Pix8 {
                 green = 255;
             }
 
-            let blue = this.palette[i] & 0xff;
+            let blue: number = this.palette[i] & 0xff;
             blue += b;
             if (blue < 0) {
                 blue = 0;
@@ -209,11 +209,11 @@ export default class Pix8 {
     };
 
     private copyImage = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
-        for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
-                const off = x + y * w;
+        for (let y: number = 0; y < h; y++) {
+            for (let x: number = 0; x < w; x++) {
+                const off: number = x + y * w;
 
-                const p = src[srcOff + off];
+                const p: number = src[srcOff + off];
                 if (p != 0) {
                     dst[dstOff + off] = this.palette[p];
                 }

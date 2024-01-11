@@ -8,11 +8,11 @@ export default class SpotAnimType extends ConfigType {
     static instances: SpotAnimType[] = [];
 
     static unpack = (config: Jagfile): void => {
-        const dat = new Packet(config.read('spotanim.dat'));
+        const dat: Packet = new Packet(config.read('spotanim.dat'));
         this.count = dat.g2;
-        for (let i = 0; i < this.count; i++) {
-            this.instances[i] = new SpotAnimType(i);
-            this.instances[i].decodeType(dat);
+        for (let i: number = 0; i < this.count; i++) {
+            this.instances[i] = new SpotAnimType();
+            this.instances[i].decodeType(i, dat);
         }
     };
 
@@ -32,7 +32,7 @@ export default class SpotAnimType extends ConfigType {
     ambient: number = 0;
     contrast: number = 0;
 
-    decode = (code: number, dat: Packet): void => {
+    decode = (_index: number, code: number, dat: Packet): void => {
         if (code == 1) {
             this.model = dat.g2;
         } else if (code == 2) {

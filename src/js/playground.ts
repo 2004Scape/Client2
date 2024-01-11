@@ -1,31 +1,34 @@
-import GameShell from './jagex2/client/GameShell.js';
+import GameShell from './jagex2/client/GameShell';
 
-import SeqType from './jagex2/config/SeqType.js';
-import LocType from './jagex2/config/LocType.js';
-import FloType from './jagex2/config/FloType.js';
-import ObjType from './jagex2/config/ObjType.js';
-import NpcType from './jagex2/config/NpcType.js';
-import IdkType from './jagex2/config/IdkType.js';
-import SpotAnimType from './jagex2/config/SpotAnimType.js';
-import VarpType from './jagex2/config/VarpType.js';
-import ComType from './jagex2/config/ComType.js';
+import SeqType from './jagex2/config/SeqType';
+import LocType from './jagex2/config/LocType';
+import FloType from './jagex2/config/FloType';
+import ObjType from './jagex2/config/ObjType';
+import NpcType from './jagex2/config/NpcType';
+import IdkType from './jagex2/config/IdkType';
+import SpotAnimType from './jagex2/config/SpotAnimType';
+import VarpType from './jagex2/config/VarpType';
+import ComType from './jagex2/config/ComType';
 
-import Draw3D from './jagex2/graphics/Draw3D.js';
-import PixFont from './jagex2/graphics/PixFont.js';
-import Model from './jagex2/graphics/Model.js';
-import SeqBase from './jagex2/graphics/SeqBase.js';
-import SeqFrame from './jagex2/graphics/SeqFrame.js';
+import Draw3D from './jagex2/graphics/Draw3D';
+import PixFont from './jagex2/graphics/PixFont';
+import Model from './jagex2/graphics/Model';
+import SeqBase from './jagex2/graphics/SeqBase';
+import SeqFrame from './jagex2/graphics/SeqFrame';
 
-import Jagfile from './jagex2/io/Jagfile.js';
+import Jagfile from './jagex2/io/Jagfile';
 
-import WordFilter from './jagex2/wordenc/WordFilter.js';
-import {downloadUrl} from './jagex2/util/JsUtil.js';
-import Draw2D from './jagex2/graphics/Draw2D.js';
-import Packet from './jagex2/io/Packet.js';
+import WordFilter from './jagex2/wordenc/WordFilter';
+import {downloadUrl, sleep} from './jagex2/util/JsUtil';
+import Draw2D from './jagex2/graphics/Draw2D';
+import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
+import Database from './jagex2/io/Database';
 
 class Playground extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
+
+    private db: Database | null = null;
 
     private fontPlain11: PixFont | null = null;
     private fontPlain12: PixFont | null = null;
@@ -39,29 +42,31 @@ class Playground extends GameShell {
         super(true);
     }
 
-    load = async () => {
+    load = async (): Promise<void> => {
         await this.showProgress(10, 'Connecting to fileserver');
 
-        const checksums = new Packet(await downloadUrl(`${Playground.HOST}/crc`));
-        const archiveChecksums = [];
-        for (let i = 0; i < 9; i++) {
+        this.db = new Database(await Database.openDatabase());
+
+        const checksums: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Playground.HOST}/crc`)));
+        const archiveChecksums: number[] = [];
+        for (let i: number = 0; i < 9; i++) {
             archiveChecksums[i] = checksums.g4;
         }
 
-        const title = await this.loadArchive('title', 'title screen', archiveChecksums[1], 10);
+        const title: Jagfile = await this.loadArchive('title', 'title screen', archiveChecksums[1], 10);
 
         this.fontPlain11 = PixFont.fromArchive(title, 'p11');
         this.fontPlain12 = PixFont.fromArchive(title, 'p12');
         this.fontBold12 = PixFont.fromArchive(title, 'b12');
         this.fontQuill8 = PixFont.fromArchive(title, 'q8');
 
-        const config = await this.loadArchive('config', 'config', archiveChecksums[2], 15);
-        const interfaces = await this.loadArchive('interface', 'interface', archiveChecksums[3], 20);
-        const media = await this.loadArchive('media', '2d graphics', archiveChecksums[4], 30);
-        const models = await this.loadArchive('models', '3d graphics', archiveChecksums[5], 40);
-        const textures = await this.loadArchive('textures', 'textures', archiveChecksums[6], 60);
-        const wordenc = await this.loadArchive('wordenc', 'chat system', archiveChecksums[7], 65);
-        const sounds = await this.loadArchive('sounds', 'sound effects', archiveChecksums[8], 70);
+        const config: Jagfile = await this.loadArchive('config', 'config', archiveChecksums[2], 15);
+        const interfaces: Jagfile = await this.loadArchive('interface', 'interface', archiveChecksums[3], 20);
+        const media: Jagfile = await this.loadArchive('media', '2d graphics', archiveChecksums[4], 30);
+        const models: Jagfile = await this.loadArchive('models', '3d graphics', archiveChecksums[5], 40);
+        const textures: Jagfile = await this.loadArchive('textures', 'textures', archiveChecksums[6], 60);
+        const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', archiveChecksums[7], 65);
+        const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', archiveChecksums[8], 70);
 
         await this.showProgress(75, 'Unpacking media');
 
@@ -89,7 +94,7 @@ class Playground extends GameShell {
         Wave.unpack(sounds);
 
         await this.showProgress(92, 'Unpacking interfaces');
-        ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+        ComType.unpack(interfaces, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
         await this.showProgress(97, 'Preparing game engine');
         WordFilter.unpack(wordenc);
@@ -99,7 +104,7 @@ class Playground extends GameShell {
         Draw3D.init2D();
     };
 
-    update = () => {
+    update = async (): Promise<void> => {
         this.updateKeysPressed();
         this.updateKeysHeld();
 
@@ -123,7 +128,7 @@ class Playground extends GameShell {
         }
     };
 
-    draw = async () => {
+    draw = async (): Promise<void> => {
         Draw2D.clear();
         Draw2D.fillRect(0, 0, this.width, this.height, 0x555555);
 
@@ -163,7 +168,7 @@ class Playground extends GameShell {
         // }
 
         // draw a model
-        const model = new Model(this.model.id);
+        const model: Model = new Model(this.model.id);
         model.calculateNormals(64, 850, -30, -50, -30, true);
         model.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
@@ -173,7 +178,7 @@ class Playground extends GameShell {
             this.fontBold12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, 0xffff00);
 
             // controls
-            let leftY = this.fontBold12.fontHeight;
+            let leftY: number = this.fontBold12.fontHeight;
             this.fontBold12.draw(0, leftY, `Model: ${this.model.id}`, 0xffff00);
             leftY += this.fontBold12.fontHeight;
             this.fontBold12.draw(0, leftY, 'Controls:', 0xffff00);
@@ -202,11 +207,38 @@ class Playground extends GameShell {
 
     // ----
 
-    async loadArchive(filename: string, displayName: string, crc: number, progress: number) {
-        await this.showProgress(progress, `Requesting ${displayName}`);
-        const data = await Jagfile.loadUrl(`${Playground.HOST}/${filename}${crc}`);
-        await this.showProgress(progress, `Loading ${displayName} - 100%`);
-        return data;
+    async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
+        let retry: number = 5;
+        let data: Int8Array | undefined = await this.db?.cacheload(filename);
+        if (data) {
+            if (Packet.crc32(data) !== crc) {
+                data = undefined;
+            }
+        }
+
+        if (data) {
+            return new Jagfile(Uint8Array.from(data));
+        }
+
+        while (!data) {
+            await this.showProgress(progress, `Requesting ${displayName}`);
+
+            try {
+                data = await downloadUrl(`${Playground.HOST}/${filename}${crc}`);
+            } catch (e) {
+                data = undefined;
+                for (let i: number = retry; i > 0; i--) {
+                    await this.showProgress(progress, `Error loading - Will retry in ${i} secs.`);
+                    await sleep(1000);
+                }
+                retry *= 2;
+                if (retry > 60) {
+                    retry = 60;
+                }
+            }
+        }
+        await this.db?.cachesave(filename, data);
+        return new Jagfile(Uint8Array.from(data));
     }
 
     modifier = 2;
@@ -223,10 +255,10 @@ class Playground extends GameShell {
         pitch: parseInt(GameShell.getParameter('eyePitch')) || 0
     };
 
-    updateKeysPressed() {
+    updateKeysPressed(): void {
         // eslint-disable-next-line no-constant-condition
         while (true) {
-            const key = this.pollKey();
+            const key: number = this.pollKey();
             if (key === -1) {
                 break;
             }
@@ -262,7 +294,7 @@ class Playground extends GameShell {
         }
     }
 
-    updateKeysHeld() {
+    updateKeysHeld(): void {
         if (this.actionKey['['.charCodeAt(0)]) {
             this.modifier--;
         } else if (this.actionKey[']'.charCodeAt(0)]) {
@@ -327,5 +359,4 @@ class Playground extends GameShell {
     }
 }
 
-const playground = new Playground();
-playground.run().then(() => {});
+new Playground().run().then((): void => {});

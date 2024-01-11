@@ -11,8 +11,8 @@ export default class JString {
         string = string.trim();
         let l: bigint = 0n;
 
-        for (let i = 0; i < string.length && i < 12; i++) {
-            const c = string.charCodeAt(i);
+        for (let i: number = 0; i < string.length && i < 12; i++) {
+            const c: number = string.charCodeAt(i);
             l *= 37n;
 
             if (c >= 0x41 && c <= 0x5a) {
@@ -53,9 +53,9 @@ export default class JString {
 
     static toSentenceCase = (input: string): string => {
         const chars: string[] = [...input.toLowerCase()];
-        let punctuation = true;
-        for (let index = 0; index < chars.length; index++) {
-            const char = chars[index];
+        let punctuation: boolean = true;
+        for (let index: number = 0; index < chars.length; index++) {
+            const char: string = chars[index];
             if (punctuation && char >= 'a' && char <= 'z') {
                 chars[index] = char.toUpperCase();
                 punctuation = false;
@@ -68,8 +68,8 @@ export default class JString {
     };
 
     static toAsterisks = (str: string): string => {
-        let temp = '';
-        for (let i = 0; i < str.length; i++) {
+        let temp: string = '';
+        for (let i: number = 0; i < str.length; i++) {
             temp = temp + '*';
         }
         return temp;
@@ -81,7 +81,7 @@ export default class JString {
         }
 
         const chars: string[] = [...str];
-        for (let i = 0; i < chars.length; i++) {
+        for (let i: number = 0; i < chars.length; i++) {
             if (chars[i] == '_') {
                 chars[i] = ' ';
 

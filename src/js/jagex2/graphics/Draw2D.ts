@@ -55,7 +55,7 @@ export default class Draw2D {
         this.centerY = this.bottom / 2;
     };
 
-    static clear = () => {
+    static clear = (): void => {
         this.pixels.fill(0);
     };
 
@@ -81,8 +81,8 @@ export default class Draw2D {
             width = this.right - x;
         }
 
-        const off = x + y * this.width;
-        for (let i = 0; i < width; i++) {
+        const off: number = x + y * this.width;
+        for (let i: number = 0; i < width; i++) {
             this.pixels[off + i] = color;
         }
     };
@@ -101,20 +101,20 @@ export default class Draw2D {
             width = this.bottom - y;
         }
 
-        const off = x + y * this.width;
-        for (let i = 0; i < width; i++) {
+        const off: number = x + y * this.width;
+        for (let i: number = 0; i < width; i++) {
             this.pixels[off + i * this.width] = color;
         }
     };
 
     static drawLine = (x1: number, y1: number, x2: number, y2: number, color: number): void => {
-        const dx = Math.abs(x2 - x1);
-        const dy = Math.abs(y2 - y1);
+        const dx: number = Math.abs(x2 - x1);
+        const dy: number = Math.abs(y2 - y1);
 
-        const sx = x1 < x2 ? 1 : -1;
-        const sy = y1 < y2 ? 1 : -1;
+        const sx: number = x1 < x2 ? 1 : -1;
+        const sy: number = y1 < y2 ? 1 : -1;
 
-        let err = dx - dy;
+        let err: number = dx - dy;
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -126,7 +126,7 @@ export default class Draw2D {
                 break;
             }
 
-            const e2 = 2 * err;
+            const e2: number = 2 * err;
 
             if (e2 > -dy) {
                 err = err - dy;
@@ -142,12 +142,12 @@ export default class Draw2D {
 
     // fill in a rectangle area
     static fillRect = (x: number, y: number, w: number, h: number, color: number): void => {
-        const pixels = this.pixels;
+        const pixels: Int32Array = this.pixels;
 
-        let x0 = x;
-        let y0 = y;
-        let x1 = x + w;
-        let y1 = y + h;
+        let x0: number = x;
+        let y0: number = y;
+        let x1: number = x + w;
+        let y1: number = y + h;
 
         if (x0 < this.left) {
             x0 = this.left;
@@ -165,10 +165,10 @@ export default class Draw2D {
             y1 = this.bottom;
         }
 
-        const width = this.width;
+        const width: number = this.width;
 
-        for (let yy = y0; yy < y1; yy++) {
-            const off = x0 + yy * width;
+        for (let yy: number = y0; yy < y1; yy++) {
+            const off: number = x0 + yy * width;
             pixels.fill(color, off, off + (x1 - x0));
         }
     };

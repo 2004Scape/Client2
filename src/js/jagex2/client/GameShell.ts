@@ -2,15 +2,16 @@ import PixMap from '../graphics/PixMap';
 import Draw3D from '../graphics/Draw3D';
 
 import {sleep} from '../util/JsUtil';
+import {CANVAS_PREVENTED, KEY_CODES} from './KeyCodes';
 
 export default abstract class GameShell {
     static getParameter(name: string): string {
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
         return urlParams.get(name) ?? '';
     }
 
     static setParameter(name: string, value: string): void {
-        const url = new URL(window.location.toString());
+        const url: URL = new URL(window.location.toString());
         url.searchParams.set(name, value);
         window.history.pushState(null, '', url.toString());
     }
@@ -42,11 +43,11 @@ export default abstract class GameShell {
     protected keyQueueWritePos: number = 0;
 
     constructor(resizetoFit = false) {
-        const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+        const canvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
         if (!canvas) {
             throw new Error('Canvas not found!!!!!!!!');
         }
-        const canvas2d = canvas.getContext('2d');
+        const canvas2d: CanvasRenderingContext2D | null = canvas.getContext('2d');
         if (!canvas2d) {
             throw new Error('Canvas 2d not found!!!!!!!!');
         }
@@ -69,7 +70,7 @@ export default abstract class GameShell {
     }
 
     resize(width: number, height: number): void {
-        const canvas = this.canvas;
+        const canvas: HTMLCanvasElement = this.canvas;
         canvas.width = width;
         canvas.height = height;
         this.drawArea = new PixMap(canvas, width, height);
@@ -79,7 +80,7 @@ export default abstract class GameShell {
     async run(): Promise<void> {
         window.addEventListener(
             'resize',
-            () => {
+            (): void => {
                 if (this.resizeToFit) {
                     this.resize(window.innerWidth, window.innerHeight);
                 }
@@ -93,22 +94,22 @@ export default abstract class GameShell {
 
         // Preventing mouse events from bubbling up to the context menu in the browser for our canvas.
         // This may need to be hooked up to our own context menu in the future.
-        this.canvas.oncontextmenu = (e: MouseEvent) => {
+        this.canvas.oncontextmenu = (e: MouseEvent): void => {
             e.preventDefault();
         };
 
         await this.showProgress(0, 'Loading...');
         await this.load();
 
-        for (let i = 0; i < 10; i++) {
+        for (let i: number = 0; i < 10; i++) {
             this.otim[i] = Date.now();
         }
 
         let ntime: number;
-        let opos = 0;
-        let ratio = 256;
-        let delta = 1;
-        let count = 0;
+        let opos: number = 0;
+        let ratio: number = 256;
+        let delta: number = 1;
+        let count: number = 0;
 
         while (this.state >= 0) {
             if (this.state > 0) {
@@ -120,13 +121,13 @@ export default abstract class GameShell {
                 }
             }
 
-            const lastRatio = ratio;
-            const lastDelta = delta;
+            const lastRatio: number = ratio;
+            const lastDelta: number = delta;
             ratio = 300;
             delta = 1;
 
             ntime = Date.now();
-            const otim = this.otim[opos];
+            const otim: number = this.otim[opos];
 
             if (otim === 0) {
                 ratio = lastRatio;
@@ -146,7 +147,7 @@ export default abstract class GameShell {
             opos = (opos + 1) % 10;
 
             if (delta > 1) {
-                for (let i = 0; i < 10; i++) {
+                for (let i: number = 0; i < 10; i++) {
                     if (this.otim[i] !== 0) {
                         this.otim[i] += delta;
                     }
@@ -160,7 +161,7 @@ export default abstract class GameShell {
             await sleep(delta);
 
             while (count < 256) {
-                this.update();
+                await this.update();
                 this.mouseClickButton = 0;
                 this.keyQueueReadPos = this.keyQueueWritePos;
                 count += ratio;
@@ -172,7 +173,7 @@ export default abstract class GameShell {
                 this.fps = Math.trunc((ratio * 1000) / (this.deltime * 256));
             }
 
-            const time = performance.now();
+            const time: number = performance.now();
 
             await this.draw();
 
@@ -214,7 +215,7 @@ export default abstract class GameShell {
 
     async load(): Promise<void> {}
 
-    update(): void {}
+    async update(): Promise<void> {}
 
     unload(): void {}
 
@@ -223,9 +224,9 @@ export default abstract class GameShell {
     refresh(): void {}
 
     async showProgress(progress: number, message: string): Promise<void> {
-        const ctx = this.ctx;
-        const width = this.width;
-        const height = this.height;
+        const ctx: CanvasRenderingContext2D = this.ctx;
+        const width: number = this.width;
+        const height: number = this.height;
 
         if (this.redrawScreen) {
             ctx.fillStyle = 'black';
@@ -233,7 +234,7 @@ export default abstract class GameShell {
             this.redrawScreen = false;
         }
 
-        const y = height / 2 - 18;
+        const y: number = height / 2 - 18;
 
         // draw full progress bar
         ctx.fillStyle = 'rgb(140, 17, 17)';
@@ -254,14 +255,24 @@ export default abstract class GameShell {
     }
 
     keyDown = (e: KeyboardEvent): void => {
+        const key: string = e.key;
+
+        if (CANVAS_PREVENTED.includes(key)) {
+            // prevent canvas from using tab and other blacklisted keys. no function in 225?
+            e.preventDefault();
+        }
+
         this.idleCycles = 0;
 
-        const code = e.keyCode;
-        let ch = e.key.charCodeAt(0);
+        const mappedKey: {key: number; ch: number} = KEY_CODES[key];
 
-        if (ch === 83) {
-            return; // Custom for shift key.
+        if (!mappedKey) {
+            console.error(`Unhandled key ${key}`);
+            return;
         }
+
+        const code: number = mappedKey.key;
+        let ch: number = mappedKey.ch;
 
         if (ch < 30) {
             ch = 0;
@@ -309,24 +320,67 @@ export default abstract class GameShell {
     };
 
     keyUp = (e: KeyboardEvent): void => {
-        this.idleCycles = 0;
+        const key: string = e.key;
 
-        let ch = e.key.charCodeAt(0);
-        if (e.key == 'ArrowLeft') {
-            ch = 1;
-        } else if (e.key == 'ArrowRight') {
-            ch = 2;
-        } else if (e.key == 'ArrowUp') {
-            ch = 3;
-        } else if (e.key == 'ArrowDown') {
-            ch = 4;
+        if (CANVAS_PREVENTED.includes(key)) {
+            // prevent canvas from using tab and other blacklisted keys. no function in 225?
+            e.preventDefault();
         }
 
-        this.actionKey[ch] = 0;
+        this.idleCycles = 0;
+
+        const mappedKey: {key: number; ch: number} = KEY_CODES[key];
+
+        if (!mappedKey) {
+            console.error(`Unhandled key ${key}`);
+            return;
+        }
+
+        const code: number = mappedKey.key;
+        let ch: number = mappedKey.ch;
+
+        if (ch < 30) {
+            ch = 0;
+        }
+
+        if (code == 37) {
+            ch = 1;
+        } else if (code == 39) {
+            ch = 2;
+        } else if (code == 38) {
+            ch = 3;
+        } else if (code == 40) {
+            ch = 4;
+        } else if (code == 17) {
+            ch = 5;
+        } else if (code == 8) {
+            ch = 8;
+        } else if (code == 127) {
+            ch = 8;
+        } else if (code == 9) {
+            ch = 9;
+        } else if (code == 10) {
+            ch = 10;
+        } else if (code >= 112 && code <= 123) {
+            ch = code + 1008 - 112;
+        } else if (code == 36) {
+            ch = 1000;
+        } else if (code == 35) {
+            ch = 1001;
+        } else if (code == 33) {
+            ch = 1002;
+        } else if (code == 34) {
+            ch = 1003;
+        }
+
+        if (ch > 0 && ch < 128) {
+            this.actionKey[ch] = 0;
+        }
+        // TODO input tracking
     };
 
     pollKey(): number {
-        let key = -1;
+        let key: number = -1;
         if (this.keyQueueWritePos != this.keyQueueReadPos) {
             key = this.keyQueue[this.keyQueueReadPos];
             this.keyQueueReadPos = (this.keyQueueReadPos + 1) & 0x7f;
@@ -335,8 +389,8 @@ export default abstract class GameShell {
     }
 
     mousePressed = (e: MouseEvent): void => {
-        let x = e.x;
-        let y = e.y;
+        let x: number = e.x;
+        let y: number = e.y;
 
         const {top, left} = this.getInsets;
         x -= left;
@@ -357,23 +411,23 @@ export default abstract class GameShell {
     };
 
     private get getInsets(): {top: number; left: number} {
-        const rect = this.canvas.getBoundingClientRect();
-        const computedStyle = window.getComputedStyle(this.canvas);
-        const paddingLeft = parseFloat(computedStyle.paddingLeft || '0');
-        const paddingTop = parseFloat(computedStyle.paddingTop || '0');
-        const borderLeft = parseFloat(computedStyle.borderLeftWidth || '0');
-        const borderTop = parseFloat(computedStyle.borderTopWidth || '0');
+        const rect: DOMRect = this.canvas.getBoundingClientRect();
+        const computedStyle: CSSStyleDeclaration = window.getComputedStyle(this.canvas);
+        const paddingLeft: number = parseFloat(computedStyle.paddingLeft || '0');
+        const paddingTop: number = parseFloat(computedStyle.paddingTop || '0');
+        const borderLeft: number = parseFloat(computedStyle.borderLeftWidth || '0');
+        const borderTop: number = parseFloat(computedStyle.borderTopWidth || '0');
 
-        const left = rect.left + borderLeft + paddingLeft;
-        const top = rect.top + borderTop + paddingTop;
+        const left: number = rect.left + borderLeft + paddingLeft;
+        const top: number = rect.top + borderTop + paddingTop;
 
         return {top, left};
     }
 
     private get ms(): number {
-        const length = this.frameTime.length;
+        const length: number = this.frameTime.length;
         let ft: number = 0;
-        for (let index = 0; index < length; index++) {
+        for (let index: number = 0; index < length; index++) {
             ft += this.frameTime[index];
         }
         return ft / length;
