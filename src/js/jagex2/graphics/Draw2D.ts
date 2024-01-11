@@ -29,27 +29,27 @@ export default class Draw2D {
         this.centerX = this.right / 2;
     };
 
-    static setBounds = (x0: number, y0: number, x1: number, y1: number): void => {
-        if (x0 < 0) {
-            x0 = 0;
+    static setBounds = (left: number, top: number, right: number, bottom: number): void => {
+        if (left < 0) {
+            left = 0;
         }
 
-        if (y0 < 0) {
-            y0 = 0;
+        if (top < 0) {
+            top = 0;
         }
 
-        if (x1 > this.width) {
-            x1 = this.width;
+        if (right > this.width) {
+            right = this.width;
         }
 
-        if (y1 > this.height) {
-            y1 = this.height;
+        if (bottom > this.height) {
+            bottom = this.height;
         }
 
-        this.top = y0;
-        this.bottom = y1;
-        this.left = x0;
-        this.right = x1;
+        this.top = top;
+        this.bottom = bottom;
+        this.left = left;
+        this.right = right;
         this.boundX = this.right - 1;
         this.centerX = this.right / 2;
         this.centerY = this.bottom / 2;

@@ -1869,63 +1869,64 @@ class Client extends GameShell {
         } else if (this.stickyChatInterfaceId == -1) {
             const font: PixFont | null = this.fontPlain12;
             let line: number = 0;
-            Draw2D.setBounds(77, 463, 0, 0);
+            Draw2D.setBounds(0, 0, 463, 77);
             for (let i: number = 0; i < 100; i++) {
-                if (this.messageText[i] != null) {
-                    const type: number = this.messageType[i];
-                    const offset: number = this.chatScrollOffset + 70 - line * 14;
-                    if (type === 0) {
-                        if (offset > 0 && offset < 110) {
-                            font?.drawString(4, offset, this.messageText[i], 0);
-                        }
-                        line++;
+                if (this.messageText[i] == null) {
+                    continue;
+                }
+                const type: number = this.messageType[i];
+                const offset: number = this.chatScrollOffset + 70 - line * 14;
+                if (type === 0) {
+                    if (offset > 0 && offset < 110) {
+                        font?.drawString(4, offset, this.messageText[i], 0);
                     }
-                    if (type === 1) {
-                        if (offset > 0 && offset < 110) {
-                            font?.drawString(4, offset, this.messageSender[i] + ':', 16777215);
-                            font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, this.messageText[i], 255);
-                        }
-                        line++;
+                    line++;
+                }
+                if (type === 1) {
+                    if (offset > 0 && offset < 110) {
+                        font?.drawString(4, offset, this.messageSender[i] + ':', 16777215);
+                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, this.messageText[i], 255);
                     }
-                    if (type === 2 && (this.publicChatSetting == 0 || (this.publicChatSetting == 1 && this.isFriend(this.messageSender[i])))) {
-                        if (offset > 0 && offset < 110) {
-                            font?.drawString(4, offset, this.messageSender[i] + ':', 0);
-                            font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, this.messageText[i], 255);
-                        }
-                        line++;
+                    line++;
+                }
+                if (type === 2 && (this.publicChatSetting == 0 || (this.publicChatSetting == 1 && this.isFriend(this.messageSender[i])))) {
+                    if (offset > 0 && offset < 110) {
+                        font?.drawString(4, offset, this.messageSender[i] + ':', 0);
+                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, this.messageText[i], 255);
                     }
-                    if ((type === 3 || type === 7) && this.splitPrivateChat == 0 && (type == 7 || this.privateChatSetting == 0 || (this.privateChatSetting == 1 && this.isFriend(this.messageSender[i])))) {
-                        if (offset > 0 && offset < 110) {
-                            font?.drawString(4, offset, 'From ' + this.messageSender[i] + ':', 0);
-                            font?.drawString(font.stringWidth('From ' + this.messageSender[i]) + 12, offset, this.messageText[i], 8388608);
-                        }
-                        line++;
+                    line++;
+                }
+                if ((type === 3 || type === 7) && this.splitPrivateChat == 0 && (type == 7 || this.privateChatSetting == 0 || (this.privateChatSetting == 1 && this.isFriend(this.messageSender[i])))) {
+                    if (offset > 0 && offset < 110) {
+                        font?.drawString(4, offset, 'From ' + this.messageSender[i] + ':', 0);
+                        font?.drawString(font.stringWidth('From ' + this.messageSender[i]) + 12, offset, this.messageText[i], 8388608);
                     }
-                    if (type === 4 && (this.tradeChatSetting == 0 || (this.tradeChatSetting == 1 && this.isFriend(this.messageSender[i])))) {
-                        if (offset > 0 && offset < 110) {
-                            font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], 8388736);
-                        }
-                        line++;
+                    line++;
+                }
+                if (type === 4 && (this.tradeChatSetting == 0 || (this.tradeChatSetting == 1 && this.isFriend(this.messageSender[i])))) {
+                    if (offset > 0 && offset < 110) {
+                        font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], 8388736);
                     }
-                    if (type === 5 && this.splitPrivateChat == 0 && this.privateChatSetting < 2) {
-                        if (offset > 0 && offset < 110) {
-                            font?.drawString(4, offset, this.messageText[i], 8388608);
-                        }
-                        line++;
+                    line++;
+                }
+                if (type === 5 && this.splitPrivateChat == 0 && this.privateChatSetting < 2) {
+                    if (offset > 0 && offset < 110) {
+                        font?.drawString(4, offset, this.messageText[i], 8388608);
                     }
-                    if (type === 6 && this.splitPrivateChat == 0 && this.privateChatSetting < 2) {
-                        if (offset > 0 && offset < 110) {
-                            font?.drawString(4, offset, 'To ' + this.messageSender[i] + ':', 0);
-                            font?.drawString(font.stringWidth('To ' + this.messageSender[i]) + 12, offset, this.messageText[i], 8388608);
-                        }
-                        line++;
+                    line++;
+                }
+                if (type === 6 && this.splitPrivateChat == 0 && this.privateChatSetting < 2) {
+                    if (offset > 0 && offset < 110) {
+                        font?.drawString(4, offset, 'To ' + this.messageSender[i] + ':', 0);
+                        font?.drawString(font.stringWidth('To ' + this.messageSender[i]) + 12, offset, this.messageText[i], 8388608);
                     }
-                    if (type === 8 && (this.tradeChatSetting == 0 || (this.tradeChatSetting == 1 && this.isFriend(this.messageSender[i])))) {
-                        if (offset > 0 && offset < 110) {
-                            font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], 13350793);
-                        }
-                        line++;
+                    line++;
+                }
+                if (type === 8 && (this.tradeChatSetting == 0 || (this.tradeChatSetting == 1 && this.isFriend(this.messageSender[i])))) {
+                    if (offset > 0 && offset < 110) {
+                        font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], 13350793);
                     }
+                    line++;
                 }
             }
             Draw2D.resetBounds();
@@ -1986,7 +1987,7 @@ class Client extends GameShell {
         const right: number = Draw2D.right;
         const bottom: number = Draw2D.bottom;
 
-        Draw2D.setBounds(y + com.height, x + com.width, y, x);
+        Draw2D.setBounds(x, y, x + com.width, y + com.height);
         const children: number = com.childId.length;
 
         for (let i: number = 0; i < children; i++) {
@@ -2267,7 +2268,7 @@ class Client extends GameShell {
             }
         }
 
-        Draw2D.setBounds(bottom, right, top, left);
+        Draw2D.setBounds(left, top, right, bottom);
     };
 
     private drawMinimap = (): void => {
@@ -3365,7 +3366,7 @@ class Client extends GameShell {
             }
             if (this.packetType == 193) {
                 // RESET_CLIENT_VARCACHE
-                for (var i = 0; i < this.varps.length; i++) {
+                for (let i: number = 0; i < this.varps.length; i++) {
                     if (this.varps[i] != this.varCache[i]) {
                         this.varps[i] = this.varCache[i];
                         this.updateVarp(i);
@@ -3438,12 +3439,12 @@ class Client extends GameShell {
             if (this.packetType == 4) {
                 // MESSAGE_GAME
                 const message: string = this.in.gjstr;
-                var username: bigint;
+                let username: bigint;
                 if (message.endsWith(':tradereq:')) {
-                    var player: string = message.substring(0, message.indexOf(':'));
+                    const player: string = message.substring(0, message.indexOf(':'));
                     username = JString.toBase37(player);
-                    var ignored: boolean = false;
-                    for (var i = 0; i < this.ignoreCount; i++) {
+                    let ignored: boolean = false;
+                    for (let i: number = 0; i < this.ignoreCount; i++) {
                         if (this.ignoreName37[i] == username) {
                             ignored = true;
                             break;
@@ -3453,10 +3454,10 @@ class Client extends GameShell {
                         this.addMessage(4, 'wishes to trade with you.', player);
                     }
                 } else if (message.endsWith(':duelreq:')) {
-                    var player: string = message.substring(0, message.indexOf(':'));
+                    const player: string = message.substring(0, message.indexOf(':'));
                     username = JString.toBase37(player);
-                    var ignored: boolean = false;
-                    for (var i = 0; i < this.ignoreCount; i++) {
+                    let ignored: boolean = false;
+                    for (let i: number = 0; i < this.ignoreCount; i++) {
                         if (this.ignoreName37[i] == username) {
                             ignored = true;
                             break;
@@ -3596,7 +3597,7 @@ class Client extends GameShell {
                 this.skillExperience[stat] = xp;
                 this.skillLevel[stat] = level;
                 this.skillBaseLevel[stat] = 1;
-                for (let i = 0; i < 98; i++) {
+                for (let i: number = 0; i < 98; i++) {
                     if (xp >= this.levelExperience[i]) {
                         this.skillBaseLevel[stat] = i + 2;
                     }
@@ -3706,16 +3707,17 @@ class Client extends GameShell {
     };
 
     private initializeLevelExperience = (): void => {
-        let acc = 0;
-        for (let i = 0; i < 99; i++) {
-            let level = i + 1;
-            let delta = Math.floor((level + Math.pow(2.0, level / 7.0)) * 300.0);
+        let acc: number = 0;
+        for (let i: number = 0; i < 99; i++) {
+            const level: number = i + 1;
+            const delta: number = Math.floor((level + Math.pow(2.0, level / 7.0)) * 300.0);
             acc += delta;
             this.levelExperience[i] = Math.floor(acc / 4);
         }
     };
 
     private addMessage = (type: number, text: string, sender: string): void => {
+        console.log(`${type}, ${text}, ${sender}, ${this.stickyChatInterfaceId}`);
         if (type == 0 && this.stickyChatInterfaceId != -1) {
             this.modalMessage = text;
             this.mouseClickButton = 0;
@@ -3723,7 +3725,7 @@ class Client extends GameShell {
         if (this.chatInterfaceId == -1) {
             this.redrawChatback = true;
         }
-        for (var i = 99; i > 0; i--) {
+        for (let i: number = 99; i > 0; i--) {
             this.messageType[i] = this.messageType[i - 1];
             this.messageSender[i] = this.messageSender[i - 1];
             this.messageText[i] = this.messageText[i - 1];
@@ -3734,9 +3736,9 @@ class Client extends GameShell {
     };
 
     private updateVarp = (id: number): void => {
-        var clientcode: number = VarpType.instances[id].clientcode;
+        const clientcode: number = VarpType.instances[id].clientcode;
         if (clientcode != 0) {
-            var value: number = this.varps[id];
+            const value: number = this.varps[id];
             if (clientcode == 1) {
                 if (value == 1) {
                     Draw3D.setBrightness(0.9);

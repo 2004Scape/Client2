@@ -6,7 +6,7 @@ import Packet from '../io/Packet';
 // identical to Pix24 except the image is indexed by a palette
 export default class Pix8 {
     // constructor
-    readonly pixels: Uint8Array;
+    readonly pixels: Int8Array;
     readonly width: number;
     readonly height: number;
     cropX: number;
@@ -18,7 +18,7 @@ export default class Pix8 {
     palette: number[] = [];
 
     constructor(width: number, height: number) {
-        this.pixels = new Uint8Array(width * height);
+        this.pixels = new Int8Array(width * height);
         this.width = this.cropW = width;
         this.height = this.cropH = height;
         this.cropX = this.cropY = 0;
@@ -144,7 +144,7 @@ export default class Pix8 {
     };
 
     flipHorizontally = (): void => {
-        const pixels: Uint8Array = this.pixels;
+        const pixels: Int8Array = this.pixels;
         const width: number = this.width;
         const height: number = this.height;
 
@@ -162,7 +162,7 @@ export default class Pix8 {
     };
 
     flipVertically = (): void => {
-        const pixels: Uint8Array = this.pixels;
+        const pixels: Int8Array = this.pixels;
         const width: number = this.width;
         const height: number = this.height;
 
@@ -208,7 +208,7 @@ export default class Pix8 {
         }
     };
 
-    private copyImage = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
+    private copyImage = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
         for (let y: number = 0; y < h; y++) {
             for (let x: number = 0; x < w; x++) {
                 const off: number = x + y * w;

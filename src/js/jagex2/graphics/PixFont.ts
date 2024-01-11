@@ -20,7 +20,7 @@ export default class PixFont {
         }
     }
 
-    pixels: Uint8Array[] = [];
+    pixels: Int8Array[] = [];
     charWidth: number[] = [];
     charHeight: number[] = [];
     clipX: number[] = [];
@@ -51,7 +51,7 @@ export default class PixFont {
             const height: number = (font.charHeight[c] = index.g2);
 
             const size: number = width * height;
-            font.pixels[c] = new Uint8Array(size);
+            font.pixels[c] = new Int8Array(size);
 
             const pixelOrder: number = index.g1;
             if (pixelOrder === 0) {
@@ -189,7 +189,7 @@ export default class PixFont {
         this.draw(x - this.stringWidth(str), y, str, color);
     };
 
-    drawChar = (data: Uint8Array, x: number, y: number, w: number, h: number, color: number): void => {
+    drawChar = (data: Int8Array, x: number, y: number, w: number, h: number, color: number): void => {
         x = x | 0;
         y = y | 0;
         w = w | 0;
@@ -235,7 +235,7 @@ export default class PixFont {
         }
     };
 
-    drawMask = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, rgb: number): void => {
+    drawMask = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, rgb: number): void => {
         w = w | 0;
         h = h | 0;
 
@@ -282,7 +282,7 @@ export default class PixFont {
         }
     };
 
-    copyCharacter = (x: number, y: number, w: number, h: number, pixels: Uint8Array, color: number): void => {
+    copyCharacter = (x: number, y: number, w: number, h: number, pixels: Int8Array, color: number): void => {
         x = x | 0;
         y = y | 0;
         w = w | 0;
@@ -328,7 +328,7 @@ export default class PixFont {
         }
     };
 
-    copyImageMasked = (w: number, h: number, src: Uint8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, color: number): void => {
+    copyImageMasked = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, color: number): void => {
         for (let y: number = 0; y < h; y++) {
             for (let x: number = 0; x < w; x++) {
                 if (src[srcOff++] != 0) {
