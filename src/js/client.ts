@@ -1825,7 +1825,7 @@ class Client extends GameShell {
         }
         this.imageInvback?.draw(0, 0);
         if (this.sidebarInterfaceId != -1) {
-            // TODO Draw sidebar interface
+            this.drawInterface(ComType.instances[this.sidebarInterfaceId], 0, 0, 0);
         } else if (this.tabInterfaceId[this.selectedTab] != -1) {
             this.drawInterface(ComType.instances[this.tabInterfaceId[this.selectedTab]], 0, 0, 0);
         }
