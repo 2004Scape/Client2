@@ -41,13 +41,23 @@ class Client extends GameShell {
     static readonly HOST: string = 'https://w2.225.2004scape.org';
     static readonly PORT: number = 43599;
     static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
-
+    static levelExperience: number[] = [];
     static EXPONENT: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
     static MODULUS: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
     static MEMBERS: boolean = true;
     static LOW_MEMORY: boolean = false;
     static UPDATE_COUNTER: number = 0;
     static UPDATE2_COUNTER: number = 0;
+
+    static initializeLevelExperience = (): void => {
+        let acc: number = 0;
+        for (let i: number = 0; i < 99; i++) {
+            const level: number = i + 1;
+            const delta: number = Math.floor((level + Math.pow(2.0, level / 7.0)) * 300.0);
+            acc += delta;
+            Client.levelExperience[i] = Math.floor(acc / 4);
+        }
+    };
 
     private SCROLLBAR_TRACK: number = 0x23201b;
     private SCROLLBAR_GRIP_FOREGROUND: number = 0x4d4233;
@@ -226,7 +236,6 @@ class Client extends GameShell {
     private skillExperience: number[] = [];
     private skillLevel: number[] = [];
     private skillBaseLevel: number[] = [];
-    private levelExperience: number[] = [];
     private modalMessage: string | null = null;
     private flashingTab: number = -1;
     private selectedTab: number = 3;
@@ -266,6 +275,10 @@ class Client extends GameShell {
     private varps: number[] = [];
     private varCache: number[] = [];
 
+    // scene entities
+    private entityRemovalCount: number = 0;
+    private entityUpdateCount: number = 0;
+
     // scene
     private scene: World3D | null = null;
     private sceneState: number = 0;
@@ -291,6 +304,8 @@ class Client extends GameShell {
     private sceneCenterZoneZ: number = 0;
     private sceneBaseTileX: number = 0;
     private sceneBaseTileZ: number = 0;
+    private mapLastBaseX: number = 0;
+    private mapLastBaseZ: number = 0;
     private sceneMapLandData: number[][] = [];
     private sceneMapLocData: number[][] = [];
     private sceneMapIndex: number[] = [];
@@ -557,7 +572,6 @@ class Client extends GameShell {
 
             World3D.init(512, 334, 500, 800, distance);
             WordFilter.unpack(wordenc);
-            this.initializeLevelExperience();
         } catch (err) {
             console.error(err);
             this.errorLoading = true;
@@ -2634,16 +2648,16 @@ class Client extends GameShell {
                 // DATA_LAND_DONE
                 const x: number = this.in.g1;
                 const z: number = this.in.g1;
-                // let index = -1;
-                // for (int i = 0; i < this.sceneMapIndex.length; i++) {
-                //     if (this.sceneMapIndex[i] == (x << 8) + z) {
-                //         index = i;
-                //     }
-                // }
-                // if (index != -1) {
-                //     signlink.cachesave("m" + x + "_" + z, this.sceneMapLandData[index]);
-                //     this.sceneState = 1;
-                // }
+                let index: number = -1;
+                for (let i = 0; i < this.sceneMapIndex.length; i++) {
+                    if (this.sceneMapIndex[i] == (x << 8) + z) {
+                        index = i;
+                    }
+                }
+                if (index != -1) {
+                    await this.db?.cachesave('m' + x + '_' + z, new Int8Array(this.sceneMapLandData[index]));
+                    this.sceneState = 1;
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -2690,112 +2704,55 @@ class Client extends GameShell {
                     const landCrc: number = this.in.g4;
                     const locCrc: number = this.in.g4;
                     this.sceneMapIndex[i] = (mapsquareX << 8) + mapsquareZ;
-
+                    let data: Int8Array | undefined;
                     if (landCrc != 0) {
-                        // TODO
-                        let data: Uint8Array | null = null; // await downloadUrl(`https://2004scape.org:8080/m${mapsquareX}_${mapsquareZ}`);
-                        // data = signlink.cacheload("m" + mapsquareX + "_" + mapsquareZ);
-                        if (data) {
-                            if (Packet.crc32(data) !== landCrc) {
-                                data = null;
+                        data = await this.db?.cacheload('m' + mapsquareX + '_' + mapsquareZ);
+                        if (data != null) {
+                            if (data && Packet.crc32(data) !== landCrc) {
+                                data = undefined;
                             }
-                            // this.crc32.reset();
-                            // this.crc32.update(data);
-                            // if (this.crc32.getValue() != landCrc) {
-                            //     data = null;
-                            // }
                         }
-                        if (!data) {
+                        if (data == null) {
                             this.sceneState = 0;
                             this.out.p1(0);
                             this.out.p1(mapsquareX);
                             this.out.p1(mapsquareZ);
                             mapCount += 3;
                         } else {
-                            // this.sceneMapLandData[i] = data;
+                            this.sceneMapLandData[i] = Array.from(data);
                         }
                     }
+                    if (locCrc != 0) {
+                        data = await this.db?.cacheload('l' + mapsquareX + '_' + mapsquareZ);
+                        if (data != null) {
+                            if (data && Packet.crc32(data) !== locCrc) {
+                                data = undefined;
+                            }
+                        }
+                        if (data == null) {
+                            this.sceneState = 0;
+                            this.out.p1(1);
+                            this.out.p1(mapsquareX);
+                            this.out.p1(mapsquareZ);
+                            mapCount += 3;
+                        } else {
+                            this.sceneMapLocData[i] = Array.from(data);
+                        }
+                    }
+                    this.out.psize1(mapCount);
+                    this.setLoopRate(50);
+                    this.areaViewport?.bind();
+                    if (this.sceneState == 0) {
+                        this.fontPlain12?.drawStringCenter(257, 166, 'Map area updated since last visit, so load will take longer this time only', 0);
+                        this.fontPlain12?.drawStringCenter(256, 165, 'Map area updated since last visit, so load will take longer this time only', 16777215);
+                    }
+                    this.areaViewport?.draw(8, 11);
+                    let dx = this.sceneBaseTileX - this.mapLastBaseX;
+                    let dz = this.sceneBaseTileZ - this.mapLastBaseZ;
+                    this.mapLastBaseX = this.sceneBaseTileX;
+                    this.mapLastBaseZ = this.sceneBaseTileZ;
                 }
 
-                //     if (this.sceneCenterZoneX == zoneX && this.sceneCenterZoneZ == zoneZ && this.sceneState != 0) {
-                //         this.packetType = -1;
-                //         return true;
-                //     }
-                //     this.sceneCenterZoneX = zoneX;
-                //     this.sceneCenterZoneZ = zoneZ;
-                //     this.sceneBaseTileX = (this.sceneCenterZoneX - 6) * 8;
-                //     this.sceneBaseTileZ = (this.sceneCenterZoneZ - 6) * 8;
-                //     this.sceneState = 1;
-                //     this.areaViewport?.bind();
-                //     this.fontPlain12?.drawStringCenter(257, 151, "Loading - please wait.", 0);
-                //     this.fontPlain12?.drawStringCenter(256, 150, "Loading - please wait.", 16777215);
-                //     this.areaViewport?.draw(super.graphics, 8, 11);
-                //     signlink.looprate(5);
-                //     int regions = (this.packetSize - 2) / 10;
-                //     this.sceneMapLandData = new byte[regions][];
-                //     this.sceneMapLocData = new byte[regions][];
-                //     this.sceneMapIndex = new int[regions];
-                //     this.out.p1isaac(150);
-                //     this.out.p1(0);
-                //     int mapCount = 0;
-                //     for (int i = 0; i < regions; i++) {
-                //         int mapsquareX = this.in.g1;
-                //         int mapsquareZ = this.in.g1;
-                //         int landCrc = this.in.g4;
-                //         int locCrc = this.in.g4;
-                //         this.sceneMapIndex[i] = (mapsquareX << 8) + mapsquareZ;
-                //     @Pc(686) byte[] data;
-                //         if (landCrc != 0) {
-                //             data = signlink.cacheload("m" + mapsquareX + "_" + mapsquareZ);
-                //             if (data != null) {
-                //                 this.crc32.reset();
-                //                 this.crc32.update(data);
-                //                 if ((int) this.crc32.getValue() != landCrc) {
-                //                     data = null;
-                //                 }
-                //             }
-                //             if (data == null) {
-                //                 this.sceneState = 0;
-                //                 this.out.p1(0);
-                //                 this.out.p1(mapsquareX);
-                //                 this.out.p1(mapsquareZ);
-                //                 mapCount += 3;
-                //             } else {
-                //                 this.sceneMapLandData[i] = data;
-                //             }
-                //         }
-                //         if (locCrc != 0) {
-                //             data = signlink.cacheload("l" + mapsquareX + "_" + mapsquareZ);
-                //             if (data != null) {
-                //                 this.crc32.reset();
-                //                 this.crc32.update(data);
-                //                 if ((int) this.crc32.getValue() != locCrc) {
-                //                     data = null;
-                //                 }
-                //             }
-                //             if (data == null) {
-                //                 this.sceneState = 0;
-                //                 this.out.p1(1);
-                //                 this.out.p1(mapsquareX);
-                //                 this.out.p1(mapsquareZ);
-                //                 mapCount += 3;
-                //             } else {
-                //                 this.sceneMapLocData[i] = data;
-                //             }
-                //         }
-                //     }
-                //     this.out.psize1(mapCount);
-                //     signlink.looprate(50);
-                //     this.areaViewport.bind();
-                //     if (this.sceneState == 0) {
-                //         this.fontPlain12.drawStringCenter(257, 166, "Map area updated since last visit, so load will take longer this time only", 0);
-                //         this.fontPlain12.drawStringCenter(256, 165, "Map area updated since last visit, so load will take longer this time only", 16777215);
-                //     }
-                //     this.areaViewport.draw(super.graphics, 8, 11);
-                //     int dx = this.sceneBaseTileX - this.mapLastBaseX;
-                //     int dz = this.sceneBaseTileZ - this.mapLastBaseZ;
-                //     this.mapLastBaseX = this.sceneBaseTileX;
-                //     this.mapLastBaseZ = this.sceneBaseTileZ;
                 //     for (int i = 0; i < 8192; i++) {
                 //     @Pc(856) NpcEntity npc = this.npcs[i];
                 //         if (npc != null) {
@@ -2931,16 +2888,17 @@ class Client extends GameShell {
                 // DATA_LOC_DONE
                 const x: number = this.in.g1;
                 const z: number = this.in.g1;
-                // let index: number = -1;
-                // for (int i = 0; i < this.sceneMapIndex.length; i++) {
-                //     if (this.sceneMapIndex[i] == (x << 8) + z) {
-                //         index = i;
-                //     }
-                // }
-                // if (index != -1) {
-                //     signlink.cachesave("l" + x + "_" + z, this.sceneMapLocData[index]);
-                //     this.sceneState = 1;
-                // }
+                let index: number = -1;
+                for (let i = 0; i < this.sceneMapIndex.length; i++) {
+                    if (this.sceneMapIndex[i] == (x << 8) + z) {
+                        index = i;
+                    }
+                }
+                //TODO fix Int8Array conversion after testing loc and area, important
+                if (index != -1) {
+                    await this.db?.cachesave('l' + x + '_' + z, new Int8Array(this.sceneMapLocData[index]));
+                    this.sceneState = 1;
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3598,7 +3556,7 @@ class Client extends GameShell {
                 this.skillLevel[stat] = level;
                 this.skillBaseLevel[stat] = 1;
                 for (let i: number = 0; i < 98; i++) {
-                    if (xp >= this.levelExperience[i]) {
+                    if (xp >= Client.levelExperience[i]) {
                         this.skillBaseLevel[stat] = i + 2;
                     }
                 }
@@ -3661,10 +3619,10 @@ class Client extends GameShell {
             }
             if (this.packetType == 184) {
                 // PLAYER_INFO
-                // this.readPlayerInfo(this.in, this.packetSize);
+                //this.readPlayerInfo(this.in, this.packetSize);
                 if (this.sceneState == 1) {
                     this.sceneState = 2;
-                    // World.levelBuilt = this.currentLevel;
+                    //World.levelBuilt = this.currentLevel;
                     // this.buildScene();
                 }
                 if (Client.LOW_MEMORY && this.sceneState == 2 /* && World.levelBuilt != this.currentLevel*/) {
@@ -3691,6 +3649,8 @@ class Client extends GameShell {
         return true;
     };
 
+    private readPlayerInfo = (buf: Packet, size: number): void => {};
+
     private resetInterfaceAnimation = (id: number): void => {
         const parent: ComType = ComType.instances[id];
         if (!parent.childId) {
@@ -3703,16 +3663,6 @@ class Client extends GameShell {
             }
             child.seqFrame = 0;
             child.seqCycle = 0;
-        }
-    };
-
-    private initializeLevelExperience = (): void => {
-        let acc: number = 0;
-        for (let i: number = 0; i < 99; i++) {
-            const level: number = i + 1;
-            const delta: number = Math.floor((level + Math.pow(2.0, level / 7.0)) * 300.0);
-            acc += delta;
-            this.levelExperience[i] = Math.floor(acc / 4);
         }
     };
 
