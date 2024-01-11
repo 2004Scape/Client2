@@ -215,6 +215,18 @@ class Client extends GameShell {
     private chatScrollOffset: number = 0;
     private ignoreCount: number = 0;
     private ignoreName37: bigint[] = [];
+    private hintType: number = 0;
+    private hintNpc: number = 0;
+    private hintOffsetX: number = 0;
+    private hintOffsetZ: number = 0;
+    private hintPlayer: number = 0;
+    private hintTileX: number = 0;
+    private hintTileZ: number = 0;
+    private hintHeight: number = 0;
+    private skillExperience: number[] = [];
+    private skillLevel: number[] = [];
+    private skillBaseLevel: number[] = [];
+    private levelExperience: number[] = [];
     private modalMessage: string | null = null;
     private flashingTab: number = -1;
     private selectedTab: number = 3;
@@ -545,6 +557,7 @@ class Client extends GameShell {
 
             World3D.init(512, 334, 500, 800, distance);
             WordFilter.unpack(wordenc);
+            this.initializeLevelExperience();
         } catch (err) {
             console.error(err);
             this.errorLoading = true;
@@ -1108,7 +1121,7 @@ class Client extends GameShell {
                 this.idleNetCycles = 0;
                 this.systemUpdateTimer = 0;
                 this.idleTimeout = 0;
-                // this.hintType = 0;
+                this.hintType = 0;
                 this.menuSize = 0;
                 this.menuVisible = false;
                 this.idleCycles = 0;
@@ -2856,39 +2869,39 @@ class Client extends GameShell {
                 return true;
             }
             if (this.packetType == 25) {
-                // this.hintType = this.in.g1;
-                // if (this.hintType == 1) {
-                //     this.hintNpc = this.in.g2;
-                // }
-                // if (this.hintType >= 2 && this.hintType <= 6) {
-                //     if (this.hintType == 2) {
-                //         this.hintOffsetX = 64;
-                //         this.hintOffsetZ = 64;
-                //     }
-                //     if (this.hintType == 3) {
-                //         this.hintOffsetX = 0;
-                //         this.hintOffsetZ = 64;
-                //     }
-                //     if (this.hintType == 4) {
-                //         this.hintOffsetX = 128;
-                //         this.hintOffsetZ = 64;
-                //     }
-                //     if (this.hintType == 5) {
-                //         this.hintOffsetX = 64;
-                //         this.hintOffsetZ = 0;
-                //     }
-                //     if (this.hintType == 6) {
-                //         this.hintOffsetX = 64;
-                //         this.hintOffsetZ = 128;
-                //     }
-                //     this.hintType = 2;
-                //     this.hintTileX = this.in.g2;
-                //     this.hintTileZ = this.in.g2;
-                //     this.hintHeight = this.in.g1;
-                // }
-                // if (this.hintType == 10) {
-                //     this.hintPlayer = this.in.g2;
-                // }
+                this.hintType = this.in.g1;
+                if (this.hintType == 1) {
+                    this.hintNpc = this.in.g2;
+                }
+                if (this.hintType >= 2 && this.hintType <= 6) {
+                    if (this.hintType == 2) {
+                        this.hintOffsetX = 64;
+                        this.hintOffsetZ = 64;
+                    }
+                    if (this.hintType == 3) {
+                        this.hintOffsetX = 0;
+                        this.hintOffsetZ = 64;
+                    }
+                    if (this.hintType == 4) {
+                        this.hintOffsetX = 128;
+                        this.hintOffsetZ = 64;
+                    }
+                    if (this.hintType == 5) {
+                        this.hintOffsetX = 64;
+                        this.hintOffsetZ = 0;
+                    }
+                    if (this.hintType == 6) {
+                        this.hintOffsetX = 64;
+                        this.hintOffsetZ = 128;
+                    }
+                    this.hintType = 2;
+                    this.hintTileX = this.in.g2;
+                    this.hintTileZ = this.in.g2;
+                    this.hintHeight = this.in.g1;
+                }
+                if (this.hintType == 10) {
+                    this.hintPlayer = this.in.g2;
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3580,14 +3593,14 @@ class Client extends GameShell {
                 const stat: number = this.in.g1;
                 const xp: number = this.in.g4;
                 const level: number = this.in.g1;
-                // this.skillExperience[stat] = xp;
-                // this.skillLevel[stat] = level;
-                // this.skillBaseLevel[stat] = 1;
-                // for (let i = 0; i < 98; i++) {
-                //     if (xp >= levelExperience[i]) {
-                //         this.skillBaseLevel[stat] = i + 2;
-                //     }
-                // }
+                this.skillExperience[stat] = xp;
+                this.skillLevel[stat] = level;
+                this.skillBaseLevel[stat] = 1;
+                for (let i = 0; i < 98; i++) {
+                    if (xp >= this.levelExperience[i]) {
+                        this.skillBaseLevel[stat] = i + 2;
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3689,6 +3702,16 @@ class Client extends GameShell {
             }
             child.seqFrame = 0;
             child.seqCycle = 0;
+        }
+    };
+
+    private initializeLevelExperience = (): void => {
+        let acc = 0;
+        for (let i = 0; i < 99; i++) {
+            let level = i + 1;
+            let delta = Math.floor((level + Math.pow(2.0, level / 7.0)) * 300.0);
+            acc += delta;
+            this.levelExperience[i] = Math.floor(acc / 4);
         }
     };
 
