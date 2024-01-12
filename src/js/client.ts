@@ -37,8 +37,8 @@ import Isaac from './jagex2/io/Isaac';
 import Database from './jagex2/io/Database';
 
 class Client extends GameShell {
-    // static readonly HOST: string = 'http://localhost';
-    // static readonly PORT: number = 43595;
+    //static readonly HOST: string = 'http://localhost';
+    //static readonly PORT: number = 43595;
     static readonly HOST: string = 'https://w2.225.2004scape.org';
     static readonly PORT: number = 43599;
     static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
@@ -280,6 +280,8 @@ class Client extends GameShell {
     // scene entities
     private entityRemovalCount: number = 0;
     private entityUpdateCount: number = 0;
+    private playerCount: number = 0;
+    private npcCount: number = 0;
 
     // scene
     private scene?: World3D;
@@ -1156,7 +1158,7 @@ class Client extends GameShell {
                 // this.minimapLevel = -1;
                 this.flagSceneTileX = 0;
                 this.flagSceneTileZ = 0;
-                // this.playerCount = 0;
+                this.playerCount = 0;
                 // this.npcCount = 0;
                 // for (let i = 0; i < this.MAX_PLAYER_COUNT; i++) {
                 //     this.players[i] = null;
@@ -2666,7 +2668,7 @@ class Client extends GameShell {
             }
             if (this.packetType == 1) {
                 // NPC_INFO
-                // this.readNpcInfo(this.in, this.packetSize);
+                //this.readNpcInfo(this.in, this.packetSize);
                 this.packetType = -1;
                 return true;
             }
@@ -2675,7 +2677,7 @@ class Client extends GameShell {
                 const zoneX: number = this.in.g2;
                 const zoneZ: number = this.in.g2;
 
-                if (this.sceneCenterZoneX === zoneX && this.sceneCenterZoneZ === zoneZ && this.sceneState !== 0) {
+                if (this.sceneCenterZoneX == zoneX && this.sceneCenterZoneZ == zoneZ && this.sceneState != 0) {
                     this.packetType = -1;
                     return true;
                 }
@@ -2691,7 +2693,6 @@ class Client extends GameShell {
                 this.setLoopRate(5);
 
                 const regions: number = (this.packetSize - 2) / 10;
-
                 this.sceneMapLandData = [];
                 this.sceneMapLocData = [];
                 this.sceneMapIndex = [];
@@ -3736,7 +3737,257 @@ class Client extends GameShell {
         Draw3D.initPool(20);
     };
 
-    private readPlayerInfo = (buf: Packet, size: number): void => {};
+    private readNpcInfo = (buf: Packet, size: number): void => {
+        this.entityUpdateCount = 0;
+        this.readNpcs(buf, size);
+        this.readNewNpcs(buf, size);
+        this.readNpcUpdates(buf, size);
+    };
+
+    private readNpcs = (buf: Packet, size: number): void => {
+        const count: number = buf.gBit(8);
+        for (let i: number = 0; i < count; i++) {
+            const hasUpdate: number = buf.gBit(1);
+            if (hasUpdate == 0) {
+                //something
+            } else {
+                const updateType: number = buf.gBit(2);
+                if (updateType == 0) {
+                    this.entityUpdateCount++;
+                } else if (updateType == 1) {
+                    const walkDir: number = buf.gBit(3);
+                    //lazy cba documenting anymore
+                    const hasMaskUpdate: number = buf.gBit(1);
+                    if (hasMaskUpdate == 1) {
+                        this.entityUpdateCount++;
+                    }
+                } else if (updateType == 2) {
+                    const walkDir: number = buf.gBit(3);
+                    const runDir: number = buf.gBit(3);
+                    const hasMaskUpdate: number = buf.gBit(1);
+                    if (hasMaskUpdate == 1) {
+                        this.entityUpdateCount++;
+                    }
+                } else if (updateType == 3) {
+                    //
+                }
+            }
+        }
+    };
+
+    private readNewNpcs = (buf: Packet, size: number): void => {
+        while (buf.bitPos + 21 < size * 8) {
+            const index: number = buf.gBit(13);
+            if (index == 8191) {
+                break;
+            }
+            const type: number = buf.gBit(11);
+            const dx: number = buf.gBit(5);
+            const dz: number = buf.gBit(5);
+            const hasMaskUpdate: number = buf.gBit(1);
+            if (hasMaskUpdate == 1) {
+                this.entityUpdateCount++;
+            }
+        }
+    };
+
+    private readNpcUpdates = (buf: Packet, size: number): void => {
+        for (let i: number = 0; i < this.entityUpdateCount; i++) {
+            const mask: number = buf.g1;
+            if ((mask & 0x2) == 2) {
+                const seqId: number = buf.g2;
+                const delay: number = buf.g1;
+            }
+            if ((mask & 0x4) == 4) {
+                const targetId: number = buf.g2;
+            }
+            if ((mask & 0x8) == 8) {
+                const chat: string = buf.gjstr;
+            }
+            if ((mask & 0x10) == 16) {
+                const damage: number = buf.g1;
+                const damageType: number = buf.g1;
+                const health: number = buf.g1;
+                const totalHealth: number = buf.g1;
+            }
+            if ((mask & 0x20) == 32) {
+                const type: number = buf.g2;
+            }
+            if ((mask & 0x40) == 64) {
+                const spotAnimId: number = buf.g2;
+                const info: number = buf.g4;
+            }
+            if ((mask & 0x80) == 128) {
+                const targetTileX: number = buf.g2;
+                const targetTileZ: number = buf.g2;
+            }
+        }
+    };
+
+    private readPlayerInfo = (buf: Packet, size: number): void => {
+        this.entityUpdateCount = 0;
+        this.readLocalPlayer(buf, size);
+        this.readPlayers(buf, size);
+        this.readNewPlayers(buf, size);
+        this.readPlayerUpdates(buf, size);
+    };
+
+    private readLocalPlayer = (buf: Packet, size: number): void => {
+        const hasUpdate: number = buf.gBit(1);
+        //TODO implementation later
+        if (hasUpdate != 0) {
+            const updateType: number = buf.gBit(2);
+            if (updateType == 0) {
+                //set index
+                this.entityUpdateCount++;
+            } else if (updateType == 1) {
+                const walkDir: number = buf.gBit(3);
+                //step
+                const hasMaskUpdate: number = buf.gBit(1);
+                if (hasMaskUpdate == 1) {
+                    //set index
+                    this.entityUpdateCount++;
+                }
+            } else if (updateType == 2) {
+                const walkDir: number = buf.gBit(3);
+                //step
+                const runDir: number = buf.gBit(3);
+                //step
+                const hasMaskUpdate: number = buf.gBit(1);
+                if (hasMaskUpdate == 1) {
+                    //set index
+                    this.entityUpdateCount++;
+                }
+            } else if (updateType == 3) {
+                this.currentLevel = buf.gBit(2);
+                const localX: number = buf.gBit(7);
+                const localY: number = buf.gBit(7);
+                const jump: number = buf.gBit(1);
+                //move
+                const hasMaskUpdate: number = buf.gBit(1);
+                if (hasMaskUpdate == 1) {
+                    //set index
+                    this.entityUpdateCount++;
+                }
+            }
+        }
+    };
+
+    private readPlayers = (buf: Packet, size: number): void => {
+        const count: number = buf.gBit(8);
+        //TODO implementation later
+        //flag for removal
+        this.playerCount = 0;
+        for (let i: number = 0; i < count; i++) {
+            const hasUpdate: number = buf.gBit(1);
+            if (hasUpdate == 0) {
+                // index
+            } else {
+                const updateType: number = buf.gBit(2);
+                if (updateType == 0) {
+                    //index
+                    this.entityUpdateCount++;
+                } else if (updateType == 1) {
+                    //index
+                    const walkDir: number = buf.gBit(3);
+                    //step
+                    const hasMaskUpdate: number = buf.gBit(1);
+                    if (hasMaskUpdate == 1) {
+                        //set index
+                        this.entityUpdateCount++;
+                    }
+                } else if (updateType == 2) {
+                    const walkDir: number = buf.gBit(3);
+                    //step
+                    const runDir: number = buf.gBit(3);
+                    //step
+                    const hasMaskUpdate: number = buf.gBit(1);
+                    if (hasMaskUpdate == 1) {
+                        //set index
+                        this.entityUpdateCount++;
+                    }
+                } else if (updateType == 3) {
+                    //flag for removal
+                }
+            }
+        }
+    };
+    private readNewPlayers = (buf: Packet, size: number): void => {
+        let index: number = 0;
+        while (buf.bitPos + 10 < size * 8) {
+            index = buf.gBit(11);
+            if (index == 2047) {
+                break;
+            }
+            const dx: number = buf.gBit(5);
+            const dz: number = buf.gBit(5);
+            const jump: number = buf.gBit(1);
+            const hasMaskUpdate: number = buf.gBit(1);
+            if (hasMaskUpdate == 1) {
+                //update
+                this.entityUpdateCount++;
+            }
+        }
+    };
+
+    private readPlayerUpdates = (buf: Packet, size: number): void => {
+        for (let i: number = 0; i < this.entityUpdateCount; i++) {
+            let mask: number = buf.g1;
+            if ((mask & 0x80) == 128) {
+                mask += buf.g1 << 8;
+            }
+            this.readPlayerMasks(mask, buf);
+        }
+    };
+
+    private readPlayerMasks = (mask: number, buf: Packet): void => {
+        if ((mask & 0x1) == 1) {
+            const length: number = buf.g1;
+            const data: Array<number> = Array(length);
+            buf.gdata(0, length);
+        }
+        if ((mask & 0x2) == 2) {
+            const seqId: number = buf.g2;
+            const delay: number = buf.g1;
+        }
+        if ((mask & 0x4) == 4) {
+            const targetId: number = buf.g2;
+        }
+        if ((mask & 0x8) == 8) {
+            const chat: string = buf.gjstr;
+            this.addMessage(2, chat, 'test');
+        }
+        if ((mask & 0x10) == 16) {
+            const damage: number = buf.g1;
+            const damageType: number = buf.g1;
+            const health: number = buf.g1;
+            const totalHealth: number = buf.g1;
+        }
+        if ((mask & 0x20) == 32) {
+            const targetTileX: number = buf.g2;
+            const targetTileZ: number = buf.g2;
+        }
+        if ((mask & 0x40) == 64) {
+            const colorEffect: number = buf.g2;
+            const type: number = buf.g1;
+            const length: number = buf.g1;
+            const start: number = buf.pos;
+            //im mega lazy
+        }
+        if ((mask & 0x100) == 256) {
+            const spotAnimId: number = buf.g2;
+            const heightDelay: number = buf.g4;
+        }
+        if ((mask & 0x200) == 512) {
+            const forceMoveStartSceneTileX: number = buf.g1;
+            const forceMoveStartSceneTileZ: number = buf.g1;
+            const forceMoveEndSceneTileX: number = buf.g1;
+            const forceMoveEndSceneTileZ: number = buf.g1;
+            const forveMoveEndCycle: number = buf.g2;
+            const forveMoveStartCycle: number = buf.g2;
+            const forceMoveFaceDirection: number = buf.g1;
+        }
+    };
 
     private resetInterfaceAnimation = (id: number): void => {
         const parent: ComType = ComType.instances[id];
@@ -3754,7 +4005,6 @@ class Client extends GameShell {
     };
 
     private addMessage = (type: number, text: string, sender: string): void => {
-        console.log(`${type}, ${text}, ${sender}, ${this.stickyChatInterfaceId}`);
         if (type == 0 && this.stickyChatInterfaceId != -1) {
             this.modalMessage = text;
             this.mouseClickButton = 0;
