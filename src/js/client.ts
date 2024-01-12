@@ -3550,7 +3550,7 @@ class Client extends GameShell {
                 return true;
             }
             if (this.packetType == 44) {
-                // UPDATE_STAT
+                // UPDATE_STATS
                 this.redrawSidebar = true;
                 const stat: number = this.in.g1;
                 const xp: number = this.in.g4;
