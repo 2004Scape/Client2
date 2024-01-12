@@ -1,11 +1,8 @@
 name: Build and Deploy
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
-
-permissions:
-  contents: write
 
 jobs:
   build:
@@ -28,8 +25,3 @@ jobs:
 
       - name: Test
         run: npm run test
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: public
