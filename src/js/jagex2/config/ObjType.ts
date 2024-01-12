@@ -2,6 +2,7 @@ import Jagfile from '../io/Jagfile';
 import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
 import Pix24 from '../graphics/Pix24';
+import LruCache from '../datastruct/LruCache';
 
 export default class ObjType extends ConfigType {
     static count: number = 0;
@@ -10,6 +11,8 @@ export default class ObjType extends ConfigType {
     static offsets: Int32Array | null = null;
     static cachePos: number = 0;
     static membersWorld: boolean = true;
+    static modelCache: LruCache | null = new LruCache(50);
+    static iconCache: LruCache | null = new LruCache(200);
 
     static unpack = (config: Jagfile, members: boolean): void => {
         this.membersWorld = members;
@@ -64,6 +67,8 @@ export default class ObjType extends ConfigType {
     };
 
     static unload = (): void => {
+        this.modelCache = null;
+        this.iconCache = null;
         this.offsets = null;
         this.cache = null;
         this.dat = null;

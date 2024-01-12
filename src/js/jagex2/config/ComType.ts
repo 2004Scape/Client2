@@ -228,8 +228,6 @@ export default class ComType {
         }
     };
 
-    static get = (id: number): ComType => ComType.instances[id];
-
     static getModel = (id: number): Model => {
         // TODO
         return new Model(id);

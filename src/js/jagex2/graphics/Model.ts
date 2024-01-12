@@ -3,6 +3,7 @@ import Packet from '../io/Packet';
 
 import Draw2D from './Draw2D';
 import Draw3D from './Draw3D';
+import Hashable from '../datastruct/Hashable';
 
 class Metadata {
     vertexCount: number = 0;
@@ -31,7 +32,7 @@ class VertexNormal {
     w: number = 0;
 }
 
-export default class Model {
+export default class Model extends Hashable {
     static metadata: Metadata[] | null = null;
 
     static head: Packet | null = null;
@@ -337,6 +338,8 @@ export default class Model {
             console.log(`Error model:${id} not found!`);
             return;
         }
+
+        super();
 
         this.vertexCount = meta.vertexCount;
         this.faceCount = meta.faceCount;

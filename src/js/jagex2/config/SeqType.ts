@@ -16,8 +16,6 @@ export default class SeqType extends ConfigType {
         }
     };
 
-    static get = (id: number): SeqType => SeqType.instances[id];
-
     // ----
 
     frameCount: number = 0;

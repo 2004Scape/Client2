@@ -15,8 +15,6 @@ export default class IdkType extends ConfigType {
         }
     };
 
-    static get = (id: number): IdkType => IdkType.instances[id];
-
     // ----
 
     type: number = -1;

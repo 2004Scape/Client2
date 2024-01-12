@@ -2,24 +2,27 @@ import Jagfile from '../io/Jagfile';
 import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
 import SeqType from './SeqType';
+import Model from '../graphics/Model';
+import LruCache from '../datastruct/LruCache';
 
 export default class SpotAnimType extends ConfigType {
     static count: number = 0;
     static instances: SpotAnimType[] = [];
+    static modelCache: LruCache = new LruCache(30);
 
     static unpack = (config: Jagfile): void => {
         const dat: Packet = new Packet(config.read('spotanim.dat'));
         this.count = dat.g2;
         for (let i: number = 0; i < this.count; i++) {
             this.instances[i] = new SpotAnimType();
+            this.instances[i].index = i;
             this.instances[i].decodeType(i, dat);
         }
     };
 
-    static get = (id: number): SpotAnimType => SpotAnimType.instances[id];
-
     // ----
 
+    index: number = 0;
     model: number = 0;
     anim: number = -1;
     seq: SeqType | null = null;
@@ -60,5 +63,20 @@ export default class SpotAnimType extends ConfigType {
         } else {
             throw new Error(`Unrecognized spotanim config code: ${code}`);
         }
+    };
+
+    getModel = (): Model => {
+        let model: Model | null = SpotAnimType.modelCache.get(this.index) as Model | null;
+        if (model) {
+            return model;
+        }
+        model = new Model(this.model);
+        for (let i: number = 0; i < 6; i++) {
+            if (this.recol_s[0] !== 0) {
+                model.recolor(this.recol_s[i], this.recol_d[i]);
+            }
+        }
+        SpotAnimType.modelCache.put(this.index, model);
+        return model;
     };
 }

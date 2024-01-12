@@ -1,6 +1,7 @@
 import Jagfile from '../io/Jagfile';
 import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
+import LruCache from '../datastruct/LruCache';
 
 export default class LocType extends ConfigType {
     static count: number = 0;
@@ -8,6 +9,8 @@ export default class LocType extends ConfigType {
     static dat: Packet | null = null;
     static offsets: Int32Array | null = null;
     static cachePos: number = 0;
+    static modelCacheStatic: LruCache | null = new LruCache(500);
+    static modelCacheDynamic: LruCache | null = new LruCache(30);
 
     static unpack = (config: Jagfile): void => {
         this.dat = new Packet(config.read('loc.dat'));
@@ -49,6 +52,8 @@ export default class LocType extends ConfigType {
     };
 
     static unload = (): void => {
+        this.modelCacheStatic = null;
+        this.modelCacheDynamic = null;
         this.offsets = null;
         this.cache = null;
         this.dat = null;

@@ -17,8 +17,6 @@ export default class VarpType extends ConfigType {
         }
     };
 
-    static get = (id: number): VarpType => VarpType.instances[id];
-
     // ----
 
     code10: string | null = null;

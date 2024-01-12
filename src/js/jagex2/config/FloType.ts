@@ -15,8 +15,6 @@ export default class FloType extends ConfigType {
         }
     };
 
-    static get = (id: number): FloType => FloType.instances[id];
-
     // ----
 
     rgb: number = 0;
