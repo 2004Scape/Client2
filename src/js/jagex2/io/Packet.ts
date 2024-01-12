@@ -95,12 +95,12 @@ export default class Packet {
     }
 
     get gsmart(): number {
-        return this.data[this.pos] < 0x80 ? this.g1 : this.g2 - 0x8000;
+        return this.data[this.pos] < 0x80 ? this.g1 - 0x40 : this.g2 - 0xc000;
     }
 
     // signed
     get gsmarts(): number {
-        return this.data[this.pos] < 0x80 ? this.g1 - 0x40 : this.g2 - 0xc000;
+        return this.data[this.pos] < 0x80 ? this.g1 : this.g2 - 0x8000;
     }
 
     get gjstr(): string {

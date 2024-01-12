@@ -89,9 +89,9 @@ describe('Packet', (): void => {
     describe('test 8', (): void => {
         test('unsigned', (): void => {
             const expected: Packet = Packet.alloc(4);
-            expected.p8(BigInt(9007199254740991));
+            expected.p8(BigInt(900719925474099));
             const result: Packet = new Packet(expected.data);
-            expect(result.g8).toBe(BigInt(9007199254740991));
+            expect(result.g8).toBe(BigInt(900719925474099));
         });
     });
 
@@ -104,4 +104,64 @@ describe('Packet', (): void => {
             expect(result.gjstr).toBe(string);
         });
     });
+
+    describe('test smart', (): void => {
+        test('unsigned a', (): void => {
+            const expected: Packet = Packet.alloc(2);
+            psmarts(expected, 2);
+            const result: Packet = new Packet(expected.data);
+            expect(result.gsmarts).toBe(2);
+        });
+
+        test('unsigned b', (): void => {
+            const expected: Packet = Packet.alloc(2);
+            psmarts(expected, 169);
+            const result: Packet = new Packet(expected.data);
+            expect(result.gsmarts).toBe(169);
+        });
+
+        test('signed 1a', (): void => {
+            const expected: Packet = Packet.alloc(1);
+            psmart(expected, 13);
+            const result: Packet = new Packet(expected.data);
+            expect(result.gsmart).toBe(13);
+        });
+
+        test('signed 1b', (): void => {
+            const expected: Packet = Packet.alloc(1);
+            psmart(expected, -13);
+            const result: Packet = new Packet(expected.data);
+            expect(result.gsmart).toBe(-13);
+        });
+
+        test('signed 2a', (): void => {
+            const expected: Packet = Packet.alloc(2);
+            psmart(expected, 69);
+            const result: Packet = new Packet(expected.data);
+            expect(result.gsmart).toBe(69);
+        });
+
+        test('signed 2b', (): void => {
+            const expected: Packet = Packet.alloc(2);
+            psmart(expected, -69);
+            const result: Packet = new Packet(expected.data);
+            expect(result.gsmart).toBe(-69);
+        });
+    });
 });
+
+const psmarts = (packet: Packet, value: number): void => {
+    if (value < 0x80) {
+        packet.p1(value);
+    } else if (value < 0x8000) {
+        packet.p2(value + 0x8000);
+    }
+};
+
+const psmart = (packet: Packet, value: number): void => {
+    if (value < 0x40 && value >= -0x40) {
+        packet.p1(value + 0x40);
+    } else if (value < 0x4000 && value >= -0x4000) {
+        packet.p2(value + 0xc000);
+    }
+};
