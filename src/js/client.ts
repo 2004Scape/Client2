@@ -30,6 +30,7 @@ import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import JString from './jagex2/datastruct/JString';
 import World3D from './jagex2/dash3d/World3D';
+import World from './jagex2/dash3d/World';
 import ClientStream from './jagex2/io/ClientStream';
 import Protocol from './jagex2/io/Protocol';
 import Isaac from './jagex2/io/Isaac';
@@ -211,6 +212,7 @@ class Client extends GameShell {
     private crossCycle: number = 0;
     private overrideChat: number = 0;
     private menuVisible: boolean = false;
+    private currentLevel: number = 0;
     private menuArea: number = 0;
     private menuX: number = 0;
     private menuY: number = 0;
@@ -280,7 +282,7 @@ class Client extends GameShell {
     private entityUpdateCount: number = 0;
 
     // scene
-    private scene: World3D | null = null;
+    private scene?: World3D;
     private sceneState: number = 0;
     private sceneDelta: number = 0;
     private flagSceneTileX: number = 0;
@@ -309,7 +311,8 @@ class Client extends GameShell {
     private sceneMapLandData: number[][] = [];
     private sceneMapLocData: number[][] = [];
     private sceneMapIndex: number[] = [];
-
+    private readonly levelHeightmap: number[][][] = [];
+    private readonly levelTileFlags: number[][][] = [];
     // other
     private energy: number = 0;
     private inMultizone: number = 0;
@@ -3622,16 +3625,16 @@ class Client extends GameShell {
                 //this.readPlayerInfo(this.in, this.packetSize);
                 if (this.sceneState == 1) {
                     this.sceneState = 2;
-                    //World.levelBuilt = this.currentLevel;
-                    // this.buildScene();
+                    World.levelBuilt = this.currentLevel;
+                    this.buildScene();
                 }
-                if (Client.LOW_MEMORY && this.sceneState == 2 /* && World.levelBuilt != this.currentLevel*/) {
+                if (this.sceneState == 2 && World.levelBuilt != this.currentLevel) {
                     this.areaViewport?.bind();
                     this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', 0);
                     this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', 16777215);
                     this.areaViewport?.draw(8, 11);
-                    // World.levelBuilt = this.currentLevel;
-                    // this.buildScene();
+                    World.levelBuilt = this.currentLevel;
+                    this.buildScene();
                 }
                 // if (this.currentLevel != this.minimapLevel && this.sceneState == 2) {
                 //     this.minimapLevel = this.currentLevel;
@@ -3647,6 +3650,90 @@ class Client extends GameShell {
             // TODO extra logic for logout??
         }
         return true;
+    };
+
+    private buildScene = (): void => {
+        try {
+            // this.minimapLevel = -1;
+            // this.temporaryLocs.clear();
+            // this.locList.clear();
+            // this.spotanims.clear();
+            // this.projectiles.clear();
+            // Draw2D.clearTexels();
+            // this.clearCaches();
+            this.scene?.reset();
+            // for(let level = 0; level < 4; level++) {
+            //     this.levelCollisionMap[level].reset();
+            // }
+            let world: World = new World(104, 104, this.levelHeightmap, this.levelTileFlags);
+            World.lowMemory = false;
+            let maps: number = this.sceneMapLandData.length;
+            for (let index = 0; index < maps; index++) {
+                let mapSquareX: number = this.sceneMapIndex[index] >> 8;
+                let mapSquareZ: number = this.sceneMapIndex[index] & 0xff;
+                // underground pass check lol
+                if (mapSquareX == 33 && mapSquareZ >= 71 && mapSquareZ <= 73) {
+                    World.lowMemory = false;
+                }
+            }
+            if (World.lowMemory) {
+                this.scene?.setMinLevel(this.currentLevel);
+            } else {
+                this.scene?.setMinLevel(0);
+            }
+            let data: number[] = [];
+            this.out.p1isaac(108);
+            for (let i = 0; i < maps; i++) {
+                let x: number = (this.sceneMapIndex[i] >> 8) * 64 - this.sceneBaseTileZ;
+                let z: number = (this.sceneMapIndex[i] & 0xff) * 64 - this.sceneBaseTileZ;
+                let src: number[] = this.sceneMapLandData[i];
+
+                if (src != null) {
+                    let length: number = new Packet(Uint8Array.from(src)).g4;
+                    // Bzip2.read(data, length, src, src.length - 4, 4);
+                    world.readLandscape((this.sceneCenterZoneX - 6) * 8, (this.sceneCenterZoneZ - 6) * 8, x, z, data);
+                } else if (this.sceneCenterZoneZ < 800) {
+                    world.clearLandscape(z, x, 64, 64);
+                }
+                this.out.p1isaac(108);
+                for (let i = 0; i < maps; i++) {
+                    let src: number[] = this.sceneMapLocData[i];
+                    if (src != null) {
+                        let length = new Packet(Uint8Array.from(src)).g4;
+                        //BZip2.read(data, length, src, src.length - 4, 4);
+                        let x: number = (this.sceneMapIndex[i] >> 8) * 64 - this.sceneBaseTileX;
+                        let z: number = (this.sceneMapIndex[i] & 0xff) * 64 - this.sceneBaseTileZ;
+                        //world.readLocs(this.scene, this.locList, this.levelCollisionMap, data, x, z);
+                    }
+                }
+                this.out.p1isaac(108);
+                world.build(this.scene!);
+                this.areaViewport?.bind();
+                this.out.p1isaac(108);
+                // for (@Pc(301) LocEntity loc = (LocEntity) this.locList.peekFront(); loc != null; loc = (LocEntity) this.locList.prev()) {
+                //     if ((this.levelTileFlags[1][loc.heightmapNE][loc.heightmapNW] & 0x2) == 2) {
+                //         loc.heightmapSW--;
+                //         if (loc.heightmapSW < 0) {
+                //             loc.unlink();
+                //         }
+                //     }
+                // }
+
+                // for (int x = 0; x < 104; x++) {
+                //     for (int z = 0; z < 104; z++) {
+                //         this.sortObjStacks(x, z);
+                //     }
+                // }
+
+                // for (@Pc(361) LocTemporary loc = (LocTemporary) this.spawnedLocations.peekFront(); loc != null; loc = (LocTemporary) this.spawnedLocations.prev()) {
+                //     this.addLoc(loc.plane, loc.x, loc.z, loc.locIndex, loc.angle, loc.shape, loc.layer);
+                // }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        // LocType.modelCacheStatic.clear();
+        Draw3D.initPool(20);
     };
 
     private readPlayerInfo = (buf: Packet, size: number): void => {};
