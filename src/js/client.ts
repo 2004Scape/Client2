@@ -2652,7 +2652,7 @@ class Client extends GameShell {
                 const x: number = this.in.g1;
                 const z: number = this.in.g1;
                 let index: number = -1;
-                for (let i = 0; i < this.sceneMapIndex.length; i++) {
+                for (let i: number = 0; i < this.sceneMapIndex.length; i++) {
                     if (this.sceneMapIndex[i] == (x << 8) + z) {
                         index = i;
                     }
@@ -2750,8 +2750,8 @@ class Client extends GameShell {
                         this.fontPlain12?.drawStringCenter(256, 165, 'Map area updated since last visit, so load will take longer this time only', 16777215);
                     }
                     this.areaViewport?.draw(8, 11);
-                    let dx = this.sceneBaseTileX - this.mapLastBaseX;
-                    let dz = this.sceneBaseTileZ - this.mapLastBaseZ;
+                    const dx: number = this.sceneBaseTileX - this.mapLastBaseX;
+                    const dz: number = this.sceneBaseTileZ - this.mapLastBaseZ;
                     this.mapLastBaseX = this.sceneBaseTileX;
                     this.mapLastBaseZ = this.sceneBaseTileZ;
                 }
@@ -2892,7 +2892,7 @@ class Client extends GameShell {
                 const x: number = this.in.g1;
                 const z: number = this.in.g1;
                 let index: number = -1;
-                for (let i = 0; i < this.sceneMapIndex.length; i++) {
+                for (let i: number = 0; i < this.sceneMapIndex.length; i++) {
                     if (this.sceneMapIndex[i] == (x << 8) + z) {
                         index = i;
                     }
@@ -3550,7 +3550,7 @@ class Client extends GameShell {
                 return true;
             }
             if (this.packetType == 44) {
-                // UPDATE_STATS
+                // UPDATE_STAT
                 this.redrawSidebar = true;
                 const stat: number = this.in.g1;
                 const xp: number = this.in.g4;
@@ -3665,12 +3665,12 @@ class Client extends GameShell {
             // for(let level = 0; level < 4; level++) {
             //     this.levelCollisionMap[level].reset();
             // }
-            let world: World = new World(104, 104, this.levelHeightmap, this.levelTileFlags);
+            const world: World = new World(104, 104, this.levelHeightmap, this.levelTileFlags);
             World.lowMemory = false;
-            let maps: number = this.sceneMapLandData.length;
-            for (let index = 0; index < maps; index++) {
-                let mapSquareX: number = this.sceneMapIndex[index] >> 8;
-                let mapSquareZ: number = this.sceneMapIndex[index] & 0xff;
+            const maps: number = this.sceneMapLandData.length;
+            for (let index: number = 0; index < maps; index++) {
+                const mapSquareX: number = this.sceneMapIndex[index] >> 8;
+                const mapSquareZ: number = this.sceneMapIndex[index] & 0xff;
                 // underground pass check lol
                 if (mapSquareX == 33 && mapSquareZ >= 71 && mapSquareZ <= 73) {
                     World.lowMemory = false;
@@ -3681,28 +3681,28 @@ class Client extends GameShell {
             } else {
                 this.scene?.setMinLevel(0);
             }
-            let data: number[] = [];
+            const data: number[] = [];
             this.out.p1isaac(108);
-            for (let i = 0; i < maps; i++) {
-                let x: number = (this.sceneMapIndex[i] >> 8) * 64 - this.sceneBaseTileZ;
-                let z: number = (this.sceneMapIndex[i] & 0xff) * 64 - this.sceneBaseTileZ;
-                let src: number[] = this.sceneMapLandData[i];
+            for (let i: number = 0; i < maps; i++) {
+                const x: number = (this.sceneMapIndex[i] >> 8) * 64 - this.sceneBaseTileZ;
+                const z: number = (this.sceneMapIndex[i] & 0xff) * 64 - this.sceneBaseTileZ;
+                const src: number[] = this.sceneMapLandData[i];
 
                 if (src != null) {
-                    let length: number = new Packet(Uint8Array.from(src)).g4;
+                    const length: number = new Packet(Uint8Array.from(src)).g4;
                     // Bzip2.read(data, length, src, src.length - 4, 4);
                     world.readLandscape((this.sceneCenterZoneX - 6) * 8, (this.sceneCenterZoneZ - 6) * 8, x, z, data);
                 } else if (this.sceneCenterZoneZ < 800) {
                     world.clearLandscape(z, x, 64, 64);
                 }
                 this.out.p1isaac(108);
-                for (let i = 0; i < maps; i++) {
-                    let src: number[] = this.sceneMapLocData[i];
+                for (let i: number = 0; i < maps; i++) {
+                    const src: number[] = this.sceneMapLocData[i];
                     if (src != null) {
-                        let length = new Packet(Uint8Array.from(src)).g4;
+                        const length: number = new Packet(Uint8Array.from(src)).g4;
                         //BZip2.read(data, length, src, src.length - 4, 4);
-                        let x: number = (this.sceneMapIndex[i] >> 8) * 64 - this.sceneBaseTileX;
-                        let z: number = (this.sceneMapIndex[i] & 0xff) * 64 - this.sceneBaseTileZ;
+                        const x: number = (this.sceneMapIndex[i] >> 8) * 64 - this.sceneBaseTileX;
+                        const z: number = (this.sceneMapIndex[i] & 0xff) * 64 - this.sceneBaseTileZ;
                         //world.readLocs(this.scene, this.locList, this.levelCollisionMap, data, x, z);
                     }
                 }

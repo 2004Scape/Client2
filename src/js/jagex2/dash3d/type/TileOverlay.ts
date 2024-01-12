@@ -79,24 +79,24 @@ export default class TileOverlay {
         this.backgroundRgb = backgroundRgb;
         this.foregroundRgb = foregroundRgb;
 
-        let ONE: number = 128;
-        let HALF: number = ONE / 2;
-        let QUARTER: number = ONE / 4;
-        let THREE_QUARTER: number = (ONE * 3) / 4;
+        const ONE: number = 128;
+        const HALF: number = ONE / 2;
+        const QUARTER: number = ONE / 4;
+        const THREE_QUARTER: number = (ONE * 3) / 4;
 
-        let points: number[] = TileOverlay.SHAPE_POINTS[shape];
-        let vertexCount: number = points.length;
+        const points: number[] = TileOverlay.SHAPE_POINTS[shape];
+        const vertexCount: number = points.length;
 
         this.vertexX = new Array<number>(vertexCount).fill(0);
         this.vertexY = new Array<number>(vertexCount).fill(0);
         this.vertexZ = new Array<number>(vertexCount).fill(0);
-        let primaryColors: number[] = new Array<number>(vertexCount).fill(0);
-        let secondaryColors: number[] = new Array<number>(vertexCount).fill(0);
+        const primaryColors: number[] = new Array<number>(vertexCount).fill(0);
+        const secondaryColors: number[] = new Array<number>(vertexCount).fill(0);
 
-        let sceneX: number = tileX * ONE;
-        let sceneZ: number = tileZ * ONE;
+        const sceneX: number = tileX * ONE;
+        const sceneZ: number = tileZ * ONE;
 
-        for (let v = 0; v < vertexCount; v++) {
+        for (let v: number = 0; v < vertexCount; v++) {
             let type: number = points[v];
 
             if ((type & 0x1) == 0 && type <= 8) {
@@ -222,8 +222,8 @@ export default class TileOverlay {
             secondaryColors[v] = color2;
         }
 
-        let paths: number[] = TileOverlay.SHAPE_PATHS[shape];
-        let triangleCount: number = paths.length / 4;
+        const paths: number[] = TileOverlay.SHAPE_PATHS[shape];
+        const triangleCount: number = paths.length / 4;
         this.triangleVertexA = new Array<number>(triangleCount).fill(0);
         this.triangleVertexB = new Array<number>(triangleCount).fill(0);
         this.triangleVertexC = new Array<number>(triangleCount).fill(0);
@@ -236,8 +236,8 @@ export default class TileOverlay {
         }
 
         let index: number = 0;
-        for (let t = 0; t < triangleCount; t++) {
-            let color: number = paths[index];
+        for (let t: number = 0; t < triangleCount; t++) {
+            const color: number = paths[index];
             let a: number = paths[index + 1];
             let b: number = paths[index + 2];
             let c: number = paths[index + 3];

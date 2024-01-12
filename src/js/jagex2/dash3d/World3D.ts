@@ -109,8 +109,8 @@ export default class World3D {
         this.maxLevel = maxLevel;
         this.maxTileX = maxTileX;
         this.maxTileZ = maxTileZ;
-        this.levelTiles = Array.from({length: maxLevel}, (_, i) => Array.from({length: maxTileX}, (_, j) => Array.from({length: maxTileZ}, (_, k) => new Tile(i, j, k))));
-        this.levelTileOcclusionCycles = Array.from({length: maxLevel}, () => Array.from({length: maxTileX + 1}, () => new Array(maxTileZ + 1).fill(0)));
+        this.levelTiles = Array.from({length: maxLevel}, (_, i): Tile[][] => Array.from({length: maxTileX}, (_, j): Tile[] => Array.from({length: maxTileZ}, (_, k): Tile => new Tile(i, j, k))));
+        this.levelTileOcclusionCycles = Array.from({length: maxLevel}, (): number[][] => Array.from({length: maxTileX + 1}, (): number[] => new Array(maxTileZ + 1).fill(0)));
         this.levelHeightmaps = levelHeightmaps;
         this.reset();
     }
@@ -199,17 +199,17 @@ export default class World3D {
 
     setMinLevel = (level: number): void => {
         this.minLevel = level;
-        for (let stx = 0; stx < this.maxTileX; stx++) {
-            for (let stz = 0; stz < this.maxTileZ; stz++) {
+        for (let stx: number = 0; stx < this.maxTileX; stx++) {
+            for (let stz: number = 0; stz < this.maxTileZ; stz++) {
                 this.levelTiles[level][stx][stz] = new Tile(level, stx, stz);
             }
         }
     };
 
     reset = (): void => {
-        for (let level = 0; level < this.maxLevel; level++) {
-            for (let x = 0; x < this.maxTileX; x++) {
-                for (let z = 0; z < this.maxTileZ; z++) {
+        for (let level: number = 0; level < this.maxLevel; level++) {
+            for (let x: number = 0; x < this.maxTileX; x++) {
+                for (let z: number = 0; z < this.maxTileZ; z++) {
                     this.levelTiles[level][x][z] = null;
                 }
             }
@@ -290,7 +290,7 @@ export default class World3D {
             }
             this.levelTiles[level][x][z]!.underlay = underlay;
         } else {
-            let overlay: TileOverlay = new TileOverlay(
+            const overlay: TileOverlay = new TileOverlay(
                 x,
                 shape,
                 southeastColor2,
