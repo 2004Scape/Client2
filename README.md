@@ -2,6 +2,21 @@
 
 This project is a comprehensive source port of our [Client refactor](https://github.com/2004scape/Client) to TypeScript.
 
+## First Time Installation
+
+```shell
+npm install
+npm run prepare
+```
+
+If you are on a Mac:
+```shell
+chmod ug+x .husky/*
+chmod ug+x .git/hooks/*
+```
+
+## Development
+
 Local development should be done with: `npm run dev`
 
 ## Site Index
