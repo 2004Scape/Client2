@@ -1,6 +1,7 @@
 import Linkable from '../../datastruct/Linkable';
 
 export default class ObjStackEntity extends Linkable {
+    // constructor
     readonly index: number;
     readonly count: number;
 
