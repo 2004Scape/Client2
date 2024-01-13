@@ -23,7 +23,7 @@ export default class SeqType extends ConfigType {
     iframes: Uint16Array | null = null;
     delay: Uint16Array | null = null;
     replayoff: number = -1;
-    labelGroups: Uint32Array | null = null;
+    labelGroups: Int32Array | null = null;
     stretches: boolean = false;
     priority: number = 5;
     mainhand: number = -1;
@@ -61,7 +61,7 @@ export default class SeqType extends ConfigType {
             this.replayoff = dat.g2;
         } else if (code === 3) {
             const count: number = dat.g1;
-            this.labelGroups = new Uint32Array(count + 1);
+            this.labelGroups = new Int32Array(count + 1);
 
             for (let i: number = 0; i < count; i++) {
                 this.labelGroups[i] = dat.g1;

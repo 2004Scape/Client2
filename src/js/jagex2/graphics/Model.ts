@@ -1400,7 +1400,7 @@ export default class Model extends Hashable {
         // TODO
     };
 
-    applyTransforms = (primaryId: number, secondaryId: number, mask: Uint32Array | null): void => {
+    applyTransforms = (primaryId: number, secondaryId: number, mask: Int32Array | null): void => {
         // TODO
     };
 

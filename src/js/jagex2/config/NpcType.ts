@@ -2,6 +2,7 @@ import Jagfile from '../io/Jagfile';
 import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
 import LruCache from '../datastruct/LruCache';
+import Model from '../graphics/Model';
 
 export default class NpcType extends ConfigType {
     static count: number = 0;
@@ -64,7 +65,7 @@ export default class NpcType extends ConfigType {
     size: number = 1;
     models: Uint16Array | null = null;
     heads: Uint16Array | null = null;
-    hasanim: boolean = false;
+    disposeAlpha: boolean = false;
     readyanim: number = -1;
     walkanim: number = -1;
     walkanim_b: number = -1;
@@ -101,7 +102,7 @@ export default class NpcType extends ConfigType {
         } else if (code === 14) {
             this.walkanim = dat.g2;
         } else if (code === 16) {
-            this.hasanim = true;
+            this.disposeAlpha = true;
         } else if (code === 17) {
             this.walkanim = dat.g2;
             this.walkanim_b = dat.g2;
@@ -146,5 +147,90 @@ export default class NpcType extends ConfigType {
         } else {
             throw new Error(`Unrecognized npc config code: ${code}`);
         }
+    };
+
+    getSequencedModel = (primaryTransformId: number, secondaryTransformId: number, seqMask: Int32Array | null): Model | null => {
+        let tmp: Model | null = null;
+        let model: Model | null = null;
+        if (NpcType.modelCache) {
+            model = NpcType.modelCache.get(this.index) as Model | null;
+
+            if (!model && this.models) {
+                const models: Model[] = [];
+                for (let i: number = 0; i < this.models.length; i++) {
+                    models[i] = Model.model(this.models[i]);
+                }
+
+                if (models.length == 1) {
+                    model = models[0];
+                } else {
+                    model = Model.modelFromModels(models, models.length);
+                }
+
+                if (this.recol_s && this.recol_d) {
+                    for (let i: number = 0; i < this.recol_s.length; i++) {
+                        model.recolor(this.recol_s[i], this.recol_d[i]);
+                    }
+                }
+
+                model.createLabelReferences();
+                model.calculateNormals(64, 850, -30, -50, -30, true);
+                NpcType.modelCache.put(this.index, model);
+            }
+        }
+
+        if (model) {
+            tmp = Model.modelShareAlpha(model, !this.disposeAlpha);
+        }
+
+        if (model) {
+            tmp = Model.modelShareAlpha(model, !this.disposeAlpha);
+            if (primaryTransformId != -1 && secondaryTransformId != -1) {
+                tmp.applyTransforms(primaryTransformId, secondaryTransformId, seqMask);
+            } else if (primaryTransformId != -1) {
+                tmp.applyTransform(primaryTransformId);
+            }
+
+            if (this.resizeh != 128 || this.resizev != 128) {
+                tmp.scale(this.resizeh, this.resizev, this.resizeh);
+            }
+
+            tmp.calculateBoundsCylinder();
+            tmp.labelFaces = null;
+            tmp.labelVertices = null;
+
+            if (this.size == 1) {
+                tmp.pickable = true;
+            }
+            return tmp;
+        }
+
+        return null;
+    };
+
+    getHeadModel = (): Model | null => {
+        if (this.heads == null) {
+            return null;
+        }
+
+        const models: Model[] = [];
+        for (let i: number = 0; i < this.heads.length; i++) {
+            models[i] = Model.model(this.heads[i]);
+        }
+
+        let model: Model;
+        if (models.length == 1) {
+            model = models[0];
+        } else {
+            model = Model.modelFromModels(models, models.length);
+        }
+
+        if (this.recol_s && this.recol_d) {
+            for (let i: number = 0; i < this.recol_s.length; i++) {
+                model.recolor(this.recol_s[i], this.recol_d[i]);
+            }
+        }
+
+        return model;
     };
 }

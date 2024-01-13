@@ -5,7 +5,7 @@ import LruCache from '../datastruct/LruCache';
 
 export default class LocType extends ConfigType {
     static count: number = 0;
-    static cache: Array<LocType> | null = null;
+    static cache: LocType[] | null = null;
     static dat: Packet | null = null;
     static offsets: Int32Array | null = null;
     static cachePos: number = 0;

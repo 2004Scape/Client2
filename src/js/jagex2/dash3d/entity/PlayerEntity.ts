@@ -115,9 +115,7 @@ export default class PlayerEntity extends PathingEntity {
         return model;
     }
 
-    isVisible(): boolean {
-        return this.visible;
-    }
+    isVisible = (): boolean => this.visible;
 
     read = (buf: Packet): void => {
         buf.pos = 0;
@@ -200,6 +198,42 @@ export default class PlayerEntity extends PathingEntity {
         }
         this.appearanceHashcode <<= 0x1;
         this.appearanceHashcode += this.gender;
+    };
+
+    getHeadModel = (): Model | null => {
+        if (!this.visible) {
+            return null;
+        }
+
+        const models: Model[] = [];
+        let modelCount: number = 0;
+        for (let part: number = 0; part < 12; part++) {
+            const value: number = this.appearances[part];
+
+            if (value >= 256 && value < 512) {
+                models[modelCount++] = IdkType.instances[value - 256].getHeadModel();
+            }
+
+            if (value >= 512) {
+                const headModel: Model | null = ObjType.get(value - 512).getHeadModel(this.gender);
+                if (headModel) {
+                    models[modelCount++] = headModel;
+                }
+            }
+        }
+
+        const tmp: Model = Model.modelFromModels(models, modelCount);
+        for (let part: number = 0; part < 5; part++) {
+            if (this.colors[part] === 0) {
+                continue;
+            }
+            tmp.recolor(PlayerEntity.DESIGN_BODY_COLOR[part][0], PlayerEntity.DESIGN_BODY_COLOR[part][this.colors[part]]);
+            if (part === 1) {
+                tmp.recolor(PlayerEntity.DESIGN_HAIR_COLOR[0], PlayerEntity.DESIGN_HAIR_COLOR[this.colors[part]]);
+            }
+        }
+
+        return tmp;
     };
 
     private getSequencedModel = (): Model => {
@@ -300,42 +334,6 @@ export default class PlayerEntity extends PathingEntity {
         tmp.calculateBoundsCylinder();
         tmp.labelFaces = null;
         tmp.labelVertices = null;
-        return tmp;
-    };
-
-    getHeadModel = (): Model | null => {
-        if (!this.visible) {
-            return null;
-        }
-
-        const models: Model[] = [];
-        let modelCount: number = 0;
-        for (let part: number = 0; part < 12; part++) {
-            const value: number = this.appearances[part];
-
-            if (value >= 256 && value < 512) {
-                models[modelCount++] = IdkType.instances[value - 256].getHeadModel();
-            }
-
-            if (value >= 512) {
-                const headModel: Model | null = ObjType.get(value - 512).getHeadModel(this.gender);
-                if (headModel) {
-                    models[modelCount++] = headModel;
-                }
-            }
-        }
-
-        const tmp: Model = Model.modelFromModels(models, modelCount);
-        for (let part: number = 0; part < 5; part++) {
-            if (this.colors[part] === 0) {
-                continue;
-            }
-            tmp.recolor(PlayerEntity.DESIGN_BODY_COLOR[part][0], PlayerEntity.DESIGN_BODY_COLOR[part][this.colors[part]]);
-            if (part === 1) {
-                tmp.recolor(PlayerEntity.DESIGN_HAIR_COLOR[0], PlayerEntity.DESIGN_HAIR_COLOR[this.colors[part]]);
-            }
-        }
-
         return tmp;
     };
 }

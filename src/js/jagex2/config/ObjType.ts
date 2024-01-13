@@ -7,7 +7,7 @@ import Model from '../graphics/Model';
 
 export default class ObjType extends ConfigType {
     static count: number = 0;
-    static cache: Array<ObjType> | null = null;
+    static cache: ObjType[] | null = null;
     static dat: Packet | null = null;
     static offsets: Int32Array | null = null;
     static cachePos: number = 0;
