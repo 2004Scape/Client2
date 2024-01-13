@@ -34,6 +34,7 @@ import ClientStream from './jagex2/io/ClientStream';
 import Protocol from './jagex2/io/Protocol';
 import Isaac from './jagex2/io/Isaac';
 import Database from './jagex2/io/Database';
+import InputTracking from './jagex2/client/InputTracking';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -1109,7 +1110,7 @@ class Client extends GameShell {
             if (reply === 2 || reply === 18) {
                 // TODO
                 //this.rights = reply == 18;
-                // InputTracking.setDisabled();
+                InputTracking.setDisabled();
                 this.ingame = true;
                 this.out.pos = 0;
                 this.in.pos = 0;
@@ -1587,9 +1588,9 @@ class Client extends GameShell {
                 this.areaMapback?.draw(561, 5);
             }
         }
-        if (this.sceneState == 2) {
-            this.drawScene();
-        }
+        // if (this.sceneState == 2) { TODO
+        this.drawScene();
+        // }
         if (this.menuVisible && this.menuArea == 1) {
             this.redrawSidebar = true;
         }
@@ -1829,6 +1830,20 @@ class Client extends GameShell {
 
     private drawScene = (): void => {
         // TODO
+        Draw2D.clear();
+        this.areaViewport?.bind();
+        this.drawDebug();
+        this.areaViewport?.draw(8, 11);
+    };
+
+    private drawDebug = (): void => {
+        const x: number = 507;
+        let y: number = 20;
+        this.fontPlain11?.drawRight(x, y, `FPS: ${this.fps}`, 0xffff00, true);
+        y += 13;
+        this.fontPlain11?.drawRight(x, y, `Speed: ${this.ms.toFixed(4)} ms`, 0xffff00, true);
+        y += 13;
+        this.fontPlain11?.drawRight(x, y, `Rate: ${this.deltime} ms`, 0xffff00, true);
     };
 
     private drawSidebar = (): void => {
@@ -2485,7 +2500,7 @@ class Client extends GameShell {
         this.username = '';
         this.password = '';
 
-        // InputTracking.setDisabled();
+        InputTracking.setDisabled();
         // this.clearCaches();
         this.scene?.reset();
 
@@ -3082,7 +3097,7 @@ class Client extends GameShell {
             }
             if (this.packetType == 226) {
                 // ENABLE_TRACKING
-                // InputTracking.setEnabled();
+                InputTracking.setEnabled();
                 this.packetType = -1;
                 return true;
             }

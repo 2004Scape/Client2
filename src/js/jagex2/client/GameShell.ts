@@ -3,6 +3,7 @@ import Draw3D from '../graphics/Draw3D';
 
 import {sleep} from '../util/JsUtil';
 import {CANVAS_PREVENTED, KEY_CODES} from './KeyCodes';
+import InputTracking from './InputTracking';
 
 export default abstract class GameShell {
     static getParameter(name: string): string {
@@ -88,9 +89,15 @@ export default abstract class GameShell {
             false
         );
 
-        window.addEventListener('keydown', this.keyDown);
-        window.addEventListener('keyup', this.keyUp);
+        window.addEventListener('keydown', this.keyPressed);
+        window.addEventListener('keyup', this.keyReleased);
         window.addEventListener('mousedown', this.mousePressed);
+        window.addEventListener('mouseup', this.mouseReleased);
+        window.addEventListener('mouseenter', this.mouseEntered);
+        window.addEventListener('mouseleave', this.mouseExited);
+        window.addEventListener('mousemove', this.mouseMoved);
+        window.addEventListener('focusin', this.focusGained);
+        window.addEventListener('focusout', this.focusLost);
 
         // Preventing mouse events from bubbling up to the context menu in the browser for our canvas.
         // This may need to be hooked up to our own context menu in the future.
@@ -175,6 +182,9 @@ export default abstract class GameShell {
 
             const time: number = performance.now();
 
+            if (this.redrawScreen) {
+                this.refresh();
+            }
             await this.draw();
 
             this.frameTime[this.fpos] = (performance.now() - time) / 1000;
@@ -254,7 +264,7 @@ export default abstract class GameShell {
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
 
-    keyDown = (e: KeyboardEvent): void => {
+    keyPressed = (e: KeyboardEvent): void => {
         const key: string = e.key;
 
         if (CANVAS_PREVENTED.includes(key)) {
@@ -316,10 +326,13 @@ export default abstract class GameShell {
             this.keyQueue[this.keyQueueWritePos] = ch;
             this.keyQueueWritePos = (this.keyQueueWritePos + 1) & 0x7f;
         }
-        // TODO input tracking
+
+        if (InputTracking.enabled) {
+            InputTracking.keyPressed(ch);
+        }
     };
 
-    keyUp = (e: KeyboardEvent): void => {
+    keyReleased = (e: KeyboardEvent): void => {
         const key: string = e.key;
 
         if (CANVAS_PREVENTED.includes(key)) {
@@ -376,7 +389,10 @@ export default abstract class GameShell {
         if (ch > 0 && ch < 128) {
             this.actionKey[ch] = 0;
         }
-        // TODO input tracking
+
+        if (InputTracking.enabled) {
+            InputTracking.keyReleased(ch);
+        }
     };
 
     pollKey(): number {
@@ -407,8 +423,75 @@ export default abstract class GameShell {
             this.mouseClickButton = 1;
             this.mouseButton = 1;
         }
-        // TODO input tracking
+
+        if (InputTracking.enabled) {
+            // InputTracking.mousePressed(x, y, (e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0 ? 1 : 0);
+        }
     };
+
+    mouseReleased = (e: MouseEvent): void => {
+        this.idleCycles = 0;
+        this.mouseButton = 0;
+
+        if (InputTracking.enabled) {
+            // InputTracking.mouseReleased((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0 ? 1 : 0);
+        }
+    };
+
+    mouseEntered = (e: MouseEvent): void => {
+        if (!InputTracking.enabled) {
+            return;
+        }
+        InputTracking.mouseEntered();
+    };
+
+    mouseExited = (e: MouseEvent): void => {
+        if (!InputTracking.enabled) {
+            return;
+        }
+        InputTracking.mouseExited();
+    };
+
+    mouseMoved = (e: MouseEvent): void => {
+        let x: number = e.x;
+        let y: number = e.y;
+
+        const {top, left} = this.getInsets;
+        x -= left;
+        y -= top;
+
+        this.idleCycles = 0;
+        this.mouseX = x;
+        this.mouseY = y;
+
+        if (InputTracking.enabled) {
+            InputTracking.mouseMoved(x, y);
+        }
+    };
+
+    focusGained = (e: FocusEvent): void => {
+        this.redrawScreen = true;
+        this.refresh();
+
+        if (InputTracking.enabled) {
+            InputTracking.focusGained();
+        }
+    };
+
+    focusLost = (e: FocusEvent): void => {
+        if (InputTracking.enabled) {
+            InputTracking.focusLost();
+        }
+    };
+
+    protected get ms(): number {
+        const length: number = this.frameTime.length;
+        let ft: number = 0;
+        for (let index: number = 0; index < length; index++) {
+            ft += this.frameTime[index];
+        }
+        return ft / length;
+    }
 
     private get getInsets(): {top: number; left: number} {
         const rect: DOMRect = this.canvas.getBoundingClientRect();
@@ -422,14 +505,5 @@ export default abstract class GameShell {
         const top: number = rect.top + borderTop + paddingTop;
 
         return {top, left};
-    }
-
-    private get ms(): number {
-        const length: number = this.frameTime.length;
-        let ft: number = 0;
-        for (let index: number = 0; index < length; index++) {
-            ft += this.frameTime[index];
-        }
-        return ft / length;
     }
 }
