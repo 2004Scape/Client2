@@ -43,7 +43,7 @@ export default class SpotAnimEntity extends Entity {
 
     draw = (): Model => {
         const tmp: Model = this.type.getModel();
-        const model: Model = tmp; // = new Model(tmp, true, !this.type.disposeAlpha, false); // TODO
+        const model: Model = Model.modelShareColored(tmp, true, !this.type.disposeAlpha, false);
         if (!this.seqComplete && this.type.seq && this.type.seq.frames) {
             model.createLabelReferences();
             model.applyTransform(this.type.seq.frames[this.seqFrame]);
