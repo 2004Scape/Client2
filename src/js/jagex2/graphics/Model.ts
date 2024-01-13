@@ -262,130 +262,6 @@ export default class Model extends Hashable {
         return (hsl & 0xff80) + scalar;
     }
 
-    // ----
-
-    // constructor
-    vertexCount: number;
-    vertexX: Int32Array;
-    vertexY: Int32Array;
-    vertexZ: Int32Array;
-
-    faceCount: number;
-    faceVertexA: Int32Array;
-    faceVertexB: Int32Array;
-    faceVertexC: Int32Array;
-    faceColorA: Int32Array | null;
-    faceColorB: Int32Array | null;
-    faceColorC: Int32Array | null;
-    faceInfo: Int32Array | null;
-    facePriority: Int32Array | null;
-    faceAlpha: Int32Array | null;
-    faceColor: Int32Array | null;
-
-    priority: number;
-
-    texturedFaceCount: number;
-    texturedVertexA: Int32Array;
-    texturedVertexB: Int32Array;
-    texturedVertexC: Int32Array;
-
-    minX: number;
-    maxX: number;
-    minZ: number;
-    maxZ: number;
-    radius: number;
-    minY: number;
-    maxY: number;
-    maxDepth: number;
-    minDepth: number;
-
-    vertexLabel: Int32Array | null;
-    faceLabel: Int32Array | null;
-    labelVertices: Array<Int32Array> | null;
-    labelFaces: Array<Int32Array> | null;
-
-    vertexNormal: VertexNormal[] | null;
-    vertexNormalOriginal: VertexNormal[] | null;
-
-    // runtime
-    objRaise: number = 0;
-    pickable: boolean = false;
-
-    constructor(
-        vertexCount: number,
-        vertexX: Int32Array,
-        vertexY: Int32Array,
-        vertexZ: Int32Array,
-        faceCount: number,
-        faceVertexA: Int32Array,
-        faceVertexB: Int32Array,
-        faceVertexC: Int32Array,
-        faceColorA: Int32Array | null,
-        faceColorB: Int32Array | null,
-        faceColorC: Int32Array | null,
-        faceInfo: Int32Array | null,
-        facePriority: Int32Array | null,
-        faceAlpha: Int32Array | null,
-        faceColor: Int32Array | null,
-        priority: number,
-        texturedFaceCount: number,
-        texturedVertexA: Int32Array,
-        texturedVertexB: Int32Array,
-        texturedVertexC: Int32Array,
-        minX: number,
-        maxX: number,
-        minZ: number,
-        maxZ: number,
-        radius: number,
-        minY: number,
-        maxY: number,
-        maxDepth: number,
-        minDepth: number,
-        vertexLabel: Int32Array | null,
-        faceLabel: Int32Array | null,
-        labelVertices: Array<Int32Array> | null,
-        labelFaces: Array<Int32Array> | null,
-        vertexNormal: VertexNormal[] | null,
-        vertexNormalOriginal: VertexNormal[] | null
-    ) {
-        super();
-        this.vertexCount = vertexCount;
-        this.vertexX = vertexX;
-        this.vertexY = vertexY;
-        this.vertexZ = vertexZ;
-        this.faceCount = faceCount;
-        this.faceVertexA = faceVertexA;
-        this.faceVertexB = faceVertexB;
-        this.faceVertexC = faceVertexC;
-        this.faceColorA = faceColorA;
-        this.faceColorB = faceColorB;
-        this.faceColorC = faceColorC;
-        this.faceInfo = faceInfo;
-        this.facePriority = facePriority;
-        this.faceAlpha = faceAlpha;
-        this.faceColor = faceColor;
-        this.priority = priority;
-        this.texturedFaceCount = texturedFaceCount;
-        this.texturedVertexA = texturedVertexA;
-        this.texturedVertexB = texturedVertexB;
-        this.texturedVertexC = texturedVertexC;
-        this.minX = minX;
-        this.maxX = maxX;
-        this.minZ = minZ;
-        this.maxZ = maxZ;
-        this.radius = radius;
-        this.minY = minY;
-        this.maxY = maxY;
-        this.maxDepth = maxDepth;
-        this.minDepth = minDepth;
-        this.vertexLabel = vertexLabel;
-        this.faceLabel = faceLabel;
-        this.labelVertices = labelVertices;
-        this.labelFaces = labelFaces;
-        this.vertexNormal = vertexNormal;
-        this.vertexNormalOriginal = vertexNormalOriginal;
-    }
-
     static modelCopyFaces = (src: Model, copyVertexY: boolean, copyFaces: boolean): Model => {
         const vertexCount: number = src.vertexCount;
         const faceCount: number = src.faceCount;
@@ -1289,6 +1165,130 @@ export default class Model extends Hashable {
             null
         );
     };
+
+    // ----
+
+    // constructor
+    vertexCount: number;
+    vertexX: Int32Array;
+    vertexY: Int32Array;
+    vertexZ: Int32Array;
+
+    faceCount: number;
+    faceVertexA: Int32Array;
+    faceVertexB: Int32Array;
+    faceVertexC: Int32Array;
+    faceColorA: Int32Array | null;
+    faceColorB: Int32Array | null;
+    faceColorC: Int32Array | null;
+    faceInfo: Int32Array | null;
+    facePriority: Int32Array | null;
+    faceAlpha: Int32Array | null;
+    faceColor: Int32Array | null;
+
+    priority: number;
+
+    texturedFaceCount: number;
+    texturedVertexA: Int32Array;
+    texturedVertexB: Int32Array;
+    texturedVertexC: Int32Array;
+
+    minX: number;
+    maxX: number;
+    minZ: number;
+    maxZ: number;
+    radius: number;
+    minY: number;
+    maxY: number;
+    maxDepth: number;
+    minDepth: number;
+
+    vertexLabel: Int32Array | null;
+    faceLabel: Int32Array | null;
+    labelVertices: Array<Int32Array> | null;
+    labelFaces: Array<Int32Array> | null;
+
+    vertexNormal: VertexNormal[] | null;
+    vertexNormalOriginal: VertexNormal[] | null;
+
+    // runtime
+    objRaise: number = 0;
+    pickable: boolean = false;
+
+    constructor(
+        vertexCount: number,
+        vertexX: Int32Array,
+        vertexY: Int32Array,
+        vertexZ: Int32Array,
+        faceCount: number,
+        faceVertexA: Int32Array,
+        faceVertexB: Int32Array,
+        faceVertexC: Int32Array,
+        faceColorA: Int32Array | null,
+        faceColorB: Int32Array | null,
+        faceColorC: Int32Array | null,
+        faceInfo: Int32Array | null,
+        facePriority: Int32Array | null,
+        faceAlpha: Int32Array | null,
+        faceColor: Int32Array | null,
+        priority: number,
+        texturedFaceCount: number,
+        texturedVertexA: Int32Array,
+        texturedVertexB: Int32Array,
+        texturedVertexC: Int32Array,
+        minX: number,
+        maxX: number,
+        minZ: number,
+        maxZ: number,
+        radius: number,
+        minY: number,
+        maxY: number,
+        maxDepth: number,
+        minDepth: number,
+        vertexLabel: Int32Array | null,
+        faceLabel: Int32Array | null,
+        labelVertices: Array<Int32Array> | null,
+        labelFaces: Array<Int32Array> | null,
+        vertexNormal: VertexNormal[] | null,
+        vertexNormalOriginal: VertexNormal[] | null
+    ) {
+        super();
+        this.vertexCount = vertexCount;
+        this.vertexX = vertexX;
+        this.vertexY = vertexY;
+        this.vertexZ = vertexZ;
+        this.faceCount = faceCount;
+        this.faceVertexA = faceVertexA;
+        this.faceVertexB = faceVertexB;
+        this.faceVertexC = faceVertexC;
+        this.faceColorA = faceColorA;
+        this.faceColorB = faceColorB;
+        this.faceColorC = faceColorC;
+        this.faceInfo = faceInfo;
+        this.facePriority = facePriority;
+        this.faceAlpha = faceAlpha;
+        this.faceColor = faceColor;
+        this.priority = priority;
+        this.texturedFaceCount = texturedFaceCount;
+        this.texturedVertexA = texturedVertexA;
+        this.texturedVertexB = texturedVertexB;
+        this.texturedVertexC = texturedVertexC;
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minZ = minZ;
+        this.maxZ = maxZ;
+        this.radius = radius;
+        this.minY = minY;
+        this.maxY = maxY;
+        this.maxDepth = maxDepth;
+        this.minDepth = minDepth;
+        this.vertexLabel = vertexLabel;
+        this.faceLabel = faceLabel;
+        this.labelVertices = labelVertices;
+        this.labelFaces = labelFaces;
+        this.vertexNormal = vertexNormal;
+        this.vertexNormalOriginal = vertexNormalOriginal;
+    }
 
     calculateBoundsCylinder = (): void => {
         this.maxY = 0;
