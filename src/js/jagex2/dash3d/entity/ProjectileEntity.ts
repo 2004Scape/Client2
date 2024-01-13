@@ -100,7 +100,7 @@ export default class ProjectileEntity extends Entity {
             model.labelVertices = null;
         }
 
-        if (this.spotanim.resizeh != 128 || this.spotanim.resizev != 128) {
+        if (this.spotanim.resizeh !== 128 || this.spotanim.resizev !== 128) {
             model.scale(this.spotanim.resizeh, this.spotanim.resizev, this.spotanim.resizeh);
         }
 

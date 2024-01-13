@@ -21,7 +21,7 @@ export default class LocEntity extends Linkable {
         this.index = index;
         this.seq = seq;
 
-        if (randomFrame && seq.replayoff != -1 && this.seq.delay) {
+        if (randomFrame && seq.replayoff !== -1 && this.seq.delay) {
             this.seqFrame = Math.trunc(Math.random() * this.seq.frameCount);
             this.seqCycle = Math.trunc(Math.random() * this.seq.delay[this.seqFrame]);
         } else {

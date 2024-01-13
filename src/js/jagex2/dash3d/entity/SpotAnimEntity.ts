@@ -51,7 +51,7 @@ export default class SpotAnimEntity extends Entity {
             model.labelVertices = null;
         }
 
-        if (this.type.resizeh != 128 || this.type.resizev != 128) {
+        if (this.type.resizeh !== 128 || this.type.resizev !== 128) {
             model.scale(this.type.resizeh, this.type.resizev, this.type.resizeh);
         }
 

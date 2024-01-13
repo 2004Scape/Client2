@@ -58,7 +58,7 @@ export default abstract class PathingEntity extends Entity {
     abstract isVisible(): boolean;
 
     move = (teleport: boolean, x: number, z: number): void => {
-        if (this.primarySeqId != -1 && SeqType.instances[this.primarySeqId].priority <= 1) {
+        if (this.primarySeqId !== -1 && SeqType.instances[this.primarySeqId].priority <= 1) {
             this.primarySeqId = -1;
         }
 
@@ -96,29 +96,29 @@ export default abstract class PathingEntity extends Entity {
         let nextX: number = this.pathTileX[0];
         let nextZ: number = this.pathTileZ[0];
 
-        if (direction == 0) {
+        if (direction === 0) {
             nextX--;
             nextZ++;
-        } else if (direction == 1) {
+        } else if (direction === 1) {
             nextZ++;
-        } else if (direction == 2) {
+        } else if (direction === 2) {
             nextX++;
             nextZ++;
-        } else if (direction == 3) {
+        } else if (direction === 3) {
             nextX--;
-        } else if (direction == 4) {
+        } else if (direction === 4) {
             nextX++;
-        } else if (direction == 5) {
+        } else if (direction === 5) {
             nextX--;
             nextZ--;
-        } else if (direction == 6) {
+        } else if (direction === 6) {
             nextZ--;
-        } else if (direction == 7) {
+        } else if (direction === 7) {
             nextX++;
             nextZ--;
         }
 
-        if (this.primarySeqId != -1 && SeqType.instances[this.primarySeqId].priority <= 1) {
+        if (this.primarySeqId !== -1 && SeqType.instances[this.primarySeqId].priority <= 1) {
             this.primarySeqId = -1;
         }
 
