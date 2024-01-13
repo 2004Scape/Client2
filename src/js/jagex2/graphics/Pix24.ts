@@ -3,8 +3,9 @@ import Draw2D from './Draw2D';
 import {decodeJpeg} from '../util/JsUtil';
 import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
+import Hashable from '../datastruct/Hashable';
 
-export default class Pix24 {
+export default class Pix24 extends Hashable {
     // constructor
     readonly pixels: Int32Array;
     readonly width: number;
@@ -15,6 +16,7 @@ export default class Pix24 {
     cropH: number;
 
     constructor(width: number, height: number) {
+        super();
         this.pixels = new Int32Array(width * height);
         this.width = this.cropW = width;
         this.height = this.cropH = height;

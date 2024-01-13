@@ -5,7 +5,7 @@ import LruCache from '../datastruct/LruCache';
 
 export default class NpcType extends ConfigType {
     static count: number = 0;
-    static cache: Array<NpcType> | null = null;
+    static cache: NpcType[] | null = null;
     static dat: Packet | null = null;
     static offsets: Int32Array | null = null;
     static cachePos: number = 0;

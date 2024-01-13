@@ -97,4 +97,16 @@ export default class JString {
 
         return chars.join('');
     };
+
+    static hashCode = (str: string): number => {
+        const upper: string = str.toUpperCase();
+        let hash: number = 0;
+
+        for (let i: number = 0; i < upper.length; i++) {
+            hash = hash * 61 + upper.charCodeAt(i) - 32;
+            hash = (hash + (hash >> 31)) & 0x7fffffff; // 31 bits instead of 56 bits is maybe ok?
+        }
+
+        return Number(hash);
+    };
 }

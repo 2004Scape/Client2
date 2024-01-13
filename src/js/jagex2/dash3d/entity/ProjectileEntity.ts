@@ -91,7 +91,7 @@ export default class ProjectileEntity extends Entity {
 
     draw = (): Model | null => {
         const tmp: Model = this.spotanim.getModel();
-        const model: Model = new Model(tmp.id); // TODO new Model(tmp, true, !this.spotanim.disposeAlpha, false);
+        const model: Model = Model.modelShareColored(tmp, true, !this.spotanim.disposeAlpha, false);
 
         if (this.spotanim.seq && this.spotanim.seq.frames) {
             model.createLabelReferences();

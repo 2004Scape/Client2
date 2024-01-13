@@ -143,7 +143,7 @@ class Viewer extends GameShell {
             Wave.unpack(sounds);
 
             await this.showProgress(92, 'Unpacking interfaces');
-            ComType.unpack(interfaces, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+            ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
             await this.showProgress(97, 'Preparing game engine');
             WordFilter.unpack(wordenc);
@@ -178,7 +178,7 @@ class Viewer extends GameShell {
         Draw2D.fillRect(0, 0, this.width, this.height, 0x000000);
 
         if (this.model.built === null) {
-            this.model.built = new Model(this.model.id);
+            this.model.built = Model.model(this.model.id);
         }
 
         this.model.built.calculateNormals(64, 850, -30, -50, -30, true);
@@ -356,7 +356,7 @@ class Viewer extends GameShell {
                     li.className = 'list-group-item active';
 
                     this.model.id = id;
-                    this.model.built = new Model(this.model.id);
+                    this.model.built = Model.model(this.model.id);
                 };
                 ul.appendChild(li);
             }

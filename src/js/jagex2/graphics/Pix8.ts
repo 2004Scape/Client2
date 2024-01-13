@@ -2,9 +2,10 @@ import Draw2D from './Draw2D';
 
 import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
+import Hashable from '../datastruct/Hashable';
 
 // identical to Pix24 except the image is indexed by a palette
-export default class Pix8 {
+export default class Pix8 extends Hashable {
     // constructor
     readonly pixels: Int8Array;
     readonly width: number;
@@ -18,6 +19,7 @@ export default class Pix8 {
     palette: number[] = [];
 
     constructor(width: number, height: number) {
+        super();
         this.pixels = new Int8Array(width * height);
         this.width = this.cropW = width;
         this.height = this.cropH = height;

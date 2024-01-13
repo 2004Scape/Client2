@@ -94,7 +94,7 @@ class Playground extends GameShell {
         Wave.unpack(sounds);
 
         await this.showProgress(92, 'Unpacking interfaces');
-        ComType.unpack(interfaces, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+        ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
         await this.showProgress(97, 'Preparing game engine');
         WordFilter.unpack(wordenc);
@@ -168,7 +168,7 @@ class Playground extends GameShell {
         // }
 
         // draw a model
-        const model: Model = new Model(this.model.id);
+        const model: Model = Model.model(this.model.id);
         model.calculateNormals(64, 850, -30, -50, -30, true);
         model.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 

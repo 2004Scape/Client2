@@ -2,8 +2,9 @@ import Draw2D from './Draw2D';
 
 import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
+import Hashable from '../datastruct/Hashable';
 
-export default class PixFont {
+export default class PixFont extends Hashable {
     static CHARSET: number[] = [];
 
     static {

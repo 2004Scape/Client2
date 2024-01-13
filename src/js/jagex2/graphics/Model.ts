@@ -264,52 +264,804 @@ export default class Model extends Hashable {
 
     // ----
 
-    vertexCount: number = 0;
-    vertexX: Int32Array | null = null;
-    vertexY: Int32Array | null = null;
-    vertexZ: Int32Array | null = null;
+    // constructor
+    vertexCount: number;
+    vertexX: Int32Array;
+    vertexY: Int32Array;
+    vertexZ: Int32Array;
 
-    faceCount: number = 0;
-    faceVertexA: Int32Array | null = null;
-    faceVertexB: Int32Array | null = null;
-    faceVertexC: Int32Array | null = null;
-    faceColorA: Int32Array | null = null;
-    faceColorB: Int32Array | null = null;
-    faceColorC: Int32Array | null = null;
-    faceInfo: Int32Array | null = null;
-    facePriority: Int32Array | null = null;
-    faceAlpha: Int32Array | null = null;
-    faceColor: Int32Array | null = null;
+    faceCount: number;
+    faceVertexA: Int32Array;
+    faceVertexB: Int32Array;
+    faceVertexC: Int32Array;
+    faceColorA: Int32Array | null;
+    faceColorB: Int32Array | null;
+    faceColorC: Int32Array | null;
+    faceInfo: Int32Array | null;
+    facePriority: Int32Array | null;
+    faceAlpha: Int32Array | null;
+    faceColor: Int32Array | null;
 
-    priority: number = 0;
+    priority: number;
 
-    texturedFaceCount: number = 0;
-    texturedVertexA: Int32Array | null = null;
-    texturedVertexB: Int32Array | null = null;
-    texturedVertexC: Int32Array | null = null;
+    texturedFaceCount: number;
+    texturedVertexA: Int32Array;
+    texturedVertexB: Int32Array;
+    texturedVertexC: Int32Array;
 
-    minX: number = 0;
-    maxX: number = 0;
-    minZ: number = 0;
-    maxZ: number = 0;
-    radius: number = 0;
-    minY: number = 0;
-    maxY: number = 0;
-    maxDepth: number = 0;
-    minDepth: number = 0;
+    minX: number;
+    maxX: number;
+    minZ: number;
+    maxZ: number;
+    radius: number;
+    minY: number;
+    maxY: number;
+    maxDepth: number;
+    minDepth: number;
+
+    vertexLabel: Int32Array | null;
+    faceLabel: Int32Array | null;
+    labelVertices: Array<Int32Array> | null;
+    labelFaces: Array<Int32Array> | null;
+
+    vertexNormal: VertexNormal[] | null;
+    vertexNormalOriginal: VertexNormal[] | null;
+
+    // runtime
     objRaise: number = 0;
-
-    vertexLabel: Int32Array | null = null;
-    faceLabel: Int32Array | null = null;
-    labelVertices: Array<Int32Array> | null = null;
-    labelFaces: Array<Int32Array> | null = null;
-
     pickable: boolean = false;
 
-    vertexNormal: VertexNormal[] | null = null;
-    vertexNormalOriginal: VertexNormal[] | null = null;
+    constructor(
+        vertexCount: number,
+        vertexX: Int32Array,
+        vertexY: Int32Array,
+        vertexZ: Int32Array,
+        faceCount: number,
+        faceVertexA: Int32Array,
+        faceVertexB: Int32Array,
+        faceVertexC: Int32Array,
+        faceColorA: Int32Array | null,
+        faceColorB: Int32Array | null,
+        faceColorC: Int32Array | null,
+        faceInfo: Int32Array | null,
+        facePriority: Int32Array | null,
+        faceAlpha: Int32Array | null,
+        faceColor: Int32Array | null,
+        priority: number,
+        texturedFaceCount: number,
+        texturedVertexA: Int32Array,
+        texturedVertexB: Int32Array,
+        texturedVertexC: Int32Array,
+        minX: number,
+        maxX: number,
+        minZ: number,
+        maxZ: number,
+        radius: number,
+        minY: number,
+        maxY: number,
+        maxDepth: number,
+        minDepth: number,
+        vertexLabel: Int32Array | null,
+        faceLabel: Int32Array | null,
+        labelVertices: Array<Int32Array> | null,
+        labelFaces: Array<Int32Array> | null,
+        vertexNormal: VertexNormal[] | null,
+        vertexNormalOriginal: VertexNormal[] | null
+    ) {
+        super();
+        this.vertexCount = vertexCount;
+        this.vertexX = vertexX;
+        this.vertexY = vertexY;
+        this.vertexZ = vertexZ;
+        this.faceCount = faceCount;
+        this.faceVertexA = faceVertexA;
+        this.faceVertexB = faceVertexB;
+        this.faceVertexC = faceVertexC;
+        this.faceColorA = faceColorA;
+        this.faceColorB = faceColorB;
+        this.faceColorC = faceColorC;
+        this.faceInfo = faceInfo;
+        this.facePriority = facePriority;
+        this.faceAlpha = faceAlpha;
+        this.faceColor = faceColor;
+        this.priority = priority;
+        this.texturedFaceCount = texturedFaceCount;
+        this.texturedVertexA = texturedVertexA;
+        this.texturedVertexB = texturedVertexB;
+        this.texturedVertexC = texturedVertexC;
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minZ = minZ;
+        this.maxZ = maxZ;
+        this.radius = radius;
+        this.minY = minY;
+        this.maxY = maxY;
+        this.maxDepth = maxDepth;
+        this.minDepth = minDepth;
+        this.vertexLabel = vertexLabel;
+        this.faceLabel = faceLabel;
+        this.labelVertices = labelVertices;
+        this.labelFaces = labelFaces;
+        this.vertexNormal = vertexNormal;
+        this.vertexNormalOriginal = vertexNormalOriginal;
+    }
 
-    constructor(id: number) {
+    static modelCopyFaces = (src: Model, copyVertexY: boolean, copyFaces: boolean): Model => {
+        const vertexCount: number = src.vertexCount;
+        const faceCount: number = src.faceCount;
+        const texturedFaceCount: number = src.texturedFaceCount;
+
+        let vertexY: Int32Array;
+        if (copyVertexY) {
+            vertexY = new Int32Array(vertexCount);
+            for (let v: number = 0; v < vertexCount; v++) {
+                vertexY[v] = src.vertexY[v];
+            }
+        } else {
+            vertexY = src.vertexY;
+        }
+
+        let faceColorA: Int32Array | null;
+        let faceColorB: Int32Array | null;
+        let faceColorC: Int32Array | null;
+        let faceInfo: Int32Array | null;
+        let vertexNormal: VertexNormal[] | null = null;
+        let vertexNormalOriginal: VertexNormal[] | null = null;
+        if (copyFaces) {
+            faceColorA = new Int32Array(faceCount);
+            faceColorB = new Int32Array(faceCount);
+            faceColorC = new Int32Array(faceCount);
+            for (let f: number = 0; f < faceCount; f++) {
+                if (src.faceColorA) {
+                    faceColorA[f] = src.faceColorA[f];
+                }
+                if (src.faceColorB) {
+                    faceColorB[f] = src.faceColorB[f];
+                }
+                if (src.faceColorC) {
+                    faceColorC[f] = src.faceColorC[f];
+                }
+            }
+
+            faceInfo = new Int32Array(faceCount);
+            if (!src.faceInfo) {
+                for (let f: number = 0; f < faceCount; f++) {
+                    faceInfo[f] = 0;
+                }
+            } else {
+                for (let f: number = 0; f < faceCount; f++) {
+                    faceInfo[f] = src.faceInfo[f];
+                }
+            }
+
+            vertexNormal = []; // = new VertexNormal[this.vertexCount];
+            for (let v: number = 0; v < vertexCount; v++) {
+                if (!src.vertexNormal) {
+                    continue;
+                }
+                const copy: VertexNormal = (vertexNormal[v] = new VertexNormal());
+                const original: VertexNormal = src.vertexNormal[v];
+                copy.x = original.x;
+                copy.y = original.y;
+                copy.z = original.z;
+                copy.w = original.w;
+            }
+
+            vertexNormalOriginal = src.vertexNormalOriginal;
+        } else {
+            faceColorA = src.faceColorA;
+            faceColorB = src.faceColorB;
+            faceColorC = src.faceColorC;
+            faceInfo = src.faceInfo;
+        }
+
+        return new Model(
+            vertexCount,
+            src.vertexX,
+            vertexY,
+            src.vertexZ,
+            faceCount,
+            src.faceVertexA,
+            src.faceVertexB,
+            src.faceVertexC,
+            faceColorA,
+            faceColorB,
+            faceColorC,
+            faceInfo,
+            src.facePriority,
+            src.faceAlpha,
+            src.faceColor,
+            src.priority,
+            texturedFaceCount,
+            src.texturedVertexA,
+            src.texturedVertexB,
+            src.texturedVertexC,
+            src.minX,
+            src.maxX,
+            src.minZ,
+            src.maxZ,
+            src.radius,
+            src.minY,
+            src.maxY,
+            src.maxDepth,
+            src.minDepth,
+            null,
+            null,
+            null,
+            null,
+            vertexNormal,
+            vertexNormalOriginal
+        );
+    };
+
+    static modelShareColored = (src: Model, shareColors: boolean, shareAlpha: boolean, shareVertices: boolean): Model => {
+        const vertexCount: number = src.vertexCount;
+        const faceCount: number = src.faceCount;
+        const texturedFaceCount: number = src.texturedFaceCount;
+
+        let vertexX: Int32Array;
+        let vertexY: Int32Array;
+        let vertexZ: Int32Array;
+
+        if (shareVertices) {
+            vertexX = src.vertexX;
+            vertexY = src.vertexY;
+            vertexZ = src.vertexZ;
+        } else {
+            vertexX = new Int32Array(vertexCount);
+            vertexY = new Int32Array(vertexCount);
+            vertexZ = new Int32Array(vertexCount);
+
+            for (let v: number = 0; v < vertexCount; v++) {
+                vertexX[v] = src.vertexX[v];
+                vertexY[v] = src.vertexY[v];
+                vertexZ[v] = src.vertexZ[v];
+            }
+        }
+
+        let faceColor: Int32Array | null;
+        if (shareColors) {
+            faceColor = src.faceColor;
+        } else {
+            faceColor = new Int32Array(faceCount);
+            for (let f: number = 0; f < faceCount; f++) {
+                if (src.faceColor) {
+                    faceColor[f] = src.faceColor[f];
+                }
+            }
+        }
+
+        let faceAlpha: Int32Array | null;
+        if (shareAlpha) {
+            faceAlpha = src.faceAlpha;
+        } else {
+            faceAlpha = new Int32Array(faceCount);
+            if (src.faceAlpha == null) {
+                for (let f: number = 0; f < faceCount; f++) {
+                    faceAlpha[f] = 0;
+                }
+            } else {
+                for (let f: number = 0; f < faceCount; f++) {
+                    faceAlpha[f] = src.faceAlpha[f];
+                }
+            }
+        }
+
+        return new Model(
+            vertexCount,
+            vertexX,
+            vertexY,
+            vertexZ,
+            faceCount,
+            src.faceVertexA,
+            src.faceVertexB,
+            src.faceVertexC,
+            null,
+            null,
+            null,
+            src.faceInfo,
+            src.facePriority,
+            faceAlpha,
+            faceColor,
+            src.priority,
+            texturedFaceCount,
+            src.texturedVertexA,
+            src.texturedVertexB,
+            src.texturedVertexC,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            src.vertexLabel,
+            src.faceLabel,
+            null,
+            null,
+            null,
+            null
+        );
+    };
+
+    static modelShareAlpha = (src: Model, shareAlpha: boolean): Model => {
+        const vertexCount: number = src.vertexCount;
+        const faceCount: number = src.faceCount;
+        const texturedFaceCount: number = src.texturedFaceCount;
+
+        const vertexX: Int32Array = new Int32Array(vertexCount);
+        const vertexY: Int32Array = new Int32Array(vertexCount);
+        const vertexZ: Int32Array = new Int32Array(vertexCount);
+
+        for (let v: number = 0; v < vertexCount; v++) {
+            vertexX[v] = src.vertexX[v];
+            vertexY[v] = src.vertexY[v];
+            vertexZ[v] = src.vertexZ[v];
+        }
+
+        let faceAlpha: Int32Array | null;
+        if (shareAlpha) {
+            faceAlpha = src.faceAlpha;
+        } else {
+            faceAlpha = new Int32Array(faceCount);
+            if (!src.faceAlpha) {
+                for (let f: number = 0; f < faceCount; f++) {
+                    faceAlpha[f] = 0;
+                }
+            } else {
+                for (let f: number = 0; f < faceCount; f++) {
+                    faceAlpha[f] = src.faceAlpha[f];
+                }
+            }
+        }
+
+        return new Model(
+            vertexCount,
+            vertexX,
+            vertexY,
+            vertexZ,
+            faceCount,
+            src.faceVertexA,
+            src.faceVertexB,
+            src.faceVertexC,
+            src.faceColorA,
+            src.faceColorB,
+            src.faceColorC,
+            src.faceInfo,
+            src.facePriority,
+            faceAlpha,
+            src.faceColor,
+            src.priority,
+            texturedFaceCount,
+            src.texturedVertexA,
+            src.texturedVertexB,
+            src.texturedVertexC,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            null,
+            null,
+            src.labelVertices,
+            src.labelFaces,
+            null,
+            null
+        );
+    };
+
+    static modelFromModelsBounds = (models: Model[], count: number): Model => {
+        let copyInfo: boolean = false;
+        let copyPriority: boolean = false;
+        let copyAlpha: boolean = false;
+        let copyColor: boolean = false;
+
+        let vertexCount: number = 0;
+        let faceCount: number = 0;
+        let texturedFaceCount: number = 0;
+        let priority: number = -1;
+
+        for (let i: number = 0; i < count; i++) {
+            const model: Model = models[i];
+            if (model) {
+                vertexCount += model.vertexCount;
+                faceCount += model.faceCount;
+                texturedFaceCount += model.texturedFaceCount;
+
+                copyInfo ||= model.faceInfo !== null;
+
+                if (!model.facePriority) {
+                    if (priority === -1) {
+                        priority = model.priority;
+                    }
+                    if (priority !== model.priority) {
+                        copyPriority = true;
+                    }
+                } else {
+                    copyPriority = true;
+                }
+
+                copyAlpha ||= model.faceAlpha != null;
+                copyColor ||= model.faceColor != null;
+            }
+        }
+
+        const vertexX: Int32Array = new Int32Array(vertexCount);
+        const vertexY: Int32Array = new Int32Array(vertexCount);
+        const vertexZ: Int32Array = new Int32Array(vertexCount);
+
+        const faceVertexA: Int32Array = new Int32Array(faceCount);
+        const faceVertexB: Int32Array = new Int32Array(faceCount);
+        const faceVertexC: Int32Array = new Int32Array(faceCount);
+
+        const faceColorA: Int32Array = new Int32Array(faceCount);
+        const faceColorB: Int32Array = new Int32Array(faceCount);
+        const faceColorC: Int32Array = new Int32Array(faceCount);
+
+        const texturedVertexA: Int32Array = new Int32Array(texturedFaceCount);
+        const texturedVertexB: Int32Array = new Int32Array(texturedFaceCount);
+        const texturedVertexC: Int32Array = new Int32Array(texturedFaceCount);
+
+        let faceInfo: Int32Array | null = null;
+        if (copyInfo) {
+            faceInfo = new Int32Array(faceCount);
+        }
+
+        let facePriority: Int32Array | null = null;
+        if (copyPriority) {
+            facePriority = new Int32Array(faceCount);
+        }
+
+        let faceAlpha: Int32Array | null = null;
+        if (copyAlpha) {
+            faceAlpha = new Int32Array(faceCount);
+        }
+
+        let faceColor: Int32Array | null = null;
+        if (copyColor) {
+            faceColor = new Int32Array(faceCount);
+        }
+
+        vertexCount = 0;
+        faceCount = 0;
+        texturedFaceCount = 0;
+
+        for (let i: number = 0; i < count; i++) {
+            const model: Model = models[i];
+            if (model) {
+                const vertexCount2: number = vertexCount;
+
+                for (let v: number = 0; v < model.vertexCount; v++) {
+                    vertexX[vertexCount] = model.vertexX[v];
+                    vertexY[vertexCount] = model.vertexY[v];
+                    vertexZ[vertexCount] = model.vertexZ[v];
+                    vertexCount++;
+                }
+
+                for (let f: number = 0; f < model.faceCount; f++) {
+                    faceVertexA[faceCount] = model.faceVertexA[f] + vertexCount2;
+                    faceVertexB[faceCount] = model.faceVertexB[f] + vertexCount2;
+                    faceVertexC[faceCount] = model.faceVertexC[f] + vertexCount2;
+                    if (model.faceColorA) {
+                        faceColorA[faceCount] = model.faceColorA[f];
+                    }
+                    if (model.faceColorB) {
+                        faceColorB[faceCount] = model.faceColorB[f];
+                    }
+                    if (model.faceColorC) {
+                        faceColorC[faceCount] = model.faceColorC[f];
+                    }
+
+                    if (copyInfo) {
+                        if (!model.faceInfo) {
+                            if (faceInfo) {
+                                faceInfo[faceCount] = 0;
+                            }
+                        } else {
+                            if (faceInfo) {
+                                faceInfo[faceCount] = model.faceInfo[f];
+                            }
+                        }
+                    }
+
+                    if (copyPriority) {
+                        if (model.facePriority == null) {
+                            if (facePriority) {
+                                facePriority[faceCount] = model.priority;
+                            }
+                        } else {
+                            if (facePriority) {
+                                facePriority[faceCount] = model.facePriority[f];
+                            }
+                        }
+                    }
+
+                    if (copyAlpha) {
+                        if (model.faceAlpha == null) {
+                            if (faceAlpha) {
+                                faceAlpha[faceCount] = 0;
+                            }
+                        } else {
+                            if (faceAlpha) {
+                                faceAlpha[faceCount] = model.faceAlpha[f];
+                            }
+                        }
+                    }
+
+                    if (copyColor && model.faceColor != null) {
+                        if (faceColor) {
+                            faceColor[faceCount] = model.faceColor[f];
+                        }
+                    }
+
+                    faceCount++;
+                }
+
+                for (let f: number = 0; f < model.texturedFaceCount; f++) {
+                    texturedVertexA[texturedFaceCount] = model.texturedVertexA[f] + vertexCount2;
+                    texturedVertexB[texturedFaceCount] = model.texturedVertexB[f] + vertexCount2;
+                    texturedVertexC[texturedFaceCount] = model.texturedVertexC[f] + vertexCount2;
+                    texturedFaceCount++;
+                }
+            }
+        }
+
+        const model: Model = new Model(
+            vertexCount,
+            vertexX,
+            vertexY,
+            vertexZ,
+            faceCount,
+            faceVertexA,
+            faceVertexB,
+            faceVertexC,
+            faceColorA,
+            faceColorB,
+            faceColorC,
+            faceInfo,
+            facePriority,
+            faceAlpha,
+            faceColor,
+            priority,
+            texturedFaceCount,
+            texturedVertexA,
+            texturedVertexB,
+            texturedVertexC,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        model.calculateBoundsCylinder();
+        return model;
+    };
+
+    static modelFromModels = (models: Model[], count: number): Model => {
+        let copyInfo: boolean = false;
+        let copyPriorities: boolean = false;
+        let copyAlpha: boolean = false;
+        let copyLabels: boolean = false;
+
+        let vertexCount: number = 0;
+        let faceCount: number = 0;
+        let texturedFaceCount: number = 0;
+        let priority: number = -1;
+
+        for (let i: number = 0; i < count; i++) {
+            const model: Model = models[i];
+            if (model) {
+                vertexCount += model.vertexCount;
+                faceCount += model.faceCount;
+                texturedFaceCount += model.texturedFaceCount;
+                copyInfo ||= model.faceInfo !== null;
+
+                if (!model.facePriority) {
+                    if (priority === -1) {
+                        priority = model.priority;
+                    }
+
+                    if (priority !== model.priority) {
+                        copyPriorities = true;
+                    }
+                } else {
+                    copyPriorities = true;
+                }
+
+                copyAlpha ||= model.faceAlpha !== null;
+                copyLabels ||= model.faceLabel !== null;
+            }
+        }
+
+        const vertexX: Int32Array = new Int32Array(vertexCount);
+        const vertexY: Int32Array = new Int32Array(vertexCount);
+        const vertexZ: Int32Array = new Int32Array(vertexCount);
+
+        const vertexLabel: Int32Array = new Int32Array(vertexCount);
+
+        const faceVertexA: Int32Array = new Int32Array(faceCount);
+        const faceVertexB: Int32Array = new Int32Array(faceCount);
+        const faceVertexC: Int32Array = new Int32Array(faceCount);
+
+        const texturedVertexA: Int32Array = new Int32Array(texturedFaceCount);
+        const texturedVertexB: Int32Array = new Int32Array(texturedFaceCount);
+        const texturedVertexC: Int32Array = new Int32Array(texturedFaceCount);
+
+        let faceInfo: Int32Array | null = null;
+        if (copyInfo) {
+            faceInfo = new Int32Array(faceCount);
+        }
+
+        let facePriority: Int32Array | null = null;
+        if (copyPriorities) {
+            facePriority = new Int32Array(faceCount);
+        }
+
+        let faceAlpha: Int32Array | null = null;
+        if (copyAlpha) {
+            faceAlpha = new Int32Array(faceCount);
+        }
+
+        let faceLabel: Int32Array | null = null;
+        if (copyLabels) {
+            faceLabel = new Int32Array(faceCount);
+        }
+
+        const faceColor: Int32Array = new Int32Array(faceCount);
+        vertexCount = 0;
+        faceCount = 0;
+        texturedFaceCount = 0;
+
+        const addVertex = (src: Model, vertexId: number, vertexX: Int32Array, vertexY: Int32Array, vertexZ: Int32Array, vertexLabel: Int32Array, vertexCount: number): number => {
+            let identical: number = -1;
+
+            const x: number = src.vertexX[vertexId];
+            const y: number = src.vertexY[vertexId];
+            const z: number = src.vertexZ[vertexId];
+
+            for (let v: number = 0; v < vertexCount; v++) {
+                if (x === vertexX[v] && y === vertexY[v] && z === vertexZ[v]) {
+                    identical = v;
+                    break;
+                }
+            }
+
+            if (identical == -1) {
+                vertexX[vertexCount] = x;
+                vertexY[vertexCount] = y;
+                vertexZ[vertexCount] = z;
+
+                if (vertexLabel && src.vertexLabel) {
+                    vertexLabel[vertexCount] = src.vertexLabel[vertexId];
+                }
+
+                identical = vertexCount++;
+            }
+
+            return identical;
+        };
+
+        for (let i: number = 0; i < count; i++) {
+            const model: Model = models[i];
+
+            if (model) {
+                for (let face: number = 0; face < model.faceCount; face++) {
+                    if (copyInfo) {
+                        if (!model.faceInfo) {
+                            if (faceInfo) {
+                                faceInfo[faceCount] = 0;
+                            }
+                        } else {
+                            if (faceInfo) {
+                                faceInfo[faceCount] = model.faceInfo[face];
+                            }
+                        }
+                    }
+
+                    if (copyPriorities) {
+                        if (!model.facePriority) {
+                            if (facePriority) {
+                                facePriority[faceCount] = model.priority;
+                            }
+                        } else {
+                            if (facePriority) {
+                                facePriority[faceCount] = model.facePriority[face];
+                            }
+                        }
+                    }
+
+                    if (copyAlpha) {
+                        if (!model.faceAlpha) {
+                            if (faceAlpha) {
+                                faceAlpha[faceCount] = 0;
+                            }
+                        } else {
+                            if (faceAlpha) {
+                                faceAlpha[faceCount] = model.faceAlpha[face];
+                            }
+                        }
+                    }
+
+                    if (copyLabels && model.faceLabel) {
+                        if (faceLabel) {
+                            faceLabel[faceCount] = model.faceLabel[face];
+                        }
+                    }
+
+                    if (model.faceColor) {
+                        faceColor[faceCount] = model.faceColor[face];
+                    }
+                    faceVertexA[faceCount] = addVertex(model, model.faceVertexA[face], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    faceVertexB[faceCount] = addVertex(model, model.faceVertexB[face], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    faceVertexC[faceCount] = addVertex(model, model.faceVertexC[face], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    faceCount++;
+                }
+
+                for (let f: number = 0; f < model.texturedFaceCount; f++) {
+                    texturedVertexA[texturedFaceCount] = addVertex(model, model.texturedVertexA[f], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    texturedVertexB[texturedFaceCount] = addVertex(model, model.texturedVertexB[f], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    texturedVertexC[texturedFaceCount] = addVertex(model, model.texturedVertexC[f], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    texturedFaceCount++;
+                }
+            }
+        }
+        return new Model(
+            vertexCount,
+            vertexX,
+            vertexY,
+            vertexZ,
+            faceCount,
+            faceVertexA,
+            faceVertexB,
+            faceVertexC,
+            null,
+            null,
+            null,
+            faceInfo,
+            facePriority,
+            faceAlpha,
+            faceColor,
+            priority,
+            texturedFaceCount,
+            texturedVertexA,
+            texturedVertexB,
+            texturedVertexC,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            vertexLabel,
+            faceLabel,
+            null,
+            null,
+            null,
+            null
+        );
+    };
+
+    static model = (id: number): Model => {
         if (
             Model.head === null ||
             Model.face1 === null ||
@@ -326,60 +1078,64 @@ export default class Model extends Hashable {
             Model.vertex2 === null ||
             Model.axis === null
         ) {
-            return;
+            throw new Error('cant loading model!!!!!');
         }
 
         if (Model.metadata === null) {
-            return;
+            throw new Error('cant loading model metadata!!!!!');
         }
 
         const meta: Metadata = Model.metadata[id];
         if (typeof meta === 'undefined') {
             console.log(`Error model:${id} not found!`);
-            return;
+            throw new Error('cant loading model metadata!!!!!');
         }
 
-        super();
+        const vertexCount: number = meta.vertexCount;
+        const faceCount: number = meta.faceCount;
+        const texturedFaceCount: number = meta.texturedFaceCount;
 
-        this.vertexCount = meta.vertexCount;
-        this.faceCount = meta.faceCount;
-        this.texturedFaceCount = meta.texturedFaceCount;
+        const vertexX: Int32Array = new Int32Array(vertexCount);
+        const vertexY: Int32Array = new Int32Array(vertexCount);
+        const vertexZ: Int32Array = new Int32Array(vertexCount);
 
-        this.vertexX = new Int32Array(this.vertexCount);
-        this.vertexY = new Int32Array(this.vertexCount);
-        this.vertexZ = new Int32Array(this.vertexCount);
+        const faceVertexA: Int32Array = new Int32Array(faceCount);
+        const faceVertexB: Int32Array = new Int32Array(faceCount);
+        const faceVertexC: Int32Array = new Int32Array(faceCount);
 
-        this.faceVertexA = new Int32Array(this.faceCount);
-        this.faceVertexB = new Int32Array(this.faceCount);
-        this.faceVertexC = new Int32Array(this.faceCount);
+        const texturedVertexA: Int32Array = new Int32Array(texturedFaceCount);
+        const texturedVertexB: Int32Array = new Int32Array(texturedFaceCount);
+        const texturedVertexC: Int32Array = new Int32Array(texturedFaceCount);
 
-        this.texturedVertexA = new Int32Array(this.texturedFaceCount);
-        this.texturedVertexB = new Int32Array(this.texturedFaceCount);
-        this.texturedVertexC = new Int32Array(this.texturedFaceCount);
-
+        let vertexLabel: Int32Array | null = null;
         if (meta.vertexLabelsOffset >= 0) {
-            this.vertexLabel = new Int32Array(this.vertexCount);
+            vertexLabel = new Int32Array(vertexCount);
         }
 
+        let faceInfo: Int32Array | null = null;
         if (meta.faceInfosOffset >= 0) {
-            this.faceInfo = new Int32Array(this.faceCount);
+            faceInfo = new Int32Array(faceCount);
         }
 
+        let facePriority: Int32Array | null = null;
+        let priority: number = 0;
         if (meta.facePrioritiesOffset >= 0) {
-            this.facePriority = new Int32Array(this.faceCount);
+            facePriority = new Int32Array(faceCount);
         } else {
-            this.priority = -meta.facePrioritiesOffset - 1;
+            priority = -meta.facePrioritiesOffset - 1;
         }
 
+        let faceAlpha: Int32Array | null = null;
         if (meta.faceAlphasOffset >= 0) {
-            this.faceAlpha = new Int32Array(this.faceCount);
+            faceAlpha = new Int32Array(faceCount);
         }
 
+        let faceLabel: Int32Array | null = null;
         if (meta.faceLabelsOffset >= 0) {
-            this.faceLabel = new Int32Array(this.faceCount);
+            faceLabel = new Int32Array(faceCount);
         }
 
-        this.faceColor = new Int32Array(this.faceCount);
+        const faceColor: Int32Array = new Int32Array(faceCount);
 
         Model.point1.pos = meta.vertexFlagsOffset;
         Model.point2.pos = meta.vertexXOffset;
@@ -394,33 +1150,33 @@ export default class Model extends Hashable {
         let b: number;
         let c: number;
 
-        for (let v: number = 0; v < this.vertexCount; v++) {
+        for (let v: number = 0; v < vertexCount; v++) {
             const flags: number = Model.point1.g1;
 
             a = 0;
             if ((flags & 0x1) != 0) {
-                a = Model.point2.gsmarts;
+                a = Model.point2.gsmart;
             }
 
             b = 0;
             if ((flags & 0x2) != 0) {
-                b = Model.point3.gsmarts;
+                b = Model.point3.gsmart;
             }
 
             c = 0;
             if ((flags & 0x4) != 0) {
-                c = Model.point4.gsmarts;
+                c = Model.point4.gsmart;
             }
 
-            this.vertexX[v] = dx + a;
-            this.vertexY[v] = dy + b;
-            this.vertexZ[v] = dz + c;
-            dx = this.vertexX[v];
-            dy = this.vertexY[v];
-            dz = this.vertexZ[v];
+            vertexX[v] = dx + a;
+            vertexY[v] = dy + b;
+            vertexZ[v] = dz + c;
+            dx = vertexX[v];
+            dy = vertexY[v];
+            dz = vertexZ[v];
 
-            if (this.vertexLabel != null) {
-                this.vertexLabel[v] = Model.point5.g1;
+            if (vertexLabel) {
+                vertexLabel[v] = Model.point5.g1;
             }
         }
 
@@ -430,23 +1186,23 @@ export default class Model extends Hashable {
         Model.face4.pos = meta.faceAlphasOffset;
         Model.face5.pos = meta.faceLabelsOffset;
 
-        for (let f: number = 0; f < this.faceCount; f++) {
-            this.faceColor[f] = Model.face1.g2;
+        for (let f: number = 0; f < faceCount; f++) {
+            faceColor[f] = Model.face1.g2;
 
-            if (this.faceInfo != null) {
-                this.faceInfo[f] = Model.face2.g1;
+            if (faceInfo) {
+                faceInfo[f] = Model.face2.g1;
             }
 
-            if (this.facePriority != null) {
-                this.facePriority[f] = Model.face3.g1;
+            if (facePriority) {
+                facePriority[f] = Model.face3.g1;
             }
 
-            if (this.faceAlpha != null) {
-                this.faceAlpha[f] = Model.face4.g1;
+            if (faceAlpha) {
+                faceAlpha[f] = Model.face4.g1;
             }
 
-            if (this.faceLabel != null) {
-                this.faceLabel[f] = Model.face5.g1;
+            if (faceLabel) {
+                faceLabel[f] = Model.face5.g1;
             }
         }
 
@@ -458,87 +1214,83 @@ export default class Model extends Hashable {
         c = 0;
         let last: number = 0;
 
-        for (let f: number = 0; f < this.faceCount; f++) {
+        for (let f: number = 0; f < faceCount; f++) {
             const orientation: number = Model.vertex2.g1;
 
             if (orientation === 1) {
-                a = Model.vertex1.gsmarts + last;
+                a = Model.vertex1.gsmart + last;
                 last = a;
-                b = Model.vertex1.gsmarts + last;
+                b = Model.vertex1.gsmart + last;
                 last = b;
-                c = Model.vertex1.gsmarts + last;
+                c = Model.vertex1.gsmart + last;
                 last = c;
             } else if (orientation === 2) {
                 b = c;
-                c = Model.vertex1.gsmarts + last;
+                c = Model.vertex1.gsmart + last;
                 last = c;
             } else if (orientation === 3) {
                 a = c;
-                c = Model.vertex1.gsmarts + last;
+                c = Model.vertex1.gsmart + last;
                 last = c;
             } else if (orientation === 4) {
                 const tmp: number = a;
                 a = b;
                 b = tmp;
-                c = Model.vertex1.gsmarts + last;
+                c = Model.vertex1.gsmart + last;
                 last = c;
             }
 
-            this.faceVertexA[f] = a;
-            this.faceVertexB[f] = b;
-            this.faceVertexC[f] = c;
+            faceVertexA[f] = a;
+            faceVertexB[f] = b;
+            faceVertexC[f] = c;
         }
 
         Model.axis.pos = meta.faceTextureAxisOffset * 6;
-        for (let f: number = 0; f < this.texturedFaceCount; f++) {
-            this.texturedVertexA[f] = Model.axis.g2;
-            this.texturedVertexB[f] = Model.axis.g2;
-            this.texturedVertexC[f] = Model.axis.g2;
+        for (let f: number = 0; f < texturedFaceCount; f++) {
+            texturedVertexA[f] = Model.axis.g2;
+            texturedVertexB[f] = Model.axis.g2;
+            texturedVertexC[f] = Model.axis.g2;
         }
-    }
+        return new Model(
+            vertexCount,
+            vertexX,
+            vertexY,
+            vertexZ,
+            faceCount,
+            faceVertexA,
+            faceVertexB,
+            faceVertexC,
+            null,
+            null,
+            null,
+            faceInfo,
+            facePriority,
+            faceAlpha,
+            faceColor,
+            priority,
+            texturedFaceCount,
+            texturedVertexA,
+            texturedVertexB,
+            texturedVertexC,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            vertexLabel,
+            faceLabel,
+            null,
+            null,
+            null,
+            null
+        );
+    };
 
-    addVertex(src: Model, vertexId: number): number {
-        if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
-            throw new Error('Model not loaded!!!!');
-        }
-
-        if (src.vertexX === null || src.vertexY === null || src.vertexZ === null) {
-            throw new Error('Model not loaded!!!!');
-        }
-
-        let identical: number = -1;
-
-        const x: number = src.vertexX[vertexId];
-        const y: number = src.vertexY[vertexId];
-        const z: number = src.vertexZ[vertexId];
-
-        for (let v: number = 0; v < this.vertexCount; v++) {
-            if (x == this.vertexX[v] && y == this.vertexY[v] && z == this.vertexZ[v]) {
-                identical = v;
-                break;
-            }
-        }
-
-        if (identical == -1) {
-            this.vertexX[this.vertexCount] = x;
-            this.vertexY[this.vertexCount] = y;
-            this.vertexZ[this.vertexCount] = z;
-
-            if (this.vertexLabel != null && src.vertexLabel != null) {
-                this.vertexLabel[this.vertexCount] = src.vertexLabel[vertexId];
-            }
-
-            identical = this.vertexCount++;
-        }
-
-        return identical;
-    }
-
-    calculateBoundsCylinder(): void {
-        if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
-            return;
-        }
-
+    calculateBoundsCylinder = (): void => {
         this.maxY = 0;
         this.radius = 0;
         this.minY = 0;
@@ -565,9 +1317,9 @@ export default class Model extends Hashable {
         this.radius = Math.trunc(Math.sqrt(this.radius) + 0.99);
         this.minDepth = Math.trunc(Math.sqrt(this.radius * this.radius + this.maxY * this.maxY) + 0.99);
         this.maxDepth = this.minDepth + Math.trunc(Math.sqrt(this.radius * this.radius + this.minY * this.minY) + 0.99);
-    }
+    };
 
-    calculateBoundsY(): void {
+    calculateBoundsY = (): void => {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -589,9 +1341,9 @@ export default class Model extends Hashable {
 
         this.minDepth = Math.trunc(Math.sqrt(this.radius * this.radius + this.maxY * this.maxY) + 0.99);
         this.maxDepth = this.minDepth + Math.trunc(Math.sqrt(this.radius * this.radius + this.minY * this.minY) + 0.99);
-    }
+    };
 
-    calculateBoundsAABB(): void {
+    calculateBoundsAABB = (): void => {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -642,17 +1394,21 @@ export default class Model extends Hashable {
         this.radius = Math.trunc(Math.sqrt(this.radius));
         this.minDepth = Math.trunc(Math.sqrt(this.radius * this.radius + this.maxY * this.maxY));
         this.maxDepth = this.minDepth + Math.trunc(Math.sqrt(this.radius * this.radius + this.minY * this.minY));
-    }
+    };
 
-    createLabelReferences(): void {
+    createLabelReferences = (): void => {
         // TODO
-    }
+    };
 
-    applyTransform(id: number): void {
+    applyTransforms = (primaryId: number, secondaryId: number, mask: Uint32Array | null): void => {
         // TODO
-    }
+    };
 
-    rotateY90(): void {
+    applyTransform = (id: number): void => {
+        // TODO
+    };
+
+    rotateY90 = (): void => {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -662,9 +1418,9 @@ export default class Model extends Hashable {
             this.vertexX[v] = this.vertexZ[v];
             this.vertexZ[v] = -tmp;
         }
-    }
+    };
 
-    rotateX(angle: number): void {
+    rotateX = (angle: number): void => {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -677,9 +1433,9 @@ export default class Model extends Hashable {
             this.vertexZ[v] = (this.vertexY[v] * sin + this.vertexZ[v] * cos) >> 16;
             this.vertexY[v] = tmp;
         }
-    }
+    };
 
-    translate(x: number, y: number, z: number): void {
+    translate = (y: number, x: number, z: number): void => {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -689,9 +1445,9 @@ export default class Model extends Hashable {
             this.vertexY[v] += y;
             this.vertexZ[v] += z;
         }
-    }
+    };
 
-    recolor(src: number, dst: number): void {
+    recolor = (src: number, dst: number): void => {
         if (this.faceColor === null) {
             return;
         }
@@ -701,9 +1457,9 @@ export default class Model extends Hashable {
                 this.faceColor[f] = dst;
             }
         }
-    }
+    };
 
-    rotateY180(): void {
+    rotateY180 = (): void => {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -721,9 +1477,9 @@ export default class Model extends Hashable {
             this.faceVertexA[f] = this.faceVertexC[f];
             this.faceVertexC[f] = temp;
         }
-    }
+    };
 
-    scale(x: number, y: number, z: number): void {
+    scale = (x: number, y: number, z: number): void => {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -733,9 +1489,9 @@ export default class Model extends Hashable {
             this.vertexY[v] = (this.vertexY[v] * y) / 128;
             this.vertexZ[v] = (this.vertexZ[v] * z) / 128;
         }
-    }
+    };
 
-    calculateNormals(lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number, applyLighting: boolean): void {
+    calculateNormals = (lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number, applyLighting: boolean): void => {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null || this.faceVertexA === null || this.faceVertexB === null || this.faceVertexC === null || this.faceColor === null) {
             return;
         }
@@ -836,9 +1592,9 @@ export default class Model extends Hashable {
         } else {
             this.calculateBoundsAABB();
         }
-    }
+    };
 
-    applyLighting(lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number): void {
+    applyLighting = (lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number): void => {
         if (this.faceVertexA === null || this.faceVertexB === null || this.faceVertexC === null || this.faceColor === null || this.vertexNormal === null) {
             return;
         }
@@ -898,10 +1654,10 @@ export default class Model extends Hashable {
         }
 
         this.faceColor = null;
-    }
+    };
 
     // todo: better name, Java relies on overloads
-    drawSimple(pitch: number, yaw: number, roll: number, eyePitch: number, eyeX: number, eyeY: number, eyeZ: number): void {
+    drawSimple = (pitch: number, yaw: number, roll: number, eyePitch: number, eyeX: number, eyeY: number, eyeZ: number): void => {
         if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
             return;
         }
@@ -976,13 +1732,13 @@ export default class Model extends Hashable {
         // } catch (err) {
         //     console.error(err);
         // }
-    }
+    };
 
     // todo: better name, Java relies on overloads
-    draw(yaw: number, sinEyePitch: number, cosEyePitch: number, sinEyeYaw: number, cosEyeYaw: number, relativeX: number, relativeY: number, relativeZ: number, bitset: number): void {}
+    draw = (yaw: number, sinEyePitch: number, cosEyePitch: number, sinEyeYaw: number, cosEyeYaw: number, relativeX: number, relativeY: number, relativeZ: number, bitset: number): void => {};
 
     // todo: better name, Java relies on overloads
-    draw2(clipped: boolean, picking: boolean, bitset: number): void {
+    draw2 = (clipped: boolean, picking: boolean, bitset: number): void => {
         if (Model.vertexScreenX === null || Model.vertexScreenY === null || Model.vertexScreenZ === null) {
             return;
         }
@@ -1211,9 +1967,9 @@ export default class Model extends Hashable {
                 priorityDepth = -1000;
             }
         }
-    }
+    };
 
-    drawFace(face: number): void {
+    drawFace = (face: number): void => {
         if (Model.faceNearClipped !== null && Model.faceNearClipped[face]) {
             this.drawNearClippedFace(face);
             return;
@@ -1281,11 +2037,11 @@ export default class Model extends Hashable {
             // const tC = this.texturedVertexC[texturedFace];
             // Draw3D.fillTexturedTriangle(Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], this.faceColorA[face], this.faceColorA[face], this.faceColorA[face], Model.vertexViewSpaceX[tA], Model.vertexViewSpaceY[tA], Model.vertexViewSpaceZ[tA], Model.vertexViewSpaceX[tB], Model.vertexViewSpaceX[tC], Model.vertexViewSpaceY[tB], Model.vertexViewSpaceY[tC], Model.vertexViewSpaceZ[tB], Model.vertexViewSpaceZ[tC], this.faceColor[face]);
         }
-    }
+    };
 
-    drawNearClippedFace(face: number): void {}
+    drawNearClippedFace = (face: number): void => {};
 
-    pointWithinTriangle(x: number, y: number, xA: number, xB: number, xC: number, yA: number, yB: number, yC: number): boolean {
+    pointWithinTriangle = (x: number, y: number, xA: number, xB: number, xC: number, yA: number, yB: number, yC: number): boolean => {
         if (y < yA && y < yB && y < yC) {
             return false;
         } else if (y > yA && y > yB && y > yC) {
@@ -1295,5 +2051,5 @@ export default class Model extends Hashable {
         } else {
             return x <= xA || x <= xB || x <= xC;
         }
-    }
+    };
 }

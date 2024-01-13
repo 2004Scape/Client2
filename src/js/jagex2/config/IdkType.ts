@@ -1,6 +1,7 @@
 import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
 import {ConfigType} from './ConfigType';
+import Model from '../graphics/Model';
 
 export default class IdkType extends ConfigType {
     static count: number = 0;
@@ -45,5 +46,46 @@ export default class IdkType extends ConfigType {
         } else {
             throw new Error(`Unrecognized idk config code: ${code}`);
         }
+    };
+
+    getModel = (): Model | null => {
+        if (!this.models) {
+            return null;
+        }
+
+        const models: Model[] = [];
+        for (let i: number = 0; i < this.models.length; i++) {
+            models[i] = Model.model(this.models[i]);
+        }
+
+        let model: Model;
+        if (models.length === 1) {
+            model = models[0];
+        } else {
+            model = Model.modelFromModels(models, models.length);
+        }
+
+        for (let i: number = 0; i < 6 && this.recol_s[i] !== 0; i++) {
+            model.recolor(this.recol_s[i], this.recol_d[i]);
+        }
+        return model;
+    };
+
+    getHeadModel = (): Model => {
+        let count: number = 0;
+
+        const models: Model[] = [];
+        for (let i: number = 0; i < 5; i++) {
+            if (this.heads[i] !== -1) {
+                models[count++] = Model.model(this.heads[i]);
+            }
+        }
+
+        const model: Model = Model.modelFromModels(models, count);
+        for (let i: number = 0; i < 6 && this.recol_s[i] !== 0; i++) {
+            model.recolor(this.recol_s[i], this.recol_d[i]);
+        }
+
+        return model;
     };
 }

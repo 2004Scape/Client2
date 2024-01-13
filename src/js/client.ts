@@ -503,7 +503,7 @@ class Client extends GameShell {
             }
 
             await this.showProgress(92, 'Unpacking interfaces');
-            ComType.unpack(interfaces, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+            ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
             await this.showProgress(97, 'Preparing game engine');
             for (let y: number = 0; y < 33; y++) {
@@ -2074,11 +2074,9 @@ class Client extends GameShell {
                                 }
                             }
                         } else if (child.inventorySlotImage != null && slot < 20) {
-                            const image: {name: string; sprite: number} = child.inventorySlotImage[slot];
-
-                            if (image != null && this.mediaArchive) {
-                                const pix24: Pix24 = Pix24.fromArchive(this.mediaArchive, image.name, image.sprite);
-                                pix24.draw(slotX, slotY);
+                            const image: Pix24 | null = child.inventorySlotImage[slot];
+                            if (image != null) {
+                                image?.draw(slotX, slotY);
                             }
                         }
 
@@ -2187,16 +2185,15 @@ class Client extends GameShell {
                     }
                 }
             } else if (child.type == 5) {
-                let image: {name: string; sprite: number} | null;
+                let image: Pix24 | null;
                 if (this.executeInterfaceScript(child)) {
                     image = child.activeImage;
                 } else {
                     image = child.image;
                 }
 
-                if (image != null && this.mediaArchive) {
-                    const pix24: Pix24 = Pix24.fromArchive(this.mediaArchive, image.name, image.sprite);
-                    pix24.draw(childX, childY);
+                if (image != null) {
+                    image.draw(childX, childY);
                 }
             } else if (child.type == 6) {
                 const tmpX: number = Draw3D.centerX;
@@ -3380,7 +3377,7 @@ class Client extends GameShell {
                 // IF_SETMODEL
                 const com: number = this.in.g2;
                 const model: number = this.in.g2;
-                ComType.instances[com].model = new Model(model);
+                ComType.instances[com].model = Model.model(model);
                 this.packetType = -1;
                 return true;
             }

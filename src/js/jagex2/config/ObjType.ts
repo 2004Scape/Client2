@@ -3,6 +3,7 @@ import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
 import Pix24 from '../graphics/Pix24';
 import LruCache from '../datastruct/LruCache';
+import Model from '../graphics/Model';
 
 export default class ObjType extends ConfigType {
     static count: number = 0;
@@ -98,8 +99,8 @@ export default class ObjType extends ConfigType {
     stackable: boolean = false;
     cost: number = 1;
     members: boolean = false;
-    ops: (string | null)[] = [];
-    iops: string[] = [];
+    ops: (string | null)[] | null = null;
+    iops: string[] | null = null;
     manwear: number = -1;
     manwear2: number = -1;
     manwearOffsetY: number = 0;
@@ -161,12 +162,18 @@ export default class ObjType extends ConfigType {
         } else if (code === 26) {
             this.womanwear2 = dat.g2;
         } else if (code >= 30 && code < 35) {
-            this.ops[code - 30] = dat.gjstr;
+            if (!this.ops) {
+                this.ops = new Array(5);
+            }
 
+            this.ops[code - 30] = dat.gjstr;
             if (this.ops[code - 30] === 'hidden') {
                 this.ops[code - 30] = null;
             }
         } else if (code >= 35 && code < 40) {
+            if (!this.iops) {
+                this.iops = new Array(5);
+            }
             this.iops[code - 35] = dat.gjstr;
         } else if (code === 40) {
             const count: number = dat.g1;
@@ -205,6 +212,83 @@ export default class ObjType extends ConfigType {
         } else {
             throw new Error(`Unrecognized obj config code: ${code}`);
         }
+    };
+
+    getWornModel = (gender: number): Model | null => {
+        let id1: number = this.manwear;
+        if (gender === 1) {
+            id1 = this.womanwear;
+        }
+
+        if (id1 === -1) {
+            return null;
+        }
+
+        let id2: number = this.manwear2;
+        let id3: number = this.manwear3;
+        if (gender === 1) {
+            id2 = this.womanwear2;
+            id3 = this.womanwear3;
+        }
+
+        let model: Model = Model.model(id1);
+        if (id2 !== -1) {
+            const model2: Model = Model.model(id2);
+
+            if (id3 === -1) {
+                const models: Model[] = [model, model2];
+                model = Model.modelFromModels(models, 2);
+            } else {
+                const model3: Model = Model.model(id3);
+                const models: Model[] = [model, model2, model3];
+                model = Model.modelFromModels(models, 3);
+            }
+        }
+
+        if (gender === 0 && this.manwearOffsetY !== 0) {
+            model.translate(this.manwearOffsetY, 0, 0);
+        }
+
+        if (gender === 1 && this.womanwearOffsetY !== 0) {
+            model.translate(this.womanwearOffsetY, 0, 0);
+        }
+
+        if (this.recol_s && this.recol_d) {
+            for (let i: number = 0; i < this.recol_s.length; i++) {
+                model.recolor(this.recol_s[i], this.recol_d[i]);
+            }
+        }
+        return model;
+    };
+
+    getHeadModel = (gender: number): Model | null => {
+        let head1: number = this.manhead;
+        if (gender === 1) {
+            head1 = this.womanhead;
+        }
+
+        if (head1 === -1) {
+            return null;
+        }
+
+        let head2: number = this.manhead2;
+        if (gender === 1) {
+            head2 = this.womanhead2;
+        }
+
+        let model: Model = Model.model(head1);
+        if (head2 !== -1) {
+            const model2: Model = Model.model(head2);
+            const models: Model[] = [model, model2];
+            model = Model.modelFromModels(models, 2);
+        }
+
+        if (this.recol_s && this.recol_d) {
+            for (let i: number = 0; i < this.recol_s.length; i++) {
+                model.recolor(this.recol_s[i], this.recol_d[i]);
+            }
+        }
+        return model;
     };
 
     private toCertificate = (): void => {

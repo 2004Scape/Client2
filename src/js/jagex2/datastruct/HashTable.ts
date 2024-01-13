@@ -14,7 +14,7 @@ export default class HashTable {
     }
 
     get = (key: number): Linkable | null => {
-        const start: Linkable = this.nodes[Number(key & (this.size - 1))];
+        const start: Linkable = this.nodes[key & (this.size - 1)];
         const prev: Linkable | null = start.prev;
         if (!prev) {
             return null;
@@ -37,7 +37,7 @@ export default class HashTable {
             value.unlink();
         }
 
-        const node: Linkable = this.nodes[Number(key & (this.size - 1))];
+        const node: Linkable = this.nodes[key & (this.size - 1)];
         value.next = node.next;
         value.prev = node;
         if (value.next) {

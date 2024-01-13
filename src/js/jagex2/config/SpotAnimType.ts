@@ -70,7 +70,7 @@ export default class SpotAnimType extends ConfigType {
         if (model) {
             return model;
         }
-        model = new Model(this.model);
+        model = Model.model(this.model);
         for (let i: number = 0; i < 6; i++) {
             if (this.recol_s[0] !== 0) {
                 model.recolor(this.recol_s[i], this.recol_d[i]);
