@@ -203,7 +203,7 @@ export default abstract class GameShell {
         this.unload();
     }
 
-    setLoopRate(rate: number): void {
+    setFramerate(rate: number): void {
         this.deltime = 1000 / rate;
     }
 

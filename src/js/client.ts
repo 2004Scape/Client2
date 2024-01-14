@@ -2756,7 +2756,7 @@ class Client extends GameShell {
                 this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', 0);
                 this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', 16777215);
                 this.areaViewport?.draw(8, 11);
-                this.setLoopRate(5);
+                // signlink.looprate(5);
 
                 const regions: number = (this.packetSize - 2) / 10;
 
@@ -3971,7 +3971,7 @@ class Client extends GameShell {
         this.ctx.fillStyle = 'black';
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.setLoopRate(1);
+        this.setFramerate(1);
 
         if (this.errorLoading) {
             this.flameActive = false;

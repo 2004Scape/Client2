@@ -243,7 +243,7 @@ class Viewer extends GameShell {
         this.ctx.fillStyle = 'black';
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.setLoopRate(1);
+        this.setFramerate(1);
 
         if (this.errorLoading) {
             this.ctx.font = 'bold 16px helvetica, sans-serif';
