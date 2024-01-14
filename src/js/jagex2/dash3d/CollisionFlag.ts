@@ -1,7 +1,7 @@
 export default class CollisionFlag {
     static readonly OPEN: number = 0x0;
-    static readonly WALL_NORTH: number = 0x2;
     static readonly WALL_NORTH_WEST: number = 0x1;
+    static readonly WALL_NORTH: number = 0x2;
     static readonly WALL_NORTH_EAST: number = 0x4;
     static readonly WALL_EAST: number = 0x8;
     static readonly WALL_SOUTH_EAST: number = CollisionFlag.WALL_NORTH_WEST << 4; // 16 0x10
