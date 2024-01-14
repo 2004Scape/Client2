@@ -49,6 +49,7 @@ class Client extends GameShell {
     static LOW_MEMORY: boolean = false;
     static UPDATE_COUNTER: number = 0;
     static UPDATE2_COUNTER: number = 0;
+    static SIDEBAR_INPUT_COUNTER: number = 0;
 
     private SCROLLBAR_TRACK: number = 0x23201b;
     private SCROLLBAR_GRIP_FOREGROUND: number = 0x4d4233;
@@ -1466,7 +1467,7 @@ class Client extends GameShell {
 
             // this.handleMouseInput();
             // this.handleMinimapInput();
-            // this.handleTabInput();
+            this.handleTabInput();
             // this.handleChatSettingsInput();
 
             if (this.mouseButton == 1 || this.mouseClickButton == 1) {
@@ -1861,7 +1862,10 @@ class Client extends GameShell {
             this.drawMenu();
         }
         this.areaSidebar?.draw(562, 231);
-        // TODO Viewport Drawing
+        this.areaViewport?.bind();
+        if (this.areaViewportOffsets) {
+            Draw3D.lineOffset = this.areaViewportOffsets;
+        }
     };
 
     private drawChatback = (): void => {
@@ -2326,6 +2330,75 @@ class Client extends GameShell {
     private updateInterfaceAnimation = (id: number, delta: number): boolean => {
         // TODO
         return false;
+    };
+
+    private handleTabInput = (): void => {
+        if (this.mouseClickButton == 1) {
+            if (this.mouseClickX >= 549 && this.mouseClickX <= 583 && this.mouseClickY >= 195 && this.mouseClickY < 231 && this.tabInterfaceId[0] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 0;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 579 && this.mouseClickX <= 609 && this.mouseClickY >= 194 && this.mouseClickY < 231 && this.tabInterfaceId[1] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 1;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 607 && this.mouseClickX <= 637 && this.mouseClickY >= 194 && this.mouseClickY < 231 && this.tabInterfaceId[2] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 2;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 635 && this.mouseClickX <= 679 && this.mouseClickY >= 194 && this.mouseClickY < 229 && this.tabInterfaceId[3] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 3;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 676 && this.mouseClickX <= 706 && this.mouseClickY >= 194 && this.mouseClickY < 231 && this.tabInterfaceId[4] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 4;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 704 && this.mouseClickX <= 734 && this.mouseClickY >= 194 && this.mouseClickY < 231 && this.tabInterfaceId[5] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 5;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 732 && this.mouseClickX <= 766 && this.mouseClickY >= 195 && this.mouseClickY < 231 && this.tabInterfaceId[6] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 6;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 550 && this.mouseClickX <= 584 && this.mouseClickY >= 492 && this.mouseClickY < 528 && this.tabInterfaceId[7] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 7;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 582 && this.mouseClickX <= 612 && this.mouseClickY >= 492 && this.mouseClickY < 529 && this.tabInterfaceId[8] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 8;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 609 && this.mouseClickX <= 639 && this.mouseClickY >= 492 && this.mouseClickY < 529 && this.tabInterfaceId[9] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 9;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 637 && this.mouseClickX <= 681 && this.mouseClickY >= 493 && this.mouseClickY < 528 && this.tabInterfaceId[10] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 10;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 679 && this.mouseClickX <= 709 && this.mouseClickY >= 492 && this.mouseClickY < 529 && this.tabInterfaceId[11] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 11;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 706 && this.mouseClickX <= 736 && this.mouseClickY >= 492 && this.mouseClickY < 529 && this.tabInterfaceId[12] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 12;
+                this.redrawSideicons = true;
+            } else if (this.mouseClickX >= 734 && this.mouseClickX <= 768 && this.mouseClickY >= 492 && this.mouseClickY < 528 && this.tabInterfaceId[13] != -1) {
+                this.redrawSidebar = true;
+                this.selectedTab = 13;
+                this.redrawSideicons = true;
+            }
+
+            Client.SIDEBAR_INPUT_COUNTER++;
+            if (Client.SIDEBAR_INPUT_COUNTER > 150) {
+                Client.SIDEBAR_INPUT_COUNTER = 0;
+                this.out.p1isaac(233);
+                this.out.p1(43);
+            }
+        }
     };
 
     private handleScrollInput = (mouseX: number, mouseY: number, scrollableHeight: number, height: number, redraw: boolean, left: number, top: number, component: ComType): void => {
