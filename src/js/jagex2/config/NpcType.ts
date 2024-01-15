@@ -37,7 +37,7 @@ export default class NpcType extends ConfigType {
         }
 
         for (let id: number = 0; id < 20; id++) {
-            if (this.cache[id].index == id) {
+            if (this.cache[id].index === id) {
                 return this.cache[id];
             }
         }
@@ -161,7 +161,7 @@ export default class NpcType extends ConfigType {
                     models[i] = Model.model(this.models[i]);
                 }
 
-                if (models.length == 1) {
+                if (models.length === 1) {
                     model = models[0];
                 } else {
                     model = Model.modelFromModels(models, models.length);
@@ -185,13 +185,13 @@ export default class NpcType extends ConfigType {
 
         if (model) {
             tmp = Model.modelShareAlpha(model, !this.disposeAlpha);
-            if (primaryTransformId != -1 && secondaryTransformId != -1) {
+            if (primaryTransformId !== -1 && secondaryTransformId !== -1) {
                 tmp.applyTransforms(primaryTransformId, secondaryTransformId, seqMask);
-            } else if (primaryTransformId != -1) {
+            } else if (primaryTransformId !== -1) {
                 tmp.applyTransform(primaryTransformId);
             }
 
-            if (this.resizeh != 128 || this.resizev != 128) {
+            if (this.resizeh !== 128 || this.resizev !== 128) {
                 tmp.scale(this.resizeh, this.resizev, this.resizeh);
             }
 
@@ -199,7 +199,7 @@ export default class NpcType extends ConfigType {
             tmp.labelFaces = null;
             tmp.labelVertices = null;
 
-            if (this.size == 1) {
+            if (this.size === 1) {
                 tmp.pickable = true;
             }
             return tmp;
@@ -209,7 +209,7 @@ export default class NpcType extends ConfigType {
     };
 
     getHeadModel = (): Model | null => {
-        if (this.heads == null) {
+        if (this.heads === null) {
             return null;
         }
 
@@ -219,7 +219,7 @@ export default class NpcType extends ConfigType {
         }
 
         let model: Model;
-        if (models.length == 1) {
+        if (models.length === 1) {
             model = models[0];
         } else {
             model = Model.modelFromModels(models, models.length);

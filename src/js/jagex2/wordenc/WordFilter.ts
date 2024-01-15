@@ -212,11 +212,11 @@ export default class WordFilter {
             const char: string = chars[chars.length - index - 1];
             if (this.isLowercaseAlpha(char)) {
                 value = value * 38 + char.charCodeAt(0) + 1 - 'a'.charCodeAt(0);
-            } else if (char == "'") {
+            } else if (char === "'") {
                 value = value * 38 + 27;
             } else if (this.isNumerical(char)) {
                 value = value * 38 + char.charCodeAt(0) + 28 - '0'.charCodeAt(0);
-            } else if (char != '\u0000') {
+            } else if (char !== '\u0000') {
                 return 0;
             }
         }
@@ -242,19 +242,19 @@ export default class WordFilter {
     };
 
     private static getEmulatedDomainCharLen = (nextChar: string, domainChar: string, currentChar: string): number => {
-        if (domainChar == currentChar) {
+        if (domainChar === currentChar) {
             return 1;
-        } else if (domainChar == 'o' && currentChar == '0') {
+        } else if (domainChar === 'o' && currentChar === '0') {
             return 1;
-        } else if (domainChar == 'o' && currentChar == '(' && nextChar == ')') {
+        } else if (domainChar === 'o' && currentChar === '(' && nextChar === ')') {
             return 2;
-        } else if (domainChar == 'c' && (currentChar == '(' || currentChar == '<' || currentChar == '[')) {
+        } else if (domainChar === 'c' && (currentChar === '(' || currentChar === '<' || currentChar === '[')) {
             return 1;
-        } else if (domainChar == 'e' && currentChar == '€') {
+        } else if (domainChar === 'e' && currentChar === '€') {
             return 1;
-        } else if (domainChar == 's' && currentChar == '$') {
+        } else if (domainChar === 's' && currentChar === '$') {
             return 1;
-        } else if (domainChar == 'l' && currentChar == 'i') {
+        } else if (domainChar === 'l' && currentChar === 'i') {
             return 1;
         }
         return 0;
@@ -333,10 +333,10 @@ export default class WordFilter {
             if (hasSymbol) {
                 let isBeforeSymbol: boolean = false;
                 let isAfterSymbol: boolean = false;
-                if (startIndex - 1 < 0 || (this.isSymbol(chars[startIndex - 1]) && chars[startIndex - 1] != "'")) {
+                if (startIndex - 1 < 0 || (this.isSymbol(chars[startIndex - 1]) && chars[startIndex - 1] !== "'")) {
                     isBeforeSymbol = true;
                 }
-                if (currentIndex >= chars.length || (this.isSymbol(chars[currentIndex]) && chars[currentIndex] != "'")) {
+                if (currentIndex >= chars.length || (this.isSymbol(chars[currentIndex]) && chars[currentIndex] !== "'")) {
                     isAfterSymbol = true;
                 }
                 if (!isBeforeSymbol || !isAfterSymbol) {
@@ -346,21 +346,21 @@ export default class WordFilter {
                         localIndex = startIndex;
                     }
                     while (!isSubstringValid && localIndex < currentIndex) {
-                        if (localIndex >= 0 && (!this.isSymbol(chars[localIndex]) || chars[localIndex] == "'")) {
+                        if (localIndex >= 0 && (!this.isSymbol(chars[localIndex]) || chars[localIndex] === "'")) {
                             const localSubString: string[] = [];
                             let localSubStringIndex: number;
                             for (
                                 localSubStringIndex = 0;
-                                localSubStringIndex < 3 && localIndex + localSubStringIndex < chars.length && (!this.isSymbol(chars[localIndex + localSubStringIndex]) || chars[localIndex + localSubStringIndex] == "'");
+                                localSubStringIndex < 3 && localIndex + localSubStringIndex < chars.length && (!this.isSymbol(chars[localIndex + localSubStringIndex]) || chars[localIndex + localSubStringIndex] === "'");
                                 localSubStringIndex++
                             ) {
                                 localSubString[localSubStringIndex] = chars[localIndex + localSubStringIndex];
                             }
                             let isSubStringValidCondition: boolean = true;
-                            if (localSubStringIndex == 0) {
+                            if (localSubStringIndex === 0) {
                                 isSubStringValidCondition = false;
                             }
-                            if (localSubStringIndex < 3 && localIndex - 1 >= 0 && (!this.isSymbol(chars[localIndex - 1]) || chars[localIndex - 1] == "'")) {
+                            if (localSubStringIndex < 3 && localIndex - 1 >= 0 && (!this.isSymbol(chars[localIndex - 1]) || chars[localIndex - 1] === "'")) {
                                 isSubStringValidCondition = false;
                             }
                             if (isSubStringValidCondition && !this.isBadFragment(localSubString)) {
@@ -384,7 +384,7 @@ export default class WordFilter {
                 }
                 const current: number = this.getIndex(currentChar);
                 const next: number = this.getIndex(nextChar);
-                if (combos != null && this.comboMatches(current, combos, next)) {
+                if (combos !== null && this.comboMatches(current, combos, next)) {
                     shouldFilter = false;
                 }
             }
@@ -470,177 +470,177 @@ export default class WordFilter {
     };
 
     private static getEmulatedBadCharLen = (nextChar: string, badChar: string, currentChar: string): number => {
-        if (badChar == currentChar) {
+        if (badChar === currentChar) {
             return 1;
         }
         if (badChar >= 'a' && badChar <= 'm') {
-            if (badChar == 'a') {
-                if (currentChar != '4' && currentChar != '@' && currentChar != '^') {
-                    if (currentChar == '/' && nextChar == '\\') {
+            if (badChar === 'a') {
+                if (currentChar !== '4' && currentChar !== '@' && currentChar !== '^') {
+                    if (currentChar === '/' && nextChar === '\\') {
                         return 2;
                     }
                     return 0;
                 }
                 return 1;
             }
-            if (badChar == 'b') {
-                if (currentChar != '6' && currentChar != '8') {
-                    if (currentChar == '1' && nextChar == '3') {
+            if (badChar === 'b') {
+                if (currentChar !== '6' && currentChar !== '8') {
+                    if (currentChar === '1' && nextChar === '3') {
                         return 2;
                     }
                     return 0;
                 }
                 return 1;
             }
-            if (badChar == 'c') {
-                if (currentChar != '(' && currentChar != '<' && currentChar != '{' && currentChar != '[') {
+            if (badChar === 'c') {
+                if (currentChar !== '(' && currentChar !== '<' && currentChar !== '{' && currentChar !== '[') {
                     return 0;
                 }
                 return 1;
             }
-            if (badChar == 'd') {
-                if (currentChar == '[' && nextChar == ')') {
+            if (badChar === 'd') {
+                if (currentChar === '[' && nextChar === ')') {
                     return 2;
                 }
                 return 0;
             }
-            if (badChar == 'e') {
-                if (currentChar != '3' && currentChar != '€') {
+            if (badChar === 'e') {
+                if (currentChar !== '3' && currentChar !== '€') {
                     return 0;
                 }
                 return 1;
             }
-            if (badChar == 'f') {
-                if (currentChar == 'p' && nextChar == 'h') {
+            if (badChar === 'f') {
+                if (currentChar === 'p' && nextChar === 'h') {
                     return 2;
                 }
-                if (currentChar == '£') {
+                if (currentChar === '£') {
                     return 1;
                 }
                 return 0;
             }
-            if (badChar == 'g') {
-                if (currentChar != '9' && currentChar != '6') {
+            if (badChar === 'g') {
+                if (currentChar !== '9' && currentChar !== '6') {
                     return 0;
                 }
                 return 1;
             }
-            if (badChar == 'h') {
-                if (currentChar == '#') {
+            if (badChar === 'h') {
+                if (currentChar === '#') {
                     return 1;
                 }
                 return 0;
             }
-            if (badChar == 'i') {
-                if (currentChar != 'y' && currentChar != 'l' && currentChar != 'j' && currentChar != '1' && currentChar != '!' && currentChar != ':' && currentChar != ';' && currentChar != '|') {
+            if (badChar === 'i') {
+                if (currentChar !== 'y' && currentChar !== 'l' && currentChar !== 'j' && currentChar !== '1' && currentChar !== '!' && currentChar !== ':' && currentChar !== ';' && currentChar !== '|') {
                     return 0;
                 }
                 return 1;
             }
-            if (badChar == 'j') {
+            if (badChar === 'j') {
                 return 0;
             }
-            if (badChar == 'k') {
+            if (badChar === 'k') {
                 return 0;
             }
-            if (badChar == 'l') {
-                if (currentChar != '1' && currentChar != '|' && currentChar != 'i') {
+            if (badChar === 'l') {
+                if (currentChar !== '1' && currentChar !== '|' && currentChar !== 'i') {
                     return 0;
                 }
                 return 1;
             }
-            if (badChar == 'm') {
+            if (badChar === 'm') {
                 return 0;
             }
         }
         if (badChar >= 'n' && badChar <= 'z') {
-            if (badChar == 'n') {
+            if (badChar === 'n') {
                 return 0;
             }
-            if (badChar == 'o') {
-                if (currentChar != '0' && currentChar != '*') {
-                    if ((currentChar != '(' || nextChar != ')') && (currentChar != '[' || nextChar != ']') && (currentChar != '{' || nextChar != '}') && (currentChar != '<' || nextChar != '>')) {
+            if (badChar === 'o') {
+                if (currentChar !== '0' && currentChar !== '*') {
+                    if ((currentChar !== '(' || nextChar !== ')') && (currentChar !== '[' || nextChar !== ']') && (currentChar !== '{' || nextChar !== '}') && (currentChar !== '<' || nextChar !== '>')) {
                         return 0;
                     }
                     return 2;
                 }
                 return 1;
             }
-            if (badChar == 'p') {
+            if (badChar === 'p') {
                 return 0;
             }
-            if (badChar == 'q') {
+            if (badChar === 'q') {
                 return 0;
             }
-            if (badChar == 'r') {
+            if (badChar === 'r') {
                 return 0;
             }
-            if (badChar == 's') {
-                if (currentChar != '5' && currentChar != 'z' && currentChar != '$' && currentChar != '2') {
+            if (badChar === 's') {
+                if (currentChar !== '5' && currentChar !== 'z' && currentChar !== '$' && currentChar !== '2') {
                     return 0;
                 }
                 return 1;
             }
-            if (badChar == 't') {
-                if (currentChar != '7' && currentChar != '+') {
+            if (badChar === 't') {
+                if (currentChar !== '7' && currentChar !== '+') {
                     return 0;
                 }
                 return 1;
             }
-            if (badChar == 'u') {
-                if (currentChar == 'v') {
+            if (badChar === 'u') {
+                if (currentChar === 'v') {
                     return 1;
                 }
-                if ((currentChar != '\\' || nextChar != '/') && (currentChar != '\\' || nextChar != '|') && (currentChar != '|' || nextChar != '/')) {
+                if ((currentChar !== '\\' || nextChar !== '/') && (currentChar !== '\\' || nextChar !== '|') && (currentChar !== '|' || nextChar !== '/')) {
                     return 0;
                 }
                 return 2;
             }
-            if (badChar == 'v') {
-                if ((currentChar != '\\' || nextChar != '/') && (currentChar != '\\' || nextChar != '|') && (currentChar != '|' || nextChar != '/')) {
+            if (badChar === 'v') {
+                if ((currentChar !== '\\' || nextChar !== '/') && (currentChar !== '\\' || nextChar !== '|') && (currentChar !== '|' || nextChar !== '/')) {
                     return 0;
                 }
                 return 2;
             }
-            if (badChar == 'w') {
-                if (currentChar == 'v' && nextChar == 'v') {
+            if (badChar === 'w') {
+                if (currentChar === 'v' && nextChar === 'v') {
                     return 2;
                 }
                 return 0;
             }
-            if (badChar == 'x') {
-                if ((currentChar != ')' || nextChar != '(') && (currentChar != '}' || nextChar != '{') && (currentChar != ']' || nextChar != '[') && (currentChar != '>' || nextChar != '<')) {
+            if (badChar === 'x') {
+                if ((currentChar !== ')' || nextChar !== '(') && (currentChar !== '}' || nextChar !== '{') && (currentChar !== ']' || nextChar !== '[') && (currentChar !== '>' || nextChar !== '<')) {
                     return 0;
                 }
                 return 2;
             }
-            if (badChar == 'y') {
+            if (badChar === 'y') {
                 return 0;
             }
-            if (badChar == 'z') {
+            if (badChar === 'z') {
                 return 0;
             }
         }
         if (badChar >= '0' && badChar <= '9') {
-            if (badChar == '0') {
-                if (currentChar == 'o' || currentChar == 'O') {
+            if (badChar === '0') {
+                if (currentChar === 'o' || currentChar === 'O') {
                     return 1;
-                } else if ((currentChar != '(' || nextChar != ')') && (currentChar != '{' || nextChar != '}') && (currentChar != '[' || nextChar != ']')) {
+                } else if ((currentChar !== '(' || nextChar !== ')') && (currentChar !== '{' || nextChar !== '}') && (currentChar !== '[' || nextChar !== ']')) {
                     return 0;
                 } else {
                     return 2;
                 }
-            } else if (badChar == '1') {
-                return currentChar == 'l' ? 1 : 0;
+            } else if (badChar === '1') {
+                return currentChar === 'l' ? 1 : 0;
             } else {
                 return 0;
             }
-        } else if (badChar == ',') {
-            return currentChar == '.' ? 1 : 0;
-        } else if (badChar == '.') {
-            return currentChar == ',' ? 1 : 0;
-        } else if (badChar == '!') {
-            return currentChar == 'i' ? 1 : 0;
+        } else if (badChar === ',') {
+            return currentChar === '.' ? 1 : 0;
+        } else if (badChar === '.') {
+            return currentChar === ',' ? 1 : 0;
+        } else if (badChar === '!') {
+            return currentChar === 'i' ? 1 : 0;
         }
         return 0;
     };
@@ -665,7 +665,7 @@ export default class WordFilter {
     private static getIndex = (char: string): number => {
         if (this.isLowercaseAlpha(char)) {
             return char.charCodeAt(0) + 1 - 'a'.charCodeAt(0);
-        } else if (char == "'") {
+        } else if (char === "'") {
             return 28;
         } else if (this.isNumerical(char)) {
             return char.charCodeAt(0) + 29 - '0'.charCodeAt(0);
@@ -685,13 +685,13 @@ export default class WordFilter {
             let shouldFilter: boolean = false;
             const periodFilterStatus: number = this.prefixSymbolStatus(index, chars, 3, period, [',', '.']);
             const slashFilterStatus: number = this.suffixSymbolStatus(currentIndex - 1, chars, 5, slash, ['\\', '/']);
-            if (tldType == 1 && periodFilterStatus > 0 && slashFilterStatus > 0) {
+            if (tldType === 1 && periodFilterStatus > 0 && slashFilterStatus > 0) {
                 shouldFilter = true;
             }
-            if (tldType == 2 && ((periodFilterStatus > 2 && slashFilterStatus > 0) || (periodFilterStatus > 0 && slashFilterStatus > 2))) {
+            if (tldType === 2 && ((periodFilterStatus > 2 && slashFilterStatus > 0) || (periodFilterStatus > 0 && slashFilterStatus > 2))) {
                 shouldFilter = true;
             }
-            if (tldType == 3 && periodFilterStatus > 0 && slashFilterStatus > 2) {
+            if (tldType === 3 && periodFilterStatus > 0 && slashFilterStatus > 2) {
                 shouldFilter = true;
             }
             if (!shouldFilter) {
@@ -702,15 +702,15 @@ export default class WordFilter {
             let foundPeriod: boolean = false;
             let periodIndex: number;
             if (periodFilterStatus > 2) {
-                if (periodFilterStatus == 4) {
+                if (periodFilterStatus === 4) {
                     foundPeriod = false;
                     for (periodIndex = index - 1; periodIndex >= 0; periodIndex--) {
                         if (foundPeriod) {
-                            if (period[periodIndex] != '*') {
+                            if (period[periodIndex] !== '*') {
                                 break;
                             }
                             startFilterIndex = periodIndex;
-                        } else if (period[periodIndex] == '*') {
+                        } else if (period[periodIndex] === '*') {
                             startFilterIndex = periodIndex;
                             foundPeriod = true;
                         }
@@ -730,15 +730,15 @@ export default class WordFilter {
                 }
             }
             if (slashFilterStatus > 2) {
-                if (slashFilterStatus == 4) {
+                if (slashFilterStatus === 4) {
                     foundPeriod = false;
                     for (periodIndex = endFilterIndex + 1; periodIndex < chars.length; periodIndex++) {
                         if (foundPeriod) {
-                            if (slash[periodIndex] != '*') {
+                            if (slash[periodIndex] !== '*') {
                                 break;
                             }
                             endFilterIndex = periodIndex;
-                        } else if (slash[periodIndex] == '*') {
+                        } else if (slash[periodIndex] === '*') {
                             endFilterIndex = periodIndex;
                             foundPeriod = true;
                         }
@@ -798,7 +798,7 @@ export default class WordFilter {
 
     private static isSymbol = (char: string): boolean => !this.isAlpha(char) && !this.isNumerical(char);
 
-    private static isNotLowercaseAlpha = (char: string): boolean => (this.isLowercaseAlpha(char) ? char == 'v' || char == 'x' || char == 'j' || char == 'q' || char == 'z' : true);
+    private static isNotLowercaseAlpha = (char: string): boolean => (this.isLowercaseAlpha(char) ? char === 'v' || char === 'x' || char === 'j' || char === 'q' || char === 'z' : true);
 
     private static isAlpha = (char: string): boolean => this.isLowercaseAlpha(char) || this.isUppercaseAlpha(char);
 
@@ -894,7 +894,7 @@ export default class WordFilter {
         }
     };
 
-    private static isCharacterAllowed = (char: string): boolean => (char >= ' ' && char <= '\u007f') || char == ' ' || char == '\n' || char == '\t' || char == '£' || char == '€';
+    private static isCharacterAllowed = (char: string): boolean => (char >= ' ' && char <= '\u007f') || char === ' ' || char === '\n' || char === '\t' || char === '£' || char === '€';
 
     private static replaceUppercases = (chars: string[], comparison: string[]): void => {
         for (let index: number = 0; index < comparison.length; index++) {

@@ -36,13 +36,13 @@ export default class JString {
             return 'invalid_name';
         }
 
-        if (value % 37n == 0n) {
+        if (value % 37n === 0n) {
             return 'invalid_name';
         }
 
         let len: number = 0;
         const chars: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        while (value != 0n) {
+        while (value !== 0n) {
             const l1: bigint = value;
             value /= 37n;
             chars[11 - len++] = Number(this.BASE37_LOOKUP[Number(l1 - value * 37n)]);
@@ -76,13 +76,13 @@ export default class JString {
     };
 
     static formatName = (str: string): string => {
-        if (str.length == 0) {
+        if (str.length === 0) {
             return str;
         }
 
         const chars: string[] = [...str];
         for (let i: number = 0; i < chars.length; i++) {
-            if (chars[i] == '_') {
+            if (chars[i] === '_') {
                 chars[i] = ' ';
 
                 if (i + 1 < chars.length && chars[i + 1] >= 'a' && chars[i + 1] <= 'z') {

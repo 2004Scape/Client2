@@ -193,7 +193,7 @@ export default abstract class GameShell {
             // console.log(`${this.fps} fps`);
             // console.log(`${this.ms.toFixed(4)} ms`);
         }
-        if (this.state == -1) {
+        if (this.state === -1) {
             this.shutdown();
         }
     }
@@ -288,33 +288,33 @@ export default abstract class GameShell {
             ch = 0;
         }
 
-        if (code == 37) {
+        if (code === 37) {
             ch = 1;
-        } else if (code == 39) {
+        } else if (code === 39) {
             ch = 2;
-        } else if (code == 38) {
+        } else if (code === 38) {
             ch = 3;
-        } else if (code == 40) {
+        } else if (code === 40) {
             ch = 4;
-        } else if (code == 17) {
+        } else if (code === 17) {
             ch = 5;
-        } else if (code == 8) {
+        } else if (code === 8) {
             ch = 8;
-        } else if (code == 127) {
+        } else if (code === 127) {
             ch = 8;
-        } else if (code == 9) {
+        } else if (code === 9) {
             ch = 9;
-        } else if (code == 10) {
+        } else if (code === 10) {
             ch = 10;
         } else if (code >= 112 && code <= 123) {
             ch = code + 1008 - 112;
-        } else if (code == 36) {
+        } else if (code === 36) {
             ch = 1000;
-        } else if (code == 35) {
+        } else if (code === 35) {
             ch = 1001;
-        } else if (code == 33) {
+        } else if (code === 33) {
             ch = 1002;
-        } else if (code == 34) {
+        } else if (code === 34) {
             ch = 1003;
         }
 
@@ -356,33 +356,33 @@ export default abstract class GameShell {
             ch = 0;
         }
 
-        if (code == 37) {
+        if (code === 37) {
             ch = 1;
-        } else if (code == 39) {
+        } else if (code === 39) {
             ch = 2;
-        } else if (code == 38) {
+        } else if (code === 38) {
             ch = 3;
-        } else if (code == 40) {
+        } else if (code === 40) {
             ch = 4;
-        } else if (code == 17) {
+        } else if (code === 17) {
             ch = 5;
-        } else if (code == 8) {
+        } else if (code === 8) {
             ch = 8;
-        } else if (code == 127) {
+        } else if (code === 127) {
             ch = 8;
-        } else if (code == 9) {
+        } else if (code === 9) {
             ch = 9;
-        } else if (code == 10) {
+        } else if (code === 10) {
             ch = 10;
         } else if (code >= 112 && code <= 123) {
             ch = code + 1008 - 112;
-        } else if (code == 36) {
+        } else if (code === 36) {
             ch = 1000;
-        } else if (code == 35) {
+        } else if (code === 35) {
             ch = 1001;
-        } else if (code == 33) {
+        } else if (code === 33) {
             ch = 1002;
-        } else if (code == 34) {
+        } else if (code === 34) {
             ch = 1003;
         }
 
@@ -397,7 +397,7 @@ export default abstract class GameShell {
 
     pollKey(): number {
         let key: number = -1;
-        if (this.keyQueueWritePos != this.keyQueueReadPos) {
+        if (this.keyQueueWritePos !== this.keyQueueReadPos) {
             key = this.keyQueue[this.keyQueueReadPos];
             this.keyQueueReadPos = (this.keyQueueReadPos + 1) & 0x7f;
         }
@@ -425,7 +425,7 @@ export default abstract class GameShell {
         }
 
         if (InputTracking.enabled) {
-            // InputTracking.mousePressed(x, y, (e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0 ? 1 : 0);
+            // InputTracking.mousePressed(x, y, (e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) !== 0 ? 1 : 0);
         }
     };
 
@@ -434,7 +434,7 @@ export default abstract class GameShell {
         this.mouseButton = 0;
 
         if (InputTracking.enabled) {
-            // InputTracking.mouseReleased((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0 ? 1 : 0);
+            // InputTracking.mouseReleased((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) !== 0 ? 1 : 0);
         }
     };
 

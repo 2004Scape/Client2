@@ -27,7 +27,7 @@ export default class Jagfile {
         const uncompressedSize: number = data.g3;
 
         let buffer: Packet;
-        if (compressedSize == uncompressedSize) {
+        if (compressedSize === uncompressedSize) {
             buffer = data;
             this.compressedWhole = false;
         } else {
@@ -56,7 +56,7 @@ export default class Jagfile {
     read = (name: string): Uint8Array | null => {
         const hash: number = Jagfile.genHash(name);
         const index: number = this.fileHash.indexOf(hash);
-        if (index == -1) {
+        if (index === -1) {
             return null;
         }
         return this.readIndex(index);

@@ -216,7 +216,7 @@ export default class Pix8 extends Hashable {
                 const off: number = x + y * w;
 
                 const p: number = src[srcOff + off];
-                if (p != 0) {
+                if (p !== 0) {
                     dst[dstOff + off] = this.palette[p];
                 }
             }

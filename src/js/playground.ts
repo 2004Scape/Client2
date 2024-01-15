@@ -154,7 +154,7 @@ class Playground extends GameShell {
 
         //     let textSize = this.b12.getTextWidth(`${i}: ${flo.name}`);
 
-        //     if (flo.texture != -1) {
+        //     if (flo.texture !== -1) {
         //         Draw3D.textures[flo.texture].draw(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight);
         //     } else {
         //         Draw2D.fillRect(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight, flo.rgb);

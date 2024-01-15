@@ -39,9 +39,9 @@ export default class SeqFrame {
                 const flags: number = tran1.g1;
 
                 if (flags > 0) {
-                    if (base.types[j] != 0) {
+                    if (base.types[j] !== 0) {
                         for (let group: number = j - 1; group > lastGroup; group--) {
-                            if (base.types[group] == 0) {
+                            if (base.types[group] === 0) {
                                 labels[current] = group;
                                 x[current] = 0;
                                 y[current] = 0;
@@ -55,23 +55,23 @@ export default class SeqFrame {
                     labels[current] = j;
 
                     let defaultValue: number = 0;
-                    if (base.types[labels[current]] == 3) {
+                    if (base.types[labels[current]] === 3) {
                         defaultValue = 128;
                     }
 
-                    if ((flags & 0x1) == 0) {
+                    if ((flags & 0x1) === 0) {
                         x[current] = defaultValue;
                     } else {
                         x[current] = tran2.gsmart;
                     }
 
-                    if ((flags & 0x2) == 0) {
+                    if ((flags & 0x2) === 0) {
                         y[current] = defaultValue;
                     } else {
                         y[current] = tran2.gsmart;
                     }
 
-                    if ((flags & 0x4) == 0) {
+                    if ((flags & 0x4) === 0) {
                         z[current] = defaultValue;
                     } else {
                         z[current] = tran2.gsmart;

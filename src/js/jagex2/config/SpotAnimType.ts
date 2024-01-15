@@ -36,25 +36,25 @@ export default class SpotAnimType extends ConfigType {
     contrast: number = 0;
 
     decode = (_index: number, code: number, dat: Packet): void => {
-        if (code == 1) {
+        if (code === 1) {
             this.model = dat.g2;
-        } else if (code == 2) {
+        } else if (code === 2) {
             this.anim = dat.g2;
 
-            if (SeqType.instances != null) {
+            if (SeqType.instances !== null) {
                 this.seq = SeqType.instances[this.anim];
             }
-        } else if (code == 3) {
+        } else if (code === 3) {
             this.disposeAlpha = true;
-        } else if (code == 4) {
+        } else if (code === 4) {
             this.resizeh = dat.g2;
-        } else if (code == 5) {
+        } else if (code === 5) {
             this.resizev = dat.g2;
-        } else if (code == 6) {
+        } else if (code === 6) {
             this.orientation = dat.g2;
-        } else if (code == 7) {
+        } else if (code === 7) {
             this.ambient = dat.g1;
-        } else if (code == 8) {
+        } else if (code === 8) {
             this.contrast = dat.g1;
         } else if (code >= 40 && code < 50) {
             this.recol_s[code - 40] = dat.g2;

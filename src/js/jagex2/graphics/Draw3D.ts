@@ -165,7 +165,7 @@ export default class Draw3D {
     };
 
     static initPool = (size: number): void => {
-        if (this.texelPool != null) {
+        if (this.texelPool !== null) {
             return;
         }
         this.poolSize = size;
@@ -182,17 +182,17 @@ export default class Draw3D {
         let colorStepBC: number = 0;
         let colorStepAC: number = 0;
 
-        if (yB != yA) {
+        if (yB !== yA) {
             xStepAB = ((xB - xA) << 16) / (yB - yA);
             colorStepAB = ((colorB - colorA) << 15) / (yB - yA);
         }
 
-        if (yC != yB) {
+        if (yC !== yB) {
             xStepBC = ((xC - xB) << 16) / (yC - yB);
             colorStepBC = ((colorC - colorB) << 15) / (yC - yB);
         }
 
-        if (yC != yA) {
+        if (yC !== yA) {
             xStepAC = ((xA - xC) << 16) / (yA - yC);
             colorStepAC = ((colorA - colorC) << 15) / (yA - yC);
         }
@@ -224,7 +224,7 @@ export default class Draw3D {
                     colorB -= colorStepBC * yB;
                     yB = 0;
                 }
-                if ((yA != yB && xStepAC < xStepAB) || (yA == yB && xStepAC > xStepBC)) {
+                if ((yA !== yB && xStepAC < xStepAB) || (yA === yB && xStepAC > xStepBC)) {
                     yC -= yB;
                     yB -= yA;
                     for (yA = this.lineOffset[yA]; --yB >= 0; yA += Draw2D.width) {
@@ -279,7 +279,7 @@ export default class Draw3D {
                 colorC -= colorStepBC * yC;
                 yC = 0;
             }
-            if ((yA != yC && xStepAC < xStepAB) || (yA == yC && xStepBC > xStepAB)) {
+            if ((yA !== yC && xStepAC < xStepAB) || (yA === yC && xStepBC > xStepAB)) {
                 yB -= yC;
                 yC -= yA;
                 for (yA = this.lineOffset[yA]; --yC >= 0; yA += Draw2D.width) {
@@ -345,7 +345,7 @@ export default class Draw3D {
                     colorC -= colorStepAC * yC;
                     yC = 0;
                 }
-                if ((yB != yC && xStepAB < xStepBC) || (yB == yC && xStepAB > xStepAC)) {
+                if ((yB !== yC && xStepAB < xStepBC) || (yB === yC && xStepAB > xStepAC)) {
                     yA -= yC;
                     yC -= yB;
                     for (yB = this.lineOffset[yB]; --yC >= 0; yB += Draw2D.width) {
@@ -604,7 +604,7 @@ export default class Draw3D {
                 }
             }
 
-            if (this.alpha == 0) {
+            if (this.alpha === 0) {
                 while (--length >= 0) {
                     rgb = this.palette[color0 >> 8];
                     color0 += colorStep;
@@ -672,7 +672,7 @@ export default class Draw3D {
         offset += x0;
         length = x1 - x0;
 
-        if (this.alpha == 0) {
+        if (this.alpha === 0) {
             do {
                 dst[offset++] = this.palette[color0 >> 8];
                 color0 += colorStep;

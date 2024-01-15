@@ -55,13 +55,13 @@ export default class SpotAnimEntity extends Entity {
             model.scale(this.type.resizeh, this.type.resizev, this.type.resizeh);
         }
 
-        if (this.type.orientation != 0) {
-            if (this.type.orientation == 90) {
+        if (this.type.orientation !== 0) {
+            if (this.type.orientation === 90) {
                 model.rotateY90();
-            } else if (this.type.orientation == 180) {
+            } else if (this.type.orientation === 180) {
                 model.rotateY90();
                 model.rotateY90();
-            } else if (this.type.orientation == 270) {
+            } else if (this.type.orientation === 270) {
                 model.rotateY90();
                 model.rotateY90();
                 model.rotateY90();

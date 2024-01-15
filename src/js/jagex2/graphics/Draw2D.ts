@@ -122,7 +122,7 @@ export default class Draw2D {
                 this.pixels[x1 + y1 * this.width] = color;
             }
 
-            if (x1 == x2 && y1 == y2) {
+            if (x1 === x2 && y1 === y2) {
                 break;
             }
 

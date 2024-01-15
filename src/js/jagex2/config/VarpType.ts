@@ -30,24 +30,24 @@ export default class VarpType extends ConfigType {
     code8: boolean = false;
 
     decode(index: number, code: number, dat: Packet): void {
-        if (code == 1) {
+        if (code === 1) {
             this.code1 = dat.g1;
-        } else if (code == 2) {
+        } else if (code === 2) {
             this.code2 = dat.g1;
-        } else if (code == 3) {
+        } else if (code === 3) {
             this.hasCode3 = true;
             VarpType.code3[VarpType.code3Count++] = index;
-        } else if (code == 4) {
+        } else if (code === 4) {
             this.code4 = false;
-        } else if (code == 5) {
+        } else if (code === 5) {
             this.clientcode = dat.g2;
-        } else if (code == 6) {
+        } else if (code === 6) {
             this.code6 = true;
-        } else if (code == 7) {
+        } else if (code === 7) {
             this.code7 = dat.g4;
-        } else if (code == 8) {
+        } else if (code === 8) {
             this.code8 = true;
-        } else if (code == 10) {
+        } else if (code === 10) {
             this.code10 = dat.gjstr;
         } else {
             throw new Error(`Error unrecognised config code: ${code}`);

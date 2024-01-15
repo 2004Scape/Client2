@@ -44,7 +44,7 @@ export default class ComType {
             com.height = dat.g2;
 
             com.delegateHover = dat.g1;
-            if (com.delegateHover == 0) {
+            if (com.delegateHover === 0) {
                 com.delegateHover = -1;
             } else {
                 com.delegateHover = ((com.delegateHover - 1) << 8) + dat.g1;
@@ -179,14 +179,14 @@ export default class ComType {
                     }
 
                     com.seqId = dat.g1;
-                    if (com.seqId == 0) {
+                    if (com.seqId === 0) {
                         com.seqId = -1;
                     } else {
                         com.seqId = ((com.seqId - 1) << 8) + dat.g1;
                     }
 
                     com.activeSeqId = dat.g1;
-                    if (com.activeSeqId == 0) {
+                    if (com.activeSeqId === 0) {
                         com.activeSeqId = -1;
                     } else {
                         com.activeSeqId = ((com.activeSeqId - 1) << 8) + dat.g1;
@@ -216,23 +216,23 @@ export default class ComType {
                 }
             }
 
-            if (com.optionType == 2) {
+            if (com.optionType === 2) {
                 com.spellAction = dat.gjstr;
                 com.spellName = dat.gjstr;
                 com.spellFlags = dat.g2;
             }
 
-            if (com.optionType == 1 || com.optionType == 4 || com.optionType == 5 || com.optionType == 6) {
+            if (com.optionType === 1 || com.optionType === 4 || com.optionType === 5 || com.optionType === 6) {
                 com.option = dat.gjstr;
 
-                if (com.option.length == 0) {
-                    if (com.optionType == 1) {
+                if (com.option.length === 0) {
+                    if (com.optionType === 1) {
                         com.option = 'Ok';
-                    } else if (com.optionType == 4) {
+                    } else if (com.optionType === 4) {
                         com.option = 'Select';
-                    } else if (com.optionType == 5) {
+                    } else if (com.optionType === 5) {
                         com.option = 'Select';
-                    } else if (com.optionType == 6) {
+                    } else if (com.optionType === 6) {
                         com.option = 'Continue';
                     }
                 }
@@ -342,7 +342,7 @@ export default class ComType {
             return null;
         }
 
-        if (primaryFrame === -1 && secondaryFrame == -1 && !model.faceColor) {
+        if (primaryFrame === -1 && secondaryFrame === -1 && !model.faceColor) {
             return model;
         }
 
@@ -351,11 +351,11 @@ export default class ComType {
             tmp.createLabelReferences();
         }
 
-        if (primaryFrame != -1) {
+        if (primaryFrame !== -1) {
             tmp.applyTransform(primaryFrame);
         }
 
-        if (secondaryFrame != -1) {
+        if (secondaryFrame !== -1) {
             tmp.applyTransform(secondaryFrame);
         }
 

@@ -41,7 +41,7 @@ export default class ObjType extends ConfigType {
         }
 
         for (let id: number = 0; id < 10; id++) {
-            if (this.cache[id].index == id) {
+            if (this.cache[id].index === id) {
                 return this.cache[id];
             }
         }
@@ -53,7 +53,7 @@ export default class ObjType extends ConfigType {
         obj.reset();
         obj.decodeType(id, this.dat);
 
-        if (obj.certtemplate != -1) {
+        if (obj.certtemplate !== -1) {
             obj.toCertificate();
         }
 

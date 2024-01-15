@@ -52,7 +52,7 @@ export default class InputTracking {
         }
         this.lastTime = now;
         this.ensureCapacity(5);
-        if (button == 1) {
+        if (button === 1) {
             this.outBuffer?.p1(1);
         } else {
             this.outBuffer?.p1(2);
@@ -73,7 +73,7 @@ export default class InputTracking {
         }
         this.lastTime = now;
         this.ensureCapacity(2);
-        if (button == 1) {
+        if (button === 1) {
             this.outBuffer?.p1(3);
         } else {
             this.outBuffer?.p1(4);
@@ -130,13 +130,13 @@ export default class InputTracking {
             delta = 250;
         }
         this.lastTime = now;
-        if (key == 1000) {
+        if (key === 1000) {
             key = 11;
-        } else if (key == 1001) {
+        } else if (key === 1001) {
             key = 12;
-        } else if (key == 1002) {
+        } else if (key === 1002) {
             key = 14;
-        } else if (key == 1003) {
+        } else if (key === 1003) {
             key = 15;
         } else if (key >= 1008) {
             key -= 992;
@@ -158,13 +158,13 @@ export default class InputTracking {
             delta = 250;
         }
         this.lastTime = now;
-        if (key == 1000) {
+        if (key === 1000) {
             key = 11;
-        } else if (key == 1001) {
+        } else if (key === 1001) {
             key = 12;
-        } else if (key == 1002) {
+        } else if (key === 1002) {
             key = 14;
-        } else if (key == 1003) {
+        } else if (key === 1003) {
             key = 15;
         } else if (key >= 1008) {
             key -= 992;

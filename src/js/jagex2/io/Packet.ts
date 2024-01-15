@@ -16,7 +16,7 @@ export default class Packet {
             let remainder: number = i;
 
             for (let bit: number = 0; bit < 8; bit++) {
-                if ((remainder & 1) == 1) {
+                if ((remainder & 1) === 1) {
                     remainder = (remainder >>> 1) ^ Packet.CRC32_POLYNOMIAL;
                 } else {
                     remainder >>>= 1;
@@ -105,7 +105,7 @@ export default class Packet {
 
     get gjstr(): string {
         let str: string = '';
-        while (this.data[this.pos] != 10 && this.pos < this.data.length) {
+        while (this.data[this.pos] !== 10 && this.pos < this.data.length) {
             str += String.fromCharCode(this.data[this.pos++]);
         }
         this.pos++;
@@ -193,7 +193,7 @@ export default class Packet {
             n -= remaining;
         }
 
-        if (n == remaining) {
+        if (n === remaining) {
             value += this.data[bytePos] & Packet.bitmask[remaining];
         } else {
             value += (this.data[bytePos] >>> (remaining - n)) & Packet.bitmask[n];

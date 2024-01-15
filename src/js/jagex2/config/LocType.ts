@@ -37,7 +37,7 @@ export default class LocType extends ConfigType {
         }
 
         for (let id: number = 0; id < 10; id++) {
-            if (this.cache[id].index == id) {
+            if (this.cache[id].index === id) {
                 return this.cache[id];
             }
         }
@@ -128,7 +128,7 @@ export default class LocType extends ConfigType {
         } else if (code === 24) {
             this.anim = dat.g2;
 
-            if (this.anim == 65535) {
+            if (this.anim === 65535) {
                 this.anim = -1;
             }
         } else if (code === 25) {

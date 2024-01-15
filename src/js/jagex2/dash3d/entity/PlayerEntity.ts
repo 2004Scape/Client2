@@ -54,7 +54,7 @@ export default class PlayerEntity extends PathingEntity {
             return model;
         }
 
-        if (this.spotanimId != -1 && this.spotanimFrame != -1) {
+        if (this.spotanimId !== -1 && this.spotanimFrame !== -1) {
             const spotanim: SpotAnimType = SpotAnimType.instances[this.spotanimId];
             const model2: Model = Model.modelShareColored(spotanim.getModel(), true, !spotanim.disposeAlpha, false);
 
@@ -65,7 +65,7 @@ export default class PlayerEntity extends PathingEntity {
             }
             model2.labelFaces = null;
             model2.labelVertices = null;
-            if (spotanim.resizeh != 128 || spotanim.resizev != 128) {
+            if (spotanim.resizeh !== 128 || spotanim.resizev !== 128) {
                 model2.scale(spotanim.resizeh, spotanim.resizev, spotanim.resizeh);
             }
             model2.calculateNormals(spotanim.ambient + 64, spotanim.contrast + 850, -30, -50, -30, true);
@@ -83,25 +83,25 @@ export default class PlayerEntity extends PathingEntity {
                 const loc: Model | null = this.locModel;
                 if (loc) {
                     loc.translate(this.locOffsetY - this.y, this.locOffsetX - this.x, this.locOffsetZ - this.z);
-                    if (this.dstYaw == 512) {
+                    if (this.dstYaw === 512) {
                         loc.rotateY90();
                         loc.rotateY90();
                         loc.rotateY90();
-                    } else if (this.dstYaw == 1024) {
+                    } else if (this.dstYaw === 1024) {
                         loc.rotateY90();
                         loc.rotateY90();
-                    } else if (this.dstYaw == 1536) {
+                    } else if (this.dstYaw === 1536) {
                         loc.rotateY90();
                     }
 
                     const models: Model[] = [model, loc];
                     model = Model.modelFromModelsBounds(models, 2);
-                    if (this.dstYaw == 512) {
+                    if (this.dstYaw === 512) {
                         loc.rotateY90();
-                    } else if (this.dstYaw == 1024) {
+                    } else if (this.dstYaw === 1024) {
                         loc.rotateY90();
                         loc.rotateY90();
-                    } else if (this.dstYaw == 1536) {
+                    } else if (this.dstYaw === 1536) {
                         loc.rotateY90();
                         loc.rotateY90();
                         loc.rotateY90();
@@ -125,7 +125,7 @@ export default class PlayerEntity extends PathingEntity {
 
         for (let part: number = 0; part < 12; part++) {
             const msb: number = buf.g1;
-            if (msb == 0) {
+            if (msb === 0) {
                 this.appearances[part] = 0;
             } else {
                 this.appearances[part] = (msb << 8) + buf.g1;
@@ -141,37 +141,37 @@ export default class PlayerEntity extends PathingEntity {
         }
 
         this.seqStandId = buf.g2;
-        if (this.seqStandId == 65535) {
+        if (this.seqStandId === 65535) {
             this.seqStandId = -1;
         }
 
         this.seqTurnId = buf.g2;
-        if (this.seqTurnId == 65535) {
+        if (this.seqTurnId === 65535) {
             this.seqTurnId = -1;
         }
 
         this.seqWalkId = buf.g2;
-        if (this.seqWalkId == 65535) {
+        if (this.seqWalkId === 65535) {
             this.seqWalkId = -1;
         }
 
         this.seqTurnAroundId = buf.g2;
-        if (this.seqTurnAroundId == 65535) {
+        if (this.seqTurnAroundId === 65535) {
             this.seqTurnAroundId = -1;
         }
 
         this.seqTurnLeftId = buf.g2;
-        if (this.seqTurnLeftId == 65535) {
+        if (this.seqTurnLeftId === 65535) {
             this.seqTurnLeftId = -1;
         }
 
         this.seqTurnRightId = buf.g2;
-        if (this.seqTurnRightId == 65535) {
+        if (this.seqTurnRightId === 65535) {
             this.seqTurnRightId = -1;
         }
 
         this.seqRunId = buf.g2;
-        if (this.seqRunId == 65535) {
+        if (this.seqRunId === 65535) {
             this.seqRunId = -1;
         }
 
@@ -249,7 +249,7 @@ export default class PlayerEntity extends PathingEntity {
             if (seq.frames) {
                 primaryTransformId = seq.frames[this.primarySeqFrame];
             }
-            if (this.secondarySeqId >= 0 && this.secondarySeqId != this.seqStandId) {
+            if (this.secondarySeqId >= 0 && this.secondarySeqId !== this.seqStandId) {
                 const secondFrames: Uint16Array | null = SeqType.instances[this.secondarySeqId].frames;
                 if (secondFrames) {
                     secondaryTransformId = secondFrames[this.secondarySeqFrame];
@@ -280,11 +280,11 @@ export default class PlayerEntity extends PathingEntity {
             for (let part: number = 0; part < 12; part++) {
                 let value: number = this.appearances[part];
 
-                if (leftHandValue >= 0 && part == 3) {
+                if (leftHandValue >= 0 && part === 3) {
                     value = leftHandValue;
                 }
 
-                if (rightHandValue >= 0 && part == 5) {
+                if (rightHandValue >= 0 && part === 5) {
                     value = rightHandValue;
                 }
 
@@ -327,7 +327,7 @@ export default class PlayerEntity extends PathingEntity {
         const tmp: Model = Model.modelShareAlpha(model, true);
         if (primaryTransformId !== -1 && secondaryTransformId !== -1) {
             tmp.applyTransforms(primaryTransformId, secondaryTransformId, SeqType.instances[this.primarySeqId].labelGroups);
-        } else if (primaryTransformId != -1) {
+        } else if (primaryTransformId !== -1) {
             tmp.applyTransform(primaryTransformId);
         }
 

@@ -167,7 +167,7 @@ export default class PixFont extends Hashable {
 
         for (let i: number = 0; i < str.length; i++) {
             const c: number = PixFont.CHARSET[str.charCodeAt(i)];
-            if (c != 94) {
+            if (c !== 94) {
                 this.drawChar(this.pixels[c], x + this.clipX[c], offY + this.clipY[c], this.charWidth[c], this.charHeight[c], color);
             }
 
@@ -245,25 +245,25 @@ export default class PixFont extends Hashable {
 
         for (let y: number = -h; y < 0; y++) {
             for (let x: number = hw; x < 0; x++) {
-                if (src[srcOff++] == 0) {
+                if (src[srcOff++] === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = rgb;
                 }
 
-                if (src[srcOff++] == 0) {
+                if (src[srcOff++] === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = rgb;
                 }
 
-                if (src[srcOff++] == 0) {
+                if (src[srcOff++] === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = rgb;
                 }
 
-                if (src[srcOff++] == 0) {
+                if (src[srcOff++] === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = rgb;
@@ -271,7 +271,7 @@ export default class PixFont extends Hashable {
             }
 
             for (let x: number = w; x < 0; x++) {
-                if (src[srcOff++] == 0) {
+                if (src[srcOff++] === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = rgb;
@@ -332,7 +332,7 @@ export default class PixFont extends Hashable {
     copyImageMasked = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, color: number): void => {
         for (let y: number = 0; y < h; y++) {
             for (let x: number = 0; x < w; x++) {
-                if (src[srcOff++] != 0) {
+                if (src[srcOff++] !== 0) {
                     dst[dstOff++] = color;
                 } else {
                     dstOff++;

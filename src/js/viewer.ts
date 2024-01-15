@@ -341,7 +341,7 @@ class Viewer extends GameShell {
                 const li: HTMLLIElement = document.createElement('li');
                 li.id = name;
                 li.className = 'list-group-item';
-                if (id == 0) {
+                if (id === 0) {
                     li.className += ' active';
                 }
                 li.innerText = name;

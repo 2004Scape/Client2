@@ -241,7 +241,7 @@ export default class Model extends Hashable {
     }
 
     static mulColorLightness(hsl: number, scalar: number, faceInfo: number): number {
-        if ((faceInfo & 0x2) == 2) {
+        if ((faceInfo & 0x2) === 2) {
             if (scalar < 0) {
                 scalar = 0;
             } else if (scalar > 127) {
@@ -412,7 +412,7 @@ export default class Model extends Hashable {
             faceAlpha = src.faceAlpha;
         } else {
             faceAlpha = new Int32Array(faceCount);
-            if (src.faceAlpha == null) {
+            if (src.faceAlpha === null) {
                 for (let f: number = 0; f < faceCount; f++) {
                     faceAlpha[f] = 0;
                 }
@@ -563,8 +563,8 @@ export default class Model extends Hashable {
                     copyPriority = true;
                 }
 
-                copyAlpha ||= model.faceAlpha != null;
-                copyColor ||= model.faceColor != null;
+                copyAlpha ||= model.faceAlpha !== null;
+                copyColor ||= model.faceColor !== null;
             }
         }
 
@@ -647,7 +647,7 @@ export default class Model extends Hashable {
                     }
 
                     if (copyPriority) {
-                        if (model.facePriority == null) {
+                        if (model.facePriority === null) {
                             if (facePriority) {
                                 facePriority[faceCount] = model.priority;
                             }
@@ -659,7 +659,7 @@ export default class Model extends Hashable {
                     }
 
                     if (copyAlpha) {
-                        if (model.faceAlpha == null) {
+                        if (model.faceAlpha === null) {
                             if (faceAlpha) {
                                 faceAlpha[faceCount] = 0;
                             }
@@ -670,7 +670,7 @@ export default class Model extends Hashable {
                         }
                     }
 
-                    if (copyColor && model.faceColor != null) {
+                    if (copyColor && model.faceColor !== null) {
                         if (faceColor) {
                             faceColor[faceCount] = model.faceColor[f];
                         }
@@ -819,7 +819,7 @@ export default class Model extends Hashable {
                 }
             }
 
-            if (identical == -1) {
+            if (identical === -1) {
                 vertexX[vertexCount] = x;
                 vertexY[vertexCount] = y;
                 vertexZ[vertexCount] = z;
@@ -1030,17 +1030,17 @@ export default class Model extends Hashable {
             const flags: number = Model.point1.g1;
 
             a = 0;
-            if ((flags & 0x1) != 0) {
+            if ((flags & 0x1) !== 0) {
                 a = Model.point2.gsmart;
             }
 
             b = 0;
-            if ((flags & 0x2) != 0) {
+            if ((flags & 0x2) !== 0) {
                 b = Model.point3.gsmart;
             }
 
             c = 0;
-            if ((flags & 0x4) != 0) {
+            if ((flags & 0x4) !== 0) {
                 c = Model.point4.gsmart;
             }
 
@@ -1453,7 +1453,7 @@ export default class Model extends Hashable {
         }
 
         for (let f: number = 0; f < this.faceCount; f++) {
-            if (this.faceColor[f] == src) {
+            if (this.faceColor[f] === src) {
                 this.faceColor[f] = dst;
             }
         }
@@ -1772,7 +1772,7 @@ export default class Model extends Hashable {
         }
 
         for (let f: number = 0; f < this.faceCount; f++) {
-            if (this.faceInfo && this.faceInfo[f] == -1) {
+            if (this.faceInfo && this.faceInfo[f] === -1) {
                 continue;
             }
 
@@ -1784,7 +1784,7 @@ export default class Model extends Hashable {
             const xB: number = Model.vertexScreenX[b];
             const xC: number = Model.vertexScreenX[c];
 
-            if (clipped && (xA == -5000 || xB == -5000 || xC == -5000)) {
+            if (clipped && (xA === -5000 || xB === -5000 || xC === -5000)) {
                 Model.faceNearClipped[f] = true;
 
                 const depthAverage: number = Math.trunc((Model.vertexScreenZ[a] + Model.vertexScreenZ[b] + Model.vertexScreenZ[c]) / 3 + this.minDepth);
@@ -1812,7 +1812,7 @@ export default class Model extends Hashable {
             }
         }
 
-        if (this.facePriority == null) {
+        if (this.facePriority === null) {
             for (let depth: number = this.maxDepth - 1; depth >= 0; depth--) {
                 const count: number = Model.tmpDepthFaceCount[depth];
                 if (count <= 0) {
@@ -1848,7 +1848,7 @@ export default class Model extends Hashable {
 
                     if (priorityFace < 10) {
                         Model.tmpPriorityDepthSum[priorityFace] += depth;
-                    } else if (priorityFace == 10) {
+                    } else if (priorityFace === 10) {
                         Model.tmpPriority10FaceDepth[priorityFaceCount] = depth;
                     } else {
                         Model.tmpPriority11FaceDepth[priorityFaceCount] = depth;
@@ -1877,7 +1877,7 @@ export default class Model extends Hashable {
 
         let priorityFaces: Int32Array = Model.tmpPriorityFaces[10];
         let priorityFaceDepths: Int32Array = Model.tmpPriority10FaceDepth;
-        if (priorityFace == priorityFaceCount) {
+        if (priorityFace === priorityFaceCount) {
             priorityFace = 0;
             priorityFaceCount = Model.tmpPriorityFaceCount[11];
             priorityFaces = Model.tmpPriorityFaces[11];
@@ -1892,10 +1892,10 @@ export default class Model extends Hashable {
         }
 
         for (let priority: number = 0; priority < 10; priority++) {
-            while (priority == 0 && priorityDepth > averagePriorityDepthSum1_2) {
+            while (priority === 0 && priorityDepth > averagePriorityDepthSum1_2) {
                 this.drawFace(priorityFaces[priorityFace++]);
 
-                if (priorityFace == priorityFaceCount && priorityFaces != Model.tmpPriorityFaces[11]) {
+                if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
                     priorityFace = 0;
                     priorityFaceCount = Model.tmpPriorityFaceCount[11];
                     priorityFaces = Model.tmpPriorityFaces[11];
@@ -1909,10 +1909,10 @@ export default class Model extends Hashable {
                 }
             }
 
-            while (priority == 3 && priorityDepth > averagePriorityDepthSum3_4) {
+            while (priority === 3 && priorityDepth > averagePriorityDepthSum3_4) {
                 this.drawFace(priorityFaces[priorityFace++]);
 
-                if (priorityFace == priorityFaceCount && priorityFaces != Model.tmpPriorityFaces[11]) {
+                if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
                     priorityFace = 0;
                     priorityFaceCount = Model.tmpPriorityFaceCount[11];
                     priorityFaces = Model.tmpPriorityFaces[11];
@@ -1926,10 +1926,10 @@ export default class Model extends Hashable {
                 }
             }
 
-            while (priority == 5 && priorityDepth > averagePriorityDepthSum6_8) {
+            while (priority === 5 && priorityDepth > averagePriorityDepthSum6_8) {
                 this.drawFace(priorityFaces[priorityFace++]);
 
-                if (priorityFace == priorityFaceCount && priorityFaces != Model.tmpPriorityFaces[11]) {
+                if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
                     priorityFace = 0;
                     priorityFaceCount = Model.tmpPriorityFaceCount[11];
                     priorityFaces = Model.tmpPriorityFaces[11];
@@ -1951,10 +1951,10 @@ export default class Model extends Hashable {
             }
         }
 
-        while (priorityDepth != -1000) {
+        while (priorityDepth !== -1000) {
             this.drawFace(priorityFaces[priorityFace++]);
 
-            if (priorityFace == priorityFaceCount && priorityFaces != Model.tmpPriorityFaces[11]) {
+            if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
                 priorityFace = 0;
                 priorityFaces = Model.tmpPriorityFaces[11];
                 priorityFaceCount = Model.tmpPriorityFaceCount[11];

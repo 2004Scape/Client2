@@ -287,7 +287,7 @@ export default class Pix24 extends Hashable {
         for (let i: number = 0; i < this.pixels.length; i++) {
             const rgb: number = this.pixels[i];
 
-            if (rgb != 0) {
+            if (rgb !== 0) {
                 let red: number = (rgb >> 16) & 0xff;
                 red += r;
                 if (red < 1) {
@@ -344,7 +344,7 @@ export default class Pix24 extends Hashable {
         for (let y: number = -h; y < 0; y++) {
             for (let x: number = -w; x < 0; x++) {
                 const rgb: number = src[srcOff++];
-                if (rgb == 0) {
+                if (rgb === 0) {
                     dstOff++;
                 } else {
                     const dstRgb: number = dst[dstOff];

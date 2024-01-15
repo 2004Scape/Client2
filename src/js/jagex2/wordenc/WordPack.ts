@@ -29,7 +29,7 @@ export default class WordPack {
                 carry = nibble;
             }
             nibble = value & 0xf;
-            if (carry != -1) {
+            if (carry !== -1) {
                 this.charBuffer[pos++] = this.TABLE[(carry << 4) + nibble - 195];
                 carry = -1;
             } else if (nibble < 13) {
@@ -70,7 +70,7 @@ export default class WordPack {
             if (currentChar > 12) {
                 currentChar += 195;
             }
-            if (carry == -1) {
+            if (carry === -1) {
                 if (currentChar < 13) {
                     carry = currentChar;
                 } else {
@@ -84,7 +84,7 @@ export default class WordPack {
                 carry = currentChar & 0xf;
             }
         }
-        if (carry != -1) {
+        if (carry !== -1) {
             word.p1(carry << 4);
         }
     };
