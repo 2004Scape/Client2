@@ -241,6 +241,9 @@ export default class Model extends Hashable {
     }
 
     static mulColorLightness(hsl: number, scalar: number, faceInfo: number): number {
+        hsl |= 0;
+        scalar |= 0;
+        faceInfo |= 0;
         if ((faceInfo & 0x2) === 2) {
             if (scalar < 0) {
                 scalar = 0;
@@ -1409,10 +1412,6 @@ export default class Model extends Hashable {
     };
 
     rotateY90 = (): void => {
-        if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
-            return;
-        }
-
         for (let v: number = 0; v < this.vertexCount; v++) {
             const tmp: number = this.vertexX[v];
             this.vertexX[v] = this.vertexZ[v];
@@ -1421,10 +1420,6 @@ export default class Model extends Hashable {
     };
 
     rotateX = (angle: number): void => {
-        if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
-            return;
-        }
-
         const sin: number = Draw3D.sin[angle];
         const cos: number = Draw3D.cos[angle];
 
@@ -1436,10 +1431,6 @@ export default class Model extends Hashable {
     };
 
     translate = (y: number, x: number, z: number): void => {
-        if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
-            return;
-        }
-
         for (let v: number = 0; v < this.vertexCount; v++) {
             this.vertexX[v] += x;
             this.vertexY[v] += y;
@@ -1460,10 +1451,6 @@ export default class Model extends Hashable {
     };
 
     rotateY180 = (): void => {
-        if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
-            return;
-        }
-
         if (this.faceVertexA === null || this.faceVertexB === null || this.faceVertexC === null) {
             return;
         }
@@ -1480,10 +1467,6 @@ export default class Model extends Hashable {
     };
 
     scale = (x: number, y: number, z: number): void => {
-        if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
-            return;
-        }
-
         for (let v: number = 0; v < this.vertexCount; v++) {
             this.vertexX[v] = (this.vertexX[v] * x) / 128;
             this.vertexY[v] = (this.vertexY[v] * y) / 128;
@@ -1492,11 +1475,7 @@ export default class Model extends Hashable {
     };
 
     calculateNormals = (lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number, applyLighting: boolean): void => {
-        if (this.vertexX === null || this.vertexY === null || this.vertexZ === null || this.faceVertexA === null || this.faceVertexB === null || this.faceVertexC === null || this.faceColor === null) {
-            return;
-        }
-
-        const lightMagnitude: number = Math.sqrt(lightSrcX * lightSrcX + lightSrcY * lightSrcY + lightSrcZ * lightSrcZ);
+        const lightMagnitude: number = Math.trunc(Math.sqrt(lightSrcX * lightSrcX + lightSrcY * lightSrcY + lightSrcZ * lightSrcZ));
         const attenuation: number = (lightAttenuation * lightMagnitude) >> 8;
 
         if (this.faceColorA === null || this.faceColorB === null || this.faceColorC === null) {
@@ -1536,14 +1515,14 @@ export default class Model extends Hashable {
                 nz >>= 1;
             }
 
-            let length: number = Math.sqrt(nx * nx + ny * ny + nz * nz);
+            let length: number = Math.trunc(Math.sqrt(nx * nx + ny * ny + nz * nz));
             if (length <= 0) {
                 length = 1;
             }
 
-            nx = (nx * 256) / length;
-            ny = (ny * 256) / length;
-            nz = (nz * 256) / length;
+            nx = Math.trunc((nx * 256) / length);
+            ny = Math.trunc((ny * 256) / length);
+            nz = Math.trunc((nz * 256) / length);
 
             if (this.faceInfo === null || (this.faceInfo[f] & 0x1) === 0) {
                 let n: VertexNormal = this.vertexNormal[a];
@@ -1564,8 +1543,10 @@ export default class Model extends Hashable {
                 n.z += nz;
                 n.w++;
             } else {
-                const lightness: number = lightAmbient + (lightSrcX * nx + lightSrcY * ny + lightSrcZ * nz) / (attenuation + attenuation / 2);
-                this.faceColorA[f] = Model.mulColorLightness(this.faceColor[f], lightness, this.faceInfo[f]);
+                const lightness: number = Math.trunc(lightAmbient + (lightSrcX * nx + lightSrcY * ny + lightSrcZ * nz) / (attenuation + attenuation / 2));
+                if (this.faceColor) {
+                    this.faceColorA[f] = Model.mulColorLightness(this.faceColor[f], lightness, this.faceInfo[f]);
+                }
             }
         }
 
@@ -1658,10 +1639,6 @@ export default class Model extends Hashable {
 
     // todo: better name, Java relies on overloads
     drawSimple = (pitch: number, yaw: number, roll: number, eyePitch: number, eyeX: number, eyeY: number, eyeZ: number): void => {
-        if (this.vertexX === null || this.vertexY === null || this.vertexZ === null) {
-            return;
-        }
-
         if (Model.vertexScreenX === null || Model.vertexScreenY === null || Model.vertexScreenZ === null) {
             return;
         }
@@ -1762,11 +1739,6 @@ export default class Model extends Hashable {
         ) {
             return;
         }
-
-        if (this.faceVertexA === null || this.faceVertexB === null || this.faceVertexC === null) {
-            return;
-        }
-
         for (let depth: number = 0; depth < this.maxDepth; depth++) {
             Model.tmpDepthFaceCount[depth] = 0;
         }
@@ -1972,10 +1944,6 @@ export default class Model extends Hashable {
     drawFace = (face: number): void => {
         if (Model.faceNearClipped !== null && Model.faceNearClipped[face]) {
             this.drawNearClippedFace(face);
-            return;
-        }
-
-        if (this.faceVertexA === null || this.faceVertexB === null || this.faceVertexC === null) {
             return;
         }
 

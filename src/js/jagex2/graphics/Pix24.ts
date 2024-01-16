@@ -317,6 +317,99 @@ export default class Pix24 extends Hashable {
         }
     };
 
+    crop = (x: number, y: number, w: number, h: number): void => {
+        x = x | 0;
+        y = y | 0;
+        w = w | 0;
+        h = h | 0;
+
+        try {
+            const currentW: number = this.width;
+            // const currentH: number = this.height; // dead code
+
+            let offW: number = 0;
+            let offH: number = 0;
+            // let scaleWidth: number = (currentW << 16) / w; // dead code
+            // let scaleHeight: number = (currentH << 16) / h; // dead code
+
+            const cw: number = this.cropW | 0;
+            const ch: number = this.cropH | 0;
+            const scaleCropWidth: number = Math.trunc((cw << 16) / w);
+            const scaleCropHeight: number = Math.trunc((ch << 16) / h);
+
+            x += Math.trunc((this.cropX * w + cw - 1) / cw);
+            y += Math.trunc((this.cropY * h + ch - 1) / ch);
+
+            if ((this.cropX * w) % cw != 0) {
+                offW = Math.trunc(((cw - ((this.cropX * w) % cw)) << 16) / w);
+            }
+
+            if ((this.cropY * h) % ch != 0) {
+                offH = Math.trunc(((ch - ((this.cropY * h) % ch)) << 16) / h);
+            }
+
+            w = Math.trunc((w * (this.width - (offW >> 16))) / cw);
+            h = Math.trunc((h * (this.height - (offH >> 16))) / ch);
+
+            let dstStep: number = x + y * Draw2D.width;
+            let dstOff: number = Draw2D.width - w;
+
+            if (y < Draw2D.top) {
+                const cutoff: number = Draw2D.top - y;
+                h -= cutoff;
+                y = 0;
+                dstStep += cutoff * Draw2D.width;
+                offH += scaleCropHeight * cutoff;
+            }
+
+            if (y + h > Draw2D.bottom) {
+                h -= y + h - Draw2D.bottom;
+            }
+
+            if (x < Draw2D.left) {
+                const cutoff: number = Draw2D.left - x;
+                w -= cutoff;
+                x = 0;
+                dstStep += cutoff;
+                offW += scaleCropWidth * cutoff;
+                dstOff += cutoff;
+            }
+
+            if (x + w > Draw2D.right) {
+                const cutoff: number = x + w - Draw2D.right;
+                w -= cutoff;
+                dstOff += cutoff;
+            }
+
+            this.scale(w, h, this.pixels, offW, offH, Draw2D.pixels, dstOff, dstStep, currentW, scaleCropWidth, scaleCropHeight);
+        } catch (e) {
+            console.error('error in sprite clipping routine');
+        }
+    };
+
+    private scale = (w: number, h: number, src: Int32Array, offW: number, offH: number, dst: Int32Array, dstStep: number, dstOff: number, currentW: number, scaleCropWidth: number, scaleCropHeight: number): void => {
+        try {
+            const lastOffW: number = offW;
+            for (let y: number = -h; y < 0; y++) {
+                const offY: number = (offH >> 16) * currentW;
+                for (let x: number = -w; x < 0; x++) {
+                    const rgb: number = src[(offW >> 16) + offY];
+                    if (rgb == 0) {
+                        dstOff++;
+                    } else {
+                        dst[dstOff++] = rgb;
+                    }
+                    offW += scaleCropWidth;
+                }
+                offH += scaleCropHeight;
+                offW = lastOffW;
+                dstOff += dstStep;
+            }
+        } catch (e) {
+            console.error('error in plot_scale');
+        }
+    };
+
     private copyImageBlitOpaque = (w: number, h: number, src: Int32Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
         const qw: number = -(w >> 2);
         w = -(w & 0x3);

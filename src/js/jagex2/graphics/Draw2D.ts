@@ -141,35 +141,33 @@ export default class Draw2D {
     };
 
     // fill in a rectangle area
-    static fillRect = (x: number, y: number, w: number, h: number, color: number): void => {
-        const pixels: Int32Array = this.pixels;
-
-        let x0: number = x;
-        let y0: number = y;
-        let x1: number = x + w;
-        let y1: number = y + h;
-
-        if (x0 < this.left) {
-            x0 = this.left;
+    static fillRect = (x: number, y: number, width: number, height: number, color: number): void => {
+        if (x < this.left) {
+            width -= this.left - x;
+            x = this.left;
         }
 
-        if (y0 < this.top) {
-            y0 = this.top;
+        if (y < this.top) {
+            height -= this.top - y;
+            y = this.top;
         }
 
-        if (x1 > this.right) {
-            x1 = this.right;
+        if (x + width > this.right) {
+            width = this.right - x;
         }
 
-        if (y1 > this.bottom) {
-            y1 = this.bottom;
+        if (y + height > this.bottom) {
+            height = this.bottom - y;
         }
 
-        const width: number = this.width;
+        const step: number = this.width - width;
+        let offset: number = x + y * this.width;
+        for (let i: number = -height; i < 0; i++) {
+            for (let j: number = -width; j < 0; j++) {
+                this.pixels[offset++] = color;
+            }
 
-        for (let yy: number = y0; yy < y1; yy++) {
-            const off: number = x0 + yy * width;
-            pixels.fill(color, off, off + (x1 - x0));
+            offset += step;
         }
     };
 }

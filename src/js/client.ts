@@ -3163,15 +3163,15 @@ class Client extends GameShell {
                 // VARP_LARGE
                 const varp: number = this.in.g2;
                 const value: number = this.in.g4;
-                // this.varCache[varp] = value;
-                // if (this.varps[varp] !== value) {
-                //     this.varps[varp] = value;
-                //     this.updateVarp(varp);
-                //     this.redrawSidebar = true;
-                //     if (this.stickyChatInterfaceId !== -1) {
-                //         this.redrawChatback = true;
-                //     }
-                // }
+                this.varCache[varp] = value;
+                if (this.varps[varp] !== value) {
+                    this.varps[varp] = value;
+                    this.updateVarp(varp);
+                    this.redrawSidebar = true;
+                    if (this.stickyChatInterfaceId !== -1) {
+                        this.redrawChatback = true;
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3218,13 +3218,13 @@ class Client extends GameShell {
             }
             if (this.packetType === 133) {
                 // FINISH_TRACKING
-                // const tracking = InputTracking.stop();
-                // if (tracking !== null) {
-                //     this.out.p1isaac(81);
-                //     this.out.p2(tracking.pos);
-                //     this.out.pdata(tracking.data, tracking.pos, 0);
-                //     tracking.release();
-                // }
+                const tracking: Packet | null = InputTracking.stop();
+                if (tracking !== null) {
+                    this.out.p1isaac(81);
+                    this.out.p2(tracking.pos);
+                    this.out.pdata(tracking.data, tracking.pos, 0);
+                    // tracking.release(); TODO?
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3234,18 +3234,27 @@ class Client extends GameShell {
                 const com: number = this.in.g2;
                 const inv: ComType = ComType.instances[com];
                 const size: number = this.in.g1;
-                // for (let i = 0; i < size; i++) {
-                //     inv.inventorySlotObjId[i] = this.in.g2;
-                //     let count = this.in.g1;
-                //     if (count === 255) {
-                //         count = this.in.g4;
-                //     }
-                //     inv.inventorySlotObjCount[i] = count;
-                // }
-                // for (let i = size; i < inv.inventorySlotObjId.length; i++) {
-                //     inv.inventorySlotObjId[i] = 0;
-                //     inv.inventorySlotObjCount[i] = 0;
-                // }
+                if (inv.inventorySlotObjId && inv.inventorySlotObjCount) {
+                    for (let i: number = 0; i < size; i++) {
+                        inv.inventorySlotObjId[i] = this.in.g2;
+                        let count: number = this.in.g1;
+                        if (count === 255) {
+                            count = this.in.g4;
+                        }
+                        inv.inventorySlotObjCount[i] = count;
+                    }
+                    for (let i: number = size; i < inv.inventorySlotObjId.length; i++) {
+                        inv.inventorySlotObjId[i] = 0;
+                        inv.inventorySlotObjCount[i] = 0;
+                    }
+                } else {
+                    for (let i: number = 0; i < size; i++) {
+                        this.in.g2;
+                        if (this.in.g1 === 255) {
+                            this.in.g4;
+                        }
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3266,12 +3275,13 @@ class Client extends GameShell {
             }
             if (this.packetType === 15) {
                 // UPDATE_INV_STOP_TRANSMIT
-                const com: number = this.in.g2;
-                const inv: ComType = ComType.instances[com];
-                // for (let i = 0; i < inv.inventorySlotObjId.length; i++) {
-                //     inv.inventorySlotObjId[i] = -1;
-                //     inv.inventorySlotObjId[i] = 0;
-                // }
+                const inv: ComType = ComType.instances[this.in.g2];
+                if (inv.inventorySlotObjId) {
+                    for (let i: number = 0; i < inv.inventorySlotObjId.length; i++) {
+                        inv.inventorySlotObjId[i] = -1;
+                        inv.inventorySlotObjId[i] = 0;
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3353,7 +3363,7 @@ class Client extends GameShell {
                 const com: number = this.in.g2;
                 const npcId: number = this.in.g2;
                 const npc: NpcType = NpcType.get(npcId);
-                // ComType.instances[com].model = npc.getHeadModel();
+                ComType.instances[com].model = npc.getHeadModel();
                 this.packetType = -1;
                 return true;
             }
@@ -3644,10 +3654,10 @@ class Client extends GameShell {
                 const objId: number = this.in.g2;
                 const zoom: number = this.in.g2;
                 const obj: ObjType = ObjType.get(objId);
-                // ComType.instances[com].model = obj.getInterfaceModel(50);
+                ComType.instances[com].model = obj.getInterfaceModel(50);
                 ComType.instances[com].modelPitch = obj.xan2d;
                 ComType.instances[com].modelYaw = obj.yan2d;
-                ComType.instances[com].modelZoom = (obj.zoom2d * 100) / zoom;
+                ComType.instances[com].modelZoom = Math.trunc((obj.zoom2d * 100) / zoom);
                 this.packetType = -1;
                 return true;
             }
@@ -3810,18 +3820,18 @@ class Client extends GameShell {
                 this.redrawSidebar = true;
                 const com: number = this.in.g2;
                 const inv: ComType = ComType.instances[com];
-                // while (this.in.pos < this.packetSize) {
-                //     const slot = this.in.g1;
-                //     const id = this.in.g2;
-                //     let count = this.in.g1;
-                //     if (count === 255) {
-                //         count = this.in.g4;
-                //     }
-                //     if (slot >= 0 && slot < inv.inventorySlotObjId.length) {
-                //         inv.inventorySlotObjId[slot] = id;
-                //         inv.inventorySlotObjCount[slot] = count;
-                //     }
-                // }
+                while (this.in.pos < this.packetSize) {
+                    const slot: number = this.in.g1;
+                    const id: number = this.in.g2;
+                    let count: number = this.in.g1;
+                    if (count === 255) {
+                        count = this.in.g4;
+                    }
+                    if (inv.inventorySlotObjId && inv.inventorySlotObjCount && slot >= 0 && slot < inv.inventorySlotObjId.length) {
+                        inv.inventorySlotObjId[slot] = id;
+                        inv.inventorySlotObjCount[slot] = count;
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }

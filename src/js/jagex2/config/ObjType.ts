@@ -4,6 +4,8 @@ import Packet from '../io/Packet';
 import Pix24 from '../graphics/Pix24';
 import LruCache from '../datastruct/LruCache';
 import Model from '../graphics/Model';
+import Draw3D from '../graphics/Draw3D';
+import Draw2D from '../graphics/Draw2D';
 
 export default class ObjType extends ConfigType {
     static count: number = 0;
@@ -76,8 +78,110 @@ export default class ObjType extends ConfigType {
     };
 
     static getIcon = (id: number, count: number): Pix24 => {
-        // TODO
-        return new Pix24(32, 32);
+        if (ObjType.iconCache) {
+            let icon: Pix24 | null = ObjType.iconCache.get(id) as Pix24 | null;
+            if (icon && icon.cropH != count && icon.cropH != -1) {
+                icon.unlink();
+                icon = null;
+            }
+
+            if (icon) {
+                return icon;
+            }
+        }
+
+        let obj: ObjType = ObjType.get(id);
+        if (obj.countobj == null) {
+            count = -1;
+        }
+
+        if (obj.countobj && obj.countco && count > 1) {
+            let countobj: number = -1;
+            for (let i: number = 0; i < 10; i++) {
+                if (count >= obj.countco[i] && obj.countco[i] != 0) {
+                    countobj = obj.countobj[i];
+                }
+            }
+
+            if (countobj != -1) {
+                obj = ObjType.get(countobj);
+            }
+        }
+
+        const icon: Pix24 = new Pix24(32, 32);
+
+        const _cx: number = Draw3D.centerX;
+        const _cy: number = Draw3D.centerY;
+        const _loff: Int32Array = Draw3D.lineOffset;
+        const _data: Int32Array = Draw2D.pixels;
+        const _w: number = Draw2D.width;
+        const _h: number = Draw2D.height;
+        const _l: number = Draw2D.left;
+        const _r: number = Draw2D.right;
+        const _t: number = Draw2D.top;
+        const _b: number = Draw2D.bottom;
+
+        Draw3D.jagged = false;
+        Draw2D.bind(icon.pixels, 32, 32);
+        Draw2D.fillRect(0, 0, 32, 32, 0);
+        Draw3D.init2D();
+
+        const iModel: Model = obj.getInterfaceModel(1);
+        const sinPitch: number = (Draw3D.sin[obj.xan2d] * obj.zoom2d) >> 16;
+        const cosPitch: number = (Draw3D.cos[obj.xan2d] * obj.zoom2d) >> 16;
+        iModel.drawSimple(0, obj.yan2d, obj.zan2d, obj.xan2d, obj.xof2d, sinPitch + Math.trunc(iModel.maxY / 2) + obj.yof2d, cosPitch + obj.yof2d);
+
+        for (let x: number = 31; x >= 0; x--) {
+            for (let y: number = 31; y >= 0; y--) {
+                if (icon.pixels[x + y * 32] !== 0) {
+                    continue;
+                }
+
+                if (x > 0 && icon.pixels[x + y * 32 - 1] > 1) {
+                    icon.pixels[x + y * 32] = 1;
+                } else if (y > 0 && icon.pixels[x + (y - 1) * 32] > 1) {
+                    icon.pixels[x + y * 32] = 1;
+                } else if (x < 31 && icon.pixels[x + y * 32 + 1] > 1) {
+                    icon.pixels[x + y * 32] = 1;
+                } else if (y < 31 && icon.pixels[x + (y + 1) * 32] > 1) {
+                    icon.pixels[x + y * 32] = 1;
+                }
+            }
+        }
+
+        for (let x: number = 31; x >= 0; x--) {
+            for (let y: number = 31; y >= 0; y--) {
+                if (icon.pixels[x + y * 32] === 0 && x > 0 && y > 0 && icon.pixels[x + (y - 1) * 32 - 1] > 0) {
+                    icon.pixels[x + y * 32] = 3153952;
+                }
+            }
+        }
+
+        if (obj.certtemplate !== -1) {
+            const linkedIcon: Pix24 = this.getIcon(obj.certlink, 10);
+            const w: number = linkedIcon.cropW;
+            const h: number = linkedIcon.cropH;
+            linkedIcon.cropW = 32;
+            linkedIcon.cropH = 32;
+            linkedIcon.crop(5, 5, 22, 22);
+            linkedIcon.cropW = w;
+            linkedIcon.cropH = h;
+        }
+
+        ObjType.iconCache?.put(id, icon);
+        Draw2D.bind(_data, _w, _h);
+        Draw2D.setBounds(_l, _t, _r, _b);
+        Draw3D.centerX = _cx;
+        Draw3D.centerY = _cy;
+        Draw3D.lineOffset = _loff;
+        Draw3D.jagged = true;
+        if (obj.stackable) {
+            icon.cropW = 33;
+        } else {
+            icon.cropW = 32;
+        }
+        icon.cropH = count;
+        return icon;
     };
 
     // ----
@@ -288,6 +392,40 @@ export default class ObjType extends ConfigType {
                 model.recolor(this.recol_s[i], this.recol_d[i]);
             }
         }
+        return model;
+    };
+
+    getInterfaceModel = (count: number): Model => {
+        if (this.countobj && this.countco && count > 1) {
+            let id: number = -1;
+            for (let i: number = 0; i < 10; i++) {
+                if (count >= this.countco[i] && this.countco[i] !== 0) {
+                    id = this.countobj[i];
+                }
+            }
+
+            if (id !== -1) {
+                return ObjType.get(id).getInterfaceModel(1);
+            }
+        }
+
+        if (ObjType.modelCache) {
+            const model: Model | null = ObjType.modelCache.get(this.index) as Model | null;
+            if (model) {
+                return model;
+            }
+        }
+
+        const model: Model = Model.model(this.model);
+        if (this.recol_s && this.recol_d) {
+            for (let i: number = 0; i < this.recol_s.length; i++) {
+                model.recolor(this.recol_s[i], this.recol_d[i]);
+            }
+        }
+
+        model.calculateNormals(64, 768, -50, -10, -50, true);
+        model.pickable = true;
+        ObjType.modelCache?.put(this.index, model);
         return model;
     };
 
