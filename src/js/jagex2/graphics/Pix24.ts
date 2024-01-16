@@ -254,7 +254,7 @@ export default class Pix24 extends Hashable {
         const height: number = this.height;
 
         for (let y: number = 0; y < height; y++) {
-            const div: number = Math.trunc(width / 2);
+            const div: number = width / 2;
             for (let x: number = 0; x < div; x++) {
                 const off1: number = x + y * width;
                 const off2: number = width - x - 1 + y * width;
@@ -271,7 +271,7 @@ export default class Pix24 extends Hashable {
         const width: number = this.width;
         const height: number = this.height;
 
-        for (let y: number = 0; y < Math.trunc(height / 2); y++) {
+        for (let y: number = 0; y < height / 2; y++) {
             for (let x: number = 0; x < width; x++) {
                 const off1: number = x + y * width;
                 const off2: number = x + (height - y - 1) * width;
@@ -334,22 +334,22 @@ export default class Pix24 extends Hashable {
 
             const cw: number = this.cropW;
             const ch: number = this.cropH;
-            const scaleCropWidth: number = Math.trunc((cw << 16) / w);
-            const scaleCropHeight: number = Math.trunc((ch << 16) / h);
+            const scaleCropWidth: number = (cw << 16) / w;
+            const scaleCropHeight: number = (ch << 16) / h;
 
-            x += Math.trunc((this.cropX * w + cw - 1) / cw);
-            y += Math.trunc((this.cropY * h + ch - 1) / ch);
+            x += (this.cropX * w + cw - 1) / cw;
+            y += (this.cropY * h + ch - 1) / ch;
 
             if ((this.cropX * w) % cw != 0) {
-                offW = Math.trunc(((cw - ((this.cropX * w) % cw)) << 16) / w);
+                offW = ((cw - ((this.cropX * w) % cw)) << 16) / w;
             }
 
             if ((this.cropY * h) % ch != 0) {
-                offH = Math.trunc(((ch - ((this.cropY * h) % ch)) << 16) / h);
+                offH = ((ch - ((this.cropY * h) % ch)) << 16) / h;
             }
 
-            w = Math.trunc((w * (this.width - (offW >> 16))) / cw);
-            h = Math.trunc((h * (this.height - (offH >> 16))) / ch);
+            w = (w * (this.width - (offW >> 16))) / cw;
+            h = (h * (this.height - (offH >> 16))) / ch;
 
             let dstStep: number = x + y * Draw2D.width;
             let dstOff: number = Draw2D.width - w;

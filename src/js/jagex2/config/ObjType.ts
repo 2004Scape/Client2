@@ -129,7 +129,7 @@ export default class ObjType extends ConfigType {
         const iModel: Model = obj.getInterfaceModel(1);
         const sinPitch: number = (Draw3D.sin[obj.xan2d] * obj.zoom2d) >> 16;
         const cosPitch: number = (Draw3D.cos[obj.xan2d] * obj.zoom2d) >> 16;
-        iModel.drawSimple(0, obj.yan2d, obj.zan2d, obj.xan2d, obj.xof2d, sinPitch + iModel.maxY / 2 + obj.yof2d, cosPitch + obj.yof2d);
+        iModel.drawSimple(0, obj.yan2d, obj.zan2d, obj.xan2d, obj.xof2d, sinPitch + Math.trunc(iModel.maxY / 2) + obj.yof2d, cosPitch + obj.yof2d);
 
         for (let x: number = 31; x >= 0; x--) {
             for (let y: number = 31; y >= 0; y--) {

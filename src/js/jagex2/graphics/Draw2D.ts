@@ -26,7 +26,7 @@ export default class Draw2D {
         this.right = this.width;
         this.bottom = this.height;
         this.boundX = this.right - 1;
-        this.centerX = Math.trunc(this.right / 2);
+        this.centerX = this.right / 2;
     };
 
     static setBounds = (left: number, top: number, right: number, bottom: number): void => {
@@ -51,8 +51,8 @@ export default class Draw2D {
         this.left = left;
         this.right = right;
         this.boundX = this.right - 1;
-        this.centerX = Math.trunc(this.right / 2);
-        this.centerY = Math.trunc(this.bottom / 2);
+        this.centerX = this.right / 2;
+        this.centerY = this.bottom / 2;
     };
 
     static clear = (): void => {

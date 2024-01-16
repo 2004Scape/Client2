@@ -1453,9 +1453,9 @@ export default class Model extends Hashable {
 
     scale = (x: number, y: number, z: number): void => {
         for (let v: number = 0; v < this.vertexCount; v++) {
-            this.vertexX[v] = Math.trunc((this.vertexX[v] * x) / 128);
-            this.vertexY[v] = Math.trunc((this.vertexY[v] * y) / 128);
-            this.vertexZ[v] = Math.trunc((this.vertexZ[v] * z) / 128);
+            this.vertexX[v] = (this.vertexX[v] * x) / 128;
+            this.vertexY[v] = (this.vertexY[v] * y) / 128;
+            this.vertexZ[v] = (this.vertexZ[v] * z) / 128;
         }
     };
 
@@ -1528,7 +1528,7 @@ export default class Model extends Hashable {
                 n.z += nz;
                 n.w++;
             } else {
-                const lightness: number = Math.trunc(lightAmbient + (lightSrcX * nx + lightSrcY * ny + lightSrcZ * nz) / (attenuation + attenuation / 2));
+                const lightness: number = lightAmbient + Math.trunc((lightSrcX * nx + lightSrcY * ny + lightSrcZ * nz) / (attenuation + attenuation / 2));
                 if (this.faceColor) {
                     this.faceColorA[f] = Model.mulColorLightness(this.faceColor[f], lightness, this.faceInfo[f]);
                 }
@@ -1536,7 +1536,7 @@ export default class Model extends Hashable {
         }
 
         if (applyLighting) {
-            this.applyLighting(lightAmbient, lightAttenuation, lightSrcX, lightSrcY, lightSrcZ);
+            this.applyLighting(lightAmbient, attenuation, lightSrcX, lightSrcY, lightSrcZ);
         } else {
             this.vertexNormalOriginal = new Array(this.vertexCount);
 
@@ -1570,30 +1570,30 @@ export default class Model extends Hashable {
                 const color: number = this.faceColor[f];
 
                 let n: VertexNormal = this.vertexNormal[a];
-                let lightness: number = Math.trunc(lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
+                let lightness: number = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
                 this.faceColorA[f] = Model.mulColorLightness(color, lightness, 0);
 
                 n = this.vertexNormal[b];
-                lightness = Math.trunc(lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
+                lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
                 this.faceColorB[f] = Model.mulColorLightness(color, lightness, 0);
 
                 n = this.vertexNormal[c];
-                lightness = Math.trunc(lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
+                lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
                 this.faceColorC[f] = Model.mulColorLightness(color, lightness, 0);
             } else if (this.faceInfo && (this.faceInfo[f] & 0x1) === 0 && this.faceColor && this.vertexNormal && this.faceColorA && this.faceColorB && this.faceColorC) {
                 const color: number = this.faceColor[f];
                 const info: number = this.faceInfo[f];
 
                 let n: VertexNormal = this.vertexNormal[a];
-                let lightness: number = Math.trunc(lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
+                let lightness: number = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
                 this.faceColorA[f] = Model.mulColorLightness(color, lightness, info);
 
                 n = this.vertexNormal[b];
-                lightness = Math.trunc(lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
+                lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
                 this.faceColorB[f] = Model.mulColorLightness(color, lightness, info);
 
                 n = this.vertexNormal[c];
-                lightness = Math.trunc(lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
+                lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
                 this.faceColorC[f] = Model.mulColorLightness(color, lightness, info);
             }
         }
@@ -1663,8 +1663,8 @@ export default class Model extends Hashable {
             y = tmp;
 
             if (Model.vertexScreenX && Model.vertexScreenY && Model.vertexScreenZ) {
-                Model.vertexScreenX[v] = Math.trunc(Draw3D.centerX + (x << 9) / z);
-                Model.vertexScreenY[v] = Math.trunc(Draw3D.centerY + (y << 9) / z);
+                Model.vertexScreenX[v] = Draw3D.centerX + (x << 9) / z;
+                Model.vertexScreenY[v] = Draw3D.centerY + (y << 9) / z;
                 Model.vertexScreenZ[v] = z - midZ;
             }
 
@@ -1803,17 +1803,17 @@ export default class Model extends Hashable {
 
         let averagePriorityDepthSum1_2: number = 0;
         if (Model.tmpPriorityFaceCount && Model.tmpPriorityDepthSum && (Model.tmpPriorityFaceCount[1] > 0 || Model.tmpPriorityFaceCount[2] > 0)) {
-            averagePriorityDepthSum1_2 = Math.trunc((Model.tmpPriorityDepthSum[1] + Model.tmpPriorityDepthSum[2]) / (Model.tmpPriorityFaceCount[1] + Model.tmpPriorityFaceCount[2]));
+            averagePriorityDepthSum1_2 = (Model.tmpPriorityDepthSum[1] + Model.tmpPriorityDepthSum[2]) / (Model.tmpPriorityFaceCount[1] + Model.tmpPriorityFaceCount[2]);
         }
 
         let averagePriorityDepthSum3_4: number = 0;
         if (Model.tmpPriorityFaceCount && Model.tmpPriorityDepthSum && (Model.tmpPriorityFaceCount[3] > 0 || Model.tmpPriorityFaceCount[4] > 0)) {
-            averagePriorityDepthSum3_4 = Math.trunc((Model.tmpPriorityDepthSum[3] + Model.tmpPriorityDepthSum[4]) / (Model.tmpPriorityFaceCount[3] + Model.tmpPriorityFaceCount[4]));
+            averagePriorityDepthSum3_4 = (Model.tmpPriorityDepthSum[3] + Model.tmpPriorityDepthSum[4]) / (Model.tmpPriorityFaceCount[3] + Model.tmpPriorityFaceCount[4]);
         }
 
         let averagePriorityDepthSum6_8: number = 0;
         if (Model.tmpPriorityFaceCount && Model.tmpPriorityDepthSum && (Model.tmpPriorityFaceCount[6] > 0 || Model.tmpPriorityFaceCount[8] > 0)) {
-            averagePriorityDepthSum6_8 = Math.trunc((Model.tmpPriorityDepthSum[6] + Model.tmpPriorityDepthSum[8]) / (Model.tmpPriorityFaceCount[6] + Model.tmpPriorityFaceCount[8]));
+            averagePriorityDepthSum6_8 = (Model.tmpPriorityDepthSum[6] + Model.tmpPriorityDepthSum[8]) / (Model.tmpPriorityFaceCount[6] + Model.tmpPriorityFaceCount[8]);
         }
 
         if (Model.tmpPriorityFaceCount && Model.tmpPriorityFaces) {
@@ -2039,15 +2039,15 @@ export default class Model extends Hashable {
 
                 if (zC >= 50 && this.faceColorC) {
                     const scalar: number = (50 - zA) * Draw3D.reciprocal16[zC - zA];
-                    Model.clippedX[elements] = Math.trunc(centerX + ((xA + (((Model.vertexViewSpaceX[c] - xA) * scalar) >> 16)) << 9) / 50);
-                    Model.clippedY[elements] = Math.trunc(centerY + ((yA + (((Model.vertexViewSpaceY[c] - yA) * scalar) >> 16)) << 9) / 50);
+                    Model.clippedX[elements] = centerX + ((xA + (((Model.vertexViewSpaceX[c] - xA) * scalar) >> 16)) << 9) / 50;
+                    Model.clippedY[elements] = centerY + ((yA + (((Model.vertexViewSpaceY[c] - yA) * scalar) >> 16)) << 9) / 50;
                     Model.clippedColor[elements++] = colorA + (((this.faceColorC[face] - colorA) * scalar) >> 16);
                 }
 
                 if (zB >= 50 && this.faceColorB) {
                     const scalar: number = (50 - zA) * Draw3D.reciprocal16[zB - zA];
-                    Model.clippedX[elements] = Math.trunc(centerX + ((xA + (((Model.vertexViewSpaceX[b] - xA) * scalar) >> 16)) << 9) / 50);
-                    Model.clippedY[elements] = Math.trunc(centerY + ((yA + (((Model.vertexViewSpaceY[b] - yA) * scalar) >> 16)) << 9) / 50);
+                    Model.clippedX[elements] = centerX + ((xA + (((Model.vertexViewSpaceX[b] - xA) * scalar) >> 16)) << 9) / 50;
+                    Model.clippedY[elements] = centerY + ((yA + (((Model.vertexViewSpaceY[b] - yA) * scalar) >> 16)) << 9) / 50;
                     Model.clippedColor[elements++] = colorA + (((this.faceColorB[face] - colorA) * scalar) >> 16);
                 }
             }
@@ -2063,15 +2063,15 @@ export default class Model extends Hashable {
 
                 if (zA >= 50 && this.faceColorA) {
                     const scalar: number = (50 - zB) * Draw3D.reciprocal16[zA - zB];
-                    Model.clippedX[elements] = Math.trunc(centerX + ((xB + (((Model.vertexViewSpaceX[a] - xB) * scalar) >> 16)) << 9) / 50);
-                    Model.clippedY[elements] = Math.trunc(centerY + ((yB + (((Model.vertexViewSpaceY[a] - yB) * scalar) >> 16)) << 9) / 50);
+                    Model.clippedX[elements] = centerX + ((xB + (((Model.vertexViewSpaceX[a] - xB) * scalar) >> 16)) << 9) / 50;
+                    Model.clippedY[elements] = centerY + ((yB + (((Model.vertexViewSpaceY[a] - yB) * scalar) >> 16)) << 9) / 50;
                     Model.clippedColor[elements++] = colorB + (((this.faceColorA[face] - colorB) * scalar) >> 16);
                 }
 
                 if (zC >= 50 && this.faceColorC) {
                     const scalar: number = (50 - zB) * Draw3D.reciprocal16[zC - zB];
-                    Model.clippedX[elements] = Math.trunc(centerX + ((xB + (((Model.vertexViewSpaceX[c] - xB) * scalar) >> 16)) << 9) / 50);
-                    Model.clippedY[elements] = Math.trunc(centerY + ((yB + (((Model.vertexViewSpaceY[c] - yB) * scalar) >> 16)) << 9) / 50);
+                    Model.clippedX[elements] = centerX + ((xB + (((Model.vertexViewSpaceX[c] - xB) * scalar) >> 16)) << 9) / 50;
+                    Model.clippedY[elements] = centerY + ((yB + (((Model.vertexViewSpaceY[c] - yB) * scalar) >> 16)) << 9) / 50;
                     Model.clippedColor[elements++] = colorB + (((this.faceColorC[face] - colorB) * scalar) >> 16);
                 }
             }
@@ -2087,15 +2087,15 @@ export default class Model extends Hashable {
 
                 if (zB >= 50 && this.faceColorB) {
                     const scalar: number = (50 - zC) * Draw3D.reciprocal16[zB - zC];
-                    Model.clippedX[elements] = Math.trunc(centerX + ((xC + (((Model.vertexViewSpaceX[b] - xC) * scalar) >> 16)) << 9) / 50);
-                    Model.clippedY[elements] = Math.trunc(centerY + ((yC + (((Model.vertexViewSpaceY[b] - yC) * scalar) >> 16)) << 9) / 50);
+                    Model.clippedX[elements] = centerX + ((xC + (((Model.vertexViewSpaceX[b] - xC) * scalar) >> 16)) << 9) / 50;
+                    Model.clippedY[elements] = centerY + ((yC + (((Model.vertexViewSpaceY[b] - yC) * scalar) >> 16)) << 9) / 50;
                     Model.clippedColor[elements++] = colorC + (((this.faceColorB[face] - colorC) * scalar) >> 16);
                 }
 
                 if (zA >= 50 && this.faceColorA) {
                     const scalar: number = (50 - zC) * Draw3D.reciprocal16[zA - zC];
-                    Model.clippedX[elements] = Math.trunc(centerX + ((xC + (((Model.vertexViewSpaceX[a] - xC) * scalar) >> 16)) << 9) / 50);
-                    Model.clippedY[elements] = Math.trunc(centerY + ((yC + (((Model.vertexViewSpaceY[a] - yC) * scalar) >> 16)) << 9) / 50);
+                    Model.clippedX[elements] = centerX + ((xC + (((Model.vertexViewSpaceX[a] - xC) * scalar) >> 16)) << 9) / 50;
+                    Model.clippedY[elements] = centerY + ((yC + (((Model.vertexViewSpaceY[a] - yC) * scalar) >> 16)) << 9) / 50;
                     Model.clippedColor[elements++] = colorC + (((this.faceColorA[face] - colorC) * scalar) >> 16);
                 }
             }
