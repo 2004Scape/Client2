@@ -1991,7 +1991,9 @@ export default class Model extends Hashable {
                 this.faceColorC[face]
             );
         } else if (type === 1) {
-            // Draw3D.fillTriangle(Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], palette[this.faceColorA[face]]);
+            if (this.faceColorA) {
+                Draw3D.fillTriangle(Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Draw3D.palette[this.faceColorA[face]]);
+            }
         } else if (type === 2 && this.faceInfo !== null && this.texturedVertexA !== null && this.texturedVertexB !== null && this.texturedVertexC !== null) {
             // const texturedFace = this.faceInfo[face] >> 2;
             // const tA = this.texturedVertexA[texturedFace];

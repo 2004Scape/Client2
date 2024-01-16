@@ -691,7 +691,492 @@ export default class Draw3D {
         } while (--length > 0);
     };
 
-    static fillTriangle = (): void => {};
+    static fillTriangle = (x0: number, x1: number, x2: number, y0: number, y1: number, y2: number, color: number): void => {
+        let xStepAB: number = 0;
+        if (y1 != y0) {
+            xStepAB = Math.trunc(((x1 - x0) << 16) / (y1 - y0));
+        }
+        let xStepBC: number = 0;
+        if (y2 != y1) {
+            xStepBC = Math.trunc(((x2 - x1) << 16) / (y2 - y1));
+        }
+        let xStepAC: number = 0;
+        if (y2 != y0) {
+            xStepAC = Math.trunc(((x0 - x2) << 16) / (y0 - y2));
+        }
+        if (y0 <= y1 && y0 <= y2) {
+            if (y0 < Draw2D.bottom) {
+                if (y1 > Draw2D.bottom) {
+                    y1 = Draw2D.bottom;
+                }
+                if (y2 > Draw2D.bottom) {
+                    y2 = Draw2D.bottom;
+                }
+                if (y1 < y2) {
+                    x2 = x0 <<= 0x10;
+                    if (y0 < 0) {
+                        x2 -= xStepAC * y0;
+                        x0 -= xStepAB * y0;
+                        y0 = 0;
+                    }
+                    x1 <<= 0x10;
+                    if (y1 < 0) {
+                        x1 -= xStepBC * y1;
+                        y1 = 0;
+                    }
+                    if ((y0 != y1 && xStepAC < xStepAB) || (y0 == y1 && xStepAC > xStepBC)) {
+                        y2 -= y1;
+                        y1 -= y0;
+                        y0 = this.lineOffset[y0];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            y1--;
+                            if (y1 < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    y2--;
+                                    if (y2 < 0) {
+                                        return;
+                                    }
+                                    this.drawScanline(x2 >> 16, x1 >> 16, Draw2D.pixels, y0, color);
+                                    x2 += xStepAC;
+                                    x1 += xStepBC;
+                                    y0 += Draw2D.width;
+                                }
+                            }
+                            this.drawScanline(x2 >> 16, x0 >> 16, Draw2D.pixels, y0, color);
+                            x2 += xStepAC;
+                            x0 += xStepAB;
+                            y0 += Draw2D.width;
+                        }
+                    } else {
+                        y2 -= y1;
+                        y1 -= y0;
+                        y0 = this.lineOffset[y0];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            y1--;
+                            if (y1 < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    y2--;
+                                    if (y2 < 0) {
+                                        return;
+                                    }
+                                    this.drawScanline(x1 >> 16, x2 >> 16, Draw2D.pixels, y0, color);
+                                    x2 += xStepAC;
+                                    x1 += xStepBC;
+                                    y0 += Draw2D.width;
+                                }
+                            }
+                            this.drawScanline(x0 >> 16, x2 >> 16, Draw2D.pixels, y0, color);
+                            x2 += xStepAC;
+                            x0 += xStepAB;
+                            y0 += Draw2D.width;
+                        }
+                    }
+                } else {
+                    x1 = x0 <<= 0x10;
+                    if (y0 < 0) {
+                        x1 -= xStepAC * y0;
+                        x0 -= xStepAB * y0;
+                        y0 = 0;
+                    }
+                    x2 <<= 0x10;
+                    if (y2 < 0) {
+                        x2 -= xStepBC * y2;
+                        y2 = 0;
+                    }
+                    if ((y0 != y2 && xStepAC < xStepAB) || (y0 == y2 && xStepBC > xStepAB)) {
+                        y1 -= y2;
+                        y2 -= y0;
+                        y0 = this.lineOffset[y0];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            y2--;
+                            if (y2 < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    y1--;
+                                    if (y1 < 0) {
+                                        return;
+                                    }
+                                    this.drawScanline(x2 >> 16, x0 >> 16, Draw2D.pixels, y0, color);
+                                    x2 += xStepBC;
+                                    x0 += xStepAB;
+                                    y0 += Draw2D.width;
+                                }
+                            }
+                            this.drawScanline(x1 >> 16, x0 >> 16, Draw2D.pixels, y0, color);
+                            x1 += xStepAC;
+                            x0 += xStepAB;
+                            y0 += Draw2D.width;
+                        }
+                    } else {
+                        y1 -= y2;
+                        y2 -= y0;
+                        y0 = this.lineOffset[y0];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            y2--;
+                            if (y2 < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    y1--;
+                                    if (y1 < 0) {
+                                        return;
+                                    }
+                                    this.drawScanline(x0 >> 16, x2 >> 16, Draw2D.pixels, y0, color);
+                                    x2 += xStepBC;
+                                    x0 += xStepAB;
+                                    y0 += Draw2D.width;
+                                }
+                            }
+                            this.drawScanline(x0 >> 16, x1 >> 16, Draw2D.pixels, y0, color);
+                            x1 += xStepAC;
+                            x0 += xStepAB;
+                            y0 += Draw2D.width;
+                        }
+                    }
+                }
+            }
+        } else if (y1 <= y2) {
+            if (y1 < Draw2D.bottom) {
+                if (y2 > Draw2D.bottom) {
+                    y2 = Draw2D.bottom;
+                }
+                if (y0 > Draw2D.bottom) {
+                    y0 = Draw2D.bottom;
+                }
+                if (y2 < y0) {
+                    x0 = x1 <<= 0x10;
+                    if (y1 < 0) {
+                        x0 -= xStepAB * y1;
+                        x1 -= xStepBC * y1;
+                        y1 = 0;
+                    }
+                    x2 <<= 0x10;
+                    if (y2 < 0) {
+                        x2 -= xStepAC * y2;
+                        y2 = 0;
+                    }
+                    if ((y1 != y2 && xStepAB < xStepBC) || (y1 == y2 && xStepAB > xStepAC)) {
+                        y0 -= y2;
+                        y2 -= y1;
+                        y1 = this.lineOffset[y1];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            y2--;
+                            if (y2 < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    y0--;
+                                    if (y0 < 0) {
+                                        return;
+                                    }
+                                    this.drawScanline(x0 >> 16, x2 >> 16, Draw2D.pixels, y1, color);
+                                    x0 += xStepAB;
+                                    x2 += xStepAC;
+                                    y1 += Draw2D.width;
+                                }
+                            }
+                            this.drawScanline(x0 >> 16, x1 >> 16, Draw2D.pixels, y1, color);
+                            x0 += xStepAB;
+                            x1 += xStepBC;
+                            y1 += Draw2D.width;
+                        }
+                    } else {
+                        y0 -= y2;
+                        y2 -= y1;
+                        y1 = this.lineOffset[y1];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            y2--;
+                            if (y2 < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    y0--;
+                                    if (y0 < 0) {
+                                        return;
+                                    }
+                                    this.drawScanline(x2 >> 16, x0 >> 16, Draw2D.pixels, y1, color);
+                                    x0 += xStepAB;
+                                    x2 += xStepAC;
+                                    y1 += Draw2D.width;
+                                }
+                            }
+                            this.drawScanline(x1 >> 16, x0 >> 16, Draw2D.pixels, y1, color);
+                            x0 += xStepAB;
+                            x1 += xStepBC;
+                            y1 += Draw2D.width;
+                        }
+                    }
+                } else {
+                    x2 = x1 <<= 0x10;
+                    if (y1 < 0) {
+                        x2 -= xStepAB * y1;
+                        x1 -= xStepBC * y1;
+                        y1 = 0;
+                    }
+                    x0 <<= 0x10;
+                    if (y0 < 0) {
+                        x0 -= xStepAC * y0;
+                        y0 = 0;
+                    }
+                    if (xStepAB < xStepBC) {
+                        y2 -= y0;
+                        y0 -= y1;
+                        y1 = this.lineOffset[y1];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            y0--;
+                            if (y0 < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    y2--;
+                                    if (y2 < 0) {
+                                        return;
+                                    }
+                                    this.drawScanline(x0 >> 16, x1 >> 16, Draw2D.pixels, y1, color);
+                                    x0 += xStepAC;
+                                    x1 += xStepBC;
+                                    y1 += Draw2D.width;
+                                }
+                            }
+                            this.drawScanline(x2 >> 16, x1 >> 16, Draw2D.pixels, y1, color);
+                            x2 += xStepAB;
+                            x1 += xStepBC;
+                            y1 += Draw2D.width;
+                        }
+                    } else {
+                        y2 -= y0;
+                        y0 -= y1;
+                        y1 = this.lineOffset[y1];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            y0--;
+                            if (y0 < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    y2--;
+                                    if (y2 < 0) {
+                                        return;
+                                    }
+                                    this.drawScanline(x1 >> 16, x0 >> 16, Draw2D.pixels, y1, color);
+                                    x0 += xStepAC;
+                                    x1 += xStepBC;
+                                    y1 += Draw2D.width;
+                                }
+                            }
+                            this.drawScanline(x1 >> 16, x2 >> 16, Draw2D.pixels, y1, color);
+                            x2 += xStepAB;
+                            x1 += xStepBC;
+                            y1 += Draw2D.width;
+                        }
+                    }
+                }
+            }
+        } else if (y2 < Draw2D.bottom) {
+            if (y0 > Draw2D.bottom) {
+                y0 = Draw2D.bottom;
+            }
+            if (y1 > Draw2D.bottom) {
+                y1 = Draw2D.bottom;
+            }
+            if (y0 < y1) {
+                x1 = x2 <<= 0x10;
+                if (y2 < 0) {
+                    x1 -= xStepBC * y2;
+                    x2 -= xStepAC * y2;
+                    y2 = 0;
+                }
+                x0 <<= 0x10;
+                if (y0 < 0) {
+                    x0 -= xStepAB * y0;
+                    y0 = 0;
+                }
+                if (xStepBC < xStepAC) {
+                    y1 -= y0;
+                    y0 -= y2;
+                    y2 = this.lineOffset[y2];
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        y0--;
+                        if (y0 < 0) {
+                            // eslint-disable-next-line no-constant-condition
+                            while (true) {
+                                y1--;
+                                if (y1 < 0) {
+                                    return;
+                                }
+                                this.drawScanline(x1 >> 16, x0 >> 16, Draw2D.pixels, y2, color);
+                                x1 += xStepBC;
+                                x0 += xStepAB;
+                                y2 += Draw2D.width;
+                            }
+                        }
+                        this.drawScanline(x1 >> 16, x2 >> 16, Draw2D.pixels, y2, color);
+                        x1 += xStepBC;
+                        x2 += xStepAC;
+                        y2 += Draw2D.width;
+                    }
+                } else {
+                    y1 -= y0;
+                    y0 -= y2;
+                    y2 = this.lineOffset[y2];
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        y0--;
+                        if (y0 < 0) {
+                            // eslint-disable-next-line no-constant-condition
+                            while (true) {
+                                y1--;
+                                if (y1 < 0) {
+                                    return;
+                                }
+                                this.drawScanline(x0 >> 16, x1 >> 16, Draw2D.pixels, y2, color);
+                                x1 += xStepBC;
+                                x0 += xStepAB;
+                                y2 += Draw2D.width;
+                            }
+                        }
+                        this.drawScanline(x2 >> 16, x1 >> 16, Draw2D.pixels, y2, color);
+                        x1 += xStepBC;
+                        x2 += xStepAC;
+                        y2 += Draw2D.width;
+                    }
+                }
+            } else {
+                x0 = x2 <<= 0x10;
+                if (y2 < 0) {
+                    x0 -= xStepBC * y2;
+                    x2 -= xStepAC * y2;
+                    y2 = 0;
+                }
+                x1 <<= 0x10;
+                if (y1 < 0) {
+                    x1 -= xStepAB * y1;
+                    y1 = 0;
+                }
+                if (xStepBC < xStepAC) {
+                    y0 -= y1;
+                    y1 -= y2;
+                    y2 = this.lineOffset[y2];
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        y1--;
+                        if (y1 < 0) {
+                            // eslint-disable-next-line no-constant-condition
+                            while (true) {
+                                y0--;
+                                if (y0 < 0) {
+                                    return;
+                                }
+                                this.drawScanline(x1 >> 16, x2 >> 16, Draw2D.pixels, y2, color);
+                                x1 += xStepAB;
+                                x2 += xStepAC;
+                                y2 += Draw2D.width;
+                            }
+                        }
+                        this.drawScanline(x0 >> 16, x2 >> 16, Draw2D.pixels, y2, color);
+                        x0 += xStepBC;
+                        x2 += xStepAC;
+                        y2 += Draw2D.width;
+                    }
+                } else {
+                    y0 -= y1;
+                    y1 -= y2;
+                    y2 = this.lineOffset[y2];
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        y1--;
+                        if (y1 < 0) {
+                            // eslint-disable-next-line no-constant-condition
+                            while (true) {
+                                y0--;
+                                if (y0 < 0) {
+                                    return;
+                                }
+                                this.drawScanline(x2 >> 16, x1 >> 16, Draw2D.pixels, y2, color);
+                                x1 += xStepAB;
+                                x2 += xStepAC;
+                                y2 += Draw2D.width;
+                            }
+                        }
+                        this.drawScanline(x2 >> 16, x0 >> 16, Draw2D.pixels, y2, color);
+                        x0 += xStepBC;
+                        x2 += xStepAC;
+                        y2 += Draw2D.width;
+                    }
+                }
+            }
+        }
+    };
 
     static fillTexturedTriangle = (): void => {};
+
+    private static drawScanline = (x0: number, x1: number, dst: Int32Array, offset: number, rgb: number): void => {
+        if (this.clipX) {
+            if (x1 > Draw2D.boundX) {
+                x1 = Draw2D.boundX;
+            }
+            if (x0 < 0) {
+                x0 = 0;
+            }
+        }
+
+        if (x0 >= x1) {
+            return;
+        }
+
+        offset += x0;
+        let length: number = (x1 - x0) >> 2;
+
+        if (this.alpha == 0) {
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                length--;
+                if (length < 0) {
+                    length = (x1 - x0) & 0x3;
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        length--;
+                        if (length < 0) {
+                            return;
+                        }
+                        dst[offset++] = rgb;
+                    }
+                }
+                dst[offset++] = rgb;
+                dst[offset++] = rgb;
+                dst[offset++] = rgb;
+                dst[offset++] = rgb;
+            }
+        }
+
+        const alpha: number = this.alpha;
+        const invAlpha: number = 256 - this.alpha;
+        rgb = ((((rgb & 0xff00ff) * invAlpha) >> 8) & 0xff00ff) + ((((rgb & 0xff00) * invAlpha) >> 8) & 0xff00);
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            length--;
+            if (length < 0) {
+                length = (x1 - x0) & 0x3;
+                // eslint-disable-next-line no-constant-condition
+                while (true) {
+                    length--;
+                    if (length < 0) {
+                        return;
+                    }
+                    dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
+                }
+            }
+
+            dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
+            dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
+            dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
+            dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
+        }
+    };
 }
