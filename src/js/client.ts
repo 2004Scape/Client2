@@ -2104,9 +2104,9 @@ class Client extends GameShell {
                 }
             } else if (child.type === 3) {
                 if (child.fill) {
-                    Draw2D.fillRect(childX, childY, child.color, child.width, child.height);
+                    Draw2D.fillRect(childX, childY, child.width, child.height, child.color);
                 } else {
-                    Draw2D.drawRect(childX, childY, child.color, child.width, child.height);
+                    Draw2D.drawRect(childX, childY, child.width, child.height, child.color);
                 }
             } else if (child.type === 4) {
                 const font: PixFont | null = child.font;
@@ -2501,8 +2501,86 @@ class Client extends GameShell {
         }
 
         try {
-            // TODO
-            return -1;
+            const script: Uint16Array = component.scripts[scriptId];
+            let register: number = 0;
+            let pc: number = 0;
+
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                const opcode: number = script[pc++];
+                if (opcode === 0) {
+                    return register;
+                }
+
+                if (opcode == 1) {
+                    // load_skill_level {skill}
+                    register += this.skillLevel[script[pc++]];
+                } else if (opcode == 2) {
+                    // load_skill_base_level {skill}
+                    register += this.skillBaseLevel[script[pc++]];
+                } else if (opcode == 3) {
+                    // load_skill_exp {skill}
+                    register += this.skillExperience[script[pc++]];
+                } else if (opcode == 4) {
+                    // load_inv_count {interface id} {obj id}
+                    const com: ComType = ComType.instances[script[pc++]];
+                    const obj: number = script[pc++] + 1;
+
+                    if (com.inventorySlotObjId) {
+                        for (let i: number = 0; i < com.inventorySlotObjId.length; i++) {
+                            if (com.inventorySlotObjId[i] == obj && com.inventorySlotObjCount) {
+                                register += com.inventorySlotObjCount[i];
+                            }
+                        }
+                    }
+                } else if (opcode == 5) {
+                    // load_var {id}
+                    register += this.varps[script[pc++]];
+                } else if (opcode == 6) {
+                    // load_next_level_xp {skill}
+                    // register += levelExperience[this.skillBaseLevel[script[pc++]] - 1]; TODO
+                } else if (opcode == 7) {
+                    register += (this.varps[script[pc++]] * 100) / 46875;
+                } else if (opcode == 8) {
+                    // load_combat_level
+                    // register += this.localPlayer.combatLevel; TODO
+                } else if (opcode == 9) {
+                    // load_total_level
+                    for (let i: number = 0; i < 19; i++) {
+                        if (i == 18) {
+                            // runecrafting
+                            i = 20;
+                        }
+
+                        register += this.skillBaseLevel[i];
+                    }
+                } else if (opcode == 10) {
+                    // load_inv_contains {interface id} {obj id}
+                    const com: ComType = ComType.instances[script[pc++]];
+                    const obj: number = script[pc++] + 1;
+
+                    if (com.inventorySlotObjId) {
+                        for (let i: number = 0; i < com.inventorySlotObjId.length; i++) {
+                            if (com.inventorySlotObjId[i] == obj) {
+                                register += 999999999;
+                                break;
+                            }
+                        }
+                    }
+                } else if (opcode == 11) {
+                    // load_energy
+                    register += this.energy;
+                } else if (opcode == 12) {
+                    // load_weight
+                    register += this.weightCarried;
+                } else if (opcode == 13) {
+                    // load_bool {varp} {bit: 0..31}
+                    const varp: number = this.varps[script[pc++]];
+                    const lsb: number = script[pc++];
+
+                    register += (varp & (0x1 << lsb)) == 0 ? 0 : 1;
+                }
+            }
         } catch (e) {
             return -1;
         }
