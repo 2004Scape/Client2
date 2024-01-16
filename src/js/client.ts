@@ -244,9 +244,9 @@ class Client extends GameShell {
     private chatbackInput: string = '';
     private chatbackInputOpen: boolean = false;
     private stickyChatInterfaceId: number = -1;
-    private messageText: string[] = [];
-    private messageSender: string[] = [];
-    private messageType: number[] = [];
+    private messageText: (string | null)[] = new Array(100);
+    private messageSender: string[] = new Array(100);
+    private messageType: number[] = new Array(100);
     private splitPrivateChat: number = 0;
     private chatTyped: string = '';
     private viewportHoveredInterfaceIndex: number = 0;
@@ -1127,7 +1127,9 @@ class Client extends GameShell {
                 this.menuSize = 0;
                 this.menuVisible = false;
                 this.idleCycles = 0;
-                this.messageText = [];
+                for (let i: number = 0; i < 100; i++) {
+                    this.messageText[i] = null;
+                }
                 // this.objSelected = 0;
                 // this.spellSelected = 0;
                 this.sceneState = 0;
@@ -1890,35 +1892,36 @@ class Client extends GameShell {
             let line: number = 0;
             Draw2D.setBounds(0, 0, 463, 77);
             for (let i: number = 0; i < 100; i++) {
-                if (this.messageText[i] === null) {
+                const message: string | null = this.messageText[i];
+                if (message === null) {
                     continue;
                 }
                 const type: number = this.messageType[i];
                 const offset: number = this.chatScrollOffset + 70 - line * 14;
                 if (type === 0) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, this.messageText[i], 0);
+                        font?.drawString(4, offset, message, 0);
                     }
                     line++;
                 }
                 if (type === 1) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ':', 16777215);
-                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, this.messageText[i], 255);
+                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, message, 255);
                     }
                     line++;
                 }
                 if (type === 2 && (this.publicChatSetting === 0 || (this.publicChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ':', 0);
-                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, this.messageText[i], 255);
+                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, message, 255);
                     }
                     line++;
                 }
                 if ((type === 3 || type === 7) && this.splitPrivateChat === 0 && (type === 7 || this.privateChatSetting === 0 || (this.privateChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, 'From ' + this.messageSender[i] + ':', 0);
-                        font?.drawString(font.stringWidth('From ' + this.messageSender[i]) + 12, offset, this.messageText[i], 8388608);
+                        font?.drawString(font.stringWidth('From ' + this.messageSender[i]) + 12, offset, message, 8388608);
                     }
                     line++;
                 }
@@ -1930,14 +1933,14 @@ class Client extends GameShell {
                 }
                 if (type === 5 && this.splitPrivateChat === 0 && this.privateChatSetting < 2) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, this.messageText[i], 8388608);
+                        font?.drawString(4, offset, message, 8388608);
                     }
                     line++;
                 }
                 if (type === 6 && this.splitPrivateChat === 0 && this.privateChatSetting < 2) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, 'To ' + this.messageSender[i] + ':', 0);
-                        font?.drawString(font.stringWidth('To ' + this.messageSender[i]) + 12, offset, this.messageText[i], 8388608);
+                        font?.drawString(font.stringWidth('To ' + this.messageSender[i]) + 12, offset, message, 8388608);
                     }
                     line++;
                 }
