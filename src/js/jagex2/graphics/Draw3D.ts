@@ -3,13 +3,15 @@ import Pix8 from './Pix8';
 import Jagfile from '../io/Jagfile';
 
 export default class Draw3D {
+    static lowMemory: boolean = false; // TODO
+
     static reciprocal15: Int32Array = new Int32Array(512);
     static reciprocal16: Int32Array = new Int32Array(2048);
     static sin: Int32Array = new Int32Array(2048);
     static cos: Int32Array = new Int32Array(2048);
     static palette: Uint32Array = new Uint32Array(65536);
 
-    static textures: Pix8[] = [];
+    static textures: Pix8[] = new Array(50);
     static textureCount: number = 0;
 
     static lineOffset: Int32Array = new Int32Array();
@@ -20,17 +22,23 @@ export default class Draw3D {
     static clipX: boolean = false;
     static alpha: number = 0;
 
-    static texelPool: number[][] | null = null;
-    static activeTexels: number[] = [];
+    static texelPool: (number[] | null)[] | null = null;
+    static activeTexels: (number[] | null)[] = new Array(50);
     static poolSize: number = 0;
+    static cycle: number = 0;
+    static textureCycle: number[] = new Array(50);
+    static texturePalette: (number[] | null)[] = new Array(50);
+
+    private static opaque: boolean = false;
+    private static textureTranslucent: boolean[] = new Array(50);
 
     static {
         for (let i: number = 1; i < 512; i++) {
-            this.reciprocal15[i] = 32768 / i;
+            this.reciprocal15[i] = Math.trunc(32768 / i);
         }
 
         for (let i: number = 1; i < 2048; i++) {
-            this.reciprocal16[i] = 65536 / i;
+            this.reciprocal16[i] = Math.trunc(65536 / i);
         }
 
         for (let i: number = 0; i < 2048; i++) {
@@ -59,12 +67,24 @@ export default class Draw3D {
         this.centerY = height / 2;
     };
 
+    static clearTexels = (): void => {
+        this.texelPool = null;
+        for (let i: number = 0; i < 50; i++) {
+            this.activeTexels[i] = null;
+        }
+    };
+
     static unpackTextures = (textures: Jagfile): void => {
         this.textureCount = 0;
 
         for (let i: number = 0; i < 50; i++) {
             try {
                 this.textures[i] = Pix8.fromArchive(textures, i.toString());
+                if (this.lowMemory && this.textures[i].cropW == 128) {
+                    this.textures[i].shrink();
+                } else {
+                    this.textures[i].crop();
+                }
                 this.textureCount++;
             } catch (err) {
                 /* empty */
@@ -149,6 +169,22 @@ export default class Draw3D {
                 this.palette[offset++] = rgb;
             }
         }
+        for (let id: number = 0; id < 50; id++) {
+            if (this.textures[id]) {
+                const palette: number[] = this.textures[id].palette;
+                this.texturePalette[id] = [];
+                for (let i: number = 0; i < palette.length; i++) {
+                    const tId: number[] | null = this.texturePalette[id];
+                    if (tId !== null) {
+                        tId[i] = this.setGamma(palette[i], brightness);
+                    }
+                }
+            }
+        }
+
+        for (let id: number = 0; id < 50; id++) {
+            this.pushTexture(id);
+        }
     };
 
     private static setGamma = (rgb: number, gamma: number): number => {
@@ -165,12 +201,18 @@ export default class Draw3D {
     };
 
     static initPool = (size: number): void => {
-        if (this.texelPool !== null) {
+        if (this.texelPool) {
             return;
         }
         this.poolSize = size;
-        this.texelPool = [];
-        this.activeTexels = [];
+        if (this.lowMemory) {
+            this.texelPool = new Array(this.poolSize).fill(null).map((): number[] => new Array(16384));
+        } else {
+            this.texelPool = new Array(this.poolSize).fill(null).map((): number[] => new Array(65536));
+        }
+        for (let i: number = 0; i < 50; i++) {
+            this.activeTexels[i] = null;
+        }
     };
 
     static fillGouraudTriangle = (xA: number, xB: number, xC: number, yA: number, yB: number, yC: number, colorA: number, colorB: number, colorC: number): void => {
@@ -183,18 +225,18 @@ export default class Draw3D {
         let colorStepAC: number = 0;
 
         if (yB !== yA) {
-            xStepAB = ((xB - xA) << 16) / (yB - yA);
-            colorStepAB = ((colorB - colorA) << 15) / (yB - yA);
+            xStepAB = Math.trunc(((xB - xA) << 16) / (yB - yA));
+            colorStepAB = Math.trunc(((colorB - colorA) << 15) / (yB - yA));
         }
 
         if (yC !== yB) {
-            xStepBC = ((xC - xB) << 16) / (yC - yB);
-            colorStepBC = ((colorC - colorB) << 15) / (yC - yB);
+            xStepBC = Math.trunc(((xC - xB) << 16) / (yC - yB));
+            colorStepBC = Math.trunc(((colorC - colorB) << 15) / (yC - yB));
         }
 
         if (yC !== yA) {
-            xStepAC = ((xA - xC) << 16) / (yA - yC);
-            colorStepAC = ((colorA - colorC) << 15) / (yA - yC);
+            xStepAC = Math.trunc(((xA - xC) << 16) / (yA - yC));
+            colorStepAC = Math.trunc(((colorA - colorC) << 15) / (yA - yC));
         }
 
         if (yA <= yB && yA <= yC) {
@@ -568,7 +610,7 @@ export default class Draw3D {
 
             if (this.clipX) {
                 if (x1 - x0 > 3) {
-                    colorStep = (color1 - color0) / (x1 - x0);
+                    colorStep = Math.trunc((color1 - color0) / (x1 - x0));
                 } else {
                     colorStep = 0;
                 }
@@ -654,7 +696,7 @@ export default class Draw3D {
             return;
         }
 
-        const colorStep: number = (color1 - color0) / (x1 - x0);
+        const colorStep: number = Math.trunc((color1 - color0) / (x1 - x0));
 
         if (this.clipX) {
             if (x1 > Draw2D.right) {
@@ -1113,7 +1155,1054 @@ export default class Draw3D {
         }
     };
 
-    static fillTexturedTriangle = (): void => {};
+    static fillTexturedTriangle = (
+        xA: number,
+        xB: number,
+        xC: number,
+        yA: number,
+        yB: number,
+        yC: number,
+        shadeA: number,
+        shadeB: number,
+        shadeC: number,
+        originX: number,
+        originY: number,
+        originZ: number,
+        txB: number,
+        txC: number,
+        tyB: number,
+        tyC: number,
+        tzB: number,
+        tzC: number,
+        texture: number
+    ): void => {
+        const texels: number[] | null = this.getTexels(texture);
+        this.opaque = !this.textureTranslucent[texture];
+
+        const verticalX: number = originX - txB;
+        const verticalY: number = originY - tyB;
+        const verticalZ: number = originZ - tzB;
+
+        const horizontalX: number = txC - originX;
+        const horizontalY: number = tyC - originY;
+        const horizontalZ: number = tzC - originZ;
+
+        let u: number = (horizontalX * originY - horizontalY * originX) << 14;
+        const uStride: number = (horizontalY * originZ - horizontalZ * originY) << 8;
+        const uStepVertical: number = (horizontalZ * originX - horizontalX * originZ) << 5;
+
+        let v: number = (verticalX * originY - verticalY * originX) << 14;
+        const vStride: number = (verticalY * originZ - verticalZ * originY) << 8;
+        const vStepVertical: number = (verticalZ * originX - verticalX * originZ) << 5;
+
+        let w: number = (verticalY * horizontalX - verticalX * horizontalY) << 14;
+        const wStride: number = (verticalZ * horizontalY - verticalY * horizontalZ) << 8;
+        const wStepVertical: number = (verticalX * horizontalZ - verticalZ * horizontalX) << 5;
+
+        let xStepAB: number = 0;
+        let shadeStepAB: number = 0;
+        if (yB != yA) {
+            xStepAB = Math.trunc(((xB - xA) << 16) / (yB - yA));
+            shadeStepAB = Math.trunc(((shadeB - shadeA) << 16) / (yB - yA));
+        }
+
+        let xStepBC: number = 0;
+        let shadeStepBC: number = 0;
+        if (yC != yB) {
+            xStepBC = Math.trunc(((xC - xB) << 16) / (yC - yB));
+            shadeStepBC = Math.trunc(((shadeC - shadeB) << 16) / (yC - yB));
+        }
+
+        let xStepAC: number = 0;
+        let shadeStepAC: number = 0;
+        if (yC != yA) {
+            xStepAC = Math.trunc(((xA - xC) << 16) / (yA - yC));
+            shadeStepAC = Math.trunc(((shadeA - shadeC) << 16) / (yA - yC));
+        }
+
+        if (yA <= yB && yA <= yC) {
+            if (yA < Draw2D.bottom) {
+                if (yB > Draw2D.bottom) {
+                    yB = Draw2D.bottom;
+                }
+
+                if (yC > Draw2D.bottom) {
+                    yC = Draw2D.bottom;
+                }
+
+                if (yB < yC) {
+                    xC = xA <<= 0x10;
+                    shadeC = shadeA <<= 0x10;
+                    if (yA < 0) {
+                        xC -= xStepAC * yA;
+                        xA -= xStepAB * yA;
+                        shadeC -= shadeStepAC * yA;
+                        shadeA -= shadeStepAB * yA;
+                        yA = 0;
+                    }
+                    xB <<= 0x10;
+                    shadeB <<= 0x10;
+                    if (yB < 0) {
+                        xB -= xStepBC * yB;
+                        shadeB -= shadeStepBC * yB;
+                        yB = 0;
+                    }
+                    const dy: number = yA - this.centerY;
+                    u += uStepVertical * dy;
+                    v += vStepVertical * dy;
+                    w += wStepVertical * dy;
+                    if ((yA != yB && xStepAC < xStepAB) || (yA == yB && xStepAC > xStepBC)) {
+                        yC -= yB;
+                        yB -= yA;
+                        yA = this.lineOffset[yA];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            yB--;
+                            if (yB < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    yC--;
+                                    if (yC < 0) {
+                                        return;
+                                    }
+                                    this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
+                                    xC += xStepAC;
+                                    xB += xStepBC;
+                                    shadeC += shadeStepAC;
+                                    shadeB += shadeStepBC;
+                                    yA += Draw2D.width;
+                                    u += uStepVertical;
+                                    v += vStepVertical;
+                                    w += wStepVertical;
+                                }
+                            }
+                            this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
+                            xC += xStepAC;
+                            xA += xStepAB;
+                            shadeC += shadeStepAC;
+                            shadeA += shadeStepAB;
+                            yA += Draw2D.width;
+                            u += uStepVertical;
+                            v += vStepVertical;
+                            w += wStepVertical;
+                        }
+                    } else {
+                        yC -= yB;
+                        yB -= yA;
+                        yA = this.lineOffset[yA];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            yB--;
+                            if (yB < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    yC--;
+                                    if (yC < 0) {
+                                        return;
+                                    }
+                                    this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
+                                    xC += xStepAC;
+                                    xB += xStepBC;
+                                    shadeC += shadeStepAC;
+                                    shadeB += shadeStepBC;
+                                    yA += Draw2D.width;
+                                    u += uStepVertical;
+                                    v += vStepVertical;
+                                    w += wStepVertical;
+                                }
+                            }
+                            this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
+                            xC += xStepAC;
+                            xA += xStepAB;
+                            shadeC += shadeStepAC;
+                            shadeA += shadeStepAB;
+                            yA += Draw2D.width;
+                            u += uStepVertical;
+                            v += vStepVertical;
+                            w += wStepVertical;
+                        }
+                    }
+                } else {
+                    xB = xA <<= 0x10;
+                    shadeB = shadeA <<= 0x10;
+                    if (yA < 0) {
+                        xB -= xStepAC * yA;
+                        xA -= xStepAB * yA;
+                        shadeB -= shadeStepAC * yA;
+                        shadeA -= shadeStepAB * yA;
+                        yA = 0;
+                    }
+                    xC <<= 0x10;
+                    shadeC <<= 0x10;
+                    if (yC < 0) {
+                        xC -= xStepBC * yC;
+                        shadeC -= shadeStepBC * yC;
+                        yC = 0;
+                    }
+                    const dy: number = yA - this.centerY;
+                    u += uStepVertical * dy;
+                    v += vStepVertical * dy;
+                    w += wStepVertical * dy;
+                    if ((yA == yC || xStepAC >= xStepAB) && (yA != yC || xStepBC <= xStepAB)) {
+                        yB -= yC;
+                        yC -= yA;
+                        yA = this.lineOffset[yA];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            yC--;
+                            if (yC < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    yB--;
+                                    if (yB < 0) {
+                                        return;
+                                    }
+                                    this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
+                                    xC += xStepBC;
+                                    xA += xStepAB;
+                                    shadeC += shadeStepBC;
+                                    shadeA += shadeStepAB;
+                                    yA += Draw2D.width;
+                                    u += uStepVertical;
+                                    v += vStepVertical;
+                                    w += wStepVertical;
+                                }
+                            }
+                            this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
+                            xB += xStepAC;
+                            xA += xStepAB;
+                            shadeB += shadeStepAC;
+                            shadeA += shadeStepAB;
+                            yA += Draw2D.width;
+                            u += uStepVertical;
+                            v += vStepVertical;
+                            w += wStepVertical;
+                        }
+                    } else {
+                        yB -= yC;
+                        yC -= yA;
+                        yA = this.lineOffset[yA];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            yC--;
+                            if (yC < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    yB--;
+                                    if (yB < 0) {
+                                        return;
+                                    }
+                                    this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
+                                    xC += xStepBC;
+                                    xA += xStepAB;
+                                    shadeC += shadeStepBC;
+                                    shadeA += shadeStepAB;
+                                    yA += Draw2D.width;
+                                    u += uStepVertical;
+                                    v += vStepVertical;
+                                    w += wStepVertical;
+                                }
+                            }
+                            this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
+                            xB += xStepAC;
+                            xA += xStepAB;
+                            shadeB += shadeStepAC;
+                            shadeA += shadeStepAB;
+                            yA += Draw2D.width;
+                            u += uStepVertical;
+                            v += vStepVertical;
+                            w += wStepVertical;
+                        }
+                    }
+                }
+            }
+        } else if (yB <= yC) {
+            if (yB < Draw2D.bottom) {
+                if (yC > Draw2D.bottom) {
+                    yC = Draw2D.bottom;
+                }
+                if (yA > Draw2D.bottom) {
+                    yA = Draw2D.bottom;
+                }
+                if (yC < yA) {
+                    xA = xB <<= 0x10;
+                    shadeA = shadeB <<= 0x10;
+                    if (yB < 0) {
+                        xA -= xStepAB * yB;
+                        xB -= xStepBC * yB;
+                        shadeA -= shadeStepAB * yB;
+                        shadeB -= shadeStepBC * yB;
+                        yB = 0;
+                    }
+                    xC <<= 0x10;
+                    shadeC <<= 0x10;
+                    if (yC < 0) {
+                        xC -= xStepAC * yC;
+                        shadeC -= shadeStepAC * yC;
+                        yC = 0;
+                    }
+                    const dy: number = yB - this.centerY;
+                    u += uStepVertical * dy;
+                    v += vStepVertical * dy;
+                    w += wStepVertical * dy;
+                    if ((yB != yC && xStepAB < xStepBC) || (yB == yC && xStepAB > xStepAC)) {
+                        yA -= yC;
+                        yC -= yB;
+                        yB = this.lineOffset[yB];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            yC--;
+                            if (yC < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    yA--;
+                                    if (yA < 0) {
+                                        return;
+                                    }
+                                    this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
+                                    xA += xStepAB;
+                                    xC += xStepAC;
+                                    shadeA += shadeStepAB;
+                                    shadeC += shadeStepAC;
+                                    yB += Draw2D.width;
+                                    u += uStepVertical;
+                                    v += vStepVertical;
+                                    w += wStepVertical;
+                                }
+                            }
+                            this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
+                            xA += xStepAB;
+                            xB += xStepBC;
+                            shadeA += shadeStepAB;
+                            shadeB += shadeStepBC;
+                            yB += Draw2D.width;
+                            u += uStepVertical;
+                            v += vStepVertical;
+                            w += wStepVertical;
+                        }
+                    } else {
+                        yA -= yC;
+                        yC -= yB;
+                        yB = this.lineOffset[yB];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            yC--;
+                            if (yC < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    yA--;
+                                    if (yA < 0) {
+                                        return;
+                                    }
+                                    this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
+                                    xA += xStepAB;
+                                    xC += xStepAC;
+                                    shadeA += shadeStepAB;
+                                    shadeC += shadeStepAC;
+                                    yB += Draw2D.width;
+                                    u += uStepVertical;
+                                    v += vStepVertical;
+                                    w += wStepVertical;
+                                }
+                            }
+                            this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
+                            xA += xStepAB;
+                            xB += xStepBC;
+                            shadeA += shadeStepAB;
+                            shadeB += shadeStepBC;
+                            yB += Draw2D.width;
+                            u += uStepVertical;
+                            v += vStepVertical;
+                            w += wStepVertical;
+                        }
+                    }
+                } else {
+                    xC = xB <<= 0x10;
+                    shadeC = shadeB <<= 0x10;
+                    if (yB < 0) {
+                        xC -= xStepAB * yB;
+                        xB -= xStepBC * yB;
+                        shadeC -= shadeStepAB * yB;
+                        shadeB -= shadeStepBC * yB;
+                        yB = 0;
+                    }
+                    xA <<= 0x10;
+                    shadeA <<= 0x10;
+                    if (yA < 0) {
+                        xA -= xStepAC * yA;
+                        shadeA -= shadeStepAC * yA;
+                        yA = 0;
+                    }
+                    const dy: number = yB - this.centerY;
+                    u += uStepVertical * dy;
+                    v += vStepVertical * dy;
+                    w += wStepVertical * dy;
+                    if (xStepAB < xStepBC) {
+                        yC -= yA;
+                        yA -= yB;
+                        yB = this.lineOffset[yB];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            yA--;
+                            if (yA < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    yC--;
+                                    if (yC < 0) {
+                                        return;
+                                    }
+                                    this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
+                                    xA += xStepAC;
+                                    xB += xStepBC;
+                                    shadeA += shadeStepAC;
+                                    shadeB += shadeStepBC;
+                                    yB += Draw2D.width;
+                                    u += uStepVertical;
+                                    v += vStepVertical;
+                                    w += wStepVertical;
+                                }
+                            }
+                            this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
+                            xC += xStepAB;
+                            xB += xStepBC;
+                            shadeC += shadeStepAB;
+                            shadeB += shadeStepBC;
+                            yB += Draw2D.width;
+                            u += uStepVertical;
+                            v += vStepVertical;
+                            w += wStepVertical;
+                        }
+                    } else {
+                        yC -= yA;
+                        yA -= yB;
+                        yB = this.lineOffset[yB];
+                        // eslint-disable-next-line no-constant-condition
+                        while (true) {
+                            yA--;
+                            if (yA < 0) {
+                                // eslint-disable-next-line no-constant-condition
+                                while (true) {
+                                    yC--;
+                                    if (yC < 0) {
+                                        return;
+                                    }
+                                    this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
+                                    xA += xStepAC;
+                                    xB += xStepBC;
+                                    shadeA += shadeStepAC;
+                                    shadeB += shadeStepBC;
+                                    yB += Draw2D.width;
+                                    u += uStepVertical;
+                                    v += vStepVertical;
+                                    w += wStepVertical;
+                                }
+                            }
+                            this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
+                            xC += xStepAB;
+                            xB += xStepBC;
+                            shadeC += shadeStepAB;
+                            shadeB += shadeStepBC;
+                            yB += Draw2D.width;
+                            u += uStepVertical;
+                            v += vStepVertical;
+                            w += wStepVertical;
+                        }
+                    }
+                }
+            }
+        } else if (yC < Draw2D.bottom) {
+            if (yA > Draw2D.bottom) {
+                yA = Draw2D.bottom;
+            }
+            if (yB > Draw2D.bottom) {
+                yB = Draw2D.bottom;
+            }
+            if (yA < yB) {
+                xB = xC <<= 0x10;
+                shadeB = shadeC <<= 0x10;
+                if (yC < 0) {
+                    xB -= xStepBC * yC;
+                    xC -= xStepAC * yC;
+                    shadeB -= shadeStepBC * yC;
+                    shadeC -= shadeStepAC * yC;
+                    yC = 0;
+                }
+                xA <<= 0x10;
+                shadeA <<= 0x10;
+                if (yA < 0) {
+                    xA -= xStepAB * yA;
+                    shadeA -= shadeStepAB * yA;
+                    yA = 0;
+                }
+                const dy: number = yC - this.centerY;
+                u += uStepVertical * dy;
+                v += vStepVertical * dy;
+                w += wStepVertical * dy;
+                if (xStepBC < xStepAC) {
+                    yB -= yA;
+                    yA -= yC;
+                    yC = this.lineOffset[yC];
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        yA--;
+                        if (yA < 0) {
+                            // eslint-disable-next-line no-constant-condition
+                            while (true) {
+                                yB--;
+                                if (yB < 0) {
+                                    return;
+                                }
+                                this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
+                                xB += xStepBC;
+                                xA += xStepAB;
+                                shadeB += shadeStepBC;
+                                shadeA += shadeStepAB;
+                                yC += Draw2D.width;
+                                u += uStepVertical;
+                                v += vStepVertical;
+                                w += wStepVertical;
+                            }
+                        }
+                        this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
+                        xB += xStepBC;
+                        xC += xStepAC;
+                        shadeB += shadeStepBC;
+                        shadeC += shadeStepAC;
+                        yC += Draw2D.width;
+                        u += uStepVertical;
+                        v += vStepVertical;
+                        w += wStepVertical;
+                    }
+                } else {
+                    yB -= yA;
+                    yA -= yC;
+                    yC = this.lineOffset[yC];
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        yA--;
+                        if (yA < 0) {
+                            // eslint-disable-next-line no-constant-condition
+                            while (true) {
+                                yB--;
+                                if (yB < 0) {
+                                    return;
+                                }
+                                this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
+                                xB += xStepBC;
+                                xA += xStepAB;
+                                shadeB += shadeStepBC;
+                                shadeA += shadeStepAB;
+                                yC += Draw2D.width;
+                                u += uStepVertical;
+                                v += vStepVertical;
+                                w += wStepVertical;
+                            }
+                        }
+                        this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
+                        xB += xStepBC;
+                        xC += xStepAC;
+                        shadeB += shadeStepBC;
+                        shadeC += shadeStepAC;
+                        yC += Draw2D.width;
+                        u += uStepVertical;
+                        v += vStepVertical;
+                        w += wStepVertical;
+                    }
+                }
+            } else {
+                xA = xC <<= 0x10;
+                shadeA = shadeC <<= 0x10;
+                if (yC < 0) {
+                    xA -= xStepBC * yC;
+                    xC -= xStepAC * yC;
+                    shadeA -= shadeStepBC * yC;
+                    shadeC -= shadeStepAC * yC;
+                    yC = 0;
+                }
+                xB <<= 0x10;
+                shadeB <<= 0x10;
+                if (yB < 0) {
+                    xB -= xStepAB * yB;
+                    shadeB -= shadeStepAB * yB;
+                    yB = 0;
+                }
+                const dy: number = yC - this.centerY;
+                u += uStepVertical * dy;
+                v += vStepVertical * dy;
+                w += wStepVertical * dy;
+                if (xStepBC < xStepAC) {
+                    yA -= yB;
+                    yB -= yC;
+                    yC = this.lineOffset[yC];
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        yB--;
+                        if (yB < 0) {
+                            // eslint-disable-next-line no-constant-condition
+                            while (true) {
+                                yA--;
+                                if (yA < 0) {
+                                    return;
+                                }
+                                this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
+                                xB += xStepAB;
+                                xC += xStepAC;
+                                shadeB += shadeStepAB;
+                                shadeC += shadeStepAC;
+                                yC += Draw2D.width;
+                                u += uStepVertical;
+                                v += vStepVertical;
+                                w += wStepVertical;
+                            }
+                        }
+                        this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
+                        xA += xStepBC;
+                        xC += xStepAC;
+                        shadeA += shadeStepBC;
+                        shadeC += shadeStepAC;
+                        yC += Draw2D.width;
+                        u += uStepVertical;
+                        v += vStepVertical;
+                        w += wStepVertical;
+                    }
+                } else {
+                    yA -= yB;
+                    yB -= yC;
+                    yC = this.lineOffset[yC];
+                    // eslint-disable-next-line no-constant-condition
+                    while (true) {
+                        yB--;
+                        if (yB < 0) {
+                            // eslint-disable-next-line no-constant-condition
+                            while (true) {
+                                yA--;
+                                if (yA < 0) {
+                                    return;
+                                }
+                                this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
+                                xB += xStepAB;
+                                xC += xStepAC;
+                                shadeB += shadeStepAB;
+                                shadeC += shadeStepAC;
+                                yC += Draw2D.width;
+                                u += uStepVertical;
+                                v += vStepVertical;
+                                w += wStepVertical;
+                            }
+                        }
+                        this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
+                        xA += xStepBC;
+                        xC += xStepAC;
+                        shadeA += shadeStepBC;
+                        shadeC += shadeStepAC;
+                        yC += Draw2D.width;
+                        u += uStepVertical;
+                        v += vStepVertical;
+                        w += wStepVertical;
+                    }
+                }
+            }
+        }
+    };
+
+    private static drawTexturedScanline = (
+        xA: number,
+        xB: number,
+        dst: Int32Array,
+        offset: number,
+        texels: number[] | null,
+        curU: number,
+        curV: number,
+        u: number,
+        v: number,
+        w: number,
+        uStride: number,
+        vStride: number,
+        wStride: number,
+        shadeA: number,
+        shadeB: number
+    ): void => {
+        if (xA >= xB) {
+            return;
+        }
+
+        let shadeStrides: number;
+        let strides: number;
+        if (this.clipX) {
+            shadeStrides = Math.trunc((shadeB - shadeA) / (xB - xA));
+
+            if (xB > Draw2D.boundX) {
+                xB = Draw2D.boundX;
+            }
+
+            if (xA < 0) {
+                shadeA -= xA * shadeStrides;
+                xA = 0;
+            }
+
+            if (xA >= xB) {
+                return;
+            }
+
+            strides = (xB - xA) >> 3;
+            shadeStrides <<= 0xc;
+            shadeA <<= 0x9;
+        } else {
+            if (xB - xA > 7) {
+                strides = (xB - xA) >> 3;
+                shadeStrides = ((shadeB - shadeA) * this.reciprocal15[strides]) >> 6;
+            } else {
+                strides = 0;
+                shadeStrides = 0;
+            }
+
+            shadeA <<= 0x9;
+        }
+
+        offset += xA;
+
+        let nextU: number;
+        let nextV: number;
+        let curW: number;
+        let dx: number;
+        let stepU: number;
+        let stepV: number;
+        let shadeShift: number;
+        if (this.lowMemory && texels) {
+            nextU = 0;
+            nextV = 0;
+            dx = xA - this.centerX;
+            u = u + (uStride >> 3) * dx;
+            v = v + (vStride >> 3) * dx;
+            w = w + (wStride >> 3) * dx;
+            curW = w >> 12;
+            if (curW != 0) {
+                curU = Math.trunc(u / curW);
+                curV = Math.trunc(v / curW);
+                if (curU < 0) {
+                    curU = 0;
+                } else if (curU > 4032) {
+                    curU = 4032;
+                }
+            }
+            u = u + uStride;
+            v = v + vStride;
+            w = w + wStride;
+            curW = w >> 12;
+            if (curW != 0) {
+                nextU = Math.trunc(u / curW);
+                nextV = Math.trunc(v / curW);
+                if (nextU < 7) {
+                    nextU = 7;
+                } else if (nextU > 4032) {
+                    nextU = 4032;
+                }
+            }
+            stepU = (nextU - curU) >> 3;
+            stepV = (nextV - curV) >> 3;
+            curU += (shadeA >> 3) & 0xc0000;
+            shadeShift = shadeA >> 23;
+            if (this.opaque) {
+                while (strides-- > 0) {
+                    dst[offset++] = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift;
+                    curU += stepU;
+                    curV += stepV;
+                    dst[offset++] = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift;
+                    curU += stepU;
+                    curV += stepV;
+                    dst[offset++] = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift;
+                    curU += stepU;
+                    curV += stepV;
+                    dst[offset++] = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift;
+                    curU += stepU;
+                    curV += stepV;
+                    dst[offset++] = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift;
+                    curU += stepU;
+                    curV += stepV;
+                    dst[offset++] = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift;
+                    curU += stepU;
+                    curV += stepV;
+                    dst[offset++] = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift;
+                    curU += stepU;
+                    curV += stepV;
+                    dst[offset++] = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift;
+                    curU = nextU;
+                    curV = nextV;
+                    u += uStride;
+                    v += vStride;
+                    w += wStride;
+                    curW = w >> 12;
+                    if (curW != 0) {
+                        nextU = Math.trunc(u / curW);
+                        nextV = Math.trunc(v / curW);
+                        if (nextU < 7) {
+                            nextU = 7;
+                        } else if (nextU > 4032) {
+                            nextU = 4032;
+                        }
+                    }
+                    stepU = (nextU - curU) >> 3;
+                    stepV = (nextV - curV) >> 3;
+                    shadeA += shadeStrides;
+                    curU += (shadeA >> 3) & 0xc0000;
+                    shadeShift = shadeA >> 23;
+                }
+                strides = (xB - xA) & 0x7;
+                while (strides-- > 0) {
+                    dst[offset++] = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift;
+                    curU += stepU;
+                    curV += stepV;
+                }
+            } else {
+                while (strides-- > 0) {
+                    let rgb: number;
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                        dst[offset] = rgb;
+                    }
+                    offset = offset + 1;
+                    curU += stepU;
+                    curV += stepV;
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                        dst[offset] = rgb;
+                    }
+                    offset++;
+                    curU += stepU;
+                    curV += stepV;
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                        dst[offset] = rgb;
+                    }
+                    offset++;
+                    curU += stepU;
+                    curV += stepV;
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                        dst[offset] = rgb;
+                    }
+                    offset++;
+                    curU += stepU;
+                    curV += stepV;
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                        dst[offset] = rgb;
+                    }
+                    offset++;
+                    curU += stepU;
+                    curV += stepV;
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                        dst[offset] = rgb;
+                    }
+                    offset++;
+                    curU += stepU;
+                    curV += stepV;
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                        dst[offset] = rgb;
+                    }
+                    offset++;
+                    curU += stepU;
+                    curV += stepV;
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                        dst[offset] = rgb;
+                    }
+                    offset = offset + 1;
+                    curU = nextU;
+                    curV = nextV;
+                    u += uStride;
+                    v += vStride;
+                    w += wStride;
+                    curW = w >> 12;
+                    if (curW != 0) {
+                        nextU = Math.trunc(u / curW);
+                        nextV = Math.trunc(v / curW);
+                        if (nextU < 7) {
+                            nextU = 7;
+                        } else if (nextU > 4032) {
+                            nextU = 4032;
+                        }
+                    }
+                    stepU = (nextU - curU) >> 3;
+                    stepV = (nextV - curV) >> 3;
+                    shadeA += shadeStrides;
+                    curU += (shadeA >> 3) & 0xc0000;
+                    shadeShift = shadeA >> 23;
+                }
+                strides = (xB - xA) & 0x7;
+                while (strides-- > 0) {
+                    let rgb: number;
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                        dst[offset] = rgb;
+                    }
+                    offset++;
+                    curU += stepU;
+                    curV += stepV;
+                }
+            }
+            return;
+        }
+        nextU = 0;
+        nextV = 0;
+        dx = xA - this.centerX;
+        u = u + (uStride >> 3) * dx;
+        v = v + (vStride >> 3) * dx;
+        w = w + (wStride >> 3) * dx;
+        curW = w >> 14;
+        if (curW != 0) {
+            curU = Math.trunc(u / curW);
+            curV = Math.trunc(v / curW);
+            if (curU < 0) {
+                curU = 0;
+            } else if (curU > 16256) {
+                curU = 16256;
+            }
+        }
+        u = u + uStride;
+        v = v + vStride;
+        w = w + wStride;
+        curW = w >> 14;
+        if (curW != 0) {
+            nextU = Math.trunc(u / curW);
+            nextV = Math.trunc(v / curW);
+            if (nextU < 7) {
+                nextU = 7;
+            } else if (nextU > 16256) {
+                nextU = 16256;
+            }
+        }
+        stepU = (nextU - curU) >> 3;
+        stepV = (nextV - curV) >> 3;
+        curU += shadeA & 0x600000;
+        shadeShift = shadeA >> 23;
+        if (this.opaque && texels) {
+            while (strides-- > 0) {
+                dst[offset++] = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift;
+                curU += stepU;
+                curV += stepV;
+                dst[offset++] = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift;
+                curU += stepU;
+                curV += stepV;
+                dst[offset++] = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift;
+                curU += stepU;
+                curV += stepV;
+                dst[offset++] = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift;
+                curU += stepU;
+                curV += stepV;
+                dst[offset++] = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift;
+                curU += stepU;
+                curV += stepV;
+                dst[offset++] = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift;
+                curU += stepU;
+                curV += stepV;
+                dst[offset++] = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift;
+                curU += stepU;
+                curV += stepV;
+                dst[offset++] = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift;
+                curU = nextU;
+                curV = nextV;
+                u += uStride;
+                v += vStride;
+                w += wStride;
+                curW = w >> 14;
+                if (curW != 0) {
+                    nextU = Math.trunc(u / curW);
+                    nextV = Math.trunc(v / curW);
+                    if (nextU < 7) {
+                        nextU = 7;
+                    } else if (nextU > 16256) {
+                        nextU = 16256;
+                    }
+                }
+                stepU = (nextU - curU) >> 3;
+                stepV = (nextV - curV) >> 3;
+                shadeA += shadeStrides;
+                curU += shadeA & 0x600000;
+                shadeShift = shadeA >> 23;
+            }
+            strides = (xB - xA) & 0x7;
+            while (strides-- > 0) {
+                dst[offset++] = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift;
+                curU += stepU;
+                curV += stepV;
+            }
+            return;
+        }
+
+        while (strides-- > 0 && texels) {
+            let rgb: number;
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+                dst[offset] = rgb;
+            }
+            offset = offset + 1;
+            curU += stepU;
+            curV += stepV;
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+                dst[offset] = rgb;
+            }
+            offset++;
+            curU += stepU;
+            curV += stepV;
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+                dst[offset] = rgb;
+            }
+            offset++;
+            curU += stepU;
+            curV += stepV;
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+                dst[offset] = rgb;
+            }
+            offset++;
+            curU += stepU;
+            curV += stepV;
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+                dst[offset] = rgb;
+            }
+            offset++;
+            curU += stepU;
+            curV += stepV;
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+                dst[offset] = rgb;
+            }
+            offset++;
+            curU += stepU;
+            curV += stepV;
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+                dst[offset] = rgb;
+            }
+            offset++;
+            curU += stepU;
+            curV += stepV;
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+                dst[offset] = rgb;
+            }
+            offset++;
+            curU = nextU;
+            curV = nextV;
+            u += uStride;
+            v += vStride;
+            w += wStride;
+            curW = w >> 14;
+            if (curW != 0) {
+                nextU = Math.trunc(u / curW);
+                nextV = Math.trunc(v / curW);
+                if (nextU < 7) {
+                    nextU = 7;
+                } else if (nextU > 16256) {
+                    nextU = 16256;
+                }
+            }
+            stepU = (nextU - curU) >> 3;
+            stepV = (nextV - curV) >> 3;
+            shadeA += shadeStrides;
+            curU += shadeA & 0x600000;
+            shadeShift = shadeA >> 23;
+        }
+        strides = (xB - xA) & 0x7;
+        while (strides-- > 0 && texels) {
+            let rgb: number;
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+                dst[offset] = rgb;
+            }
+            offset++;
+            curU += stepU;
+            curV += stepV;
+        }
+    };
 
     private static drawScanline = (x0: number, x1: number, dst: Int32Array, offset: number, rgb: number): void => {
         if (this.clipX) {
@@ -1178,5 +2267,81 @@ export default class Draw3D {
             dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
             dst[offset++] = rgb + ((((dst[offset] & 0xff00ff) * alpha) >> 8) & 0xff00ff) + ((((dst[offset] & 0xff00) * alpha) >> 8) & 0xff00);
         }
+    };
+
+    static pushTexture = (id: number): void => {
+        if (this.activeTexels[id] != null && this.texelPool) {
+            this.texelPool[this.poolSize++] = this.activeTexels[id];
+            this.activeTexels[id] = null;
+        }
+    };
+
+    private static getTexels = (id: number): number[] | null => {
+        this.textureCycle[id] = this.cycle++;
+        if (this.activeTexels[id] != null) {
+            return this.activeTexels[id];
+        }
+
+        let texels: number[] | null;
+        if (this.poolSize > 0 && this.texelPool) {
+            texels = this.texelPool[--this.poolSize];
+            this.texelPool[this.poolSize] = null;
+        } else {
+            let cycle: number = 0;
+            let selected: number = -1;
+            for (let t: number = 0; t < this.textureCount; t++) {
+                if (this.activeTexels[t] != null && (this.textureCycle[t] < cycle || selected == -1)) {
+                    cycle = this.textureCycle[t];
+                    selected = t;
+                }
+            }
+            texels = this.activeTexels[selected];
+            this.activeTexels[selected] = null;
+        }
+
+        this.activeTexels[id] = texels;
+        const texture: Pix8 = this.textures[id];
+        const palette: number[] | null = this.texturePalette[id];
+
+        if (texels && palette) {
+            if (this.lowMemory) {
+                this.textureTranslucent[id] = false;
+                for (let i: number = 0; i < 4096; i++) {
+                    const rgb: number = (texels[i] = palette[texture.pixels[i]] & 0xf8f8ff);
+                    if (rgb == 0) {
+                        this.textureTranslucent[id] = true;
+                    }
+                    texels[i + 4096] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
+                    texels[i + 8192] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
+                    texels[i + 12288] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
+                }
+            } else {
+                if (texture.width == 64) {
+                    for (let y: number = 0; y < 128; y++) {
+                        for (let x: number = 0; x < 128; x++) {
+                            texels[x + (y << 7)] = palette[texture.pixels[(x >> 1) + ((y >> 1) << 6)]];
+                        }
+                    }
+                } else {
+                    for (let i: number = 0; i < 16384; i++) {
+                        texels[i] = palette[texture.pixels[i]];
+                    }
+                }
+
+                this.textureTranslucent[id] = false;
+                for (let i: number = 0; i < 16384; i++) {
+                    texels[i] &= 0xf8f8ff;
+                    const rgb: number = texels[i];
+                    if (rgb == 0) {
+                        this.textureTranslucent[id] = true;
+                    }
+                    texels[i + 16384] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
+                    texels[i + 32768] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
+                    texels[i + 49152] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
+                }
+            }
+        }
+
+        return texels;
     };
 }

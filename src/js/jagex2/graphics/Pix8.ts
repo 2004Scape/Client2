@@ -7,9 +7,9 @@ import Hashable from '../datastruct/Hashable';
 // identical to Pix24 except the image is indexed by a palette
 export default class Pix8 extends Hashable {
     // constructor
-    readonly pixels: Int8Array;
-    readonly width: number;
-    readonly height: number;
+    pixels: Int8Array;
+    width: number;
+    height: number;
     cropX: number;
     cropY: number;
     cropW: number;
@@ -151,7 +151,7 @@ export default class Pix8 extends Hashable {
         const height: number = this.height;
 
         for (let y: number = 0; y < height; y++) {
-            const div: number = width / 2;
+            const div: number = Math.trunc(width / 2);
             for (let x: number = 0; x < div; x++) {
                 const off1: number = x + y * width;
                 const off2: number = width - x - 1 + y * width;
@@ -168,7 +168,7 @@ export default class Pix8 extends Hashable {
         const width: number = this.width;
         const height: number = this.height;
 
-        for (let y: number = 0; y < height / 2; y++) {
+        for (let y: number = 0; y < Math.trunc(height / 2); y++) {
             for (let x: number = 0; x < width; x++) {
                 const off1: number = x + y * width;
                 const off2: number = x + (height - y - 1) * width;
@@ -208,6 +208,43 @@ export default class Pix8 extends Hashable {
 
             this.palette[i] = (red << 16) + (green << 8) + blue;
         }
+    };
+
+    shrink = (): void => {
+        this.cropW /= 2;
+        this.cropH /= 2;
+
+        const pixels: Int8Array = new Int8Array(this.cropW * this.cropH);
+        let off: number = 0;
+        for (let y: number = 0; y < this.height; y++) {
+            for (let x: number = 0; x < this.width; x++) {
+                pixels[((x + this.cropX) >> 1) + ((y + this.cropY) >> 1) * this.cropW] = this.pixels[off++];
+            }
+        }
+        this.pixels = pixels;
+        this.width = this.cropW;
+        this.height = this.cropH;
+        this.cropX = 0;
+        this.cropY = 0;
+    };
+
+    crop = (): void => {
+        if (this.width == this.cropW && this.height == this.cropH) {
+            return;
+        }
+
+        const pixels: Int8Array = new Int8Array(this.cropW * this.cropH);
+        let off: number = 0;
+        for (let y: number = 0; y < this.height; y++) {
+            for (let x: number = 0; x < this.width; x++) {
+                pixels[x + this.cropX + (y + this.cropY) * this.cropW] = this.pixels[off++];
+            }
+        }
+        this.pixels = pixels;
+        this.width = this.cropW;
+        this.height = this.cropH;
+        this.cropX = 0;
+        this.cropY = 0;
     };
 
     private copyImage = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {

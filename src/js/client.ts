@@ -3841,7 +3841,7 @@ class Client extends GameShell {
                 if (this.sceneState === 1) {
                     this.sceneState = 2;
                     // World.levelBuilt = this.currentLevel;
-                    // this.buildScene();
+                    this.buildScene();
                 }
                 if (Client.LOW_MEMORY && this.sceneState === 2 /* && World.levelBuilt !== this.currentLevel*/) {
                     this.areaViewport?.bind();
@@ -3849,7 +3849,7 @@ class Client extends GameShell {
                     this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', 16777215);
                     this.areaViewport?.draw(8, 11);
                     // World.levelBuilt = this.currentLevel;
-                    // this.buildScene();
+                    this.buildScene();
                 }
                 // if (this.currentLevel !== this.minimapLevel && this.sceneState === 2) {
                 //     this.minimapLevel = this.currentLevel;
@@ -3865,6 +3865,11 @@ class Client extends GameShell {
             // TODO extra logic for logout??
         }
         return true;
+    };
+
+    private buildScene = (): void => {
+        Draw3D.clearTexels();
+        Draw3D.initPool(20);
     };
 
     private resetInterfaceAnimation = (id: number): void => {
