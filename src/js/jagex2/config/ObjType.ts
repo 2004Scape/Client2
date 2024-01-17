@@ -42,9 +42,9 @@ export default class ObjType extends ConfigType {
             throw new Error('ObjType not loaded!!!');
         }
 
-        for (let id: number = 0; id < 10; id++) {
-            if (this.cache[id].index === id) {
-                return this.cache[id];
+        for (let i: number = 0; i < 10; i++) {
+            if (this.cache[i].index === id) {
+                return this.cache[i];
             }
         }
 
