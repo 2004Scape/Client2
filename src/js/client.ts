@@ -122,15 +122,15 @@ class Client extends GameShell {
     private flameActive: boolean = false;
     private imageFlamesLeft: Pix24 | null = null;
     private imageFlamesRight: Pix24 | null = null;
-    private flameBuffer1: number[] = [];
-    private flameBuffer0: number[] = [];
-    private flameBuffer3: number[] = [];
-    private flameBuffer2: number[] = [];
-    private flameGradient: number[] = [];
-    private flameGradient0: number[] = [];
-    private flameGradient1: number[] = [];
-    private flameGradient2: number[] = [];
-    private flameLineOffset: number[] = [];
+    private flameBuffer1: Int32Array | null = null;
+    private flameBuffer0: Int32Array | null = null;
+    private flameBuffer3: Int32Array | null = null;
+    private flameBuffer2: Int32Array | null = null;
+    private flameGradient: Int32Array | null = null;
+    private flameGradient0: Int32Array | null = null;
+    private flameGradient1: Int32Array | null = null;
+    private flameGradient2: Int32Array | null = null;
+    private flameLineOffset: Int32Array = new Int32Array(256);
     private flameCycle0: number = 0;
     private flameGradientCycle0: number = 0;
     private flameGradientCycle1: number = 0;
@@ -756,29 +756,33 @@ class Client extends GameShell {
     };
 
     private updateFlameBuffer = (image: Pix8 | null): void => {
-        const flameHeight: number = 256;
+        if (!this.flameBuffer0 || !this.flameBuffer1) {
+            return;
+        }
+
+        const flameHeight: number = 256.0;
 
         // Clears the initial flame buffer
-        for (let i: number = 0; i < 32768; i++) {
+        for (let i: number = 0; i < this.flameBuffer0.length; i++) {
             this.flameBuffer0[i] = 0;
         }
 
         // Blends the fire at random
         for (let i: number = 0; i < 5000; i++) {
-            const rand: number = Math.trunc(Math.random() * 128.0 * flameHeight);
-            this.flameBuffer0[rand] = Math.trunc(Math.random() * 256.0);
+            const rand: number = (Math.random() * 128.0 * flameHeight) | 0;
+            this.flameBuffer0[rand] = Math.random() * 256.0;
         }
 
         // changes color between last few flames
         for (let i: number = 0; i < 20; i++) {
-            for (let y: number = 1; y < Math.trunc(flameHeight) - 1; y++) {
+            for (let y: number = 1; y < flameHeight - 1; y++) {
                 for (let x: number = 1; x < 127; x++) {
                     const index: number = x + (y << 7);
-                    this.flameBuffer1[index] = ((this.flameBuffer0[index - 1] + this.flameBuffer0[index + 1] + this.flameBuffer0[index - 128] + this.flameBuffer0[index + 128]) / 4) | 0;
+                    this.flameBuffer1[index] = (this.flameBuffer0[index - 1] + this.flameBuffer0[index + 1] + this.flameBuffer0[index - 128] + this.flameBuffer0[index + 128]) / 4;
                 }
             }
 
-            const last: number[] = this.flameBuffer0;
+            const last: Int32Array = this.flameBuffer0;
             this.flameBuffer0 = this.flameBuffer1;
             this.flameBuffer1 = last;
         }
@@ -815,7 +819,7 @@ class Client extends GameShell {
         if (this.imageTitle0) arraycopy(this.imageTitle0.pixels, 0, this.imageFlamesLeft.pixels, 0, 33920);
         if (this.imageTitle1) arraycopy(this.imageTitle1.pixels, 0, this.imageFlamesRight.pixels, 0, 33920);
 
-        this.flameGradient0 = [];
+        this.flameGradient0 = new Int32Array(256);
         for (let index: number = 0; index < 64; index++) {
             this.flameGradient0[index] = index * 262144;
         }
@@ -828,7 +832,7 @@ class Client extends GameShell {
         for (let index: number = 0; index < 64; index++) {
             this.flameGradient0[index + 192] = 16777215;
         }
-        this.flameGradient1 = [];
+        this.flameGradient1 = new Int32Array(256);
         for (let index: number = 0; index < 64; index++) {
             this.flameGradient1[index] = index * 1024;
         }
@@ -841,7 +845,7 @@ class Client extends GameShell {
         for (let index: number = 0; index < 64; index++) {
             this.flameGradient1[index + 192] = 16777215;
         }
-        this.flameGradient2 = [];
+        this.flameGradient2 = new Int32Array(256);
         for (let index: number = 0; index < 64; index++) {
             this.flameGradient2[index] = index * 4;
         }
@@ -855,12 +859,12 @@ class Client extends GameShell {
             this.flameGradient2[index + 192] = 16777215;
         }
 
-        this.flameGradient = [];
-        this.flameBuffer0 = [];
-        this.flameBuffer1 = [];
+        this.flameGradient = new Int32Array(256);
+        this.flameBuffer0 = new Int32Array(32768);
+        this.flameBuffer1 = new Int32Array(32768);
         this.updateFlameBuffer(null);
-        this.flameBuffer3 = [];
-        this.flameBuffer2 = [];
+        this.flameBuffer3 = new Int32Array(32768);
+        this.flameBuffer2 = new Int32Array(32768);
 
         this.showProgress(10, 'Connecting to fileserver').then((): void => {
             if (!this.flameActive) {
@@ -4014,14 +4018,14 @@ class Client extends GameShell {
         this.imageTitlebox = null;
         this.imageTitlebutton = null;
         this.imageRunes = [];
-        this.flameGradient = [];
-        this.flameGradient0 = [];
-        this.flameGradient1 = [];
-        this.flameGradient2 = [];
-        this.flameBuffer0 = [];
-        this.flameBuffer1 = [];
-        this.flameBuffer3 = [];
-        this.flameBuffer2 = [];
+        this.flameGradient = null;
+        this.flameGradient0 = null;
+        this.flameGradient1 = null;
+        this.flameGradient2 = null;
+        this.flameBuffer0 = null;
+        this.flameBuffer1 = null;
+        this.flameBuffer3 = null;
+        this.flameBuffer2 = null;
         this.imageFlamesLeft = null;
         this.imageFlamesRight = null;
     };
@@ -4136,16 +4140,20 @@ class Client extends GameShell {
     };
 
     private updateFlames = (): void => {
+        if (!this.flameBuffer3 || !this.flameBuffer2 || !this.flameBuffer0 || !this.flameLineOffset) {
+            return;
+        }
+
         const height: number = 256;
 
         for (let x: number = 10; x < 117; x++) {
-            const rand: number = Math.trunc(Math.random() * 100.0);
+            const rand: number = Math.random() * 100.0;
             if (rand < 50) this.flameBuffer3[x + ((height - 2) << 7)] = 255;
         }
 
         for (let l: number = 0; l < 100; l++) {
-            const x: number = Math.trunc(Math.random() * 124.0 + 2);
-            const y: number = Math.trunc(Math.random() * 128.0 + 128);
+            const x: number = ((Math.random() * 124.0) | 0) + 2;
+            const y: number = ((Math.random() * 128.0) | 0) + 128;
             const index: number = x + (y << 7);
             this.flameBuffer3[index] = 192;
         }
@@ -4153,21 +4161,20 @@ class Client extends GameShell {
         for (let y: number = 1; y < height - 1; y++) {
             for (let x: number = 1; x < 127; x++) {
                 const index: number = x + (y << 7);
-                this.flameBuffer2[index] = ((this.flameBuffer3[index - 1] + this.flameBuffer3[index + 1] + this.flameBuffer3[index - 128] + this.flameBuffer3[index + 128]) / 4) | 0;
+                this.flameBuffer2[index] = (this.flameBuffer3[index - 1] + this.flameBuffer3[index + 1] + this.flameBuffer3[index - 128] + this.flameBuffer3[index + 128]) / 4;
             }
         }
 
         this.flameCycle0 += 128;
-        if (this.flameCycle0 > 32768) {
-            this.flameCycle0 -= 32768;
-            const rand: number = Math.trunc(Math.random() * 12.0);
-            this.updateFlameBuffer(this.imageRunes[rand]);
+        if (this.flameCycle0 > this.flameBuffer0.length) {
+            this.flameCycle0 -= this.flameBuffer0.length;
+            this.updateFlameBuffer(this.imageRunes[(Math.random() * 12.0) | 0]);
         }
 
         for (let y: number = 1; y < height - 1; y++) {
             for (let x: number = 1; x < 127; x++) {
                 const index: number = x + (y << 7);
-                let intensity: number = (this.flameBuffer2[index + 128] - this.flameBuffer0[(index + this.flameCycle0) & (32768 - 1)] / 5) | 0;
+                let intensity: number = this.flameBuffer2[index + 128] - this.flameBuffer0[(index + this.flameCycle0) & (this.flameBuffer0.length - 1)] / 5;
                 if (intensity < 0) {
                     intensity = 0;
                 }
@@ -4179,7 +4186,7 @@ class Client extends GameShell {
             this.flameLineOffset[y] = this.flameLineOffset[y + 1];
         }
 
-        this.flameLineOffset[height - 1] = (Math.sin(this.loopCycle / 14.0) * 16.0 + Math.sin(this.loopCycle / 15.0) * 14.0 + Math.sin(this.loopCycle / 16.0) * 12.0) | 0;
+        this.flameLineOffset[height - 1] = Math.sin(this.loopCycle / 14.0) * 16.0 + Math.sin(this.loopCycle / 15.0) * 14.0 + Math.sin(this.loopCycle / 16.0) * 12.0;
 
         if (this.flameGradientCycle0 > 0) {
             this.flameGradientCycle0 -= 4;
@@ -4190,7 +4197,7 @@ class Client extends GameShell {
         }
 
         if (this.flameGradientCycle0 === 0 && this.flameGradientCycle1 === 0) {
-            const rand: number = Math.trunc(Math.random() * 2000.0);
+            const rand: number = (Math.random() * 2000.0) | 0;
 
             if (rand === 0) {
                 this.flameGradientCycle0 = 1024;
@@ -4206,6 +4213,10 @@ class Client extends GameShell {
     };
 
     private drawFlames = (): void => {
+        if (!this.flameGradient || !this.flameGradient0 || !this.flameGradient1 || !this.flameGradient2 || !this.flameLineOffset || !this.flameBuffer3) {
+            return;
+        }
+
         const height: number = 256;
 
         // just colors
@@ -4249,7 +4260,7 @@ class Client extends GameShell {
             }
             srcOffset += step;
             for (let x: number = step; x < 128; x++) {
-                let value: number = this.flameBuffer3[srcOffset++] | 0;
+                let value: number = this.flameBuffer3[srcOffset++];
                 if (value === 0) {
                     dstOffset++;
                 } else {
@@ -4280,7 +4291,7 @@ class Client extends GameShell {
             const step: number = 103 - offset;
             dstOffset += offset;
             for (let x: number = 0; x < step; x++) {
-                let value: number = this.flameBuffer3[srcOffset++] | 0;
+                let value: number = this.flameBuffer3[srcOffset++];
                 if (value === 0) {
                     dstOffset++;
                 } else {
