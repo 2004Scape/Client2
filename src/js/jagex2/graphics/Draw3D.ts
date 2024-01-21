@@ -22,23 +22,23 @@ export default class Draw3D {
     static clipX: boolean = false;
     static alpha: number = 0;
 
-    static texelPool: (number[] | null)[] | null = null;
-    static activeTexels: (number[] | null)[] = new Array(50);
+    static texelPool: (Int32Array | null)[] | null = null;
+    static activeTexels: (Int32Array | null)[] = new Array(50);
     static poolSize: number = 0;
     static cycle: number = 0;
-    static textureCycle: number[] = new Array(50);
-    static texturePalette: (number[] | null)[] = new Array(50);
+    static textureCycle: Int32Array = new Int32Array(50);
+    static texturePalette: (Int32Array | null)[] = new Array(50);
 
     private static opaque: boolean = false;
     private static textureTranslucent: boolean[] = new Array(50);
 
     static {
         for (let i: number = 1; i < 512; i++) {
-            this.reciprocal15[i] = 32768 / i;
+            this.reciprocal15[i] = Math.trunc(32768 / i);
         }
 
         for (let i: number = 1; i < 2048; i++) {
-            this.reciprocal16[i] = 65536 / i;
+            this.reciprocal16[i] = Math.trunc(65536 / i);
         }
 
         for (let i: number = 0; i < 2048; i++) {
@@ -54,8 +54,8 @@ export default class Draw3D {
         for (let y: number = 0; y < Draw2D.height; y++) {
             this.lineOffset[y] = Draw2D.width * y;
         }
-        this.centerX = Draw2D.width / 2;
-        this.centerY = Draw2D.height / 2;
+        this.centerX = Math.trunc(Draw2D.width / 2);
+        this.centerY = Math.trunc(Draw2D.height / 2);
     };
 
     static init3D = (width: number, height: number): void => {
@@ -63,8 +63,8 @@ export default class Draw3D {
         for (let y: number = 0; y < height; y++) {
             this.lineOffset[y] = width * y;
         }
-        this.centerX = width / 2;
-        this.centerY = height / 2;
+        this.centerX = Math.trunc(width / 2);
+        this.centerY = Math.trunc(height / 2);
     };
 
     static clearTexels = (): void => {
@@ -93,89 +93,74 @@ export default class Draw3D {
     };
 
     static setBrightness = (brightness: number): void => {
-        brightness += Math.random() * 0.3 - 0.15;
-
+        const randomBrightness: number = brightness + Math.random() * 0.03 - 0.015;
         let offset: number = 0;
         for (let y: number = 0; y < 512; y++) {
-            const hue: number = y / 8 / 64 + 0.0078125;
-            const saturation: number = (y & 7) / 8 + 0.0625;
-
+            const hue: number = y / 8 / 64.0 + 0.0078125;
+            const saturation: number = (y & 0x7) / 8.0 + 0.0625;
             for (let x: number = 0; x < 128; x++) {
-                const lightness: number = x / 128;
-
+                const lightness: number = x / 128.0;
                 let r: number = lightness;
                 let g: number = lightness;
                 let b: number = lightness;
-
-                if (saturation) {
+                if (saturation != 0.0) {
                     let q: number;
                     if (lightness < 0.5) {
-                        q = lightness * (1 + saturation);
+                        q = lightness * (saturation + 1.0);
                     } else {
                         q = lightness + saturation - lightness * saturation;
                     }
-
-                    const p: number = 2 * lightness - q;
+                    const p: number = lightness * 2.0 - q;
                     let t: number = hue + 0.3333333333333333;
-                    if (t > 1) {
+                    if (t > 1.0) {
                         t--;
                     }
-
                     let d11: number = hue - 0.3333333333333333;
-                    if (d11 < 0) {
+                    if (d11 < 0.0) {
                         d11++;
                     }
-
-                    if (6 * t < 1) {
-                        r = p + (q - p) * 6 * t;
-                    } else if (2 * t < 1) {
+                    if (t * 6.0 < 1.0) {
+                        r = p + (q - p) * 6.0 * t;
+                    } else if (t * 2.0 < 1.0) {
                         r = q;
-                    } else if (3 * t < 2) {
-                        r = p + (q - p) * ((0.6666666666666666 - t) * 6);
+                    } else if (t * 3.0 < 2.0) {
+                        r = p + (q - p) * (0.6666666666666666 - t) * 6.0;
                     } else {
                         r = p;
                     }
-
-                    if (6 * hue < 1) {
-                        g = p + (q - p) * 6 * hue;
-                    } else if (2 * hue < 1) {
+                    if (hue * 6.0 < 1.0) {
+                        g = p + (q - p) * 6.0 * hue;
+                    } else if (hue * 2.0 < 1.0) {
                         g = q;
-                    } else if (3 * hue < 2) {
-                        g = p + (q - p) * ((0.6666666666666666 - hue) * 6);
+                    } else if (hue * 3.0 < 2.0) {
+                        g = p + (q - p) * (0.6666666666666666 - hue) * 6.0;
                     } else {
                         g = p;
                     }
-
-                    if (6 * d11 < 1) {
-                        b = p + (q - p) * 6 * d11;
-                    } else if (2 * d11 < 1) {
+                    if (d11 * 6.0 < 1.0) {
+                        b = p + (q - p) * 6.0 * d11;
+                    } else if (d11 * 2.0 < 1.0) {
                         b = q;
-                    } else if (3 * d11 < 2) {
-                        b = p + (q - p) * ((0.6666666666666666 - d11) * 6);
+                    } else if (d11 * 3.0 < 2.0) {
+                        b = p + (q - p) * (0.6666666666666666 - d11) * 6.0;
                     } else {
                         b = p;
                     }
                 }
-
-                const intR: number = Math.trunc(r * 256);
-                const intG: number = Math.trunc(g * 256);
-                const intB: number = Math.trunc(b * 256);
-                let rgb: number = (intR << 16) | (intG << 8) | intB;
-                rgb = this.setGamma(rgb, brightness);
-                if (rgb === 0) {
-                    rgb = 1;
-                }
-
-                this.palette[offset++] = rgb;
+                const intR: number = Math.trunc(r * 256.0);
+                const intG: number = Math.trunc(g * 256.0);
+                const intB: number = Math.trunc(b * 256.0);
+                const rgb: number = (intR << 16) + (intG << 8) + intB;
+                this.palette[offset++] = this.setGamma(rgb, randomBrightness);
             }
         }
         for (let id: number = 0; id < 50; id++) {
             if (this.textures[id]) {
-                const palette: number[] = this.textures[id].palette;
-                this.texturePalette[id] = [];
+                const palette: Int32Array = this.textures[id].palette;
+                this.texturePalette[id] = new Int32Array(palette.length);
                 for (let i: number = 0; i < palette.length; i++) {
-                    const tId: number[] | null = this.texturePalette[id];
-                    if (tId !== null) {
+                    const tId: Int32Array | null = this.texturePalette[id];
+                    if (tId) {
                         tId[i] = this.setGamma(palette[i], brightness);
                     }
                 }
@@ -188,16 +173,16 @@ export default class Draw3D {
     };
 
     private static setGamma = (rgb: number, gamma: number): number => {
-        let r: number = (rgb >> 16) / 256;
-        let g: number = ((rgb >> 8) & 255) / 256;
-        let b: number = (rgb & 255) / 256;
-        r = Math.pow(r, gamma);
-        g = Math.pow(g, gamma);
-        b = Math.pow(b, gamma);
-        const intR: number = Math.trunc(r * 256);
-        const intG: number = Math.trunc(g * 256);
-        const intB: number = Math.trunc(b * 256);
-        return (intR << 16) | (intG << 8) | intB;
+        const r: number = (rgb >> 16) / 256.0;
+        const g: number = ((rgb >> 8) & 0xff) / 256.0;
+        const b: number = (rgb & 0xff) / 256.0;
+        const powR: number = Math.pow(r, gamma);
+        const powG: number = Math.pow(g, gamma);
+        const powB: number = Math.pow(b, gamma);
+        const intR: number = Math.trunc(powR * 256.0);
+        const intG: number = Math.trunc(powG * 256.0);
+        const intB: number = Math.trunc(powB * 256.0);
+        return (intR << 16) + (intG << 8) + intB;
     };
 
     static initPool = (size: number): void => {
@@ -206,9 +191,9 @@ export default class Draw3D {
         }
         this.poolSize = size;
         if (this.lowMemory) {
-            this.texelPool = new Array(this.poolSize).fill(null).map((): number[] => new Array(16384));
+            this.texelPool = new Array(this.poolSize).fill(null).map((): Int32Array => new Int32Array(16384));
         } else {
-            this.texelPool = new Array(this.poolSize).fill(null).map((): number[] => new Array(65536));
+            this.texelPool = new Array(this.poolSize).fill(null).map((): Int32Array => new Int32Array(65536));
         }
         for (let i: number = 0; i < 50; i++) {
             this.activeTexels[i] = null;
@@ -1176,7 +1161,7 @@ export default class Draw3D {
         tzC: number,
         texture: number
     ): void => {
-        const texels: number[] | null = this.getTexels(texture);
+        const texels: Int32Array | null = this.getTexels(texture);
         this.opaque = !this.textureTranslucent[texture];
 
         const verticalX: number = originX - txB;
@@ -1810,7 +1795,7 @@ export default class Draw3D {
         xB: number,
         dst: Int32Array,
         offset: number,
-        texels: number[] | null,
+        texels: Int32Array | null,
         curU: number,
         curV: number,
         u: number,
@@ -2276,13 +2261,13 @@ export default class Draw3D {
         }
     };
 
-    private static getTexels = (id: number): number[] | null => {
+    private static getTexels = (id: number): Int32Array | null => {
         this.textureCycle[id] = this.cycle++;
         if (this.activeTexels[id] != null) {
             return this.activeTexels[id];
         }
 
-        let texels: number[] | null;
+        let texels: Int32Array | null;
         if (this.poolSize > 0 && this.texelPool) {
             texels = this.texelPool[--this.poolSize];
             this.texelPool[this.poolSize] = null;
@@ -2301,7 +2286,7 @@ export default class Draw3D {
 
         this.activeTexels[id] = texels;
         const texture: Pix8 = this.textures[id];
-        const palette: number[] | null = this.texturePalette[id];
+        const palette: Int32Array | null = this.texturePalette[id];
 
         if (texels && palette) {
             if (this.lowMemory) {

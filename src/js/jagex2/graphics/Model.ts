@@ -1663,8 +1663,8 @@ export default class Model extends Hashable {
             y = tmp;
 
             if (Model.vertexScreenX && Model.vertexScreenY && Model.vertexScreenZ) {
-                Model.vertexScreenX[v] = Draw3D.centerX + (x << 9) / z;
-                Model.vertexScreenY[v] = Draw3D.centerY + (y << 9) / z;
+                Model.vertexScreenX[v] = Draw3D.centerX + Math.trunc((x << 9) / z);
+                Model.vertexScreenY[v] = Draw3D.centerY + Math.trunc((y << 9) / z);
                 Model.vertexScreenZ[v] = z - midZ;
             }
 

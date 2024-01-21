@@ -14,16 +14,15 @@ export default class Pix8 extends Hashable {
     cropY: number;
     cropW: number;
     cropH: number;
+    readonly palette: Int32Array;
 
-    // runtime
-    palette: number[] = [];
-
-    constructor(width: number, height: number) {
+    constructor(width: number, height: number, palette: Int32Array) {
         super();
         this.pixels = new Int8Array(width * height);
         this.width = this.cropW = width;
         this.height = this.cropH = height;
         this.cropX = this.cropY = 0;
+        this.palette = palette;
     }
 
     static fromArchive = (archive: Jagfile, name: string, sprite: number = 0): Pix8 => {
@@ -37,7 +36,7 @@ export default class Pix8 extends Hashable {
 
         // palette is shared across all images in a single archive
         const paletteCount: number = index.g1;
-        const palette: number[] = [];
+        const palette: Int32Array = new Int32Array(paletteCount);
         for (let i: number = 0; i < paletteCount - 1; i++) {
             // the first color (0) is reserved for transparency
             palette[i + 1] = index.g3;
@@ -61,25 +60,24 @@ export default class Pix8 extends Hashable {
         const width: number = index.g2;
         const height: number = index.g2;
 
-        const image: Pix8 = new Pix8(width, height);
+        const image: Pix8 = new Pix8(width, height, palette);
         image.cropX = cropX;
         image.cropY = cropY;
         image.cropW = cropW;
         image.cropH = cropH;
-        image.palette = palette;
 
         const pixelOrder: number = index.g1;
         if (pixelOrder === 0) {
             const length: number = image.width * image.height;
             for (let i: number = 0; i < length; i++) {
-                image.pixels[i] = dat.g1;
+                image.pixels[i] = dat.g1b;
             }
         } else if (pixelOrder === 1) {
             const width: number = image.width;
             for (let x: number = 0; x < width; x++) {
                 const height: number = image.height;
                 for (let y: number = 0; y < height; y++) {
-                    image.pixels[x + y * width] = dat.g1;
+                    image.pixels[x + y * width] = dat.g1b;
                 }
             }
         }
