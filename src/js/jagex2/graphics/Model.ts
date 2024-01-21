@@ -143,15 +143,15 @@ export default class Model extends Hashable {
                     const flags: number = Model.point1.g1;
 
                     if ((flags & 0x1) !== 0) {
-                        Model.point2.gsmarts;
+                        Model.point2.gsmart;
                     }
 
                     if ((flags & 0x2) !== 0) {
-                        Model.point3.gsmarts;
+                        Model.point3.gsmart;
                     }
 
                     if ((flags & 0x4) !== 0) {
-                        Model.point4.gsmarts;
+                        Model.point4.gsmart;
                     }
                 }
 
@@ -159,11 +159,11 @@ export default class Model extends Hashable {
                     const type: number = Model.vertex2.g1;
 
                     if (type === 1) {
-                        Model.vertex1.gsmarts;
-                        Model.vertex1.gsmarts;
+                        Model.vertex1.gsmart;
+                        Model.vertex1.gsmart;
                     }
 
-                    Model.vertex1.gsmarts;
+                    Model.vertex1.gsmart;
                 }
 
                 meta.faceColorsOffset = triangleColorDataOffset;
@@ -1566,34 +1566,34 @@ export default class Model extends Hashable {
             const b: number = this.faceVertexB[f];
             const c: number = this.faceVertexC[f];
 
-            if (this.faceInfo === null && this.faceColor && this.vertexNormal && this.faceColorA && this.faceColorB && this.faceColorC) {
+            if (!this.faceInfo && this.faceColor && this.vertexNormal && this.faceColorA && this.faceColorB && this.faceColorC) {
                 const color: number = this.faceColor[f];
 
                 let n: VertexNormal = this.vertexNormal[a];
-                let lightness: number = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
+                let lightness: number = lightAmbient + Math.trunc((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
                 this.faceColorA[f] = Model.mulColorLightness(color, lightness, 0);
 
                 n = this.vertexNormal[b];
-                lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
+                lightness = lightAmbient + Math.trunc((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
                 this.faceColorB[f] = Model.mulColorLightness(color, lightness, 0);
 
                 n = this.vertexNormal[c];
-                lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
+                lightness = lightAmbient + Math.trunc((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
                 this.faceColorC[f] = Model.mulColorLightness(color, lightness, 0);
             } else if (this.faceInfo && (this.faceInfo[f] & 0x1) === 0 && this.faceColor && this.vertexNormal && this.faceColorA && this.faceColorB && this.faceColorC) {
                 const color: number = this.faceColor[f];
                 const info: number = this.faceInfo[f];
 
                 let n: VertexNormal = this.vertexNormal[a];
-                let lightness: number = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
+                let lightness: number = lightAmbient + Math.trunc((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
                 this.faceColorA[f] = Model.mulColorLightness(color, lightness, info);
 
                 n = this.vertexNormal[b];
-                lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
+                lightness = lightAmbient + Math.trunc((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
                 this.faceColorB[f] = Model.mulColorLightness(color, lightness, info);
 
                 n = this.vertexNormal[c];
-                lightness = lightAmbient + (lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w);
+                lightness = lightAmbient + Math.trunc((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w));
                 this.faceColorC[f] = Model.mulColorLightness(color, lightness, info);
             }
         }
