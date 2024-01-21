@@ -393,13 +393,13 @@ export default class CollisionMap {
 
         if (srcX >= dstX && srcX <= maxX && srcZ >= dstZ && srcZ <= maxZ) {
             return true;
-        } else if (srcX === dstX - 1 && srcZ >= dstZ && srcZ <= maxZ && (this.flags[index] & CollisionFlag.WALL_EAST) === 0 && (forceapproach & DirectionFlag.WEST) === CollisionFlag.OPEN) {
+        } else if (srcX === dstX - 1 && srcZ >= dstZ && srcZ <= maxZ && (this.flags[index] & CollisionFlag.WALL_EAST) === CollisionFlag.OPEN && (forceapproach & DirectionFlag.WEST) === CollisionFlag.OPEN) {
             return true;
-        } else if (srcX === maxX + 1 && srcZ >= dstZ && srcZ <= maxZ && (this.flags[index] & CollisionFlag.WALL_WEST) === 0 && (forceapproach & DirectionFlag.EAST) === CollisionFlag.OPEN) {
+        } else if (srcX === maxX + 1 && srcZ >= dstZ && srcZ <= maxZ && (this.flags[index] & CollisionFlag.WALL_WEST) === CollisionFlag.OPEN && (forceapproach & DirectionFlag.EAST) === CollisionFlag.OPEN) {
             return true;
-        } else if (srcZ === dstZ - 1 && srcX >= dstX && srcX <= maxX && (this.flags[index] & CollisionFlag.WALL_NORTH) === 0 && (forceapproach & DirectionFlag.SOUTH) === CollisionFlag.OPEN) {
+        } else if (srcZ === dstZ - 1 && srcX >= dstX && srcX <= maxX && (this.flags[index] & CollisionFlag.WALL_NORTH) === CollisionFlag.OPEN && (forceapproach & DirectionFlag.SOUTH) === CollisionFlag.OPEN) {
             return true;
-        } else if (srcZ === maxZ + 1 && srcX >= dstX && srcX <= maxX && (this.flags[index] & CollisionFlag.WALL_SOUTH) === 0 && (forceapproach & DirectionFlag.NORTH) === CollisionFlag.OPEN) {
+        } else if (srcZ === maxZ + 1 && srcX >= dstX && srcX <= maxX && (this.flags[index] & CollisionFlag.WALL_SOUTH) === CollisionFlag.OPEN && (forceapproach & DirectionFlag.NORTH) === CollisionFlag.OPEN) {
             return true;
         }
         return false;
