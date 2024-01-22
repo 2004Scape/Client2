@@ -96,7 +96,7 @@ export default class Draw3D {
         const randomBrightness: number = brightness + Math.random() * 0.03 - 0.015;
         let offset: number = 0;
         for (let y: number = 0; y < 512; y++) {
-            const hue: number = y / 8 / 64.0 + 0.0078125;
+            const hue: number = Math.trunc(y / 8) / 64.0 + 0.0078125;
             const saturation: number = (y & 0x7) / 8.0 + 0.0625;
             for (let x: number = 0; x < 128; x++) {
                 const lightness: number = x / 128.0;
@@ -210,18 +210,18 @@ export default class Draw3D {
         let colorStepAC: number = 0;
 
         if (yB !== yA) {
-            xStepAB = ((xB - xA) << 16) / (yB - yA);
-            colorStepAB = ((colorB - colorA) << 15) / (yB - yA);
+            xStepAB = Math.trunc(((xB - xA) << 16) / (yB - yA));
+            colorStepAB = Math.trunc(((colorB - colorA) << 15) / (yB - yA));
         }
 
         if (yC !== yB) {
-            xStepBC = ((xC - xB) << 16) / (yC - yB);
-            colorStepBC = ((colorC - colorB) << 15) / (yC - yB);
+            xStepBC = Math.trunc(((xC - xB) << 16) / (yC - yB));
+            colorStepBC = Math.trunc(((colorC - colorB) << 15) / (yC - yB));
         }
 
         if (yC !== yA) {
-            xStepAC = ((xA - xC) << 16) / (yA - yC);
-            colorStepAC = ((colorA - colorC) << 15) / (yA - yC);
+            xStepAC = Math.trunc(((xA - xC) << 16) / (yA - yC));
+            colorStepAC = Math.trunc(((colorA - colorC) << 15) / (yA - yC));
         }
 
         if (yA <= yB && yA <= yC) {
@@ -595,7 +595,7 @@ export default class Draw3D {
 
             if (this.clipX) {
                 if (x1 - x0 > 3) {
-                    colorStep = (color1 - color0) / (x1 - x0);
+                    colorStep = Math.trunc((color1 - color0) / (x1 - x0));
                 } else {
                     colorStep = 0;
                 }
@@ -681,7 +681,7 @@ export default class Draw3D {
             return;
         }
 
-        const colorStep: number = (color1 - color0) / (x1 - x0);
+        const colorStep: number = Math.trunc((color1 - color0) / (x1 - x0));
 
         if (this.clipX) {
             if (x1 > Draw2D.right) {
@@ -721,15 +721,15 @@ export default class Draw3D {
     static fillTriangle = (x0: number, x1: number, x2: number, y0: number, y1: number, y2: number, color: number): void => {
         let xStepAB: number = 0;
         if (y1 != y0) {
-            xStepAB = ((x1 - x0) << 16) / (y1 - y0);
+            xStepAB = Math.trunc(((x1 - x0) << 16) / (y1 - y0));
         }
         let xStepBC: number = 0;
         if (y2 != y1) {
-            xStepBC = ((x2 - x1) << 16) / (y2 - y1);
+            xStepBC = Math.trunc(((x2 - x1) << 16) / (y2 - y1));
         }
         let xStepAC: number = 0;
         if (y2 != y0) {
-            xStepAC = ((x0 - x2) << 16) / (y0 - y2);
+            xStepAC = Math.trunc(((x0 - x2) << 16) / (y0 - y2));
         }
         if (y0 <= y1 && y0 <= y2) {
             if (y0 < Draw2D.bottom) {
@@ -1187,22 +1187,22 @@ export default class Draw3D {
         let xStepAB: number = 0;
         let shadeStepAB: number = 0;
         if (yB != yA) {
-            xStepAB = ((xB - xA) << 16) / (yB - yA);
-            shadeStepAB = ((shadeB - shadeA) << 16) / (yB - yA);
+            xStepAB = Math.trunc(((xB - xA) << 16) / (yB - yA));
+            shadeStepAB = Math.trunc(((shadeB - shadeA) << 16) / (yB - yA));
         }
 
         let xStepBC: number = 0;
         let shadeStepBC: number = 0;
         if (yC != yB) {
-            xStepBC = ((xC - xB) << 16) / (yC - yB);
-            shadeStepBC = ((shadeC - shadeB) << 16) / (yC - yB);
+            xStepBC = Math.trunc(((xC - xB) << 16) / (yC - yB));
+            shadeStepBC = Math.trunc(((shadeC - shadeB) << 16) / (yC - yB));
         }
 
         let xStepAC: number = 0;
         let shadeStepAC: number = 0;
         if (yC != yA) {
-            xStepAC = ((xA - xC) << 16) / (yA - yC);
-            shadeStepAC = ((shadeA - shadeC) << 16) / (yA - yC);
+            xStepAC = Math.trunc(((xA - xC) << 16) / (yA - yC));
+            shadeStepAC = Math.trunc(((shadeA - shadeC) << 16) / (yA - yC));
         }
 
         if (yA <= yB && yA <= yC) {
@@ -1814,7 +1814,7 @@ export default class Draw3D {
         let shadeStrides: number;
         let strides: number;
         if (this.clipX) {
-            shadeStrides = (shadeB - shadeA) / (xB - xA);
+            shadeStrides = Math.trunc((shadeB - shadeA) / (xB - xA));
 
             if (xB > Draw2D.boundX) {
                 xB = Draw2D.boundX;
@@ -1862,8 +1862,8 @@ export default class Draw3D {
             w = w + (wStride >> 3) * dx;
             curW = w >> 12;
             if (curW != 0) {
-                curU = u / curW;
-                curV = v / curW;
+                curU = Math.trunc(u / curW);
+                curV = Math.trunc(v / curW);
                 if (curU < 0) {
                     curU = 0;
                 } else if (curU > 4032) {
@@ -1875,8 +1875,8 @@ export default class Draw3D {
             w = w + wStride;
             curW = w >> 12;
             if (curW != 0) {
-                nextU = u / curW;
-                nextV = v / curW;
+                nextU = Math.trunc(u / curW);
+                nextV = Math.trunc(v / curW);
                 if (nextU < 7) {
                     nextU = 7;
                 } else if (nextU > 4032) {
@@ -1918,8 +1918,8 @@ export default class Draw3D {
                     w += wStride;
                     curW = w >> 12;
                     if (curW != 0) {
-                        nextU = u / curW;
-                        nextV = v / curW;
+                        nextU = Math.trunc(u / curW);
+                        nextV = Math.trunc(v / curW);
                         if (nextU < 7) {
                             nextU = 7;
                         } else if (nextU > 4032) {
@@ -1994,8 +1994,8 @@ export default class Draw3D {
                     w += wStride;
                     curW = w >> 12;
                     if (curW != 0) {
-                        nextU = u / curW;
-                        nextV = v / curW;
+                        nextU = Math.trunc(u / curW);
+                        nextV = Math.trunc(v / curW);
                         if (nextU < 7) {
                             nextU = 7;
                         } else if (nextU > 4032) {
@@ -2029,8 +2029,8 @@ export default class Draw3D {
         w = w + (wStride >> 3) * dx;
         curW = w >> 14;
         if (curW != 0) {
-            curU = u / curW;
-            curV = v / curW;
+            curU = Math.trunc(u / curW);
+            curV = Math.trunc(v / curW);
             if (curU < 0) {
                 curU = 0;
             } else if (curU > 16256) {
@@ -2042,8 +2042,8 @@ export default class Draw3D {
         w = w + wStride;
         curW = w >> 14;
         if (curW != 0) {
-            nextU = u / curW;
-            nextV = v / curW;
+            nextU = Math.trunc(u / curW);
+            nextV = Math.trunc(v / curW);
             if (nextU < 7) {
                 nextU = 7;
             } else if (nextU > 16256) {
@@ -2085,8 +2085,8 @@ export default class Draw3D {
                 w += wStride;
                 curW = w >> 14;
                 if (curW != 0) {
-                    nextU = u / curW;
-                    nextV = v / curW;
+                    nextU = Math.trunc(u / curW);
+                    nextV = Math.trunc(v / curW);
                     if (nextU < 7) {
                         nextU = 7;
                     } else if (nextU > 16256) {
@@ -2163,8 +2163,8 @@ export default class Draw3D {
             w += wStride;
             curW = w >> 14;
             if (curW != 0) {
-                nextU = u / curW;
-                nextV = v / curW;
+                nextU = Math.trunc(u / curW);
+                nextV = Math.trunc(v / curW);
                 if (nextU < 7) {
                     nextU = 7;
                 } else if (nextU > 16256) {
