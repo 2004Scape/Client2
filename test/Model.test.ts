@@ -111,7 +111,7 @@ describe('Model', (): void => {
             expect(model.faceLabel).toBeNull();
             expect(model.labelVertices).toBeNull();
             expect(model.labelFaces).toBeNull();
-            expect(model.pickable).toBeFalsy();
+            expect(model.pickable).toBeTruthy();
             expect(model.vertexNormal).toBeNull();
             expect(model.vertexNormalOriginal).toBeNull();
 
