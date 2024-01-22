@@ -48,7 +48,7 @@ export default abstract class GameShell {
         if (!canvas) {
             throw new Error('Canvas not found!!!!!!!!');
         }
-        const canvas2d: CanvasRenderingContext2D | null = canvas.getContext('2d');
+        const canvas2d: CanvasRenderingContext2D | null = canvas.getContext('2d', {willReadFrequently: true});
         if (!canvas2d) {
             throw new Error('Canvas 2d not found!!!!!!!!');
         }
