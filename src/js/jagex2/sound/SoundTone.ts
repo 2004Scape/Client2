@@ -40,7 +40,7 @@ export default class SoundTone {
         }
 
         for (let i: number = 0; i < 32768; i++) {
-            this.sin[1] = (Math.sin(i / 5215.1903) * 16384.0) | 0;
+            this.sin[1] = Math.trunc(Math.sin(i / 5215.1903) * 16384.0);
         }
 
         this.buffer = new Array(220500); // 10s * 22050 KHz
@@ -55,7 +55,7 @@ export default class SoundTone {
             return SoundTone.buffer;
         }
 
-        const samplesPerStep: number = sampleCount / length;
+        const samplesPerStep: number = Math.trunc(sampleCount / length);
 
         this.frequencyBase?.reset();
         this.amplitudeBase?.reset();
@@ -67,8 +67,8 @@ export default class SoundTone {
         if (this.frequencyModRate && this.frequencyModRange) {
             this.frequencyModRate.reset();
             this.frequencyModRange.reset();
-            frequencyStart = (((this.frequencyModRate.end - this.frequencyModRate.start) * 32.768) / samplesPerStep) | 0;
-            frequencyDuration = ((this.frequencyModRate.start * 32.768) / samplesPerStep) | 0;
+            frequencyStart = Math.trunc(((this.frequencyModRate.end - this.frequencyModRate.start) * 32.768) / samplesPerStep);
+            frequencyDuration = Math.trunc((this.frequencyModRate.start * 32.768) / samplesPerStep);
         }
 
         let amplitudeStart: number = 0;
@@ -77,17 +77,17 @@ export default class SoundTone {
         if (this.amplitudeModRate && this.amplitudeModRange) {
             this.amplitudeModRate.reset();
             this.amplitudeModRange.reset();
-            amplitudeStart = (((this.amplitudeModRate.end - this.amplitudeModRate.start) * 32.768) / samplesPerStep) | 0;
-            amplitudeDuration = ((this.amplitudeModRate.start * 32.768) / samplesPerStep) | 0;
+            amplitudeStart = Math.trunc(((this.amplitudeModRate.end - this.amplitudeModRate.start) * 32.768) / samplesPerStep);
+            amplitudeDuration = Math.trunc((this.amplitudeModRate.start * 32.768) / samplesPerStep);
         }
 
         for (let harmonic: number = 0; harmonic < 5; harmonic++) {
             if (this.frequencyBase && this.harmonicVolume[harmonic] !== 0) {
                 SoundTone.tmpPhases[harmonic] = 0;
-                SoundTone.tmpDelays[harmonic] = (this.harmonicDelay[harmonic] * samplesPerStep) | 0;
-                SoundTone.tmpVolumes[harmonic] = ((this.harmonicVolume[harmonic] << 14) / 100) | 0;
-                SoundTone.tmpSemitones[harmonic] = (((this.frequencyBase.end - this.frequencyBase.start) * 32.768 * Math.pow(1.0057929410678534, this.harmonicSemitone[harmonic])) / samplesPerStep) | 0;
-                SoundTone.tmpStarts[harmonic] = ((this.frequencyBase.start * 32.768) / samplesPerStep) | 0;
+                SoundTone.tmpDelays[harmonic] = this.harmonicDelay[harmonic] * samplesPerStep;
+                SoundTone.tmpVolumes[harmonic] = Math.trunc((this.harmonicVolume[harmonic] << 14) / 100);
+                SoundTone.tmpSemitones[harmonic] = ((this.frequencyBase.end - this.frequencyBase.start) * 32.768 * Math.trunc(Math.pow(1.0057929410678534, this.harmonicSemitone[harmonic]))) / samplesPerStep;
+                SoundTone.tmpStarts[harmonic] = Math.trunc((this.frequencyBase.start * 32.768) / samplesPerStep);
             }
         }
 
@@ -154,10 +154,10 @@ export default class SoundTone {
         }
 
         if (this.reverbDelay > 0 && this.reverbVolume > 0) {
-            const start: number = (this.reverbDelay * samplesPerStep) | 0;
+            const start: number = this.reverbDelay * samplesPerStep;
 
             for (let sample: number = start; sample < sampleCount; sample++) {
-                SoundTone.buffer[sample] += (SoundTone.buffer[sample - start] * this.reverbVolume) / 100;
+                SoundTone.buffer[sample] += Math.trunc((SoundTone.buffer[sample - start] * this.reverbVolume) / 100);
             }
         }
 
@@ -182,7 +182,7 @@ export default class SoundTone {
         } else if (form === 3) {
             return (((phase & 0x7fff) * amplitude) >> 14) - amplitude;
         } else if (form === 4) {
-            return SoundTone.noise[(phase / 2607) & 0x7fff] * amplitude;
+            return SoundTone.noise[Math.trunc(phase / 2607) & 0x7fff] * amplitude;
         } else {
             return 0;
         }

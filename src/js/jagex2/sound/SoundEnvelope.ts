@@ -44,9 +44,9 @@ export default class SoundEnvelope {
                 this.position = this.length - 1;
             }
 
-            this.threshold = ((this.shapeDelta[this.position] / 65536.0) * delta) | 0;
+            this.threshold = Math.trunc(this.shapeDelta[this.position] / 65536.0) * delta;
             if (this.threshold > this.ticks) {
-                this.delta = ((this.shapePeak[this.position] << 15) - this.amplitude) / (this.threshold - this.ticks);
+                this.delta = Math.trunc(((this.shapePeak[this.position] << 15) - this.amplitude) / (this.threshold - this.ticks));
             }
         }
 

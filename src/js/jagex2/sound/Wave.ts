@@ -55,13 +55,13 @@ export default class Wave {
     trim = (): number => {
         let start: number = 9999999;
         for (let tone: number = 0; tone < 10; tone++) {
-            if (this.tones[tone] && this.tones[tone].start / 20 < start) {
-                start = this.tones[tone].start / 20;
+            if (this.tones[tone] && Math.trunc(this.tones[tone].start / 20) < start) {
+                start = Math.trunc(this.tones[tone].start / 20);
             }
         }
 
-        if (this.loopBegin < this.loopEnd && this.loopBegin / 20 < start) {
-            start = this.loopBegin / 20;
+        if (this.loopBegin < this.loopEnd && Math.trunc(this.loopBegin / 20) < start) {
+            start = Math.trunc(this.loopBegin / 20);
         }
 
         if (start === 9999999 || start === 0) {
@@ -115,9 +115,9 @@ export default class Wave {
             return 0;
         }
 
-        let sampleCount: number = ((duration * 22050) / 1000) | 0;
-        let loopStart: number = ((this.loopBegin * 22050) / 1000) | 0;
-        let loopStop: number = ((this.loopEnd * 22050) / 1000) | 0;
+        let sampleCount: number = Math.trunc((duration * 22050) / 1000);
+        let loopStart: number = Math.trunc((this.loopBegin * 22050) / 1000);
+        let loopStop: number = Math.trunc((this.loopEnd * 22050) / 1000);
         if (loopStart < 0 || loopStop < 0 || loopStop > sampleCount || loopStart >= loopStop) {
             loopCount = 0;
         }
@@ -131,8 +131,8 @@ export default class Wave {
 
         for (let tone: number = 0; tone < 10; tone++) {
             if (this.tones[tone]) {
-                const toneSampleCount: number = ((this.tones[tone].length * 22050) / 1000) | 0;
-                const start: number = ((this.tones[tone].start * 22050) / 1000) | 0;
+                const toneSampleCount: number = Math.trunc((this.tones[tone].length * 22050) / 1000);
+                const start: number = Math.trunc((this.tones[tone].start * 22050) / 1000);
                 const samples: number[] = this.tones[tone].generate(toneSampleCount, this.tones[tone].length);
 
                 for (let sample: number = 0; sample < toneSampleCount; sample++) {

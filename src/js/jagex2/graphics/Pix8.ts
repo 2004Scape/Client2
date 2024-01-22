@@ -86,8 +86,10 @@ export default class Pix8 extends Hashable {
     };
 
     draw = (x: number, y: number, newW: number = -1, newH: number = -1): void => {
-        x = x | 0;
-        y = y | 0;
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+        newW = Math.trunc(newW);
+        newH = Math.trunc(newH);
 
         x += this.cropX;
         y += this.cropY;
@@ -211,6 +213,8 @@ export default class Pix8 extends Hashable {
     shrink = (): void => {
         this.cropW /= 2;
         this.cropH /= 2;
+        this.cropW = Math.trunc(this.cropW);
+        this.cropH = Math.trunc(this.cropH);
 
         const pixels: Int8Array = new Int8Array(this.cropW * this.cropH);
         let off: number = 0;

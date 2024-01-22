@@ -101,8 +101,8 @@ export default class Pix24 extends Hashable {
     };
 
     draw = (x: number, y: number): void => {
-        x = x | 0;
-        y = y | 0;
+        x = Math.trunc(x);
+        y = Math.trunc(y);
 
         x += this.cropX;
         y += this.cropY;
@@ -151,8 +151,8 @@ export default class Pix24 extends Hashable {
     };
 
     drawAlpha = (alpha: number, x: number, y: number): void => {
-        x = x | 0;
-        y = y | 0;
+        x = Math.trunc(x);
+        y = Math.trunc(y);
 
         x += this.cropX;
         y += this.cropY;
@@ -199,8 +199,8 @@ export default class Pix24 extends Hashable {
     };
 
     blitOpaque = (x: number, y: number): void => {
-        x = x | 0;
-        y = y | 0;
+        x = Math.trunc(x);
+        y = Math.trunc(y);
 
         x += this.cropX;
         y += this.cropY;
@@ -318,10 +318,10 @@ export default class Pix24 extends Hashable {
     };
 
     crop = (x: number, y: number, w: number, h: number): void => {
-        x = x | 0;
-        y = y | 0;
-        w = w | 0;
-        h = h | 0;
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+        w = Math.trunc(w);
+        h = Math.trunc(h);
 
         try {
             const currentW: number = this.width;
@@ -348,8 +348,8 @@ export default class Pix24 extends Hashable {
                 offH = Math.trunc(((ch - ((this.cropY * h) % ch)) << 16) / h);
             }
 
-            w = (w * (this.width - (offW >> 16))) / cw;
-            h = (h * (this.height - (offH >> 16))) / ch;
+            w = Math.trunc((w * (this.width - (offW >> 16))) / cw);
+            h = Math.trunc((h * (this.height - (offH >> 16))) / ch);
 
             let dstStep: number = x + y * Draw2D.width;
             let dstOff: number = Draw2D.width - w;

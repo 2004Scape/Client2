@@ -769,7 +769,7 @@ class Client extends GameShell {
 
         // Blends the fire at random
         for (let i: number = 0; i < 5000; i++) {
-            const rand: number = (Math.random() * 128.0 * flameHeight) | 0;
+            const rand: number = Math.trunc(Math.random() * 128.0 * flameHeight);
             this.flameBuffer0[rand] = Math.random() * 256.0;
         }
 
@@ -1982,12 +1982,12 @@ class Client extends GameShell {
         this.imageScrollbar1?.draw(x, y + height - 16);
         Draw2D.fillRect(x, y + 16, 16, height - 32, this.SCROLLBAR_TRACK);
 
-        let gripSize: number = (((height - 32) * height) / scrollHeight) | 0;
+        let gripSize: number = Math.trunc(((height - 32) * height) / scrollHeight);
         if (gripSize < 8) {
             gripSize = 8;
         }
 
-        const gripY: number = (((height - gripSize - 32) * scrollY) / (scrollHeight - height)) | 0;
+        const gripY: number = Math.trunc(((height - gripSize - 32) * scrollY) / (scrollHeight - height));
         Draw2D.fillRect(x, y + gripY + 16, 16, gripSize, this.SCROLLBAR_GRIP_FOREGROUND);
 
         Draw2D.drawVerticalLine(x, y + gripY + 16, this.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
@@ -4147,13 +4147,13 @@ class Client extends GameShell {
         const height: number = 256;
 
         for (let x: number = 10; x < 117; x++) {
-            const rand: number = Math.random() * 100.0;
+            const rand: number = Math.trunc(Math.random() * 100.0);
             if (rand < 50) this.flameBuffer3[x + ((height - 2) << 7)] = 255;
         }
 
         for (let l: number = 0; l < 100; l++) {
-            const x: number = ((Math.random() * 124.0) | 0) + 2;
-            const y: number = ((Math.random() * 128.0) | 0) + 128;
+            const x: number = Math.trunc(Math.random() * 124.0) + 2;
+            const y: number = Math.trunc(Math.random() * 128.0) + 128;
             const index: number = x + (y << 7);
             this.flameBuffer3[index] = 192;
         }
@@ -4161,20 +4161,20 @@ class Client extends GameShell {
         for (let y: number = 1; y < height - 1; y++) {
             for (let x: number = 1; x < 127; x++) {
                 const index: number = x + (y << 7);
-                this.flameBuffer2[index] = (this.flameBuffer3[index - 1] + this.flameBuffer3[index + 1] + this.flameBuffer3[index - 128] + this.flameBuffer3[index + 128]) / 4;
+                this.flameBuffer2[index] = Math.trunc((this.flameBuffer3[index - 1] + this.flameBuffer3[index + 1] + this.flameBuffer3[index - 128] + this.flameBuffer3[index + 128]) / 4);
             }
         }
 
         this.flameCycle0 += 128;
         if (this.flameCycle0 > this.flameBuffer0.length) {
             this.flameCycle0 -= this.flameBuffer0.length;
-            this.updateFlameBuffer(this.imageRunes[(Math.random() * 12.0) | 0]);
+            this.updateFlameBuffer(this.imageRunes[Math.trunc(Math.random() * 12.0)]);
         }
 
         for (let y: number = 1; y < height - 1; y++) {
             for (let x: number = 1; x < 127; x++) {
                 const index: number = x + (y << 7);
-                let intensity: number = this.flameBuffer2[index + 128] - this.flameBuffer0[(index + this.flameCycle0) & (this.flameBuffer0.length - 1)] / 5;
+                let intensity: number = this.flameBuffer2[index + 128] - Math.trunc(this.flameBuffer0[(index + this.flameCycle0) & (this.flameBuffer0.length - 1)] / 5);
                 if (intensity < 0) {
                     intensity = 0;
                 }
@@ -4186,7 +4186,7 @@ class Client extends GameShell {
             this.flameLineOffset[y] = this.flameLineOffset[y + 1];
         }
 
-        this.flameLineOffset[height - 1] = Math.sin(this.loopCycle / 14.0) * 16.0 + Math.sin(this.loopCycle / 15.0) * 14.0 + Math.sin(this.loopCycle / 16.0) * 12.0;
+        this.flameLineOffset[height - 1] = Math.trunc(Math.sin(this.loopCycle / 14.0) * 16.0 + Math.sin(this.loopCycle / 15.0) * 14.0 + Math.sin(this.loopCycle / 16.0) * 12.0);
 
         if (this.flameGradientCycle0 > 0) {
             this.flameGradientCycle0 -= 4;
@@ -4197,7 +4197,7 @@ class Client extends GameShell {
         }
 
         if (this.flameGradientCycle0 === 0 && this.flameGradientCycle1 === 0) {
-            const rand: number = (Math.random() * 2000.0) | 0;
+            const rand: number = Math.trunc(Math.random() * 2000.0);
 
             if (rand === 0) {
                 this.flameGradientCycle0 = 1024;
@@ -4253,7 +4253,7 @@ class Client extends GameShell {
         let dstOffset: number = 1152;
 
         for (let y: number = 1; y < height - 1; y++) {
-            const offset: number = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
+            const offset: number = Math.trunc((this.flameLineOffset[y] * (height - y)) / height);
             let step: number = offset + 22;
             if (step < 0) {
                 step = 0;
@@ -4287,7 +4287,7 @@ class Client extends GameShell {
         srcOffset = 0;
         dstOffset = 1176;
         for (let y: number = 1; y < height - 1; y++) {
-            const offset: number = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
+            const offset: number = Math.trunc((this.flameLineOffset[y] * (height - y)) / height);
             const step: number = 103 - offset;
             dstOffset += offset;
             for (let x: number = 0; x < step; x++) {

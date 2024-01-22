@@ -107,8 +107,8 @@ export default class PixFont extends Hashable {
     };
 
     draw = (x: number, y: number, str: string, color: number): void => {
-        x = x | 0;
-        y = y | 0;
+        x = Math.trunc(x);
+        y = Math.trunc(y);
 
         const length: number = str.length;
         y -= this.fontHeight;
@@ -124,8 +124,8 @@ export default class PixFont extends Hashable {
     };
 
     drawStringTaggable = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
-        x = x | 0;
-        y = y | 0;
+        x = Math.trunc(x);
+        y = Math.trunc(y);
 
         const length: number = str.length;
         y -= this.fontHeight;
@@ -163,6 +163,9 @@ export default class PixFont extends Hashable {
     };
 
     drawString = (x: number, y: number, str: string, color: number): void => {
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+
         const offY: number = y - this.fontHeight;
 
         for (let i: number = 0; i < str.length; i++) {
@@ -176,14 +179,23 @@ export default class PixFont extends Hashable {
     };
 
     drawStringTaggableCenter = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+
         this.drawStringTaggable(x - this.stringWidth(str) / 2, y, str, color, shadowed);
     };
 
     drawStringCenter = (x: number, y: number, str: string, color: number): void => {
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+
         this.draw(x - this.stringWidth(str) / 2, y, str, color);
     };
 
     drawRight = (x: number, y: number, str: string, color: number, shadowed: boolean = true): void => {
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+
         if (shadowed) {
             this.draw(x - this.stringWidth(str) + 1, y + 1, str, 0);
         }
@@ -191,10 +203,10 @@ export default class PixFont extends Hashable {
     };
 
     drawChar = (data: Int8Array, x: number, y: number, w: number, h: number, color: number): void => {
-        x = x | 0;
-        y = y | 0;
-        w = w | 0;
-        h = h | 0;
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+        w = Math.trunc(w);
+        h = Math.trunc(h);
 
         let dstOff: number = x + y * Draw2D.width;
         let dstStep: number = Draw2D.width - w;
@@ -237,8 +249,8 @@ export default class PixFont extends Hashable {
     };
 
     drawMask = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, rgb: number): void => {
-        w = w | 0;
-        h = h | 0;
+        w = Math.trunc(w);
+        h = Math.trunc(h);
 
         const hw: number = -(w >> 2);
         w = -(w & 0x3);
@@ -283,11 +295,11 @@ export default class PixFont extends Hashable {
         }
     };
 
-    copyCharacter = (x: number, y: number, w: number, h: number, pixels: Int8Array, color: number): void => {
-        x = x | 0;
-        y = y | 0;
-        w = w | 0;
-        h = h | 0;
+    private copyCharacter = (x: number, y: number, w: number, h: number, pixels: Int8Array, color: number): void => {
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+        w = Math.trunc(w);
+        h = Math.trunc(h);
 
         let dstOff: number = x + y * Draw2D.width;
         let srcOff: number = 0;

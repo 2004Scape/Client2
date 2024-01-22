@@ -204,7 +204,7 @@ export default abstract class GameShell {
     }
 
     setFramerate(rate: number): void {
-        this.deltime = 1000 / rate;
+        this.deltime = Math.trunc(1000 / rate);
     }
 
     start(): void {
@@ -215,7 +215,7 @@ export default abstract class GameShell {
 
     stop(): void {
         if (this.state >= 0) {
-            this.state = 4000 / this.deltime;
+            this.state = Math.trunc(4000 / this.deltime);
         }
     }
 
