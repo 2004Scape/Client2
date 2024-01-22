@@ -2313,7 +2313,7 @@ export default class Model extends Hashable {
         }
     };
 
-    pointWithinTriangle = (x: number, y: number, xA: number, xB: number, xC: number, yA: number, yB: number, yC: number): boolean => {
+    pointWithinTriangle = (x: number, y: number, yA: number, yB: number, yC: number, xA: number, xB: number, xC: number): boolean => {
         if (y < yA && y < yB && y < yC) {
             return false;
         } else if (y > yA && y > yB && y > yC) {
