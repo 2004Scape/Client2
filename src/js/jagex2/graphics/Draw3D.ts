@@ -161,7 +161,7 @@ export default class Draw3D {
                 for (let i: number = 0; i < palette.length; i++) {
                     const tId: Int32Array | null = this.texturePalette[id];
                     if (tId) {
-                        tId[i] = this.setGamma(palette[i], brightness);
+                        tId[i] = this.setGamma(palette[i], randomBrightness);
                     }
                 }
             }
