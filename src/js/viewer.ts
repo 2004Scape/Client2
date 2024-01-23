@@ -25,6 +25,7 @@ import GameShell from './jagex2/client/GameShell';
 import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
+import {canvas2d} from './jagex2/graphics/Canvas';
 
 class Viewer extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
@@ -236,72 +237,68 @@ class Viewer extends GameShell {
     }
 
     drawErrorScreen(): void {
-        if (!this.ctx || !this.canvas) {
-            return;
-        }
-
-        this.ctx.fillStyle = 'black';
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        canvas2d.fillStyle = 'black';
+        canvas2d.clearRect(0, 0, this.width, this.height);
 
         this.setFramerate(1);
 
         if (this.errorLoading) {
-            this.ctx.font = 'bold 16px helvetica, sans-serif';
-            this.ctx.textAlign = 'left';
-            this.ctx.fillStyle = 'yellow';
+            canvas2d.font = 'bold 16px helvetica, sans-serif';
+            canvas2d.textAlign = 'left';
+            canvas2d.fillStyle = 'yellow';
 
             let y: number = 35;
-            this.ctx.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
+            canvas2d.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
 
             y += 50;
-            this.ctx.fillStyle = 'white';
-            this.ctx.fillText('To fix this try the following (in order):', 30, y);
+            canvas2d.fillStyle = 'white';
+            canvas2d.fillText('To fix this try the following (in order):', 30, y);
 
             y += 50;
-            this.ctx.font = 'bold 12px helvetica, sans-serif';
-            this.ctx.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
+            canvas2d.font = 'bold 12px helvetica, sans-serif';
+            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
 
             y += 30;
-            this.ctx.fillText('2: Try clearing your web-browsers cache from tools->internet options', 30, y);
+            canvas2d.fillText('2: Try clearing your web-browsers cache from tools->internet options', 30, y);
 
             y += 30;
-            this.ctx.fillText('3: Try using a different game-world', 30, y);
+            canvas2d.fillText('3: Try using a different game-world', 30, y);
 
             y += 30;
-            this.ctx.fillText('4: Try rebooting your computer', 30, y);
+            canvas2d.fillText('4: Try rebooting your computer', 30, y);
 
             y += 30;
-            this.ctx.fillText('5: Try selecting a different version of Java from the play-game menu', 30, y);
+            canvas2d.fillText('5: Try selecting a different version of Java from the play-game menu', 30, y);
         }
 
         if (this.errorHost) {
-            this.ctx.font = 'bold 20px helvetica, sans-serif';
-            this.ctx.textAlign = 'left';
-            this.ctx.fillStyle = 'white';
+            canvas2d.font = 'bold 20px helvetica, sans-serif';
+            canvas2d.textAlign = 'left';
+            canvas2d.fillStyle = 'white';
 
-            this.ctx.fillText('Error - unable to load game!', 50, 50);
-            this.ctx.fillText('To play RuneScape make sure you play from', 50, 100);
-            this.ctx.fillText('https://2004scape.org', 50, 150);
+            canvas2d.fillText('Error - unable to load game!', 50, 50);
+            canvas2d.fillText('To play RuneScape make sure you play from', 50, 100);
+            canvas2d.fillText('https://2004scape.org', 50, 150);
         }
 
         if (this.errorStarted) {
-            this.ctx.font = 'bold 13px helvetica, sans-serif';
-            this.ctx.textAlign = 'left';
-            this.ctx.fillStyle = 'yellow';
+            canvas2d.font = 'bold 13px helvetica, sans-serif';
+            canvas2d.textAlign = 'left';
+            canvas2d.fillStyle = 'yellow';
 
             let y: number = 35;
-            this.ctx.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
+            canvas2d.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
 
             y += 50;
-            this.ctx.fillStyle = 'white';
-            this.ctx.fillText('To fix this try the following (in order):', 30, y);
+            canvas2d.fillStyle = 'white';
+            canvas2d.fillText('To fix this try the following (in order):', 30, y);
 
             y += 50;
-            this.ctx.font = 'bold 12px helvetica, sans-serif';
-            this.ctx.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
+            canvas2d.font = 'bold 12px helvetica, sans-serif';
+            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
 
             y += 30;
-            this.ctx.fillText('2: Try rebooting your computer, and reloading', 30, y);
+            canvas2d.fillText('2: Try rebooting your computer, and reloading', 30, y);
         }
     }
 

@@ -4,6 +4,7 @@ import Draw3D from '../graphics/Draw3D';
 import {sleep} from '../util/JsUtil';
 import {CANVAS_PREVENTED, KEY_CODES} from './KeyCodes';
 import InputTracking from './InputTracking';
+import {canvas, canvas2d} from '../graphics/Canvas';
 
 export default abstract class GameShell {
     static getParameter(name: string): string {
@@ -16,9 +17,6 @@ export default abstract class GameShell {
         url.searchParams.set(name, value);
         window.history.pushState(null, '', url.toString());
     }
-
-    protected readonly canvas: HTMLCanvasElement;
-    protected readonly ctx: CanvasRenderingContext2D;
 
     protected drawArea: PixMap | null = null;
     protected state: number = 0;
@@ -43,17 +41,8 @@ export default abstract class GameShell {
     protected keyQueueReadPos: number = 0;
     protected keyQueueWritePos: number = 0;
 
-    constructor(resizetoFit = false) {
-        const canvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
-        if (!canvas) {
-            throw new Error('Canvas not found!!!!!!!!');
-        }
-        const canvas2d: CanvasRenderingContext2D | null = canvas.getContext('2d', {willReadFrequently: true});
-        if (!canvas2d) {
-            throw new Error('Canvas 2d not found!!!!!!!!');
-        }
-        this.canvas = canvas;
-        this.ctx = canvas2d;
+    constructor(resizetoFit: boolean = false) {
+        canvas2d.clearRect(0, 0, canvas.width, canvas.height);
         this.resizeToFit = resizetoFit;
         if (this.resizeToFit) {
             this.resize(window.innerWidth, window.innerHeight);
@@ -63,18 +52,17 @@ export default abstract class GameShell {
     }
 
     get width(): number {
-        return this.canvas.width;
+        return canvas.width;
     }
 
     get height(): number {
-        return this.canvas.height;
+        return canvas.height;
     }
 
     resize(width: number, height: number): void {
-        const canvas: HTMLCanvasElement = this.canvas;
         canvas.width = width;
         canvas.height = height;
-        this.drawArea = new PixMap(canvas, width, height);
+        this.drawArea = new PixMap(width, height);
         Draw3D.init2D();
     }
 
@@ -101,7 +89,7 @@ export default abstract class GameShell {
 
         // Preventing mouse events from bubbling up to the context menu in the browser for our canvas.
         // This may need to be hooked up to our own context menu in the future.
-        this.canvas.oncontextmenu = (e: MouseEvent): void => {
+        canvas.oncontextmenu = (e: MouseEvent): void => {
             e.preventDefault();
         };
 
@@ -234,32 +222,31 @@ export default abstract class GameShell {
     refresh(): void {}
 
     async showProgress(progress: number, message: string): Promise<void> {
-        const ctx: CanvasRenderingContext2D = this.ctx;
         const width: number = this.width;
         const height: number = this.height;
 
         if (this.redrawScreen) {
-            ctx.fillStyle = 'black';
-            ctx.clearRect(0, 0, width, height);
+            canvas2d.fillStyle = 'black';
+            canvas2d.clearRect(0, 0, width, height);
             this.redrawScreen = false;
         }
 
         const y: number = height / 2 - 18;
 
         // draw full progress bar
-        ctx.fillStyle = 'rgb(140, 17, 17)';
-        ctx.rect(width / 2 - 152, y, 304, 34);
-        ctx.fillRect(width / 2 - 150, y + 2, progress * 3, 30);
+        canvas2d.fillStyle = 'rgb(140, 17, 17)';
+        canvas2d.rect(width / 2 - 152, y, 304, 34);
+        canvas2d.fillRect(width / 2 - 150, y + 2, progress * 3, 30);
 
         // cover up progress bar
-        ctx.fillStyle = 'black';
-        ctx.fillRect(width / 2 - 150 + progress * 3, y + 2, 300 - progress * 3, 30);
+        canvas2d.fillStyle = 'black';
+        canvas2d.fillRect(width / 2 - 150 + progress * 3, y + 2, 300 - progress * 3, 30);
 
         // draw text
-        ctx.font = 'bold 13px helvetica, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = 'white';
-        ctx.fillText(message, width / 2, y + 22);
+        canvas2d.font = 'bold 13px helvetica, sans-serif';
+        canvas2d.textAlign = 'center';
+        canvas2d.fillStyle = 'white';
+        canvas2d.fillText(message, width / 2, y + 22);
 
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
@@ -494,8 +481,8 @@ export default abstract class GameShell {
     }
 
     private get getInsets(): {top: number; left: number} {
-        const rect: DOMRect = this.canvas.getBoundingClientRect();
-        const computedStyle: CSSStyleDeclaration = window.getComputedStyle(this.canvas);
+        const rect: DOMRect = canvas.getBoundingClientRect();
+        const computedStyle: CSSStyleDeclaration = window.getComputedStyle(canvas);
         const paddingLeft: number = parseFloat(computedStyle.paddingLeft || '0');
         const paddingTop: number = parseFloat(computedStyle.paddingTop || '0');
         const borderLeft: number = parseFloat(computedStyle.borderLeftWidth || '0');

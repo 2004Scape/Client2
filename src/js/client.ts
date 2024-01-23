@@ -35,6 +35,7 @@ import Protocol from './jagex2/io/Protocol';
 import Isaac from './jagex2/io/Isaac';
 import Database from './jagex2/io/Database';
 import InputTracking from './jagex2/client/InputTracking';
+import {canvas2d} from './jagex2/graphics/Canvas';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -433,36 +434,35 @@ class Client extends GameShell {
             this.imageRedstone2hv = Pix8.fromArchive(media, 'redstone2', 0);
             this.imageRedstone2hv?.flipHorizontally();
             this.imageRedstone2hv?.flipVertically();
-            const canvas: HTMLCanvasElement = this.canvas;
             const backleft1: Pix24 = Pix24.fromArchive(media, 'backleft1', 0);
-            this.areaBackleft1 = new PixMap(canvas, backleft1.width, backleft1.height);
+            this.areaBackleft1 = new PixMap(backleft1.width, backleft1.height);
             backleft1.blitOpaque(0, 0);
             const backleft2: Pix24 = Pix24.fromArchive(media, 'backleft2', 0);
-            this.areaBackleft2 = new PixMap(canvas, backleft2.width, backleft2.height);
+            this.areaBackleft2 = new PixMap(backleft2.width, backleft2.height);
             backleft2.blitOpaque(0, 0);
             const backright1: Pix24 = Pix24.fromArchive(media, 'backright1', 0);
-            this.areaBackright1 = new PixMap(canvas, backright1.width, backright1.height);
+            this.areaBackright1 = new PixMap(backright1.width, backright1.height);
             backright1.blitOpaque(0, 0);
             const backright2: Pix24 = Pix24.fromArchive(media, 'backright2', 0);
-            this.areaBackright2 = new PixMap(canvas, backright2.width, backright2.height);
+            this.areaBackright2 = new PixMap(backright2.width, backright2.height);
             backright2.blitOpaque(0, 0);
             const backtop1: Pix24 = Pix24.fromArchive(media, 'backtop1', 0);
-            this.areaBacktop1 = new PixMap(canvas, backtop1.width, backtop1.height);
+            this.areaBacktop1 = new PixMap(backtop1.width, backtop1.height);
             backtop1.blitOpaque(0, 0);
             const backtop2: Pix24 = Pix24.fromArchive(media, 'backtop2', 0);
-            this.areaBacktop2 = new PixMap(canvas, backtop2.width, backtop2.height);
+            this.areaBacktop2 = new PixMap(backtop2.width, backtop2.height);
             backtop2.blitOpaque(0, 0);
             const backvmid1: Pix24 = Pix24.fromArchive(media, 'backvmid1', 0);
-            this.areaBackvmid1 = new PixMap(canvas, backvmid1.width, backvmid1.height);
+            this.areaBackvmid1 = new PixMap(backvmid1.width, backvmid1.height);
             backvmid1.blitOpaque(0, 0);
             const backvmid2: Pix24 = Pix24.fromArchive(media, 'backvmid2', 0);
-            this.areaBackvmid2 = new PixMap(canvas, backvmid2.width, backvmid2.height);
+            this.areaBackvmid2 = new PixMap(backvmid2.width, backvmid2.height);
             backvmid2.blitOpaque(0, 0);
             const backvmid3: Pix24 = Pix24.fromArchive(media, 'backvmid3', 0);
-            this.areaBackvmid3 = new PixMap(canvas, backvmid3.width, backvmid3.height);
+            this.areaBackvmid3 = new PixMap(backvmid3.width, backvmid3.height);
             backvmid3.blitOpaque(0, 0);
             const backhmid2: Pix24 = Pix24.fromArchive(media, 'backhmid2', 0);
-            this.areaBackhmid2 = new PixMap(canvas, backhmid2.width, backhmid2.height);
+            this.areaBackhmid2 = new PixMap(backhmid2.width, backhmid2.height);
             backhmid2.blitOpaque(0, 0);
 
             const randR: number = Math.trunc(Math.random() * 21.0) - 10;
@@ -651,32 +651,31 @@ class Client extends GameShell {
             this.areaBackbase2 = null;
             this.areaBackhmid1 = null;
 
-            const canvas: HTMLCanvasElement = this.canvas;
-            this.imageTitle0 = new PixMap(canvas, 128, 265);
+            this.imageTitle0 = new PixMap(128, 265);
             Draw2D.clear();
 
-            this.imageTitle1 = new PixMap(canvas, 128, 265);
+            this.imageTitle1 = new PixMap(128, 265);
             Draw2D.clear();
 
-            this.imageTitle2 = new PixMap(canvas, 533, 186);
+            this.imageTitle2 = new PixMap(533, 186);
             Draw2D.clear();
 
-            this.imageTitle3 = new PixMap(canvas, 360, 146);
+            this.imageTitle3 = new PixMap(360, 146);
             Draw2D.clear();
 
-            this.imageTitle4 = new PixMap(canvas, 360, 200);
+            this.imageTitle4 = new PixMap(360, 200);
             Draw2D.clear();
 
-            this.imageTitle5 = new PixMap(canvas, 214, 267);
+            this.imageTitle5 = new PixMap(214, 267);
             Draw2D.clear();
 
-            this.imageTitle6 = new PixMap(canvas, 215, 267);
+            this.imageTitle6 = new PixMap(215, 267);
             Draw2D.clear();
 
-            this.imageTitle7 = new PixMap(canvas, 86, 79);
+            this.imageTitle7 = new PixMap(86, 79);
             Draw2D.clear();
 
-            this.imageTitle8 = new PixMap(canvas, 87, 79);
+            this.imageTitle8 = new PixMap(87, 79);
             Draw2D.clear();
 
             if (this.titleArchive !== null) {
@@ -2455,17 +2454,16 @@ class Client extends GameShell {
             this.imageTitle6 = null;
             this.imageTitle7 = null;
             this.imageTitle8 = null;
-            const canvas: HTMLCanvasElement = this.canvas;
-            this.areaChatback = new PixMap(canvas, 479, 96);
-            this.areaMapback = new PixMap(canvas, 168, 160);
+            this.areaChatback = new PixMap(479, 96);
+            this.areaMapback = new PixMap(168, 160);
             Draw2D.clear();
             this.imageMapback?.draw(0, 0);
-            this.areaSidebar = new PixMap(canvas, 190, 261);
-            this.areaViewport = new PixMap(canvas, 512, 334);
+            this.areaSidebar = new PixMap(190, 261);
+            this.areaViewport = new PixMap(512, 334);
             Draw2D.clear();
-            this.areaBackbase1 = new PixMap(canvas, 501, 61);
-            this.areaBackbase2 = new PixMap(canvas, 288, 40);
-            this.areaBackhmid1 = new PixMap(canvas, 269, 66);
+            this.areaBackbase1 = new PixMap(501, 61);
+            this.areaBackbase2 = new PixMap(288, 40);
+            this.areaBackhmid1 = new PixMap(269, 66);
             this.redrawTitleBackground = true;
         }
     };
@@ -4068,74 +4066,74 @@ class Client extends GameShell {
     };
 
     private drawError = (): void => {
-        this.ctx.fillStyle = 'black';
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        canvas2d.fillStyle = 'black';
+        canvas2d.clearRect(0, 0, this.width, this.height);
 
         this.setFramerate(1);
 
         if (this.errorLoading) {
             this.flameActive = false;
 
-            this.ctx.font = 'bold 16px helvetica, sans-serif';
-            this.ctx.textAlign = 'left';
-            this.ctx.fillStyle = 'yellow';
+            canvas2d.font = 'bold 16px helvetica, sans-serif';
+            canvas2d.textAlign = 'left';
+            canvas2d.fillStyle = 'yellow';
 
             let y: number = 35;
-            this.ctx.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
+            canvas2d.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
 
             y += 50;
-            this.ctx.fillStyle = 'white';
-            this.ctx.fillText('To fix this try the following (in order):', 30, y);
+            canvas2d.fillStyle = 'white';
+            canvas2d.fillText('To fix this try the following (in order):', 30, y);
 
             y += 50;
-            this.ctx.font = 'bold 12px helvetica, sans-serif';
-            this.ctx.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
+            canvas2d.font = 'bold 12px helvetica, sans-serif';
+            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
 
             y += 30;
-            this.ctx.fillText('2: Try clearing your web-browsers cache from tools->internet options', 30, y);
+            canvas2d.fillText('2: Try clearing your web-browsers cache from tools->internet options', 30, y);
 
             y += 30;
-            this.ctx.fillText('3: Try using a different game-world', 30, y);
+            canvas2d.fillText('3: Try using a different game-world', 30, y);
 
             y += 30;
-            this.ctx.fillText('4: Try rebooting your computer', 30, y);
+            canvas2d.fillText('4: Try rebooting your computer', 30, y);
 
             y += 30;
-            this.ctx.fillText('5: Try selecting a different version of Java from the play-game menu', 30, y);
+            canvas2d.fillText('5: Try selecting a different version of Java from the play-game menu', 30, y);
         }
 
         if (this.errorHost) {
             this.flameActive = false;
 
-            this.ctx.font = 'bold 20px helvetica, sans-serif';
-            this.ctx.textAlign = 'left';
-            this.ctx.fillStyle = 'white';
+            canvas2d.font = 'bold 20px helvetica, sans-serif';
+            canvas2d.textAlign = 'left';
+            canvas2d.fillStyle = 'white';
 
-            this.ctx.fillText('Error - unable to load game!', 50, 50);
-            this.ctx.fillText('To play RuneScape make sure you play from', 50, 100);
-            this.ctx.fillText('https://2004scape.org', 50, 150);
+            canvas2d.fillText('Error - unable to load game!', 50, 50);
+            canvas2d.fillText('To play RuneScape make sure you play from', 50, 100);
+            canvas2d.fillText('https://2004scape.org', 50, 150);
         }
 
         if (this.errorStarted) {
             this.flameActive = false;
 
-            this.ctx.font = 'bold 13px helvetica, sans-serif';
-            this.ctx.textAlign = 'left';
-            this.ctx.fillStyle = 'yellow';
+            canvas2d.font = 'bold 13px helvetica, sans-serif';
+            canvas2d.textAlign = 'left';
+            canvas2d.fillStyle = 'yellow';
 
             let y: number = 35;
-            this.ctx.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
+            canvas2d.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
 
             y += 50;
-            this.ctx.fillStyle = 'white';
-            this.ctx.fillText('To fix this try the following (in order):', 30, y);
+            canvas2d.fillStyle = 'white';
+            canvas2d.fillText('To fix this try the following (in order):', 30, y);
 
             y += 50;
-            this.ctx.font = 'bold 12px helvetica, sans-serif';
-            this.ctx.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
+            canvas2d.font = 'bold 12px helvetica, sans-serif';
+            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
 
             y += 30;
-            this.ctx.fillText('2: Try rebooting your computer, and reloading', 30, y);
+            canvas2d.fillText('2: Try rebooting your computer, and reloading', 30, y);
         }
     };
 

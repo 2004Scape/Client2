@@ -5,7 +5,7 @@ import Packet from '../io/Packet';
 
 import Hashable from '../datastruct/Hashable';
 
-import {decodeJpeg} from '../util/Jpeg';
+import {decodeJpeg} from './Jpeg';
 
 export default class Pix24 extends Hashable {
     // constructor

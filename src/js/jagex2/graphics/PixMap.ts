@@ -1,21 +1,14 @@
 import Draw2D from './Draw2D';
+import {canvas2d} from './Canvas';
 
 export default class PixMap {
     // constructor
-    readonly canvas: HTMLCanvasElement;
-    readonly ctx: CanvasRenderingContext2D;
     readonly image: ImageData;
     readonly pixels: Int32Array;
     readonly width: number;
     readonly height: number;
 
-    constructor(canvas: HTMLCanvasElement, width: number, height: number) {
-        const canvas2d: CanvasRenderingContext2D | null = canvas.getContext('2d');
-        if (!canvas2d) {
-            throw new Error('Canvas 2d not found!!!!!!!!');
-        }
-        this.canvas = canvas;
-        this.ctx = canvas2d;
+    constructor(width: number, height: number) {
         this.image = canvas2d.getImageData(0, 0, width, height);
         this.pixels = new Int32Array(width * height);
         this.width = width;
@@ -33,7 +26,7 @@ export default class PixMap {
 
     draw = (width: number, height: number): void => {
         this.#setPixels();
-        this.ctx.putImageData(this.image, width, height);
+        canvas2d.putImageData(this.image, width, height);
     };
 
     #setPixels = (): void => {
