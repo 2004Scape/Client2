@@ -162,6 +162,8 @@ class Viewer extends GameShell {
             const com: ComType = ComType.instances[4883];
             const seq: SeqType = SeqType.instances[this.npc.primarySeqId];
 
+            com.seqCycle += 1;
+
             while (com.seqCycle > seq.delay![com.seqFrame]) {
                 com.seqCycle -= seq.delay![com.seqFrame] + 1;
                 com.seqFrame++;

@@ -1360,19 +1360,24 @@ export default class Model extends Hashable {
     };
 
     applyTransform = (id: number): void => {
-        if (this.labelVertices && id !== -1) {
-            const transform: SeqFrame = SeqFrame.instances[id];
-            const skeleton: SeqBase | null = transform.base;
-            Model.baseX = 0;
-            Model.baseY = 0;
-            Model.baseZ = 0;
-            for (let i: number = 0; i < transform.length; i++) {
-                if (!transform.bases || !transform.x || !transform.y || !transform.z || !skeleton || !skeleton.labels || !skeleton.types) {
-                    continue;
-                }
-                const base: number = transform.bases[i];
-                this.applyTransform2(transform.x[i], transform.y[i], transform.z[i], skeleton.labels[base], skeleton.types[base]);
+        if (!this.labelVertices || id === -1 || !SeqFrame.instances[id]) {
+            return;
+        }
+
+        const transform: SeqFrame = SeqFrame.instances[id];
+        const skeleton: SeqBase | null = transform.base;
+
+        Model.baseX = 0;
+        Model.baseY = 0;
+        Model.baseZ = 0;
+
+        for (let i: number = 0; i < transform.length; i++) {
+            if (!transform.bases || !transform.x || !transform.y || !transform.z || !skeleton || !skeleton.labels || !skeleton.types) {
+                continue;
             }
+
+            const base: number = transform.bases[i];
+            this.applyTransform2(transform.x[i], transform.y[i], transform.z[i], skeleton.labels[base], skeleton.types[base]);
         }
     };
 
