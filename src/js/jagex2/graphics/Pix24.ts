@@ -25,6 +25,9 @@ export default class Pix24 extends Hashable {
 
     static fromJpeg = async (archive: Jagfile, name: string): Promise<Pix24> => {
         const dat: Uint8Array | null = archive.read(name + '.dat');
+        if (!dat) {
+            throw new Error(`${name} jpeg not found!`);
+        }
         const jpeg: ImageData = await decodeJpeg(dat);
         const image: Pix24 = new Pix24(jpeg.width, jpeg.height);
 

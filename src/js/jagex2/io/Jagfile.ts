@@ -67,11 +67,12 @@ export default class Jagfile {
             return null;
         }
 
+        const offset: number = this.fileOffset[index];
+        const length: number = offset + this.fileSizeDeflated[index];
         if (this.compressedWhole) {
-            return this.buffer.gdata(this.fileOffset[index], this.fileOffset[index] + this.fileSizeDeflated[index]);
+            return this.buffer.gdata(offset, length);
         } else {
-            const data: Uint8Array = this.buffer.gdata(this.fileOffset[index], this.fileOffset[index] + this.fileSizeDeflated[index]);
-            return decompressBz2(data);
+            return decompressBz2(this.buffer.gdata(offset, length));
         }
     };
 }

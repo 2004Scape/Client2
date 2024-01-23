@@ -37,13 +37,12 @@ export default class Pix8 extends Hashable {
         // palette is shared across all images in a single archive
         const paletteCount: number = index.g1;
         const palette: Int32Array = new Int32Array(paletteCount);
-        for (let i: number = 0; i < paletteCount - 1; i++) {
-            // the first color (0) is reserved for transparency
-            palette[i + 1] = index.g3;
-
+        // the first color (0) is reserved for transparency
+        for (let i: number = 1; i < paletteCount; i++) {
+            palette[i] = index.g3;
             // black (0) will become transparent, make it black (1) so it's visible
-            if (palette[i + 1] === 0) {
-                palette[i + 1] = 1;
+            if (palette[i] === 0) {
+                palette[i] = 1;
             }
         }
 
@@ -66,18 +65,19 @@ export default class Pix8 extends Hashable {
         image.cropW = cropW;
         image.cropH = cropH;
 
+        const pixels: Int8Array = image.pixels;
         const pixelOrder: number = index.g1;
         if (pixelOrder === 0) {
             const length: number = image.width * image.height;
             for (let i: number = 0; i < length; i++) {
-                image.pixels[i] = dat.g1b;
+                pixels[i] = dat.g1b;
             }
         } else if (pixelOrder === 1) {
             const width: number = image.width;
+            const height: number = image.height;
             for (let x: number = 0; x < width; x++) {
-                const height: number = image.height;
                 for (let y: number = 0; y < height; y++) {
-                    image.pixels[x + y * width] = dat.g1b;
+                    pixels[x + y * width] = dat.g1b;
                 }
             }
         }

@@ -54,7 +54,7 @@ export default class ClientStream {
     }
 
     write = (src: Uint8Array, len: number, off: number): void => {
-        if (this.socket.readyState !== 1) {
+        if (this.socket.readyState !== WebSocket.OPEN) {
             throw new Error('Socket is not able to write!');
         }
         const data: Uint8Array = new Uint8Array(len);
@@ -63,9 +63,9 @@ export default class ClientStream {
     };
 
     read = async (): Promise<number> => {
-        /*if (this.socket.readyState !== 1) {
+        if (this.socket.readyState !== WebSocket.OPEN && this.remaining < 1) {
             throw new Error('Socket is not able to read!');
-        }*/
+        }
 
         if (this.remaining < 1) {
             await sleep(5); // TODO maybe not do this?
@@ -94,7 +94,7 @@ export default class ClientStream {
     };
 
     readBytes = async (dst: Uint8Array, off: number, len: number): Promise<number> => {
-        if (this.socket.readyState !== 1) {
+        if (this.socket.readyState !== WebSocket.OPEN && this.remaining < 1) {
             throw new Error('Socket is not able to read!');
         }
 
