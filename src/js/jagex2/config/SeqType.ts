@@ -19,9 +19,9 @@ export default class SeqType extends ConfigType {
     // ----
 
     frameCount: number = 0;
-    frames: Uint16Array | null = null;
-    iframes: Uint16Array | null = null;
-    delay: Uint16Array | null = null;
+    frames: Int16Array | null = null;
+    iframes: Int16Array | null = null;
+    delay: Int16Array | null = null;
     replayoff: number = -1;
     labelGroups: Int32Array | null = null;
     stretches: boolean = false;
@@ -34,9 +34,9 @@ export default class SeqType extends ConfigType {
     decode = (_index: number, code: number, dat: Packet): void => {
         if (code === 1) {
             this.frameCount = dat.g1;
-            this.frames = new Uint16Array(this.frameCount);
-            this.iframes = new Uint16Array(this.frameCount);
-            this.delay = new Uint16Array(this.frameCount);
+            this.frames = new Int16Array(this.frameCount);
+            this.iframes = new Int16Array(this.frameCount);
+            this.delay = new Int16Array(this.frameCount);
 
             for (let i: number = 0; i < this.frameCount; i++) {
                 this.frames[i] = dat.g2;

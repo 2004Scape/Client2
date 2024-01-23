@@ -250,7 +250,7 @@ export default class PlayerEntity extends PathingEntity {
                 primaryTransformId = seq.frames[this.primarySeqFrame];
             }
             if (this.secondarySeqId >= 0 && this.secondarySeqId !== this.seqStandId) {
-                const secondFrames: Uint16Array | null = SeqType.instances[this.secondarySeqId].frames;
+                const secondFrames: Int16Array | null = SeqType.instances[this.secondarySeqId].frames;
                 if (secondFrames) {
                     secondaryTransformId = secondFrames[this.secondarySeqFrame];
                 }
@@ -266,7 +266,7 @@ export default class PlayerEntity extends PathingEntity {
                 hashCode += (leftHandValue - this.appearances[3]) << 16;
             }
         } else if (this.secondarySeqId >= 0) {
-            const secondFrames: Uint16Array | null = SeqType.instances[this.secondarySeqId].frames;
+            const secondFrames: Int16Array | null = SeqType.instances[this.secondarySeqId].frames;
             if (secondFrames) {
                 primaryTransformId = secondFrames[this.secondarySeqFrame];
             }

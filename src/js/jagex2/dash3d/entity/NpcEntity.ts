@@ -53,12 +53,12 @@ export default class NpcEntity extends PathingEntity {
             return null;
         }
         if (this.primarySeqId >= 0 && this.primarySeqDelay === 0) {
-            const frames: Uint16Array | null = SeqType.instances[this.primarySeqId].frames;
+            const frames: Int16Array | null = SeqType.instances[this.primarySeqId].frames;
             if (frames) {
                 const primaryTransformId: number = frames[this.primarySeqFrame];
                 let secondaryTransformId: number = -1;
                 if (this.secondarySeqId >= 0 && this.secondarySeqId !== this.seqStandId) {
-                    const secondFrames: Uint16Array | null = SeqType.instances[this.secondarySeqId].frames;
+                    const secondFrames: Int16Array | null = SeqType.instances[this.secondarySeqId].frames;
                     if (secondFrames) {
                         secondaryTransformId = secondFrames[this.secondarySeqFrame];
                     }
@@ -69,7 +69,7 @@ export default class NpcEntity extends PathingEntity {
 
         let transformId: number = -1;
         if (this.secondarySeqId >= 0) {
-            const secondFrames: Uint16Array | null = SeqType.instances[this.secondarySeqId].frames;
+            const secondFrames: Int16Array | null = SeqType.instances[this.secondarySeqId].frames;
             if (secondFrames) {
                 transformId = secondFrames[this.secondarySeqFrame];
             }

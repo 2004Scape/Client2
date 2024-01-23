@@ -1255,7 +1255,7 @@ export default class Model extends Hashable {
 
     createLabelReferences = (): void => {
         if (this.vertexLabel) {
-            const labelVertexCount: number[] = new Array(256);
+            const labelVertexCount: number[] = new Array(256).fill(0);
             let count: number = 0;
             for (let v: number = 0; v < this.vertexCount; v++) {
                 const label: number = this.vertexLabel[v];
@@ -1279,7 +1279,7 @@ export default class Model extends Hashable {
         }
 
         if (this.faceLabel) {
-            const labelFaceCount: number[] = new Array(256);
+            const labelFaceCount: number[] = new Array(256).fill(0);
             let count: number = 0;
             for (let f: number = 0; f < this.faceCount; f++) {
                 const label: number = this.faceLabel[f];

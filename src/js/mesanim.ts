@@ -1,4 +1,4 @@
-import 'style/viewer.scss';
+import 'style/mesanim.scss';
 
 import SeqType from './jagex2/config/SeqType';
 import LocType from './jagex2/config/LocType';
