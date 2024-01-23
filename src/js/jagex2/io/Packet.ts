@@ -43,11 +43,11 @@ export default class Packet {
     bitPos: number = 0;
     random: Isaac | null = null;
 
-    constructor(src: Uint8Array | null) {
+    constructor(src: ArrayBuffer | null) {
         if (!src) {
             throw new Error('Input src packet array was null!');
         }
-        this.data = src;
+        this.data = new Uint8Array(src);
         this.pos = 0;
     }
 

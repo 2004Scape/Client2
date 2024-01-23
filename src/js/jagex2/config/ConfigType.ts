@@ -1,6 +1,8 @@
 import Packet from '../io/Packet';
 
 export abstract class ConfigType {
+    debugname: string | null = null;
+
     abstract decode(index: number, code: number, dat: Packet): void;
 
     decodeType = (index: number, dat: Packet): void => {
