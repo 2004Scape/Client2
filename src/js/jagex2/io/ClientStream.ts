@@ -63,9 +63,9 @@ export default class ClientStream {
     };
 
     read = async (): Promise<number> => {
-        if (this.socket.readyState !== 1) {
+        /*if (this.socket.readyState !== 1) {
             throw new Error('Socket is not able to read!');
-        }
+        }*/
 
         if (this.remaining < 1) {
             await sleep(5); // TODO maybe not do this?
