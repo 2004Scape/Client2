@@ -231,7 +231,7 @@ export default class Pix8 extends Hashable {
     };
 
     crop = (): void => {
-        if (this.width == this.cropW && this.height == this.cropH) {
+        if (this.width === this.cropW && this.height === this.cropH) {
             return;
         }
 

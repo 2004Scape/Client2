@@ -80,7 +80,7 @@ export default class ObjType extends ConfigType {
     static getIcon = (id: number, count: number): Pix24 => {
         if (ObjType.iconCache) {
             let icon: Pix24 | null = ObjType.iconCache.get(id) as Pix24 | null;
-            if (icon && icon.cropH != count && icon.cropH != -1) {
+            if (icon && icon.cropH !== count && icon.cropH !== -1) {
                 icon.unlink();
                 icon = null;
             }
@@ -91,19 +91,19 @@ export default class ObjType extends ConfigType {
         }
 
         let obj: ObjType = ObjType.get(id);
-        if (obj.countobj == null) {
+        if (!obj.countobj) {
             count = -1;
         }
 
         if (obj.countobj && obj.countco && count > 1) {
             let countobj: number = -1;
             for (let i: number = 0; i < 10; i++) {
-                if (count >= obj.countco[i] && obj.countco[i] != 0) {
+                if (count >= obj.countco[i] && obj.countco[i] !== 0) {
                     countobj = obj.countobj[i];
                 }
             }
 
-            if (countobj != -1) {
+            if (countobj !== -1) {
                 obj = ObjType.get(countobj);
             }
         }

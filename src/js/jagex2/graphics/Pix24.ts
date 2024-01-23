@@ -340,11 +340,11 @@ export default class Pix24 extends Hashable {
             x += Math.trunc((this.cropX * w + cw - 1) / cw);
             y += Math.trunc((this.cropY * h + ch - 1) / ch);
 
-            if ((this.cropX * w) % cw != 0) {
+            if ((this.cropX * w) % cw !== 0) {
                 offW = Math.trunc(((cw - ((this.cropX * w) % cw)) << 16) / w);
             }
 
-            if ((this.cropY * h) % ch != 0) {
+            if ((this.cropY * h) % ch !== 0) {
                 offH = Math.trunc(((ch - ((this.cropY * h) % ch)) << 16) / h);
             }
 
@@ -394,7 +394,7 @@ export default class Pix24 extends Hashable {
                 const offY: number = (offH >> 16) * currentW;
                 for (let x: number = -w; x < 0; x++) {
                     const rgb: number = src[(offW >> 16) + offY];
-                    if (rgb == 0) {
+                    if (rgb === 0) {
                         dstOff++;
                     } else {
                         dst[dstOff++] = rgb;

@@ -2519,73 +2519,73 @@ class Client extends GameShell {
                     return register;
                 }
 
-                if (opcode == 1) {
+                if (opcode === 1) {
                     // load_skill_level {skill}
                     register += this.skillLevel[script[pc++]];
-                } else if (opcode == 2) {
+                } else if (opcode === 2) {
                     // load_skill_base_level {skill}
                     register += this.skillBaseLevel[script[pc++]];
-                } else if (opcode == 3) {
+                } else if (opcode === 3) {
                     // load_skill_exp {skill}
                     register += this.skillExperience[script[pc++]];
-                } else if (opcode == 4) {
+                } else if (opcode === 4) {
                     // load_inv_count {interface id} {obj id}
                     const com: ComType = ComType.instances[script[pc++]];
                     const obj: number = script[pc++] + 1;
 
                     if (com.inventorySlotObjId) {
                         for (let i: number = 0; i < com.inventorySlotObjId.length; i++) {
-                            if (com.inventorySlotObjId[i] == obj && com.inventorySlotObjCount) {
+                            if (com.inventorySlotObjId[i] === obj && com.inventorySlotObjCount) {
                                 register += com.inventorySlotObjCount[i];
                             }
                         }
                     }
-                } else if (opcode == 5) {
+                } else if (opcode === 5) {
                     // load_var {id}
                     register += this.varps[script[pc++]];
-                } else if (opcode == 6) {
+                } else if (opcode === 6) {
                     // load_next_level_xp {skill}
                     // register += levelExperience[this.skillBaseLevel[script[pc++]] - 1]; TODO
-                } else if (opcode == 7) {
+                } else if (opcode === 7) {
                     register += (this.varps[script[pc++]] * 100) / 46875;
-                } else if (opcode == 8) {
+                } else if (opcode === 8) {
                     // load_combat_level
                     // register += this.localPlayer.combatLevel; TODO
-                } else if (opcode == 9) {
+                } else if (opcode === 9) {
                     // load_total_level
                     for (let i: number = 0; i < 19; i++) {
-                        if (i == 18) {
+                        if (i === 18) {
                             // runecrafting
                             i = 20;
                         }
 
                         register += this.skillBaseLevel[i];
                     }
-                } else if (opcode == 10) {
+                } else if (opcode === 10) {
                     // load_inv_contains {interface id} {obj id}
                     const com: ComType = ComType.instances[script[pc++]];
                     const obj: number = script[pc++] + 1;
 
                     if (com.inventorySlotObjId) {
                         for (let i: number = 0; i < com.inventorySlotObjId.length; i++) {
-                            if (com.inventorySlotObjId[i] == obj) {
+                            if (com.inventorySlotObjId[i] === obj) {
                                 register += 999999999;
                                 break;
                             }
                         }
                     }
-                } else if (opcode == 11) {
+                } else if (opcode === 11) {
                     // load_energy
                     register += this.energy;
-                } else if (opcode == 12) {
+                } else if (opcode === 12) {
                     // load_weight
                     register += this.weightCarried;
-                } else if (opcode == 13) {
+                } else if (opcode === 13) {
                     // load_bool {varp} {bit: 0..31}
                     const varp: number = this.varps[script[pc++]];
                     const lsb: number = script[pc++];
 
-                    register += (varp & (0x1 << lsb)) == 0 ? 0 : 1;
+                    register += (varp & (0x1 << lsb)) === 0 ? 0 : 1;
                 }
             }
         } catch (e) {

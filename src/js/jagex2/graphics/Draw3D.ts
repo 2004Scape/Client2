@@ -80,7 +80,7 @@ export default class Draw3D {
         for (let i: number = 0; i < 50; i++) {
             try {
                 this.textures[i] = Pix8.fromArchive(textures, i.toString());
-                if (this.lowMemory && this.textures[i].cropW == 128) {
+                if (this.lowMemory && this.textures[i].cropW === 128) {
                     this.textures[i].shrink();
                 } else {
                     this.textures[i].crop();
@@ -103,7 +103,7 @@ export default class Draw3D {
                 let r: number = lightness;
                 let g: number = lightness;
                 let b: number = lightness;
-                if (saturation != 0.0) {
+                if (saturation !== 0.0) {
                     let q: number;
                     if (lightness < 0.5) {
                         q = lightness * (saturation + 1.0);
@@ -720,15 +720,15 @@ export default class Draw3D {
 
     static fillTriangle = (x0: number, x1: number, x2: number, y0: number, y1: number, y2: number, color: number): void => {
         let xStepAB: number = 0;
-        if (y1 != y0) {
+        if (y1 !== y0) {
             xStepAB = Math.trunc(((x1 - x0) << 16) / (y1 - y0));
         }
         let xStepBC: number = 0;
-        if (y2 != y1) {
+        if (y2 !== y1) {
             xStepBC = Math.trunc(((x2 - x1) << 16) / (y2 - y1));
         }
         let xStepAC: number = 0;
-        if (y2 != y0) {
+        if (y2 !== y0) {
             xStepAC = Math.trunc(((x0 - x2) << 16) / (y0 - y2));
         }
         if (y0 <= y1 && y0 <= y2) {
@@ -751,7 +751,7 @@ export default class Draw3D {
                         x1 -= xStepBC * y1;
                         y1 = 0;
                     }
-                    if ((y0 != y1 && xStepAC < xStepAB) || (y0 == y1 && xStepAC > xStepBC)) {
+                    if ((y0 !== y1 && xStepAC < xStepAB) || (y0 === y1 && xStepAC > xStepBC)) {
                         y2 -= y1;
                         y1 -= y0;
                         y0 = this.lineOffset[y0];
@@ -814,7 +814,7 @@ export default class Draw3D {
                         x2 -= xStepBC * y2;
                         y2 = 0;
                     }
-                    if ((y0 != y2 && xStepAC < xStepAB) || (y0 == y2 && xStepBC > xStepAB)) {
+                    if ((y0 !== y2 && xStepAC < xStepAB) || (y0 === y2 && xStepBC > xStepAB)) {
                         y1 -= y2;
                         y2 -= y0;
                         y0 = this.lineOffset[y0];
@@ -887,7 +887,7 @@ export default class Draw3D {
                         x2 -= xStepAC * y2;
                         y2 = 0;
                     }
-                    if ((y1 != y2 && xStepAB < xStepBC) || (y1 == y2 && xStepAB > xStepAC)) {
+                    if ((y1 !== y2 && xStepAB < xStepBC) || (y1 === y2 && xStepAB > xStepAC)) {
                         y0 -= y2;
                         y2 -= y1;
                         y1 = this.lineOffset[y1];
@@ -1186,21 +1186,21 @@ export default class Draw3D {
 
         let xStepAB: number = 0;
         let shadeStepAB: number = 0;
-        if (yB != yA) {
+        if (yB !== yA) {
             xStepAB = Math.trunc(((xB - xA) << 16) / (yB - yA));
             shadeStepAB = Math.trunc(((shadeB - shadeA) << 16) / (yB - yA));
         }
 
         let xStepBC: number = 0;
         let shadeStepBC: number = 0;
-        if (yC != yB) {
+        if (yC !== yB) {
             xStepBC = Math.trunc(((xC - xB) << 16) / (yC - yB));
             shadeStepBC = Math.trunc(((shadeC - shadeB) << 16) / (yC - yB));
         }
 
         let xStepAC: number = 0;
         let shadeStepAC: number = 0;
-        if (yC != yA) {
+        if (yC !== yA) {
             xStepAC = Math.trunc(((xA - xC) << 16) / (yA - yC));
             shadeStepAC = Math.trunc(((shadeA - shadeC) << 16) / (yA - yC));
         }
@@ -1236,7 +1236,7 @@ export default class Draw3D {
                     u += uStepVertical * dy;
                     v += vStepVertical * dy;
                     w += wStepVertical * dy;
-                    if ((yA != yB && xStepAC < xStepAB) || (yA == yB && xStepAC > xStepBC)) {
+                    if ((yA !== yB && xStepAC < xStepAB) || (yA === yB && xStepAC > xStepBC)) {
                         yC -= yB;
                         yB -= yA;
                         yA = this.lineOffset[yA];
@@ -1328,7 +1328,7 @@ export default class Draw3D {
                     u += uStepVertical * dy;
                     v += vStepVertical * dy;
                     w += wStepVertical * dy;
-                    if ((yA == yC || xStepAC >= xStepAB) && (yA != yC || xStepBC <= xStepAB)) {
+                    if ((yA === yC || xStepAC >= xStepAB) && (yA !== yC || xStepBC <= xStepAB)) {
                         yB -= yC;
                         yC -= yA;
                         yA = this.lineOffset[yA];
@@ -1430,7 +1430,7 @@ export default class Draw3D {
                     u += uStepVertical * dy;
                     v += vStepVertical * dy;
                     w += wStepVertical * dy;
-                    if ((yB != yC && xStepAB < xStepBC) || (yB == yC && xStepAB > xStepAC)) {
+                    if ((yB !== yC && xStepAB < xStepBC) || (yB === yC && xStepAB > xStepAC)) {
                         yA -= yC;
                         yC -= yB;
                         yB = this.lineOffset[yB];
@@ -1861,7 +1861,7 @@ export default class Draw3D {
             v = v + (vStride >> 3) * dx;
             w = w + (wStride >> 3) * dx;
             curW = w >> 12;
-            if (curW != 0) {
+            if (curW !== 0) {
                 curU = Math.trunc(u / curW);
                 curV = Math.trunc(v / curW);
                 if (curU < 0) {
@@ -1874,7 +1874,7 @@ export default class Draw3D {
             v = v + vStride;
             w = w + wStride;
             curW = w >> 12;
-            if (curW != 0) {
+            if (curW !== 0) {
                 nextU = Math.trunc(u / curW);
                 nextV = Math.trunc(v / curW);
                 if (nextU < 7) {
@@ -1917,7 +1917,7 @@ export default class Draw3D {
                     v += vStride;
                     w += wStride;
                     curW = w >> 12;
-                    if (curW != 0) {
+                    if (curW !== 0) {
                         nextU = Math.trunc(u / curW);
                         nextV = Math.trunc(v / curW);
                         if (nextU < 7) {
@@ -1941,49 +1941,49 @@ export default class Draw3D {
             } else {
                 while (strides-- > 0) {
                     let rgb: number;
-                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) !== 0) {
                         dst[offset] = rgb;
                     }
                     offset = offset + 1;
                     curU += stepU;
                     curV += stepV;
-                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) !== 0) {
                         dst[offset] = rgb;
                     }
                     offset++;
                     curU += stepU;
                     curV += stepV;
-                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) !== 0) {
                         dst[offset] = rgb;
                     }
                     offset++;
                     curU += stepU;
                     curV += stepV;
-                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) !== 0) {
                         dst[offset] = rgb;
                     }
                     offset++;
                     curU += stepU;
                     curV += stepV;
-                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) !== 0) {
                         dst[offset] = rgb;
                     }
                     offset++;
                     curU += stepU;
                     curV += stepV;
-                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) !== 0) {
                         dst[offset] = rgb;
                     }
                     offset++;
                     curU += stepU;
                     curV += stepV;
-                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) !== 0) {
                         dst[offset] = rgb;
                     }
                     offset++;
                     curU += stepU;
                     curV += stepV;
-                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) !== 0) {
                         dst[offset] = rgb;
                     }
                     offset = offset + 1;
@@ -1993,7 +1993,7 @@ export default class Draw3D {
                     v += vStride;
                     w += wStride;
                     curW = w >> 12;
-                    if (curW != 0) {
+                    if (curW !== 0) {
                         nextU = Math.trunc(u / curW);
                         nextV = Math.trunc(v / curW);
                         if (nextU < 7) {
@@ -2011,7 +2011,7 @@ export default class Draw3D {
                 strides = (xB - xA) & 0x7;
                 while (strides-- > 0) {
                     let rgb: number;
-                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) != 0) {
+                    if ((rgb = texels[(curV & 0xfc0) + (curU >> 6)] >>> shadeShift) !== 0) {
                         dst[offset] = rgb;
                     }
                     offset++;
@@ -2028,7 +2028,7 @@ export default class Draw3D {
         v = v + (vStride >> 3) * dx;
         w = w + (wStride >> 3) * dx;
         curW = w >> 14;
-        if (curW != 0) {
+        if (curW !== 0) {
             curU = Math.trunc(u / curW);
             curV = Math.trunc(v / curW);
             if (curU < 0) {
@@ -2041,7 +2041,7 @@ export default class Draw3D {
         v = v + vStride;
         w = w + wStride;
         curW = w >> 14;
-        if (curW != 0) {
+        if (curW !== 0) {
             nextU = Math.trunc(u / curW);
             nextV = Math.trunc(v / curW);
             if (nextU < 7) {
@@ -2084,7 +2084,7 @@ export default class Draw3D {
                 v += vStride;
                 w += wStride;
                 curW = w >> 14;
-                if (curW != 0) {
+                if (curW !== 0) {
                     nextU = Math.trunc(u / curW);
                     nextV = Math.trunc(v / curW);
                     if (nextU < 7) {
@@ -2110,49 +2110,49 @@ export default class Draw3D {
 
         while (strides-- > 0 && texels) {
             let rgb: number;
-            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) !== 0) {
                 dst[offset] = rgb;
             }
             offset = offset + 1;
             curU += stepU;
             curV += stepV;
-            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) !== 0) {
                 dst[offset] = rgb;
             }
             offset++;
             curU += stepU;
             curV += stepV;
-            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) !== 0) {
                 dst[offset] = rgb;
             }
             offset++;
             curU += stepU;
             curV += stepV;
-            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) !== 0) {
                 dst[offset] = rgb;
             }
             offset++;
             curU += stepU;
             curV += stepV;
-            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) !== 0) {
                 dst[offset] = rgb;
             }
             offset++;
             curU += stepU;
             curV += stepV;
-            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) !== 0) {
                 dst[offset] = rgb;
             }
             offset++;
             curU += stepU;
             curV += stepV;
-            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) !== 0) {
                 dst[offset] = rgb;
             }
             offset++;
             curU += stepU;
             curV += stepV;
-            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) !== 0) {
                 dst[offset] = rgb;
             }
             offset++;
@@ -2162,7 +2162,7 @@ export default class Draw3D {
             v += vStride;
             w += wStride;
             curW = w >> 14;
-            if (curW != 0) {
+            if (curW !== 0) {
                 nextU = Math.trunc(u / curW);
                 nextV = Math.trunc(v / curW);
                 if (nextU < 7) {
@@ -2180,7 +2180,7 @@ export default class Draw3D {
         strides = (xB - xA) & 0x7;
         while (strides-- > 0 && texels) {
             let rgb: number;
-            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) != 0) {
+            if ((rgb = texels[(curV & 0x3f80) + (curU >> 7)] >>> shadeShift) !== 0) {
                 dst[offset] = rgb;
             }
             offset++;
@@ -2206,7 +2206,7 @@ export default class Draw3D {
         offset += x0;
         let length: number = (x1 - x0) >> 2;
 
-        if (this.alpha == 0) {
+        if (this.alpha === 0) {
             // eslint-disable-next-line no-constant-condition
             while (true) {
                 length--;
@@ -2255,7 +2255,7 @@ export default class Draw3D {
     };
 
     static pushTexture = (id: number): void => {
-        if (this.activeTexels[id] != null && this.texelPool) {
+        if (this.activeTexels[id] !== null && this.texelPool) {
             this.texelPool[this.poolSize++] = this.activeTexels[id];
             this.activeTexels[id] = null;
         }
@@ -2263,7 +2263,7 @@ export default class Draw3D {
 
     private static getTexels = (id: number): Int32Array | null => {
         this.textureCycle[id] = this.cycle++;
-        if (this.activeTexels[id] != null) {
+        if (this.activeTexels[id] !== null) {
             return this.activeTexels[id];
         }
 
@@ -2275,7 +2275,7 @@ export default class Draw3D {
             let cycle: number = 0;
             let selected: number = -1;
             for (let t: number = 0; t < this.textureCount; t++) {
-                if (this.activeTexels[t] != null && (this.textureCycle[t] < cycle || selected == -1)) {
+                if (this.activeTexels[t] !== null && (this.textureCycle[t] < cycle || selected === -1)) {
                     cycle = this.textureCycle[t];
                     selected = t;
                 }
@@ -2293,7 +2293,7 @@ export default class Draw3D {
                 this.textureTranslucent[id] = false;
                 for (let i: number = 0; i < 4096; i++) {
                     const rgb: number = (texels[i] = palette[texture.pixels[i]] & 0xf8f8ff);
-                    if (rgb == 0) {
+                    if (rgb === 0) {
                         this.textureTranslucent[id] = true;
                     }
                     texels[i + 4096] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
@@ -2301,7 +2301,7 @@ export default class Draw3D {
                     texels[i + 12288] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
                 }
             } else {
-                if (texture.width == 64) {
+                if (texture.width === 64) {
                     for (let y: number = 0; y < 128; y++) {
                         for (let x: number = 0; x < 128; x++) {
                             texels[x + (y << 7)] = palette[texture.pixels[(x >> 1) + ((y >> 1) << 6)]];
@@ -2317,7 +2317,7 @@ export default class Draw3D {
                 for (let i: number = 0; i < 16384; i++) {
                     texels[i] &= 0xf8f8ff;
                     const rgb: number = texels[i];
-                    if (rgb == 0) {
+                    if (rgb === 0) {
                         this.textureTranslucent[id] = true;
                     }
                     texels[i + 16384] = (rgb - (rgb >>> 3)) & 0xf8f8ff;

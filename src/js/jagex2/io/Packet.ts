@@ -1,4 +1,4 @@
-import {bigIntToBytes, bytesToBigInt, bigIntModPow, arraycopy} from '../util/JsUtil';
+import {arraycopy, bigIntModPow, bigIntToBytes, bytesToBigInt} from '../util/JsUtil';
 import Isaac from './Isaac';
 
 export default class Packet {
