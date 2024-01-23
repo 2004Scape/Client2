@@ -2334,8 +2334,44 @@ class Client extends GameShell {
     };
 
     private updateInterfaceAnimation = (id: number, delta: number): boolean => {
-        // TODO
-        return false;
+        let updated: boolean = false;
+        const parent: ComType = ComType.instances[id];
+        if (!parent.childId) {
+            return false;
+        }
+        for (let i: number = 0; i < parent.childId.length && parent.childId[i] != -1; i++) {
+            const child: ComType = ComType.instances[parent.childId[i]];
+            if (child.type == 1) {
+                updated ||= this.updateInterfaceAnimation(child.id, delta);
+            }
+            if (child.type == 6 && (child.seqId != -1 || child.activeSeqId != -1)) {
+                const active: boolean = this.executeInterfaceScript(child);
+                let seqId: number;
+                if (active) {
+                    seqId = child.activeSeqId;
+                } else {
+                    seqId = child.seqId;
+                }
+                if (seqId != -1) {
+                    const type: SeqType = SeqType.instances[seqId];
+                    child.seqCycle += delta;
+                    if (type.delay) {
+                        while (child.seqCycle > type.delay[child.seqFrame]) {
+                            child.seqCycle -= type.delay[child.seqFrame] + 1;
+                            child.seqFrame++;
+                            if (child.seqFrame >= type.frameCount) {
+                                child.seqFrame -= type.replayoff;
+                                if (child.seqFrame < 0 || child.seqFrame >= type.frameCount) {
+                                    child.seqFrame = 0;
+                                }
+                            }
+                            updated = true;
+                        }
+                    }
+                }
+            }
+        }
+        return updated;
     };
 
     private handleTabInput = (): void => {
