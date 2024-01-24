@@ -796,7 +796,18 @@ export default class Model extends Hashable {
         faceCount = 0;
         texturedFaceCount = 0;
 
-        const addVertex = (src: Model, vertexId: number, vertexX: Int32Array, vertexY: Int32Array, vertexZ: Int32Array, vertexLabel: Int32Array, vertexCount: number): number => {
+        const addVertex = (
+            src: Model,
+            vertexId: number,
+            vertexX: Int32Array,
+            vertexY: Int32Array,
+            vertexZ: Int32Array,
+            vertexLabel: Int32Array,
+            vertexCount: number
+        ): {
+            vertex: number;
+            vertexCount: number;
+        } => {
             let identical: number = -1;
 
             const x: number = src.vertexX[vertexId];
@@ -822,7 +833,7 @@ export default class Model extends Hashable {
                 identical = vertexCount++;
             }
 
-            return identical;
+            return {vertex: identical, vertexCount};
         };
 
         for (let i: number = 0; i < count; i++) {
@@ -875,16 +886,28 @@ export default class Model extends Hashable {
                     if (model.faceColor) {
                         faceColor[faceCount] = model.faceColor[face];
                     }
-                    faceVertexA[faceCount] = addVertex(model, model.faceVertexA[face], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
-                    faceVertexB[faceCount] = addVertex(model, model.faceVertexB[face], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
-                    faceVertexC[faceCount] = addVertex(model, model.faceVertexC[face], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    const a: {vertex: number; vertexCount: number} = addVertex(model, model.faceVertexA[face], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    vertexCount = a.vertexCount;
+                    const b: {vertex: number; vertexCount: number} = addVertex(model, model.faceVertexB[face], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    vertexCount = b.vertexCount;
+                    const c: {vertex: number; vertexCount: number} = addVertex(model, model.faceVertexC[face], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    vertexCount = c.vertexCount;
+                    faceVertexA[faceCount] = a.vertex;
+                    faceVertexB[faceCount] = b.vertex;
+                    faceVertexC[faceCount] = c.vertex;
                     faceCount++;
                 }
 
                 for (let f: number = 0; f < model.texturedFaceCount; f++) {
-                    texturedVertexA[texturedFaceCount] = addVertex(model, model.texturedVertexA[f], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
-                    texturedVertexB[texturedFaceCount] = addVertex(model, model.texturedVertexB[f], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
-                    texturedVertexC[texturedFaceCount] = addVertex(model, model.texturedVertexC[f], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    const a: {vertex: number; vertexCount: number} = addVertex(model, model.texturedVertexA[f], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    vertexCount = a.vertexCount;
+                    const b: {vertex: number; vertexCount: number} = addVertex(model, model.texturedVertexB[f], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    vertexCount = b.vertexCount;
+                    const c: {vertex: number; vertexCount: number} = addVertex(model, model.texturedVertexC[f], vertexX, vertexY, vertexZ, vertexLabel, vertexCount);
+                    vertexCount = c.vertexCount;
+                    texturedVertexA[texturedFaceCount] = a.vertex;
+                    texturedVertexB[texturedFaceCount] = b.vertex;
+                    texturedVertexC[texturedFaceCount] = c.vertex;
                     texturedFaceCount++;
                 }
             }
