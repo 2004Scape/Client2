@@ -144,8 +144,6 @@ export default class NpcType extends ConfigType {
             this.resizeh = dat.g2;
         } else if (code === 98) {
             this.resizev = dat.g2;
-        } else {
-            throw new Error(`Unrecognized npc config code: ${code}`);
         }
     };
 

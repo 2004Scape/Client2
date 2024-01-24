@@ -3,6 +3,7 @@ import Draw2D from './Draw2D';
 import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
 import Hashable from '../datastruct/Hashable';
+import JavaRandom from '../util/JavaRandom';
 
 export default class PixFont extends Hashable {
     static CHARSET: number[] = [];
@@ -29,6 +30,7 @@ export default class PixFont extends Hashable {
     charSpace: number[] = [];
     drawWidth: number[] = [];
     fontHeight: number = -1;
+    random: JavaRandom = new JavaRandom(0n);
 
     static fromArchive = (archive: Jagfile, name: string): PixFont => {
         const dat: Packet = new Packet(archive.read(name + '.dat'));
@@ -76,11 +78,11 @@ export default class PixFont extends Hashable {
 
             {
                 let i: number = 0;
-                for (let y: number = height / 7; y < height; y++) {
+                for (let y: number = Math.trunc(height / 7); y < height; y++) {
                     i += font.pixels[c][width + y * width];
                 }
 
-                if (i <= height / 7) {
+                if (i <= Math.trunc(height / 7)) {
                     font.charSpace[c]--;
                     font.clipX[c] = 0;
                 }
@@ -88,11 +90,11 @@ export default class PixFont extends Hashable {
 
             {
                 let i: number = 0;
-                for (let y: number = height / 7; y < height; y++) {
+                for (let y: number = Math.trunc(height / 7); y < height; y++) {
                     i += font.pixels[c][width + y * width - 1];
                 }
 
-                if (i <= height / 7) {
+                if (i <= Math.trunc(height / 7)) {
                     font.charSpace[c]--;
                 }
             }
@@ -192,6 +194,36 @@ export default class PixFont extends Hashable {
         this.draw(x - this.stringWidth(str) / 2, y, str, color);
     };
 
+    drawStringTooltip = (x: number, y: number, str: string, color: number, shadowed: boolean, seed: number): void => {
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+
+        this.random.setSeed(BigInt(seed));
+
+        const rand: number = (this.random.nextInt() & 0x1f) + 192;
+        const offY: number = y - this.fontHeight;
+        for (let i: number = 0; i < str.length; i++) {
+            if (str.charAt(i) == '@' && i + 4 < str.length && str.charAt(i + 4) == '@') {
+                color = this.evaluateTag(str.substring(i + 1, i + 4));
+                i += 4;
+            } else {
+                const c: number = PixFont.CHARSET[str.charCodeAt(i)];
+                if (c != 94) {
+                    if (shadowed) {
+                        this.drawCharAlpha(x + this.clipX[c] + 1, offY + this.clipY[c] + 1, this.charWidth[c], this.charHeight[c], 0, 192, this.pixels[c]);
+                    }
+
+                    this.drawCharAlpha(x + this.clipX[c], offY + this.clipY[c], this.charWidth[c], this.charHeight[c], color, rand, this.pixels[c]);
+                }
+
+                x += this.charSpace[c];
+                if ((this.random.nextInt() & 0x3) == 0) {
+                    x++;
+                }
+            }
+        }
+    };
+
     drawRight = (x: number, y: number, str: string, color: number, shadowed: boolean = true): void => {
         x = Math.trunc(x);
         y = Math.trunc(y);
@@ -248,7 +280,53 @@ export default class PixFont extends Hashable {
         }
     };
 
-    drawMask = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, rgb: number): void => {
+    drawCharAlpha = (x: number, y: number, w: number, h: number, color: number, alpha: number, mask: Int8Array): void => {
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+        w = Math.trunc(w);
+        h = Math.trunc(h);
+
+        let dstOff: number = x + y * Draw2D.width;
+        let dstStep: number = Draw2D.width - w;
+
+        let srcStep: number = 0;
+        let srcOff: number = 0;
+
+        if (y < Draw2D.top) {
+            const cutoff: number = Draw2D.top - y;
+            h -= cutoff;
+            y = Draw2D.top;
+            srcOff += cutoff * w;
+            dstOff += cutoff * Draw2D.width;
+        }
+
+        if (y + h >= Draw2D.bottom) {
+            h -= y + h + 1 - Draw2D.bottom;
+        }
+
+        if (x < Draw2D.left) {
+            const cutoff: number = Draw2D.left - x;
+            w -= cutoff;
+            x = Draw2D.left;
+            srcOff += cutoff;
+            dstOff += cutoff;
+            srcStep += cutoff;
+            dstStep += cutoff;
+        }
+
+        if (x + w >= Draw2D.right) {
+            const cutoff: number = x + w + 1 - Draw2D.right;
+            w -= cutoff;
+            srcStep += cutoff;
+            dstStep += cutoff;
+        }
+
+        if (w > 0 && h > 0) {
+            this.drawMaskAlpha(w, h, Draw2D.pixels, dstOff, dstStep, mask, srcOff, srcStep, color, alpha);
+        }
+    };
+
+    private drawMask = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, rgb: number): void => {
         w = Math.trunc(w);
         h = Math.trunc(h);
 
@@ -292,6 +370,28 @@ export default class PixFont extends Hashable {
 
             dstOff += dstStep;
             srcOff += srcStep;
+        }
+    };
+
+    private drawMaskAlpha = (w: number, h: number, dst: Int32Array, dstOff: number, dstStep: number, mask: Int8Array, maskOff: number, maskStep: number, color: number, alpha: number): void => {
+        w = Math.trunc(w);
+        h = Math.trunc(h);
+
+        const rgb: number = ((((color & 0xff00ff) * alpha) & 0xff00ff00) + (((color & 0xff00) * alpha) & 0xff0000)) >> 8;
+        const invAlpha: number = 256 - alpha;
+
+        for (let y: number = -h; y < 0; y++) {
+            for (let x: number = -w; x < 0; x++) {
+                if (mask[maskOff++] == 0) {
+                    dstOff++;
+                } else {
+                    const dstRgb: number = dst[dstOff];
+                    dst[dstOff++] = (((((dstRgb & 0xff00ff) * invAlpha) & 0xff00ff00) + (((dstRgb & 0xff00) * invAlpha) & 0xff0000)) >> 8) + rgb;
+                }
+            }
+
+            dstOff += dstStep;
+            maskOff += maskStep;
         }
     };
 

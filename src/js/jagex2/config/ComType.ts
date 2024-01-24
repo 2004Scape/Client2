@@ -96,8 +96,8 @@ export default class ComType {
                     dat.pos += 3;
                     break;
                 case ComType.TYPE_INVENTORY: {
-                    com.inventorySlotObjId = [];
-                    com.inventorySlotObjCount = [];
+                    com.inventorySlotObjId = new Array(com.width * com.height).fill(0);
+                    com.inventorySlotObjCount = new Array(com.width * com.height).fill(0);
 
                     com.inventoryDraggable = dat.g1 === 1;
                     com.inventoryInteractable = dat.g1 === 1;

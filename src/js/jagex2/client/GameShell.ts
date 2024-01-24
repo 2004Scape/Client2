@@ -399,6 +399,9 @@ export default abstract class GameShell {
         x -= left;
         y -= top;
 
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+
         this.idleCycles = 0;
         this.mouseClickX = x;
         this.mouseClickY = y;
@@ -446,6 +449,9 @@ export default abstract class GameShell {
         const {top, left} = this.getInsets;
         x -= left;
         y -= top;
+
+        x = Math.trunc(x);
+        y = Math.trunc(y);
 
         this.idleCycles = 0;
         this.mouseX = x;

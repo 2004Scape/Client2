@@ -202,6 +202,8 @@ class Client extends GameShell {
     private dragCycles: number = 0;
     private crossMode: number = 0;
     private crossCycle: number = 0;
+    private crossX: number = 0;
+    private crossY: number = 0;
     private overrideChat: number = 0;
     private menuVisible: boolean = false;
     private menuArea: number = 0;
@@ -260,6 +262,11 @@ class Client extends GameShell {
     private objGrabY: number = 0;
     private objDragCycles: number = 0;
     private objGrabThreshold: boolean = false;
+    private objSelected: number = 0;
+    private objSelectedSlot: number = 0;
+    private objSelectedInterface: number = 0;
+    private objInterface: number = 0;
+    private objSelectedName: string | null = null;
     private selectedArea: number = 0;
     private selectedItem: number = 0;
     private selectedInterface: number = 0;
@@ -268,6 +275,19 @@ class Client extends GameShell {
     private awaitingLogin: boolean = false;
     private varps: number[] = [];
     private varCache: number[] = [];
+    private spellSelected: number = 0;
+    private activeSpellId: number = 0;
+    private activeSpellFlags: number = 0;
+    private spellCaption: string | null = null;
+    private mouseButtonsOption: number = 0;
+    private menuAction: number[] = new Array(500).fill(0);
+    private menuParamA: number[] = new Array(500).fill(0);
+    private menuParamB: number[] = new Array(500).fill(0);
+    private menuParamC: number[] = new Array(500).fill(0);
+    private hoveredSlotParentId: number = 0;
+    private hoveredSlot: number = 0;
+    private lastHoveredInterfaceId: number = 0;
+    private friendName: string[] = new Array(500);
 
     // scene
     private scene: World3D | null = null;
@@ -297,6 +317,7 @@ class Client extends GameShell {
     private sceneMapLandData: number[][] = [];
     private sceneMapLocData: number[][] = [];
     private sceneMapIndex: number[] = [];
+    private textureBuffer: Int8Array = new Int8Array(16384);
 
     // other
     private energy: number = 0;
@@ -304,6 +325,8 @@ class Client extends GameShell {
     private localPid: number = -1;
     private weightCarried: number = 0;
     private heartbeatTimer: number = 0;
+    private wildernessLevel: number = 0;
+    private worldLocationState: number = 0;
 
     runFlames = (): void => {
         if (!this.flameActive) {
@@ -777,7 +800,7 @@ class Client extends GameShell {
             for (let y: number = 1; y < flameHeight - 1; y++) {
                 for (let x: number = 1; x < 127; x++) {
                     const index: number = x + (y << 7);
-                    this.flameBuffer1[index] = (this.flameBuffer0[index - 1] + this.flameBuffer0[index + 1] + this.flameBuffer0[index - 128] + this.flameBuffer0[index + 128]) / 4;
+                    this.flameBuffer1[index] = Math.trunc((this.flameBuffer0[index - 1] + this.flameBuffer0[index + 1] + this.flameBuffer0[index - 128] + this.flameBuffer0[index + 128]) / 4);
                 }
             }
 
@@ -1414,29 +1437,33 @@ class Client extends GameShell {
                     }
 
                     this.objDragArea = 0;
-                    // if (this.objGrabThreshold && this.objDragCycles >= 5) {
-                    //     this.hoveredSlotParentId = -1;
-                    //     this.handleInput();
-                    //     if (this.hoveredSlotParentId === this.objDragInterfaceId && this.hoveredSlot !== this.objDragSlot) {
-                    //         let com = ComType.instances[this.objDragInterfaceId];
-                    //         int obj = com.inventorySlotObjId[this.hoveredSlot];
-                    //         com.inventorySlotObjId[this.hoveredSlot] = com.inventorySlotObjId[this.objDragSlot];
-                    //         com.inventorySlotObjId[this.objDragSlot] = obj;
-                    //
-                    //     @Pc(530) int count = com.inventorySlotObjCount[this.hoveredSlot];
-                    //         com.inventorySlotObjCount[this.hoveredSlot] = com.inventorySlotObjCount[this.objDragSlot];
-                    //         com.inventorySlotObjCount[this.objDragSlot] = count;
-                    //
-                    //         this.out.p1isaac(159);
-                    //         this.out.p2(this.objDragInterfaceId);
-                    //         this.out.p2(this.objDragSlot);
-                    //         this.out.p2(this.hoveredSlot);
-                    //     }
-                    // } else if ((this.mouseButtonsOption === 1 || this.isAddFriendOption(this.menuSize - 1)) && this.menuSize > 2) {
-                    //     this.showContextMenu();
-                    // } else if (this.menuSize > 0) {
-                    //     this.useMenuOption(this.menuSize - 1);
-                    // }
+                    if (this.objGrabThreshold && this.objDragCycles >= 5) {
+                        this.hoveredSlotParentId = -1;
+                        this.handleInput();
+                        if (this.hoveredSlotParentId === this.objDragInterfaceId && this.hoveredSlot !== this.objDragSlot) {
+                            const com: ComType = ComType.instances[this.objDragInterfaceId];
+                            if (com.inventorySlotObjId) {
+                                const obj: number = com.inventorySlotObjId[this.hoveredSlot];
+                                com.inventorySlotObjId[this.hoveredSlot] = com.inventorySlotObjId[this.objDragSlot];
+                                com.inventorySlotObjId[this.objDragSlot] = obj;
+                            }
+
+                            if (com.inventorySlotObjCount) {
+                                const count: number = com.inventorySlotObjCount[this.hoveredSlot];
+                                com.inventorySlotObjCount[this.hoveredSlot] = com.inventorySlotObjCount[this.objDragSlot];
+                                com.inventorySlotObjCount[this.objDragSlot] = count;
+                            }
+
+                            this.out.p1isaac(159);
+                            this.out.p2(this.objDragInterfaceId);
+                            this.out.p2(this.objDragSlot);
+                            this.out.p2(this.hoveredSlot);
+                        }
+                    } else if ((this.mouseButtonsOption === 1 || this.isAddFriendOption(this.menuSize - 1)) && this.menuSize > 2) {
+                        this.showContextMenu();
+                    } else if (this.menuSize > 0) {
+                        this.useMenuOption(this.menuSize - 1);
+                    }
 
                     this.selectedCycle = 10;
                     this.mouseClickButton = 0;
@@ -1446,8 +1473,8 @@ class Client extends GameShell {
             Client.UPDATE_COUNTER++;
             if (Client.UPDATE_COUNTER > 127) {
                 Client.UPDATE_COUNTER = 0;
-                // this.out.p1isaac(215);
-                // this.out.p3(4991788);
+                this.out.p1isaac(215);
+                this.out.p3(4991788);
             }
 
             // if (World3D.clickTileX !== -1) {
@@ -1470,7 +1497,7 @@ class Client extends GameShell {
                 this.mouseClickButton = 0;
             }
 
-            // this.handleMouseInput();
+            this.handleMouseInput();
             // this.handleMinimapInput();
             this.handleTabInput();
             // this.handleChatSettingsInput();
@@ -1495,7 +1522,7 @@ class Client extends GameShell {
             if (this.idleCycles > 4500) {
                 this.idleTimeout = 250;
                 this.idleCycles -= 500;
-                // this.out.p1isaac(70);
+                this.out.p1isaac(70);
             }
 
             this.cameraOffsetCycle++;
@@ -1561,13 +1588,13 @@ class Client extends GameShell {
             Client.UPDATE2_COUNTER++;
             if (Client.UPDATE2_COUNTER > 110) {
                 Client.UPDATE2_COUNTER = 0;
-                // this.out.p1isaac(236);
-                // this.out.p4(0);
+                this.out.p1isaac(236);
+                this.out.p4(0);
             }
 
             this.heartbeatTimer++;
             if (this.heartbeatTimer > 50) {
-                // this.out.p1isaac(108);
+                this.out.p1isaac(108);
             }
         }
     };
@@ -1836,10 +1863,23 @@ class Client extends GameShell {
 
     private drawScene = (): void => {
         // TODO
+        Model.checkHover = true;
+        Model.pickedCount = 0;
+        Model.mouseX = this.mouseX - 8;
+        Model.mouseZ = this.mouseY - 11;
+        const jitter: number = Draw3D.cycle;
         Draw2D.clear();
-        this.areaViewport?.bind();
+        // this.scene.draw(this.cameraX, this.cameraY, this.cameraZ, level, this.cameraYaw, this.cameraPitch, loopCycle);
+        // this.scene.clearTemporaryLocs();
         this.drawDebug();
+        this.updateTextures(jitter);
+        this.draw3DEntityElements();
         this.areaViewport?.draw(8, 11);
+        // this.cameraX = cameraX;
+        // this.cameraY = cameraY;
+        // this.cameraZ = cameraZ;
+        // this.cameraPitch = cameraPitch;
+        // this.cameraYaw = cameraYaw;
     };
 
     private drawDebug = (): void => {
@@ -1850,6 +1890,62 @@ class Client extends GameShell {
         this.fontPlain11?.drawRight(x, y, `Speed: ${this.ms.toFixed(4)} ms`, 0xffff00, true);
         y += 13;
         this.fontPlain11?.drawRight(x, y, `Rate: ${this.deltime} ms`, 0xffff00, true);
+    };
+
+    private draw3DEntityElements = (): void => {
+        // TODO
+        // this.drawPrivateMessages();
+        if (this.crossMode == 1) {
+            this.imageCrosses[this.crossCycle / 100].draw(this.crossX - 8 - 8, this.crossY - 8 - 11);
+        }
+
+        if (this.crossMode == 2) {
+            this.imageCrosses[this.crossCycle / 100 + 4].draw(this.crossX - 8 - 8, this.crossY - 8 - 11);
+        }
+
+        if (this.viewportInterfaceID != -1) {
+            this.updateInterfaceAnimation(this.viewportInterfaceID, this.sceneDelta);
+            this.drawInterface(ComType.instances[this.viewportInterfaceID], 0, 0, 0);
+        }
+
+        // this.drawWildyLevel();
+
+        if (!this.menuVisible) {
+            this.handleInput();
+            this.drawTooltip();
+        } else if (this.menuArea == 0) {
+            this.drawMenu();
+        }
+
+        if (this.inMultizone == 1) {
+            if (this.wildernessLevel > 0 || this.worldLocationState == 1) {
+                this.imageHeadicons[1].draw(472, 258);
+            } else {
+                this.imageHeadicons[1].draw(472, 296);
+            }
+        }
+
+        if (this.wildernessLevel > 0) {
+            this.imageHeadicons[0].draw(472, 296);
+            this.fontPlain12?.drawStringCenter(484, 329, 'Level: ' + this.wildernessLevel, 16776960);
+        }
+
+        if (this.worldLocationState == 1) {
+            this.imageHeadicons[6].draw(472, 296);
+            this.fontPlain12?.drawStringCenter(484, 329, 'Arena', 16776960);
+        }
+
+        if (this.systemUpdateTimer != 0) {
+            let seconds: number = Math.trunc(this.systemUpdateTimer / 50);
+            const minutes: number = Math.trunc(seconds / 60);
+            seconds %= 60;
+
+            if (seconds < 10) {
+                this.fontPlain12?.drawString(4, 329, 'System update in: ' + minutes + ':0' + seconds, 16776960);
+            } else {
+                this.fontPlain12?.drawString(4, 329, 'System update in: ' + minutes + ':' + seconds, 16776960);
+            }
+        }
     };
 
     private drawSidebar = (): void => {
@@ -2204,7 +2300,7 @@ class Client extends GameShell {
                     }
 
                     if (child.center) {
-                        font.drawStringTaggableCenter(childX + child.width / 2, lineY, split, color, child.shadow);
+                        font.drawStringTaggableCenter(childX + Math.trunc(child.width / 2), lineY, split, color, child.shadow);
                     } else {
                         font.drawStringTaggable(childX, lineY, split, color, child.shadow);
                     }
@@ -2224,8 +2320,8 @@ class Client extends GameShell {
                 const tmpX: number = Draw3D.centerX;
                 const tmpY: number = Draw3D.centerY;
 
-                Draw3D.centerX = childX + child.width / 2;
-                Draw3D.centerY = childY + child.height / 2;
+                Draw3D.centerX = childX + Math.trunc(child.width / 2);
+                Draw3D.centerY = childY + Math.trunc(child.height / 2);
 
                 const eyeY: number = (Draw3D.sin[child.modelPitch] * child.modelZoom) >> 16;
                 const eyeZ: number = (Draw3D.cos[child.modelPitch] * child.modelZoom) >> 16;
@@ -2278,7 +2374,7 @@ class Client extends GameShell {
                             const textY: number = childY + row * (child.inventoryMarginY + 12);
 
                             if (child.center) {
-                                font.drawStringTaggableCenter(textX + child.width / 2, textY, text, child.color, child.shadow);
+                                font.drawStringTaggableCenter(textX + Math.trunc(child.width / 2), textY, text, child.color, child.shadow);
                             } else {
                                 font.drawStringTaggable(textX, textY, text, child.color, child.shadow);
                             }
@@ -2295,6 +2391,30 @@ class Client extends GameShell {
 
     private drawMinimap = (): void => {
         // TODO
+        this.areaMapback?.bind();
+        Draw2D.fillRect(93, 82, 3, 3, 0xffffff);
+        this.areaViewport?.bind();
+    };
+
+    private drawTooltip = (): void => {
+        if (this.menuSize < 2 && this.objSelected == 0 && this.spellSelected == 0) {
+            return;
+        }
+
+        let tooltip: string;
+        if (this.objSelected == 1 && this.menuSize < 2) {
+            tooltip = 'Use ' + this.objSelectedName + ' with...';
+        } else if (this.spellSelected == 1 && this.menuSize < 2) {
+            tooltip = this.spellCaption + '...';
+        } else {
+            tooltip = this.menuOption[this.menuSize - 1];
+        }
+
+        if (this.menuSize > 2) {
+            tooltip = tooltip + '@whi@ / ' + (this.menuSize - 2) + ' more options';
+        }
+
+        this.fontBold12?.drawStringTooltip(4, 15, tooltip, 16777215, true, Math.trunc(this.loopCycle / 1000));
     };
 
     private drawMenu = (): void => {
@@ -2372,6 +2492,275 @@ class Client extends GameShell {
             }
         }
         return updated;
+    };
+
+    private handleMouseInput = (): void => {
+        if (this.objDragArea != 0) {
+            return;
+        }
+
+        let button: number = this.mouseClickButton;
+        if (this.spellSelected == 1 && this.mouseClickX >= 520 && this.mouseClickY >= 165 && this.mouseClickX <= 788 && this.mouseClickY <= 230) {
+            button = 0;
+        }
+
+        if (this.menuVisible) {
+            if (button != 1) {
+                let x: number = this.mouseX;
+                let y: number = this.mouseY;
+
+                if (this.menuArea == 0) {
+                    x -= 8;
+                    y -= 11;
+                } else if (this.menuArea == 1) {
+                    x -= 562;
+                    y -= 231;
+                } else if (this.menuArea == 2) {
+                    x -= 22;
+                    y -= 375;
+                }
+
+                if (x < this.menuX - 10 || x > this.menuX + this.menuWidth + 10 || y < this.menuY - 10 || y > this.menuY + this.menuHeight + 10) {
+                    this.menuVisible = false;
+                    if (this.menuArea == 1) {
+                        this.redrawSidebar = true;
+                    }
+                    if (this.menuArea == 2) {
+                        this.redrawChatback = true;
+                    }
+                }
+            }
+
+            if (button == 1) {
+                const menuX: number = this.menuX;
+                const menuY: number = this.menuY;
+                const menuWidth: number = this.menuWidth;
+
+                let clickX: number = this.mouseClickX;
+                let clickY: number = this.mouseClickY;
+
+                if (this.menuArea == 0) {
+                    clickX -= 8;
+                    clickY -= 11;
+                } else if (this.menuArea == 1) {
+                    clickX -= 562;
+                    clickY -= 231;
+                } else if (this.menuArea == 2) {
+                    clickX -= 22;
+                    clickY -= 375;
+                }
+
+                let option: number = -1;
+                for (let i: number = 0; i < this.menuSize; i++) {
+                    const optionY: number = menuY + (this.menuSize - 1 - i) * 15 + 31;
+                    if (clickX > menuX && clickX < menuX + menuWidth && clickY > optionY - 13 && clickY < optionY + 3) {
+                        option = i;
+                    }
+                }
+
+                if (option != -1) {
+                    this.useMenuOption(option);
+                }
+
+                this.menuVisible = false;
+                if (this.menuArea == 1) {
+                    this.redrawSidebar = true;
+                } else if (this.menuArea == 2) {
+                    this.redrawChatback = true;
+                }
+            }
+        } else {
+            if (button == 1 && this.menuSize > 0) {
+                const action: number = this.menuAction[this.menuSize - 1];
+
+                if (action == 602 || action == 596 || action == 22 || action == 892 || action == 415 || action == 405 || action == 38 || action == 422 || action == 478 || action == 347 || action == 188) {
+                    const slot: number = this.menuParamB[this.menuSize - 1];
+                    const comId: number = this.menuParamC[this.menuSize - 1];
+                    const com: ComType = ComType.instances[comId];
+
+                    if (com.inventoryDraggable) {
+                        this.objGrabThreshold = false;
+                        this.objDragCycles = 0;
+                        this.objDragInterfaceId = comId;
+                        this.objDragSlot = slot;
+                        this.objDragArea = 2;
+                        this.objGrabX = this.mouseClickX;
+                        this.objGrabY = this.mouseClickY;
+
+                        if (ComType.instances[comId].parentId == this.viewportInterfaceID) {
+                            this.objDragArea = 1;
+                        }
+
+                        if (ComType.instances[comId].parentId == this.chatInterfaceId) {
+                            this.objDragArea = 3;
+                        }
+
+                        return;
+                    }
+                }
+            }
+
+            if (button == 1 && (this.mouseButtonsOption == 1 || this.isAddFriendOption(this.menuSize - 1)) && this.menuSize > 2) {
+                button = 2;
+            }
+
+            if (button == 1 && this.menuSize > 0) {
+                this.useMenuOption(this.menuSize - 1);
+            }
+
+            if (button != 2 || this.menuSize <= 0) {
+                return;
+            }
+
+            this.showContextMenu();
+        }
+    };
+
+    private isAddFriendOption = (option: number): boolean => {
+        if (option < 0) {
+            return false;
+        }
+        let action: number = this.menuAction[option];
+        if (action >= 2000) {
+            action -= 2000;
+        }
+        return action === 406;
+    };
+
+    private useMenuOption = (optionId: number): void => {
+        if (optionId < 0) {
+            return;
+        }
+
+        if (this.chatbackInputOpen) {
+            this.chatbackInputOpen = false;
+            this.redrawChatback = true;
+        }
+
+        let action: number = this.menuAction[optionId];
+        const a: number = this.menuParamA[optionId];
+        const b: number = this.menuParamB[optionId];
+        const c: number = this.menuParamC[optionId];
+
+        if (action >= 2000) {
+            action -= 2000;
+        }
+
+        if (action === 903 || action === 363) {
+            // TODO
+        } else if (action == 450 && this.interactWithLoc(75, b, c, a)) {
+            // TODO
+        } else if (action === 405 || action === 38 || action === 422 || action === 478 || action === 347) {
+            // TODO
+        } else if (action === 728 || action === 542 || action === 6 || action === 963 || action === 245) {
+            // TODO
+        } else if (action == 217) {
+            // TODO
+        } else if (action == 1175) {
+            // TODO
+        } else if (action == 285) {
+            this.interactWithLoc(245, b, c, a);
+        } else if (action == 881) {
+            // TODO
+        } else if (action == 391) {
+            // TODO
+        } else if (action == 660) {
+            // TODO
+        } else if (action == 188) {
+            // TODO
+            return;
+        } else if (action == 44) {
+            if (!this.pressedContinueOption) {
+                this.out.p1isaac(235);
+                this.out.p2(c);
+                this.pressedContinueOption = true;
+            }
+        } else if (action == 1773) {
+            // TODO
+        } else if (action == 900) {
+            // TODO
+        } else if (action == 1373 || action == 1544 || action == 151 || action == 1101) {
+            // TODO
+        } else if (action == 265) {
+            // TODO
+        } else if (action == 679) {
+            // TODO
+        } else if (action == 55) {
+            // TODO
+        } else if (action == 224 || action == 993 || action == 99 || action == 746 || action == 877) {
+            // TODO
+        } else if (action == 1607) {
+            // TODO
+        } else if (action == 504) {
+            this.interactWithLoc(172, b, c, a);
+        } else if (action == 930) {
+            // TODO
+            return;
+        } else if (action == 951) {
+            // TODO
+        } else if (action == 602 || action == 596 || action == 22 || action == 892 || action == 415) {
+            // TODO
+        } else if (action == 581) {
+            // TODO
+        } else if (action == 965) {
+            // TODO
+        } else if (action == 1501) {
+            // TODO
+        } else if (action == 364) {
+            this.interactWithLoc(96, b, c, a);
+        } else if (action == 1102) {
+            const obj: ObjType = ObjType.get(a);
+            let examine: string;
+
+            if (obj.desc == null) {
+                examine = "It's a " + obj.name + '.';
+            } else {
+                examine = obj.desc;
+            }
+            this.addMessage(0, examine, '');
+        } else if (action == 960) {
+            this.out.p1isaac(155);
+            this.out.p2(c);
+
+            const com: ComType = ComType.instances[c];
+            if (com.scripts != null && com.scripts[0][0] == 5) {
+                const varp: number = com.scripts[0][1];
+                if (com.scriptOperand && this.varps[varp] != com.scriptOperand[0]) {
+                    this.varps[varp] = com.scriptOperand[0];
+                    this.updateVarp(varp);
+                    this.redrawSidebar = true;
+                }
+            }
+        } else if (action == 34) {
+            // TODO
+        } else if (action == 947) {
+            // TODO
+        } else if (action == 367) {
+            // TODO
+        } else if (action == 465) {
+            this.out.p1isaac(155);
+            this.out.p2(c);
+
+            const com: ComType = ComType.instances[c];
+            if (com.scripts != null && com.scripts[0][0] == 5) {
+                const varp: number = com.scripts[0][1];
+                this.varps[varp] = 1 - this.varps[varp];
+                this.updateVarp(varp);
+                this.redrawSidebar = true;
+            }
+        } else if (action == 406 || action == 436 || action == 557 || action == 556) {
+            // TODO
+        } else if (action == 651) {
+            // TODO
+        }
+
+        this.objSelected = 0;
+        this.spellSelected = 0;
+    };
+
+    private interactWithLoc = (opcode: number, x: number, z: number, bitset: number): boolean => {
+        // TODO
+        return false;
     };
 
     private handleTabInput = (): void => {
@@ -2463,13 +2852,13 @@ class Client extends GameShell {
                 this.redrawSidebar = true;
             }
         } else if (mouseX >= left - this.scrollInputPadding && mouseX < left + this.scrollInputPadding + 16 && mouseY >= top + 16 && mouseY < top + height - 16 && this.dragCycles > 0) {
-            let gripSize: number = ((height - 32) * height) / scrollableHeight;
+            let gripSize: number = Math.trunc(((height - 32) * height) / scrollableHeight);
             if (gripSize < 8) {
                 gripSize = 8;
             }
-            const gripY: number = mouseY - top - gripSize / 2 - 16;
+            const gripY: number = mouseY - top - Math.trunc(gripSize / 2) - 16;
             const maxY: number = height - gripSize - 32;
-            component.scrollPosition = ((scrollableHeight - height) * gripY) / maxY;
+            component.scrollPosition = Math.trunc(((scrollableHeight - height) * gripY) / maxY);
             if (redraw) {
                 this.redrawSidebar = true;
             }
@@ -2567,11 +2956,9 @@ class Client extends GameShell {
                     const com: ComType = ComType.instances[script[pc++]];
                     const obj: number = script[pc++] + 1;
 
-                    if (com.inventorySlotObjId) {
-                        for (let i: number = 0; i < com.inventorySlotObjId.length; i++) {
-                            if (com.inventorySlotObjId[i] === obj && com.inventorySlotObjCount) {
-                                register += com.inventorySlotObjCount[i];
-                            }
+                    for (let i: number = 0; i < com.inventorySlotObjId!.length; i++) {
+                        if (com.inventorySlotObjId![i] === obj) {
+                            register += com.inventorySlotObjCount![i];
                         }
                     }
                 } else if (opcode === 5) {
@@ -2579,12 +2966,12 @@ class Client extends GameShell {
                     register += this.varps[script[pc++]];
                 } else if (opcode === 6) {
                     // load_next_level_xp {skill}
-                    // register += levelExperience[this.skillBaseLevel[script[pc++]] - 1]; TODO
+                    register += this.levelExperience[this.skillBaseLevel[script[pc++]] - 1];
                 } else if (opcode === 7) {
-                    register += (this.varps[script[pc++]] * 100) / 46875;
+                    register += Math.trunc((this.varps[script[pc++]] * 100) / 46875);
                 } else if (opcode === 8) {
                     // load_combat_level
-                    // register += this.localPlayer.combatLevel; TODO
+                    register += 3; // this.localPlayer.combatLevel; TODO
                 } else if (opcode === 9) {
                     // load_total_level
                     for (let i: number = 0; i < 19; i++) {
@@ -2600,12 +2987,10 @@ class Client extends GameShell {
                     const com: ComType = ComType.instances[script[pc++]];
                     const obj: number = script[pc++] + 1;
 
-                    if (com.inventorySlotObjId) {
-                        for (let i: number = 0; i < com.inventorySlotObjId.length; i++) {
-                            if (com.inventorySlotObjId[i] === obj) {
-                                register += 999999999;
-                                break;
-                            }
+                    for (let i: number = 0; i < com.inventorySlotObjId!.length; i++) {
+                        if (com.inventorySlotObjId![i] === obj) {
+                            register += 999999999;
+                            break;
                         }
                     }
                 } else if (opcode === 11) {
@@ -2628,12 +3013,15 @@ class Client extends GameShell {
     };
 
     private executeInterfaceScript = (com: ComType): boolean => {
-        if (!com.scriptComparator || !com.scriptOperand) {
+        if (!com.scriptComparator) {
             return false;
         }
 
         for (let i: number = 0; i < com.scriptComparator.length; i++) {
             const value: number = this.executeClientscript1(com, i);
+            if (!com.scriptOperand) {
+                return false;
+            }
             const operand: number = com.scriptOperand[i];
 
             if (com.scriptComparator[i] === 2) {
@@ -2877,7 +3265,7 @@ class Client extends GameShell {
                 this.areaViewport?.draw(8, 11);
                 // signlink.looprate(5);
 
-                const regions: number = (this.packetSize - 2) / 10;
+                const regions: number = Math.trunc((this.packetSize - 2) / 10);
 
                 this.sceneMapLandData = [];
                 this.sceneMapLocData = [];
@@ -3907,6 +4295,8 @@ class Client extends GameShell {
 
     private buildScene = (): void => {
         Draw3D.clearTexels();
+        this.areaViewport?.bind();
+        LocType.modelCacheStatic?.clear();
         Draw3D.initPool(20);
     };
 
@@ -3929,9 +4319,9 @@ class Client extends GameShell {
         let acc: number = 0;
         for (let i: number = 0; i < 99; i++) {
             const level: number = i + 1;
-            const delta: number = Math.floor((level + Math.pow(2.0, level / 7.0)) * 300.0);
+            const delta: number = Math.trunc(level + Math.pow(2.0, level / 7.0) * 300.0);
             acc += delta;
-            this.levelExperience[i] = Math.floor(acc / 4);
+            this.levelExperience[i] = Math.trunc(acc / 4);
         }
     };
 
@@ -3971,8 +4361,7 @@ class Client extends GameShell {
                 if (value === 4) {
                     Draw3D.setBrightness(0.6);
                 }
-                //TODO obj sprite cache
-                //ObjType.iconCache.clear();
+                ObjType.iconCache?.clear();
                 this.redrawTitleBackground = true;
             }
             if (clientcode === 3) {
@@ -4029,8 +4418,7 @@ class Client extends GameShell {
                 // }
             }
             if (clientcode === 5) {
-                //TODO mouseButtonOption
-                //this.mouseButtonOption = value;
+                this.mouseButtonsOption = value;
             }
             if (clientcode === 6) {
                 //TODO chatEffects
@@ -4040,6 +4428,424 @@ class Client extends GameShell {
                 this.splitPrivateChat = value;
                 this.redrawChatback = true;
             }
+        }
+    };
+
+    private handleChatMouseInput = (mouseX: number, mouseY: number): void => {
+        // TODO
+    };
+
+    private handleInterfaceInput = (com: ComType, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): void => {
+        if (com.type != 0 || com.childId == null || com.hide || mouseX < x || mouseY < y || mouseX > x + com.width || mouseY > y + com.height || !com.childX || !com.childY) {
+            return;
+        }
+
+        const children: number = com.childId.length;
+        for (let i: number = 0; i < children; i++) {
+            let childX: number = com.childX[i] + x;
+            let childY: number = com.childY[i] + y - scrollPosition;
+            const child: ComType = ComType.instances[com.childId[i]];
+
+            childX += child.x;
+            childY += child.y;
+
+            if ((child.delegateHover >= 0 || child.hoverColor != 0) && mouseX >= childX && mouseY >= childY && mouseX < childX + child.width && mouseY < childY + child.height) {
+                if (child.delegateHover >= 0) {
+                    this.lastHoveredInterfaceId = child.delegateHover;
+                } else {
+                    this.lastHoveredInterfaceId = child.id;
+                }
+            }
+
+            if (child.type == 0) {
+                this.handleInterfaceInput(child, mouseX, mouseY, childX, childY, child.scrollPosition);
+
+                if (child.scrollableHeight > child.height) {
+                    this.handleScrollInput(mouseX, mouseY, child.scrollableHeight, child.height, true, childX + child.width, childY, child);
+                }
+            } else if (child.type == 2) {
+                let slot: number = 0;
+
+                for (let row: number = 0; row < child.height; row++) {
+                    for (let col: number = 0; col < child.width; col++) {
+                        let slotX: number = childX + col * (child.inventoryMarginX + 32);
+                        let slotY: number = childY + row * (child.inventoryMarginY + 32);
+
+                        if (slot < 20 && child.inventorySlotOffsetX && child.inventorySlotOffsetY) {
+                            slotX += child.inventorySlotOffsetX[slot];
+                            slotY += child.inventorySlotOffsetY[slot];
+                        }
+
+                        if (mouseX < slotX || mouseY < slotY || mouseX >= slotX + 32 || mouseY >= slotY + 32) {
+                            slot++;
+                            continue;
+                        }
+
+                        this.hoveredSlot = slot;
+                        this.hoveredSlotParentId = child.id;
+
+                        if (!child.inventorySlotObjId || child.inventorySlotObjId[slot] <= 0) {
+                            slot++;
+                            continue;
+                        }
+
+                        const obj: ObjType = ObjType.get(child.inventorySlotObjId[slot] - 1);
+
+                        if (this.objSelected == 1 && child.inventoryInteractable) {
+                            if (child.id != this.objSelectedInterface || slot != this.objSelectedSlot) {
+                                this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @lre@' + obj.name;
+                                this.menuAction[this.menuSize] = 881;
+                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamB[this.menuSize] = slot;
+                                this.menuParamC[this.menuSize] = child.id;
+                                this.menuSize++;
+                            }
+                        } else if (this.spellSelected == 1 && child.inventoryInteractable) {
+                            if ((this.activeSpellFlags & 0x10) == 16) {
+                                this.menuOption[this.menuSize] = this.spellCaption + ' @lre@' + obj.name;
+                                this.menuAction[this.menuSize] = 391;
+                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamB[this.menuSize] = slot;
+                                this.menuParamC[this.menuSize] = child.id;
+                                this.menuSize++;
+                            }
+                        } else {
+                            if (child.inventoryInteractable) {
+                                for (let op: number = 4; op >= 3; op--) {
+                                    if (obj.iops != null && obj.iops[op] != null) {
+                                        this.menuOption[this.menuSize] = obj.iops[op] + ' @lre@' + obj.name;
+                                        if (op == 3) {
+                                            this.menuAction[this.menuSize] = 478;
+                                        } else if (op == 4) {
+                                            this.menuAction[this.menuSize] = 347;
+                                        }
+                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamB[this.menuSize] = slot;
+                                        this.menuParamC[this.menuSize] = child.id;
+                                        this.menuSize++;
+                                    } else if (op == 4) {
+                                        this.menuOption[this.menuSize] = 'Drop @lre@' + obj.name;
+                                        this.menuAction[this.menuSize] = 347;
+                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamB[this.menuSize] = slot;
+                                        this.menuParamC[this.menuSize] = child.id;
+                                        this.menuSize++;
+                                    }
+                                }
+                            }
+
+                            if (child.inventoryUsable) {
+                                this.menuOption[this.menuSize] = 'Use @lre@' + obj.name;
+                                this.menuAction[this.menuSize] = 188;
+                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamB[this.menuSize] = slot;
+                                this.menuParamC[this.menuSize] = child.id;
+                                this.menuSize++;
+                            }
+
+                            if (child.inventoryInteractable && obj.iops != null) {
+                                for (let op: number = 2; op >= 0; op--) {
+                                    if (obj.iops[op] != null) {
+                                        this.menuOption[this.menuSize] = obj.iops[op] + ' @lre@' + obj.name;
+                                        if (op == 0) {
+                                            this.menuAction[this.menuSize] = 405;
+                                        } else if (op == 1) {
+                                            this.menuAction[this.menuSize] = 38;
+                                        } else if (op == 2) {
+                                            this.menuAction[this.menuSize] = 422;
+                                        }
+                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamB[this.menuSize] = slot;
+                                        this.menuParamC[this.menuSize] = child.id;
+                                        this.menuSize++;
+                                    }
+                                }
+                            }
+
+                            if (child.inventoryOptions != null) {
+                                for (let op: number = 4; op >= 0; op--) {
+                                    if (child.inventoryOptions[op] != null) {
+                                        this.menuOption[this.menuSize] = child.inventoryOptions[op] + ' @lre@' + obj.name;
+                                        if (op == 0) {
+                                            this.menuAction[this.menuSize] = 602;
+                                        } else if (op == 1) {
+                                            this.menuAction[this.menuSize] = 596;
+                                        } else if (op == 2) {
+                                            this.menuAction[this.menuSize] = 22;
+                                        } else if (op == 3) {
+                                            this.menuAction[this.menuSize] = 892;
+                                        } else if (op == 4) {
+                                            this.menuAction[this.menuSize] = 415;
+                                        }
+                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamB[this.menuSize] = slot;
+                                        this.menuParamC[this.menuSize] = child.id;
+                                        this.menuSize++;
+                                    }
+                                }
+                            }
+
+                            this.menuOption[this.menuSize] = 'Examine @lre@' + obj.name;
+                            this.menuAction[this.menuSize] = 1773;
+                            this.menuParamA[this.menuSize] = obj.index;
+                            if (child.inventorySlotObjCount) {
+                                this.menuParamC[this.menuSize] = child.inventorySlotObjCount[slot];
+                            }
+                            this.menuSize++;
+                        }
+
+                        slot++;
+                    }
+                }
+            } else if (mouseX >= childX && mouseY >= childY && mouseX < childX + child.width && mouseY < childY + child.height) {
+                if (child.optionType == 1) {
+                    let override: boolean = false;
+                    if (child.contentType != 0) {
+                        override = this.handleSocialMenuOption(child);
+                    }
+
+                    if (!override && child.option) {
+                        this.menuOption[this.menuSize] = child.option;
+                        this.menuAction[this.menuSize] = 951;
+                        this.menuParamC[this.menuSize] = child.id;
+                        this.menuSize++;
+                    }
+                } else if (child.optionType == 2 && this.spellSelected == 0) {
+                    let prefix: string | null = child.spellAction;
+                    if (prefix && prefix.indexOf(' ') != -1) {
+                        prefix = prefix.substring(0, prefix.indexOf(' '));
+                    }
+
+                    this.menuOption[this.menuSize] = prefix + ' @gre@' + child.spellName;
+                    this.menuAction[this.menuSize] = 930;
+                    this.menuParamC[this.menuSize] = child.id;
+                    this.menuSize++;
+                } else if (child.optionType == 3) {
+                    this.menuOption[this.menuSize] = 'Close';
+                    this.menuAction[this.menuSize] = 947;
+                    this.menuParamC[this.menuSize] = child.id;
+                    this.menuSize++;
+                } else if (child.optionType == 4 && child.option) {
+                    this.menuOption[this.menuSize] = child.option;
+                    this.menuAction[this.menuSize] = 465;
+                    this.menuParamC[this.menuSize] = child.id;
+                    this.menuSize++;
+                } else if (child.optionType == 5 && child.option) {
+                    this.menuOption[this.menuSize] = child.option;
+                    this.menuAction[this.menuSize] = 960;
+                    this.menuParamC[this.menuSize] = child.id;
+                    this.menuSize++;
+                } else if (child.optionType == 6 && !this.pressedContinueOption && child.option) {
+                    this.menuOption[this.menuSize] = child.option;
+                    this.menuAction[this.menuSize] = 44;
+                    this.menuParamC[this.menuSize] = child.id;
+                    this.menuSize++;
+                }
+            }
+        }
+    };
+
+    private handleSocialMenuOption = (component: ComType): boolean => {
+        let type: number = component.contentType;
+        if (type >= 1 && type <= 200) {
+            if (type >= 101) {
+                type -= 101;
+            } else {
+                type--;
+            }
+            this.menuOption[this.menuSize] = 'Remove @whi@' + this.friendName[type];
+            this.menuAction[this.menuSize] = 557;
+            this.menuSize++;
+            this.menuOption[this.menuSize] = 'Message @whi@' + this.friendName[type];
+            this.menuAction[this.menuSize] = 679;
+            this.menuSize++;
+            return true;
+        } else if (type >= 401 && type <= 500) {
+            this.menuOption[this.menuSize] = 'Remove @whi@' + component.text;
+            this.menuAction[this.menuSize] = 556;
+            this.menuSize++;
+            return true;
+        }
+        return false;
+    };
+
+    private handleViewportOptions = (): void => {
+        if (this.objSelected == 0 && this.spellSelected == 0) {
+            this.menuOption[this.menuSize] = 'Walk here';
+            this.menuAction[this.menuSize] = 660;
+            this.menuParamB[this.menuSize] = this.mouseX;
+            this.menuParamC[this.menuSize] = this.mouseY;
+            this.menuSize++;
+        }
+        // TODO
+    };
+
+    private handleInput = (): void => {
+        if (this.objDragArea == 0) {
+            this.menuOption[0] = 'Cancel';
+            this.menuAction[0] = 1252;
+            this.menuSize = 1;
+            // this.handlePrivateChatInput(this.mouseX, this.mouseY);
+            this.lastHoveredInterfaceId = 0;
+
+            if (this.mouseX > 8 && this.mouseY > 11 && this.mouseX < 520 && this.mouseY < 345) {
+                if (this.viewportInterfaceID == -1) {
+                    this.handleViewportOptions();
+                } else {
+                    this.handleInterfaceInput(ComType.instances[this.viewportInterfaceID], this.mouseX, this.mouseY, 8, 11, 0);
+                }
+            }
+
+            if (this.lastHoveredInterfaceId != this.viewportHoveredInterfaceIndex) {
+                this.viewportHoveredInterfaceIndex = this.lastHoveredInterfaceId;
+            }
+
+            this.lastHoveredInterfaceId = 0;
+
+            if (this.mouseX > 562 && this.mouseY > 231 && this.mouseX < 752 && this.mouseY < 492) {
+                if (this.sidebarInterfaceId != -1) {
+                    this.handleInterfaceInput(ComType.instances[this.sidebarInterfaceId], this.mouseX, this.mouseY, 562, 231, 0);
+                } else if (this.tabInterfaceId[this.selectedTab] != -1) {
+                    this.handleInterfaceInput(ComType.instances[this.tabInterfaceId[this.selectedTab]], this.mouseX, this.mouseY, 562, 231, 0);
+                }
+            }
+
+            if (this.lastHoveredInterfaceId != this.sidebarHoveredInterfaceIndex) {
+                this.redrawSidebar = true;
+                this.sidebarHoveredInterfaceIndex = this.lastHoveredInterfaceId;
+            }
+
+            this.lastHoveredInterfaceId = 0;
+
+            if (this.mouseX > 22 && this.mouseY > 375 && this.mouseX < 431 && this.mouseY < 471) {
+                if (this.chatInterfaceId == -1) {
+                    this.handleChatMouseInput(this.mouseX - 22, this.mouseY - 375);
+                } else {
+                    this.handleInterfaceInput(ComType.instances[this.chatInterfaceId], this.mouseX, this.mouseY, 22, 375, 0);
+                }
+            }
+
+            if (this.chatInterfaceId != -1 && this.lastHoveredInterfaceId != this.chatHoveredInterfaceIndex) {
+                this.redrawChatback = true;
+                this.chatHoveredInterfaceIndex = this.lastHoveredInterfaceId;
+            }
+
+            let done: boolean = false;
+            while (!done) {
+                done = true;
+
+                for (let i: number = 0; i < this.menuSize - 1; i++) {
+                    if (this.menuAction[i] < 1000 && this.menuAction[i + 1] > 1000) {
+                        const tmp0: string = this.menuOption[i];
+                        this.menuOption[i] = this.menuOption[i + 1];
+                        this.menuOption[i + 1] = tmp0;
+
+                        const tmp1: number = this.menuAction[i];
+                        this.menuAction[i] = this.menuAction[i + 1];
+                        this.menuAction[i + 1] = tmp1;
+
+                        const tmp2: number = this.menuParamB[i];
+                        this.menuParamB[i] = this.menuParamB[i + 1];
+                        this.menuParamB[i + 1] = tmp2;
+
+                        const tmp3: number = this.menuParamC[i];
+                        this.menuParamC[i] = this.menuParamC[i + 1];
+                        this.menuParamC[i + 1] = tmp3;
+
+                        const tmp4: number = this.menuParamA[i];
+                        this.menuParamA[i] = this.menuParamA[i + 1];
+                        this.menuParamA[i + 1] = tmp4;
+
+                        done = false;
+                    }
+                }
+            }
+        }
+    };
+
+    private showContextMenu = (): void => {
+        let width: number = 0;
+        if (this.fontBold12) {
+            width = this.fontBold12.stringWidth('Choose Option');
+            let maxWidth: number;
+            for (let i: number = 0; i < this.menuSize; i++) {
+                maxWidth = this.fontBold12.stringWidth(this.menuOption[i]);
+                if (maxWidth > width) {
+                    width = maxWidth;
+                }
+            }
+        }
+        width += 8;
+
+        const height: number = this.menuSize * 15 + 21;
+
+        let x: number;
+        let y: number;
+        if (this.mouseClickX > 8 && this.mouseClickY > 11 && this.mouseClickX < 520 && this.mouseClickY < 345) {
+            x = this.mouseClickX - Math.trunc(width / 2) - 8;
+            if (x + width > 512) {
+                x = 512 - width;
+            } else if (x < 0) {
+                x = 0;
+            }
+
+            y = this.mouseClickY - 11;
+            if (y + height > 334) {
+                y = 334 - height;
+            } else if (y < 0) {
+                y = 0;
+            }
+
+            this.menuVisible = true;
+            this.menuArea = 0;
+            this.menuX = x;
+            this.menuY = y;
+            this.menuWidth = width;
+            this.menuHeight = this.menuSize * 15 + 22;
+        }
+        if (this.mouseClickX > 562 && this.mouseClickY > 231 && this.mouseClickX < 752 && this.mouseClickY < 492) {
+            x = this.mouseClickX - Math.trunc(width / 2) - 562;
+            if (x < 0) {
+                x = 0;
+            } else if (x + width > 190) {
+                x = 190 - width;
+            }
+
+            y = this.mouseClickY - 231;
+            if (y < 0) {
+                y = 0;
+            } else if (y + height > 261) {
+                y = 261 - height;
+            }
+
+            this.menuVisible = true;
+            this.menuArea = 1;
+            this.menuX = x;
+            this.menuY = y;
+            this.menuWidth = width;
+            this.menuHeight = this.menuSize * 15 + 22;
+        }
+        if (this.mouseClickX > 22 && this.mouseClickY > 375 && this.mouseClickX < 501 && this.mouseClickY < 471) {
+            x = this.mouseClickX - Math.trunc(width / 2) - 22;
+            if (x < 0) {
+                x = 0;
+            } else if (x + width > 479) {
+                x = 479 - width;
+            }
+
+            y = this.mouseClickY - 375;
+            if (y < 0) {
+                y = 0;
+            } else if (y + height > 96) {
+                y = 96 - height;
+            }
+
+            this.menuVisible = true;
+            this.menuArea = 2;
+            this.menuX = x;
+            this.menuY = y;
+            this.menuWidth = width;
+            this.menuHeight = this.menuSize * 15 + 22;
         }
     };
 
@@ -4170,6 +4976,42 @@ class Client extends GameShell {
 
             y += 30;
             canvas2d.fillText('2: Try rebooting your computer, and reloading', 30, y);
+        }
+    };
+
+    private updateTextures = (cycle: number): void => {
+        if (!Client.LOW_MEMORY) {
+            if (Draw3D.textureCycle[17] >= cycle) {
+                const texture: Pix8 = Draw3D.textures[17];
+                const bottom: number = texture.width * texture.height - 1;
+                const adjustment: number = texture.width * this.sceneDelta * 2;
+
+                const src: Int8Array = texture.pixels;
+                const dst: Int8Array = this.textureBuffer;
+                for (let i: number = 0; i <= bottom; i++) {
+                    dst[i] = src[(i - adjustment) & bottom];
+                }
+
+                texture.pixels = dst;
+                this.textureBuffer = src;
+                Draw3D.pushTexture(17);
+            }
+
+            if (Draw3D.textureCycle[24] >= cycle) {
+                const texture: Pix8 = Draw3D.textures[24];
+                const bottom: number = texture.width * texture.height - 1;
+                const adjustment: number = texture.width * this.sceneDelta * 2;
+
+                const src: Int8Array = texture.pixels;
+                const dst: Int8Array = this.textureBuffer;
+                for (let i: number = 0; i <= bottom; i++) {
+                    dst[i] = src[(i - adjustment) & bottom];
+                }
+
+                texture.pixels = dst;
+                this.textureBuffer = src;
+                Draw3D.pushTexture(24);
+            }
         }
     };
 

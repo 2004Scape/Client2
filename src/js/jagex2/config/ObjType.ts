@@ -313,8 +313,6 @@ export default class ObjType extends ConfigType {
             }
             this.countobj[code - 100] = dat.g2;
             this.countco[code - 100] = dat.g2;
-        } else {
-            throw new Error(`Unrecognized obj config code: ${code}`);
         }
     };
 

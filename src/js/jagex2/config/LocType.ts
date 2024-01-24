@@ -178,8 +178,6 @@ export default class LocType extends ConfigType {
             this.zoff = dat.g2b;
         } else if (code === 73) {
             this.forcedecor = true;
-        } else {
-            throw new Error(`Unrecognized loc config code: ${code}`);
         }
     };
 
