@@ -1596,6 +1596,18 @@ class Client extends GameShell {
             if (this.heartbeatTimer > 50) {
                 this.out.p1isaac(108);
             }
+
+            try {
+                if (this.stream && this.out.pos > 0) {
+                    this.stream.write(this.out.data, this.out.pos, 0);
+                    this.out.pos = 0;
+                    this.heartbeatTimer = 0;
+                }
+            } catch (e) {
+                console.log(e);
+                await this.tryReconnect();
+                // TODO extra logic for logout??
+            }
         }
     };
 
@@ -3265,49 +3277,49 @@ class Client extends GameShell {
                 this.areaViewport?.draw(8, 11);
                 // signlink.looprate(5);
 
-                const regions: number = Math.trunc((this.packetSize - 2) / 10);
-
-                this.sceneMapLandData = [];
-                this.sceneMapLocData = [];
-                this.sceneMapIndex = [];
-
-                this.out.p1isaac(150);
-                this.out.p1(0);
-
-                let mapCount: number = 0;
-
-                for (let i: number = 0; i < regions; i++) {
-                    const mapsquareX: number = this.in.g1;
-                    const mapsquareZ: number = this.in.g1;
-                    const landCrc: number = this.in.g4;
-                    const locCrc: number = this.in.g4;
-                    this.sceneMapIndex[i] = (mapsquareX << 8) + mapsquareZ;
-
-                    if (landCrc !== 0) {
-                        // TODO
-                        let data: Uint8Array | null = null; // await downloadUrl(`https://2004scape.org:8080/m${mapsquareX}_${mapsquareZ}`);
-                        // data = signlink.cacheload("m" + mapsquareX + "_" + mapsquareZ);
-                        if (data) {
-                            if (Packet.crc32(data) !== landCrc) {
-                                data = null;
-                            }
-                            // this.crc32.reset();
-                            // this.crc32.update(data);
-                            // if (this.crc32.getValue() !== landCrc) {
-                            //     data = null;
-                            // }
-                        }
-                        if (!data) {
-                            this.sceneState = 0;
-                            this.out.p1(0);
-                            this.out.p1(mapsquareX);
-                            this.out.p1(mapsquareZ);
-                            mapCount += 3;
-                        } else {
-                            // this.sceneMapLandData[i] = data;
-                        }
-                    }
-                }
+                // const regions: number = Math.trunc((this.packetSize - 2) / 10);
+                //
+                // this.sceneMapLandData = [];
+                // this.sceneMapLocData = [];
+                // this.sceneMapIndex = [];
+                //
+                // this.out.p1isaac(150);
+                // this.out.p1(0);
+                //
+                // let mapCount: number = 0;
+                //
+                // for (let i: number = 0; i < regions; i++) {
+                //     const mapsquareX: number = this.in.g1;
+                //     const mapsquareZ: number = this.in.g1;
+                //     const landCrc: number = this.in.g4;
+                //     const locCrc: number = this.in.g4;
+                //     this.sceneMapIndex[i] = (mapsquareX << 8) + mapsquareZ;
+                //
+                //     if (landCrc !== 0) {
+                //         // TODO
+                //         let data: Uint8Array | null = null; // await downloadUrl(`https://2004scape.org:8080/m${mapsquareX}_${mapsquareZ}`);
+                //         // data = signlink.cacheload("m" + mapsquareX + "_" + mapsquareZ);
+                //         if (data) {
+                //             if (Packet.crc32(data) !== landCrc) {
+                //                 data = null;
+                //             }
+                //             // this.crc32.reset();
+                //             // this.crc32.update(data);
+                //             // if (this.crc32.getValue() !== landCrc) {
+                //             //     data = null;
+                //             // }
+                //         }
+                //         if (!data) {
+                //             this.sceneState = 0;
+                //             this.out.p1(0);
+                //             this.out.p1(mapsquareX);
+                //             this.out.p1(mapsquareZ);
+                //             mapCount += 3;
+                //         } else {
+                //             // this.sceneMapLandData[i] = data;
+                //         }
+                //     }
+                // }
 
                 //     if (this.sceneCenterZoneX === zoneX && this.sceneCenterZoneZ === zoneZ && this.sceneState !== 0) {
                 //         this.packetType = -1;
