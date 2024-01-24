@@ -110,14 +110,14 @@ export default class ClientStream {
     };
 
     close = (): void => {
-        if (this.socket.readyState !== 1) {
+        if (this.socket.readyState !== WebSocket.OPEN) {
             return;
         }
         this.socket.close();
     };
 
     clear = (): void => {
-        if (this.socket.readyState === 1) {
+        if (this.socket.readyState === WebSocket.OPEN) {
             this.socket.close();
         }
         this.queue.length = 0;

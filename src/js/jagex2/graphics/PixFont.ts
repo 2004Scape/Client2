@@ -30,7 +30,7 @@ export default class PixFont extends Hashable {
     charSpace: number[] = [];
     drawWidth: number[] = [];
     fontHeight: number = -1;
-    random: JavaRandom = new JavaRandom(0n);
+    random: JavaRandom = new JavaRandom(BigInt(Date.now()));
 
     static fromArchive = (archive: Jagfile, name: string): PixFont => {
         const dat: Packet = new Packet(archive.read(name + '.dat'));
