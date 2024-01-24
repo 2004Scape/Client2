@@ -496,4 +496,46 @@ export default class PixFont extends Hashable {
                 return 0;
         }
     };
+
+    //
+
+    split(str: string, maxWidth: number): string[] {
+        if (str.length === 0) {
+            // special case for empty string
+            return [str];
+        }
+
+        const lines: string[] = [];
+        while (str.length > 0) {
+            // check if the string even needs to be broken up
+            const width: number = this.stringWidth(str);
+            if (width <= maxWidth && str.indexOf('|') === -1) {
+                lines.push(str);
+                break;
+            }
+
+            // we need to split on the next word boundary
+            let splitIndex: number = str.length;
+
+            // check the width at every space to see where we can cut the line
+            for (let i: number = 0; i < str.length; i++) {
+                if (str[i] === ' ') {
+                    const w: number = this.stringWidth(str.substring(0, i));
+                    if (w > maxWidth) {
+                        break;
+                    }
+
+                    splitIndex = i;
+                } else if (str[i] === '|') {
+                    splitIndex = i;
+                    break;
+                }
+            }
+
+            lines.push(str.substring(0, splitIndex));
+            str = str.substring(splitIndex + 1);
+        }
+
+        return lines;
+    }
 }

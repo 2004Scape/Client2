@@ -4921,7 +4921,7 @@ class Client extends GameShell {
 
     private drawError = (): void => {
         canvas2d.fillStyle = 'black';
-        canvas2d.clearRect(0, 0, this.width, this.height);
+        canvas2d.fillRect(0, 0, this.width, this.height);
 
         this.setFramerate(1);
 

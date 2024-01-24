@@ -26,13 +26,14 @@ import GameShell from './jagex2/client/GameShell';
 import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
-import {canvas2d} from './jagex2/graphics/Canvas';
+import {canvas, canvas2d} from './jagex2/graphics/Canvas';
 import NpcEntity from './jagex2/dash3d/entity/NpcEntity';
 import Pix8 from './jagex2/graphics/Pix8';
 
 class Viewer extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
     static REPO: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
+    static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
 
     private db: Database | null = null;
 
@@ -50,9 +51,38 @@ class Viewer extends GameShell {
     fontBold12: PixFont | null = null;
     fontQuill8: PixFont | null = null;
 
+    // id -> name for cache files
+    packfiles: Map<number, string>[] = [];
+
     imageChatback: Pix8 | null = null;
 
-    npc: NpcEntity = new NpcEntity();
+    splitPages: string[][] = [];
+    splitMesanimId: number = -1;
+
+    chatInterfaceId: number = -1;
+    activeNpc: NpcType = new NpcType();
+    inputMesanimId: number = -1;
+    input: string = '';
+
+    async loadPack(url: string): Promise<Map<number, string>> {
+        const map: Map<number, string> = new Map();
+
+        const pack: string = await downloadText(url);
+        const lines: string[] = pack.split('\n');
+        for (let i: number = 0; i < lines.length; i++) {
+            const line: string = lines[i];
+            const idx: number = line.indexOf('=');
+            if (idx === -1) {
+                continue;
+            }
+
+            const id: number = parseInt(line.substring(0, idx));
+            const name: string = line.substring(idx + 1);
+            map.set(id, name);
+        }
+
+        return map;
+    }
 
     load = async (): Promise<void> => {
         if (this.alreadyStarted) {
@@ -87,6 +117,10 @@ class Viewer extends GameShell {
             const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
             const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
+            // this.packfiles[1] = await this.loadPack(`${Viewer.REPO}/data/pack/npc.pack`);
+            // this.packfiles[2] = await this.loadPack(`${Viewer.REPO}/data/pack/mesanim.pack`);
+            // this.packfiles[3] = await this.loadPack(`${Viewer.REPO}/data/pack/seq.pack`);
+
             const mesanim: Packet = new Packet(await downloadUrl(`${Viewer.HOST}/server/mesanim.dat`));
 
             await this.showProgress(75, 'Unpacking media');
@@ -113,6 +147,9 @@ class Viewer extends GameShell {
             VarpType.unpack(config);
             MesAnimType.unpack(mesanim);
 
+            await this.populateNpcSelector();
+            await this.populateMesanimSelector();
+
             await this.showProgress(90, 'Unpacking sounds');
             Wave.unpack(sounds);
 
@@ -127,14 +164,50 @@ class Viewer extends GameShell {
             this.drawArea?.bind();
             Draw3D.init2D();
 
-            this.npc.type = NpcType.get(0);
-            this.npc.primarySeqId = 567;
+            const authentic: HTMLInputElement | null = document.querySelector('#authentic');
+            if (authentic !== null) {
+                authentic.onchange = (): void => {
+                    this.exportChat();
+                };
+            }
 
-            ComType.instances[4883].model = this.npc.type?.getHeadModel();
-            ComType.instances[4883].seqId = this.npc.primarySeqId;
+            const newline: HTMLInputElement | null = document.querySelector('#newline');
+            if (newline !== null) {
+                newline.onclick = (): void => {
+                    this.input += '|';
+                    this.exportChat();
+                };
+            }
 
-            ComType.instances[4884].text = this.npc.type?.name ?? 'Name';
-            ComType.instances[4885].text = 'Testing';
+            const clear: HTMLInputElement | null = document.querySelector('#clear');
+            if (clear !== null) {
+                clear.onclick = (): void => {
+                    this.input = '';
+                    this.exportChat();
+                };
+            }
+
+            this.registerColorHandler('bla');
+            this.registerColorHandler('red');
+            this.registerColorHandler('gre');
+            this.registerColorHandler('blu');
+            this.registerColorHandler('yel');
+            this.registerColorHandler('cya');
+            this.registerColorHandler('mag');
+            this.registerColorHandler('whi');
+            this.registerColorHandler('lre');
+            this.registerColorHandler('dre');
+            this.registerColorHandler('dbl');
+            this.registerColorHandler('or1');
+            this.registerColorHandler('or2');
+            this.registerColorHandler('or3');
+            this.registerColorHandler('gr1');
+            this.registerColorHandler('gr2');
+            this.registerColorHandler('gr3');
+
+            this.activeNpc = NpcType.get(0);
+            this.inputMesanimId = 0;
+            this.exportChat();
         } catch (err) {
             this.errorLoading = true;
             console.error(err);
@@ -147,6 +220,8 @@ class Viewer extends GameShell {
         }
 
         this.loopCycle++;
+
+        this.updateChat();
     };
 
     draw = async (): Promise<void> => {
@@ -156,29 +231,8 @@ class Viewer extends GameShell {
         }
 
         Draw2D.clear();
-        this.imageChatback?.draw(0, 0);
 
-        if (this.npc.primarySeqId != -1 && this.npc.primarySeqDelay == 0) {
-            const com: ComType = ComType.instances[4883];
-            const seq: SeqType = SeqType.instances[this.npc.primarySeqId];
-
-            com.seqCycle += 1;
-
-            while (com.seqCycle > seq.delay![com.seqFrame]) {
-                com.seqCycle -= seq.delay![com.seqFrame] + 1;
-                com.seqFrame++;
-
-                if (com.seqFrame >= seq.frameCount) {
-                    com.seqFrame -= seq.replayoff;
-
-                    if (com.seqFrame < 0 || com.seqFrame >= seq.frameCount) {
-                        com.seqFrame = 0;
-                    }
-                }
-            }
-        }
-
-        this.drawInterface(ComType.instances[4882], 0, 0, 0);
+        this.drawChat();
 
         this.drawArea?.draw(0, 0);
     };
@@ -190,8 +244,6 @@ class Viewer extends GameShell {
 
         await super.showProgress(progress, str);
     };
-
-    //
 
     async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
         let retry: number = 5;
@@ -229,7 +281,7 @@ class Viewer extends GameShell {
 
     drawErrorScreen(): void {
         canvas2d.fillStyle = 'black';
-        canvas2d.clearRect(0, 0, this.width, this.height);
+        canvas2d.fillRect(0, 0, this.width, this.height);
 
         this.setFramerate(1);
 
@@ -292,6 +344,8 @@ class Viewer extends GameShell {
             canvas2d.fillText('2: Try rebooting your computer, and reloading', 30, y);
         }
     }
+
+    //
 
     private drawInterface = (com: ComType, x: number, y: number, scrollY: number): void => {
         if (com.type !== 0 || com.childId === null || com.hide) {
@@ -405,6 +459,354 @@ class Viewer extends GameShell {
 
         Draw2D.setBounds(left, top, right, bottom);
     };
+
+    //
+
+    async populateNpcSelector(): Promise<void> {
+        this.packfiles[1] = await this.loadPack(`${Viewer.REPO}/data/pack/npc.pack`);
+
+        const npcs: HTMLSelectElement | null = document.querySelector('#npcs');
+        if (!npcs) {
+            return;
+        }
+
+        npcs.innerHTML = '';
+
+        const search: HTMLInputElement = document.createElement('input');
+        search.type = 'search';
+        search.placeholder = 'Search';
+        search.tabIndex = 1;
+        search.oninput = (): void => {
+            const filter: string = search.value.toLowerCase().replaceAll(' ', '_');
+
+            const ul: HTMLUListElement | null = document.querySelector('#npcList');
+            if (!ul) {
+                return;
+            }
+
+            for (let i: number = 0; i < ul.children.length; i++) {
+                const child: HTMLElement = ul.children[i] as HTMLElement;
+
+                if (child.id.indexOf(filter) > -1) {
+                    child.style.display = '';
+                } else {
+                    child.style.display = 'none';
+                }
+            }
+        };
+        npcs.appendChild(search);
+
+        const ul: HTMLUListElement = document.createElement('ul');
+        ul.id = 'npcList';
+        ul.className = 'list-group';
+        npcs.appendChild(ul);
+
+        for (const [id, name] of this.packfiles[1]) {
+            const type: NpcType = NpcType.get(id);
+            if (type.heads === null || type.heads.length === 0) {
+                continue;
+            }
+
+            const li: HTMLLIElement = document.createElement('li');
+            li.id = name;
+            li.className = 'list-group-item';
+            if (id === 0) {
+                li.className += ' active';
+            }
+            li.innerText = name + ' (' + id + ')';
+            li.onclick = (): void => {
+                const last: Element | null = ul.querySelector('.active');
+                if (last) {
+                    last.className = 'list-group-item';
+                }
+
+                li.className = 'list-group-item active';
+
+                this.activeNpc = NpcType.get(id);
+                this.chatNpc(this.activeNpc, this.inputMesanimId, this.input);
+            };
+            ul.appendChild(li);
+        }
+    }
+
+    async populateMesanimSelector(): Promise<void> {
+        const anims: HTMLSelectElement | null = document.querySelector('#mesanims');
+        if (!anims) {
+            return;
+        }
+
+        anims.innerHTML = '';
+
+        const search: HTMLInputElement = document.createElement('input');
+        search.type = 'search';
+        search.placeholder = 'Search';
+        search.tabIndex = 2;
+        search.oninput = (): void => {
+            const filter: string = search.value.toLowerCase().replaceAll(' ', '_');
+
+            const ul: HTMLUListElement | null = document.querySelector('#mesanimList');
+            if (!ul) {
+                return;
+            }
+
+            for (let i: number = 0; i < ul.children.length; i++) {
+                const child: HTMLElement = ul.children[i] as HTMLElement;
+
+                if (child.id.indexOf(filter) > -1) {
+                    child.style.display = '';
+                } else {
+                    child.style.display = 'none';
+                }
+            }
+        };
+        anims.appendChild(search);
+
+        const ul: HTMLUListElement = document.createElement('ul');
+        ul.id = 'mesanimList';
+        ul.className = 'list-group';
+        anims.appendChild(ul);
+
+        for (const mesanim of MesAnimType.instances) {
+            const id: number = mesanim.id;
+            const name: string = mesanim.debugname ?? `mesanim_${mesanim.id}`;
+
+            const li: HTMLLIElement = document.createElement('li');
+            li.id = name;
+            li.className = 'list-group-item';
+            if (id === 0) {
+                li.className += ' active';
+            }
+            li.innerText = name + ' (' + id + ')';
+            li.onclick = (): void => {
+                const last: Element | null = ul.querySelector('.active');
+                if (last) {
+                    last.className = 'list-group-item';
+                }
+
+                li.className = 'list-group-item active';
+
+                this.inputMesanimId = id;
+                this.exportChat();
+            };
+            ul.appendChild(li);
+        }
+    }
+
+    registerColorHandler(tag: string): void {
+        const el: HTMLInputElement | null = document.querySelector(`#${tag}`);
+        if (el === null) {
+            return;
+        }
+
+        el.onclick = (): void => {
+            this.input += `@${tag}@`;
+            this.exportChat();
+        };
+    }
+
+    updateChat(): void {
+        let changed: boolean = false;
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const key: number = this.pollKey();
+            if (key === -1) {
+                break;
+            }
+
+            if (document.activeElement !== canvas) {
+                continue;
+            }
+
+            const valid: boolean = Viewer.CHARSET.indexOf(String.fromCharCode(key)) !== -1;
+            if (valid) {
+                this.input += String.fromCharCode(key);
+                changed = true;
+            } else if (key === 8 && this.input.length > 0) {
+                this.input = this.input.substring(0, this.input.length - 1);
+                changed = true;
+            } else if (key === 10 || key === 13) {
+                this.input += '|';
+                changed = true;
+            }
+        }
+
+        if (changed && this.input.indexOf('\\n') !== -1) {
+            // we want split to take over and there's hardcoded draw logic around \n
+            this.input = this.input.replaceAll('\\n', '|');
+        }
+
+        if (changed) {
+            this.exportChat();
+        }
+    }
+
+    drawChat(): void {
+        this.imageChatback?.draw(0, 0);
+
+        if (this.chatInterfaceId !== -1) {
+            const com: ComType = ComType.instances[this.chatInterfaceId + 1];
+            const seq: SeqType = SeqType.instances[com.seqId];
+
+            com.seqCycle += 1;
+
+            while (com.seqCycle > seq.delay![com.seqFrame]) {
+                com.seqCycle -= seq.delay![com.seqFrame] + 1;
+                com.seqFrame++;
+
+                if (com.seqFrame >= seq.frameCount) {
+                    com.seqFrame -= seq.replayoff;
+
+                    if (com.seqFrame < 0 || com.seqFrame >= seq.frameCount) {
+                        com.seqFrame = 0;
+                    }
+                }
+            }
+
+            try {
+                this.drawInterface(ComType.instances[this.chatInterfaceId], 0, 0, 0);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+
+    exportChat(): void {
+        if (this.inputMesanimId === -1 || !this.fontQuill8) {
+            return;
+        }
+
+        this.splitInit(this.input, 380, 4, this.fontQuill8, this.inputMesanimId); // so we can early-paginate
+        if (this.splitPageCount() > 1) {
+            this.input = '';
+        }
+        this.chatNpc(this.activeNpc, this.inputMesanimId, this.input);
+
+        const el: HTMLInputElement | null = document.querySelector('#export');
+        if (el) {
+            const mesanim: MesAnimType = MesAnimType.instances[this.inputMesanimId];
+            const authentic: HTMLInputElement | null = document.querySelector('#authentic');
+
+            if (authentic === null || authentic.checked === false) {
+                const mesanimName: string = mesanim.debugname === 'default' ? '"default"' : mesanim.debugname ?? `mesanim_${mesanim.id}`;
+                el.value = `~chatnpc(${mesanimName}, "${this.input}");`;
+            } else {
+                el.value = `~chatnpc("<p,${mesanim.debugname}>${this.input}");`;
+            }
+        }
+    }
+
+    // runescript engine
+
+    splitInit(text: string, maxWidth: number, linesPerPage: number, font: PixFont, mesanimId: number): void {
+        const lines: string[] = font.split(text, maxWidth);
+
+        this.splitPages = [];
+        this.splitMesanimId = mesanimId;
+        while (lines.length > 0) {
+            this.splitPages.push(lines.splice(0, linesPerPage));
+        }
+    }
+
+    splitGet(page: number, line: number): string {
+        return this.splitPages[page][line];
+    }
+
+    splitPageCount(): number {
+        return this.splitPages.length;
+    }
+
+    splitLineCount(page: number): number {
+        return this.splitPages[page].length;
+    }
+
+    splitGetAnim(page: number): number {
+        if (this.splitMesanimId === -1) {
+            return -1;
+        }
+
+        const type: MesAnimType = MesAnimType.instances[this.splitMesanimId];
+        const lines: number = this.splitLineCount(page);
+        return type.len[lines - 1];
+    }
+
+    // runescript procs
+
+    chatNpc(npc: NpcType, mesanimId: number, message: string): void {
+        if (!this.fontQuill8 || mesanimId === -1) {
+            return;
+        }
+
+        this.splitInit(message, 380, 4, this.fontQuill8, mesanimId);
+
+        const pageTotal: number = this.splitPageCount();
+        for (let page: number = 0; page < pageTotal; page++) {
+            this.chatNpcPage(npc, page);
+        }
+    }
+
+    chatNpcPage(npc: NpcType, page: number): void {
+        const lines: number = this.splitLineCount(page);
+
+        if (lines === 0) {
+            return;
+        } else if (lines === 1) {
+            this.chatInterfaceId = 4882;
+
+            ComType.instances[4883].model = npc.getHeadModel();
+            ComType.instances[4883].seqId = this.splitGetAnim(page);
+            ComType.instances[4883].seqFrame = 0;
+            ComType.instances[4883].seqCycle = 0;
+
+            ComType.instances[4884].text = npc.name;
+
+            ComType.instances[4885].text = this.splitGet(page, 0);
+        } else if (lines === 2) {
+            this.chatInterfaceId = 4887;
+
+            ComType.instances[4888].model = npc.getHeadModel();
+            ComType.instances[4888].seqId = this.splitGetAnim(page);
+            ComType.instances[4888].seqFrame = 0;
+            ComType.instances[4888].seqCycle = 0;
+
+            ComType.instances[4889].text = npc.name;
+
+            ComType.instances[4890].text = this.splitGet(page, 0);
+            ComType.instances[4891].text = this.splitGet(page, 1);
+        } else if (lines === 3) {
+            this.chatInterfaceId = 4893;
+
+            ComType.instances[4894].model = npc.getHeadModel();
+            ComType.instances[4894].seqId = this.splitGetAnim(page);
+            ComType.instances[4894].seqFrame = 0;
+            ComType.instances[4894].seqCycle = 0;
+
+            ComType.instances[4895].text = npc.name;
+
+            ComType.instances[4896].text = this.splitGet(page, 0);
+            ComType.instances[4897].text = this.splitGet(page, 1);
+            ComType.instances[4898].text = this.splitGet(page, 2);
+        } else if (lines === 4) {
+            this.chatInterfaceId = 4900;
+
+            ComType.instances[4901].model = npc.getHeadModel();
+            ComType.instances[4901].seqId = this.splitGetAnim(page);
+            ComType.instances[4901].seqFrame = 0;
+            ComType.instances[4901].seqCycle = 0;
+
+            ComType.instances[4902].text = npc.name;
+
+            ComType.instances[4903].text = this.splitGet(page, 0);
+            ComType.instances[4904].text = this.splitGet(page, 1);
+            ComType.instances[4905].text = this.splitGet(page, 2);
+            ComType.instances[4906].text = this.splitGet(page, 3);
+        }
+    }
 }
 
 new Viewer().run().then((): void => {});
+
+// prevent space from scrolling page
+window.onkeydown = function (e): boolean {
+    return !(e.key == ' ' && e.target == document.body);
+};

@@ -42,7 +42,8 @@ export default abstract class GameShell {
     protected keyQueueWritePos: number = 0;
 
     constructor(resizetoFit: boolean = false) {
-        canvas2d.clearRect(0, 0, canvas.width, canvas.height);
+        canvas2d.fillStyle = 'black';
+        canvas2d.fillRect(0, 0, canvas.width, canvas.height);
         this.resizeToFit = resizetoFit;
         if (this.resizeToFit) {
             this.resize(window.innerWidth, window.innerHeight);
@@ -227,7 +228,7 @@ export default abstract class GameShell {
 
         if (this.redrawScreen) {
             canvas2d.fillStyle = 'black';
-            canvas2d.clearRect(0, 0, width, height);
+            canvas2d.fillRect(0, 0, width, height);
             this.redrawScreen = false;
         }
 
