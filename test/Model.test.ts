@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import Jagfile from '../src/js/jagex2/io/Jagfile';
 import Model from '../src/js/jagex2/graphics/Model';
 import NpcType from '../src/js/jagex2/config/NpcType';
-import Bz2 from '../src/js/vendor/wasm';
+import Bzip from '../src/js/vendor/bzip';
 
 beforeAll(async (): Promise<void> => {
-    await Bz2.load(fs.readFileSync('./test/resources/bz2.wasm'));
+    await Bzip.load(fs.readFileSync('./test/resources/bz2.wasm'));
     const models: Jagfile = new Jagfile(Int8Array.from(fs.readFileSync('./test/resources/models')));
     Model.unpack(models);
 })

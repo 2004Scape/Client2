@@ -1,5 +1,5 @@
 import Packet from './Packet';
-import Bz2 from '../../vendor/wasm';
+import Bzip from '../../vendor/bzip';
 
 export default class Jagfile {
     static genHash = (name: string): number => {
@@ -30,7 +30,7 @@ export default class Jagfile {
             this.buffer = src;
             this.compressedWhole = false;
         } else {
-            this.buffer = Bz2.decompressBz2(unpackedSize, src, packedSize, 6);
+            this.buffer = Bzip.decompressBz2(unpackedSize, src, packedSize, 6);
             data = new Packet(this.buffer);
             this.compressedWhole = true;
         }
@@ -76,7 +76,7 @@ export default class Jagfile {
             this.fileUnpacked[index] = data;
             return data;
         } else {
-            const data: Uint8Array = Uint8Array.from(Bz2.decompressBz2(this.fileUnpackedSize[index], this.buffer, this.filePackedSize[index], this.fileOffset[index]));
+            const data: Uint8Array = Uint8Array.from(Bzip.decompressBz2(this.fileUnpackedSize[index], this.buffer, this.filePackedSize[index], this.fileOffset[index]));
             this.fileUnpacked[index] = data;
             return data;
         }

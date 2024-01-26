@@ -27,9 +27,8 @@ import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
 import {canvas, canvas2d} from './jagex2/graphics/Canvas';
-import NpcEntity from './jagex2/dash3d/entity/NpcEntity';
 import Pix8 from './jagex2/graphics/Pix8';
-import Bz2 from './vendor/wasm';
+import Bzip from './vendor/bzip';
 
 class Viewer extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
@@ -96,7 +95,7 @@ class Viewer extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
-            await Bz2.load(await (await fetch('bz2.wasm')).arrayBuffer());
+            await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
             const checksums: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Viewer.HOST}/crc`)));
