@@ -255,7 +255,7 @@ class Viewer extends GameShell {
         }
 
         if (data) {
-            return new Jagfile(Uint8Array.from(data));
+            return new Jagfile(data);
         }
 
         while (!data) {
@@ -276,7 +276,7 @@ class Viewer extends GameShell {
             }
         }
         await this.db?.cachesave(filename, data);
-        return new Jagfile(Uint8Array.from(data));
+        return new Jagfile(data);
     }
 
     drawErrorScreen(): void {

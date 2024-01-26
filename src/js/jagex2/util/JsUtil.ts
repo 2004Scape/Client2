@@ -1,26 +1,8 @@
-import {decompress} from '../../vendor/bz2.js';
-
 export const sleep = async (ms: number): Promise<void> => new Promise((resolve): NodeJS.Timeout => setTimeout(resolve, ms));
 export const downloadUrl = async (url: string): Promise<Int8Array> => new Int8Array(await (await fetch(url)).arrayBuffer());
 export const downloadText = async (url: string): Promise<string> => (await fetch(url)).text();
 
-const bz2Header: Uint8Array = Uint8Array.from(['B'.charCodeAt(0), 'Z'.charCodeAt(0), 'h'.charCodeAt(0), '1'.charCodeAt(0)]);
-
-export const decompressBz2 = (data: Uint8Array, addMagic: boolean = true, prepend: boolean = true): Uint8Array => {
-    if (addMagic) {
-        if (prepend) {
-            const temp: Uint8Array = data;
-            data = new Uint8Array(bz2Header.length + data.length);
-            data.set(temp, bz2Header.length);
-        }
-
-        data.set(bz2Header, 0);
-    }
-
-    return decompress(data);
-};
-
-export const arraycopy = (src: Int32Array | Uint8Array | Uint8ClampedArray, srcPos: number, dst: Int32Array | Uint8Array, dstPos: number, length: number): void => {
+export const arraycopy = (src: Int32Array | Uint8Array, srcPos: number, dst: Int32Array | Uint8Array, dstPos: number, length: number): void => {
     while (length--) dst[dstPos++] = src[srcPos++];
 };
 

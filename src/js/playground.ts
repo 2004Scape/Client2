@@ -217,7 +217,7 @@ class Playground extends GameShell {
         }
 
         if (data) {
-            return new Jagfile(Uint8Array.from(data));
+            return new Jagfile(data);
         }
 
         while (!data) {
@@ -238,7 +238,7 @@ class Playground extends GameShell {
             }
         }
         await this.db?.cachesave(filename, data);
-        return new Jagfile(Uint8Array.from(data));
+        return new Jagfile(data);
     }
 
     modifier = 2;

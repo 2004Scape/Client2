@@ -7,6 +7,7 @@ This project is a comprehensive source port of our [Client refactor](https://git
 ```shell
 npm install
 npm run prepare
+npm run build:dev
 ```
 
 If you are on a Mac:

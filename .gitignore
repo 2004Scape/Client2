@@ -2,3 +2,9 @@
 
 /public/
 /.idea/
+
+bz2.d.ts
+bz2.js
+bz2.wasm
+
+!/test/resources/*

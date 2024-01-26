@@ -12,6 +12,7 @@
     "@types/jquery": "^3.5.29",
     "@typescript-eslint/eslint-plugin": "^6.18.0",
     "@typescript-eslint/parser": "^6.18.0",
+    "assemblyscript": "^0.27.23",
     "autoprefixer": "^10.4.16",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",
@@ -35,15 +36,17 @@
     "webpack-dev-server": "^4.15.1"
   },
   "scripts": {
-    "build": "webpack --mode=production --node-env=production",
-    "build:dev": "webpack --mode=development",
-    "build:prod": "webpack --mode=production --node-env=production",
-    "dev": "webpack-dev-server --hot --watch",
+    "build": "npm run asc && webpack --mode=production --node-env=production",
+    "build:dev": "npm run asc && webpack --mode=development",
+    "build:prod": "npm run asc && webpack --mode=production --node-env=production",
+    "dev": "npm run asc && webpack-dev-server --hot --watch",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier src/**/*.{js,ts} --write",
     "prepare": "husky install",
-    "test": "jest"
+    "test": "jest",
+    "asc": "asc --target release",
+    "local": "npm run asc && npm run build:dev && npx serve public"
   },
   "repository": {
     "type": "git",

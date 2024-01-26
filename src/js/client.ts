@@ -21,7 +21,7 @@ import SeqFrame from './jagex2/graphics/SeqFrame';
 import Jagfile from './jagex2/io/Jagfile';
 
 import WordFilter from './jagex2/wordenc/WordFilter';
-import {arraycopy, decompressBz2, downloadUrl, sleep} from './jagex2/util/JsUtil';
+import {arraycopy, downloadUrl, sleep} from './jagex2/util/JsUtil';
 import {playMidi} from './jagex2/util/AudioUtil.js';
 import GameShell from './jagex2/client/GameShell';
 
@@ -36,6 +36,7 @@ import Isaac from './jagex2/io/Isaac';
 import Database from './jagex2/io/Database';
 import InputTracking from './jagex2/client/InputTracking';
 import {canvas2d} from './jagex2/graphics/Canvas';
+import Bz2 from './vendor/wasm';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -348,6 +349,7 @@ class Client extends GameShell {
         try {
             await this.showProgress(10, 'Connecting to fileserver');
 
+            await Bz2.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
             const checksums: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Client.HOST}/crc`)));
@@ -4890,7 +4892,7 @@ class Client extends GameShell {
         }
 
         if (data) {
-            return new Jagfile(Uint8Array.from(data));
+            return new Jagfile(data);
         }
 
         while (!data) {
@@ -4911,12 +4913,12 @@ class Client extends GameShell {
             }
         }
         await this.db?.cachesave(filename, data);
-        return new Jagfile(Uint8Array.from(data));
+        return new Jagfile(data);
     };
 
     private setMidi = async (name: string, crc: number): Promise<void> => {
-        const file: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`)));
-        playMidi(decompressBz2(file.data, true, false), 192);
+        const data: Int8Array = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
+        playMidi(Bz2.decompressBz2(new Packet(Uint8Array.from(data)).g4, data, data.length, 4), 192);
     };
 
     private drawError = (): void => {

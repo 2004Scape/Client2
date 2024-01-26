@@ -1,6 +1,5 @@
-import {decompressBz2} from '../util/JsUtil';
-
 import Packet from './Packet';
+import Bz2 from '../../vendor/wasm';
 
 export default class Jagfile {
     static genHash = (name: string): number => {
@@ -13,43 +12,41 @@ export default class Jagfile {
     };
 
     // constructor
-    buffer: Packet;
+    buffer: Int8Array;
     compressedWhole: boolean;
     fileCount: number;
     fileHash: number[];
-    fileSizeInflated: number[];
-    fileSizeDeflated: number[];
+    fileUnpackedSize: number[];
+    filePackedSize: number[];
     fileOffset: number[];
 
-    constructor(src: Uint8Array) {
-        const data: Packet = new Packet(src);
-        const compressedSize: number = data.g3;
-        const uncompressedSize: number = data.g3;
+    constructor(src: Int8Array) {
+        let data: Packet = new Packet(src);
+        const unpackedSize: number = data.g3;
+        const packedSize: number = data.g3;
 
-        let buffer: Packet;
-        if (compressedSize === uncompressedSize) {
-            buffer = data;
+        if (unpackedSize === packedSize) {
+            this.buffer = src;
             this.compressedWhole = false;
         } else {
-            const compressed: Uint8Array = data.gdata(data.pos, compressedSize);
-            buffer = new Packet(new Uint8Array(decompressBz2(compressed)));
+            this.buffer = Bz2.decompressBz2(unpackedSize, src, packedSize, 6);
+            data = new Packet(this.buffer);
             this.compressedWhole = true;
         }
 
-        this.buffer = buffer;
-        this.fileCount = buffer.g2;
+        this.fileCount = data.g2;
         this.fileHash = [];
-        this.fileSizeInflated = [];
-        this.fileSizeDeflated = [];
+        this.fileUnpackedSize = [];
+        this.filePackedSize = [];
         this.fileOffset = [];
 
-        let offset: number = buffer.pos + this.fileCount * 10;
+        let offset: number = data.pos + this.fileCount * 10;
         for (let i: number = 0; i < this.fileCount; i++) {
-            this.fileHash.push(buffer.g4);
-            this.fileSizeInflated.push(buffer.g3);
-            this.fileSizeDeflated.push(buffer.g3);
+            this.fileHash.push(data.g4);
+            this.fileUnpackedSize.push(data.g3);
+            this.filePackedSize.push(data.g3);
             this.fileOffset.push(offset);
-            offset += this.fileSizeDeflated[i];
+            offset += this.filePackedSize[i];
         }
     }
 
@@ -68,11 +65,11 @@ export default class Jagfile {
         }
 
         const offset: number = this.fileOffset[index];
-        const length: number = offset + this.fileSizeDeflated[index];
+        const length: number = offset + this.filePackedSize[index];
         if (this.compressedWhole) {
-            return this.buffer.gdata(offset, length);
+            return Uint8Array.from(this.buffer.subarray(offset, offset + length));
         } else {
-            return decompressBz2(this.buffer.gdata(offset, length));
+            return Uint8Array.from(Bz2.decompressBz2(this.fileUnpackedSize[index], this.buffer, this.filePackedSize[index], this.fileOffset[index]));
         }
     };
 }

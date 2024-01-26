@@ -38,6 +38,7 @@ const config = {
         new CopyPlugin({
             patterns: [
                 { from: path.resolve(__dirname, 'src', 'public') },
+                { from: path.resolve(__dirname, 'src', 'js', 'vendor', 'bz2.wasm') },
             ],
         })
     ],
