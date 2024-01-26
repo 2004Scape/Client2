@@ -30,9 +30,7 @@ export default class Jagfile {
             this.buffer = src;
             this.compressedWhole = false;
         } else {
-            // console.time('bzip2');
             this.buffer = Bz2.decompressBz2(unpackedSize, src, packedSize, 6);
-            // console.timeEnd('bzip2');
             data = new Packet(this.buffer);
             this.compressedWhole = true;
         }

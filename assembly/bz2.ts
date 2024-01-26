@@ -12,7 +12,7 @@ class BZip2State {
     static readonly BZ_RUNA: i32 = 0;
     static readonly BZ_RUNB: i32 = 1;
 
-    static tt: Int32Array = new Int32Array(0);
+    static tt: StaticArray<i32> = new StaticArray<i32>(0);
 
     stream: Int8Array = new Int8Array(0);
     decompressed: Int8Array = new Int8Array(0);
@@ -39,21 +39,21 @@ class BZip2State {
     nInUse: i32 = 0;
     save_nblock: i32 = 0;
 
-    readonly unzftab: Int32Array = new Int32Array(256);
-    readonly cftab: Int32Array = new Int32Array(257);
-    readonly cftabCopy: Int32Array = new Int32Array(257);
+    readonly unzftab: StaticArray<i32> = new StaticArray<i32>(256);
+    readonly cftab: StaticArray<i32> = new StaticArray<i32>(257);
+    readonly cftabCopy: StaticArray<i32> = new StaticArray<i32>(257);
     readonly inUse: bool[] = new Array<bool>(256).fill(false);
     readonly inUse16: bool[] = new Array<bool>(16).fill(false);
-    readonly seqToUnseq: Uint8Array = new Uint8Array(256);
-    readonly mtfa: Uint8Array = new Uint8Array(BZip2State.MTFA_SIZE);
-    readonly mtfbase: Int32Array = new Int32Array(256 / BZip2State.MTFL_SIZE);
-    readonly selector: Uint8Array = new Uint8Array(BZip2State.BZ_MAX_SELECTORS);
-    readonly selectorMtf: Uint8Array = new Uint8Array(BZip2State.BZ_MAX_SELECTORS);
-    readonly len: Uint8Array[] = new Array<Uint8Array>(BZip2State.BZ_N_GROUPS).map((): Uint8Array => new Uint8Array(BZip2State.BZ_MAX_ALPHA_SIZE));
-    readonly limit: Int32Array[] = new Array<Int32Array>(BZip2State.BZ_N_GROUPS).map((): Int32Array => new Int32Array(BZip2State.BZ_MAX_ALPHA_SIZE));
-    readonly base: Int32Array[] = new Array<Int32Array>(BZip2State.BZ_N_GROUPS).map((): Int32Array => new Int32Array(BZip2State.BZ_MAX_ALPHA_SIZE));
-    readonly perm: Int32Array[] = new Array<Int32Array>(BZip2State.BZ_N_GROUPS).map((): Int32Array => new Int32Array(BZip2State.BZ_MAX_ALPHA_SIZE));
-    readonly minLens: Int32Array = new Int32Array(BZip2State.BZ_N_GROUPS);
+    readonly seqToUnseq: StaticArray<u8> = new StaticArray<u8>(256);
+    readonly mtfa: StaticArray<u8> = new StaticArray<u8>(BZip2State.MTFA_SIZE);
+    readonly mtfbase: StaticArray<i32> = new StaticArray<i32>(256 / BZip2State.MTFL_SIZE);
+    readonly selector: StaticArray<u8> = new StaticArray<u8>(BZip2State.BZ_MAX_SELECTORS);
+    readonly selectorMtf: StaticArray<u8> = new StaticArray<u8>(BZip2State.BZ_MAX_SELECTORS);
+    readonly len: StaticArray<u8>[] = new Array<StaticArray<u8>>(BZip2State.BZ_N_GROUPS).map((): StaticArray<u8> => new StaticArray<u8>(BZip2State.BZ_MAX_ALPHA_SIZE));
+    readonly limit: StaticArray<i32>[] = new Array<StaticArray<i32>>(BZip2State.BZ_N_GROUPS).map((): StaticArray<i32> => new StaticArray<i32>(BZip2State.BZ_MAX_ALPHA_SIZE));
+    readonly base: StaticArray<i32>[] = new Array<StaticArray<i32>>(BZip2State.BZ_N_GROUPS).map((): StaticArray<i32> => new StaticArray<i32>(BZip2State.BZ_MAX_ALPHA_SIZE));
+    readonly perm: StaticArray<i32>[] = new Array<StaticArray<i32>>(BZip2State.BZ_N_GROUPS).map((): StaticArray<i32> => new StaticArray<i32>(BZip2State.BZ_MAX_ALPHA_SIZE));
+    readonly minLens: StaticArray<i32> = new StaticArray<i32>(BZip2State.BZ_N_GROUPS);
 }
 
 export function newBzip2State(): BZip2State {
@@ -81,13 +81,13 @@ export function read(decompressed: Int8Array, length: i32, stream: Int8Array, av
 
 function decompress(state: BZip2State): void {
     let gMinlen: i32 = 0;
-    let gLimit: Int32Array | null = null;
-    let gBase: Int32Array | null = null;
-    let gPerm: Int32Array | null = null;
+    let gLimit: StaticArray<i32> | null = null;
+    let gBase: StaticArray<i32> | null = null;
+    let gPerm: StaticArray<i32> | null = null;
 
     state.blockSize100k = 1;
     if (BZip2State.tt.length === 0) {
-        BZip2State.tt = new Int32Array(state.blockSize100k * 100_000);
+        BZip2State.tt = new StaticArray<i32>(state.blockSize100k * 100_000);
     }
 
     let reading: bool = true;
@@ -165,7 +165,7 @@ function decompress(state: BZip2State): void {
         }
 
         // Undo the MTF values for the selectors
-        const pos: Uint8Array = new Uint8Array(BZip2State.BZ_N_GROUPS);
+        const pos: StaticArray<u8> = new StaticArray<u8>(BZip2State.BZ_N_GROUPS);
         for (let v: i32 = 0; v < nGroups; v++) {
             unchecked(pos[v] = <u8>v);
         }
@@ -474,7 +474,7 @@ function makeMaps(state: BZip2State): void {
     }
 }
 
-function createDecodeTables(limit: Int32Array, base: Int32Array, perm: Int32Array, length: Uint8Array, minLen: i32, maxLen: i32, alphaSize: i32): void {
+function createDecodeTables(limit: StaticArray<i32>, base: StaticArray<i32>, perm: StaticArray<i32>, length: StaticArray<u8>, minLen: i32, maxLen: i32, alphaSize: i32): void {
     let pp: i32 = 0;
 
     for (let i: i32 = minLen; i <= maxLen; i++) {
@@ -520,7 +520,7 @@ function finish(state: BZip2State): void {
     let c_state_out_len: i32 = state.state_out_len;
     let c_nblock_used: i32 = state.c_nblock_used;
     let c_k0: i32 = state.k0;
-    const c_tt: Int32Array = BZip2State.tt;
+    const c_tt: StaticArray<i32> = BZip2State.tt;
     let c_tPos: i32 = state.tPos;
     const cs_decompressed: Int8Array = state.decompressed;
     let cs_next_out: i32 = state.next_out;

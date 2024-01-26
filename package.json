@@ -45,7 +45,7 @@
     "format": "prettier src/**/*.{js,ts} --write",
     "prepare": "husky install",
     "test": "jest",
-    "asc": "asc --target release",
+    "asc": "asc --target release --optimizeLevel 3 --converge",
     "local": "npm run asc && npm run build:dev && npx serve public"
   },
   "repository": {
