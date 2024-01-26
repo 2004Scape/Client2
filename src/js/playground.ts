@@ -24,6 +24,7 @@ import Draw2D from './jagex2/graphics/Draw2D';
 import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
+import Bz2 from './vendor/wasm';
 
 class Playground extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
@@ -45,6 +46,7 @@ class Playground extends GameShell {
     load = async (): Promise<void> => {
         await this.showProgress(10, 'Connecting to fileserver');
 
+        await Bz2.load(await (await fetch('bz2.wasm')).arrayBuffer());
         this.db = new Database(await Database.openDatabase());
 
         const checksums: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Playground.HOST}/crc`)));
