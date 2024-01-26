@@ -128,11 +128,11 @@ function decompress(state: BZip2State): void {
         // Receive the mapping table
         for (let i: i32 = 0; i < 16; i++) {
             uc = getBit(state);
-            state.inUse16[i] = uc == 1;
+            unchecked(state.inUse16[i] = uc == 1);
         }
 
         for (let i: i32 = 0; i < 256; i++) {
-            state.inUse[i] = false;
+            unchecked(state.inUse[i] = false);
         }
 
         for (let i: i32 = 0; i < 16; i++) {
@@ -140,7 +140,7 @@ function decompress(state: BZip2State): void {
                 for (let j: i32 = 0; j < 16; j++) {
                     uc = getBit(state);
                     if (uc == 1) {
-                        state.inUse[i * 16 + j] = true;
+                        unchecked(state.inUse[i * 16 + j] = true);
                     }
                 }
             }
@@ -161,24 +161,24 @@ function decompress(state: BZip2State): void {
                 j++;
             }
 
-            state.selectorMtf[i] = <u8>j;
+            unchecked(state.selectorMtf[i] = <u8>j);
         }
 
         // Undo the MTF values for the selectors
         const pos: Uint8Array = new Uint8Array(BZip2State.BZ_N_GROUPS);
         for (let v: i32 = 0; v < nGroups; v++) {
-            pos[v] = <u8>v;
+            unchecked(pos[v] = <u8>v);
         }
 
         for (let i: i32 = 0; i < nSelectors; i++) {
-            let v: u8 = state.selectorMtf[i];
-            const tmp: u8 = pos[v];
+            let v: u8 = unchecked(state.selectorMtf[i]);
+            const tmp: u8 = unchecked(pos[v]);
             while (v > 0) {
-                pos[v] = pos[v - 1];
+                unchecked(pos[v] = pos[v - 1]);
                 v--;
             }
-            pos[0] = tmp;
-            state.selector[i] = tmp;
+            unchecked(pos[0] = tmp);
+            unchecked(state.selector[i] = tmp);
         }
 
         // Now the coding tables
@@ -201,7 +201,7 @@ function decompress(state: BZip2State): void {
                     }
                 }
 
-                state.len[t][i] = <u8>curr;
+                unchecked(state.len[t][i] = <u8>curr);
             }
         }
 
@@ -211,17 +211,17 @@ function decompress(state: BZip2State): void {
             let maxLen: u8 = 0;
 
             for (let i: i32 = 0; i < alphaSize; i++) {
-                if (state.len[t][i] > maxLen) {
-                    maxLen = state.len[t][i];
+                if (unchecked(state.len[t][i] > maxLen)) {
+                    unchecked(maxLen = state.len[t][i]);
                 }
 
-                if (state.len[t][i] < minLen) {
-                    minLen = state.len[t][i];
+                if (unchecked(state.len[t][i] < minLen)) {
+                    unchecked(minLen = state.len[t][i]);
                 }
             }
 
-            createDecodeTables(state.limit[t], state.base[t], state.perm[t], state.len[t], minLen, maxLen, alphaSize);
-            state.minLens[t] = minLen;
+            unchecked(createDecodeTables(state.limit[t], state.base[t], state.perm[t], state.len[t], minLen, maxLen, alphaSize));
+            unchecked(state.minLens[t] = minLen);
         }
 
         // Now the MTF values
@@ -231,18 +231,18 @@ function decompress(state: BZip2State): void {
         let groupPos: u8 = 0;
 
         for (let i: i32 = 0; i <= 255; i++) {
-            state.unzftab[i] = 0;
+            unchecked(state.unzftab[i] = 0);
         }
 
         // MTF init
         let kk: i32 = BZip2State.MTFA_SIZE - 1;
         for (let ii: i32 = 256 / BZip2State.MTFL_SIZE - 1; ii >= 0; ii--) {
             for (let jj: i32 = BZip2State.MTFL_SIZE - 1; jj >= 0; jj--) {
-                state.mtfa[kk] = <u8>(ii * BZip2State.MTFL_SIZE + jj);
+                unchecked(state.mtfa[kk] = <u8>(ii * BZip2State.MTFL_SIZE + jj));
                 kk--;
             }
 
-            state.mtfbase[ii] = kk + 1;
+            unchecked(state.mtfbase[ii] = kk + 1);
         }
         // end MTF init
 
@@ -253,11 +253,11 @@ function decompress(state: BZip2State): void {
         if (groupPos == 0) {
             groupNo++;
             groupPos = 50;
-            gSel = state.selector[groupNo];
-            gMinlen = state.minLens[gSel];
-            gLimit = state.limit[gSel];
-            gPerm = state.perm[gSel];
-            gBase = state.base[gSel];
+            unchecked(gSel = state.selector[groupNo]);
+            unchecked(gMinlen = state.minLens[gSel]);
+            unchecked(gLimit = state.limit[gSel]);
+            unchecked(gPerm = state.perm[gSel]);
+            unchecked(gBase = state.base[gSel]);
         }
 
         let gPos: i32 = groupPos - 1;
@@ -286,11 +286,11 @@ function decompress(state: BZip2State): void {
                     if (gPos == 0) {
                         groupNo++;
                         gPos = 50;
-                        gSel = state.selector[groupNo];
-                        gMinlen = state.minLens[gSel];
-                        gLimit = state.limit[gSel];
-                        gPerm = state.perm[gSel];
-                        gBase = state.base[gSel];
+                        unchecked(gSel = state.selector[groupNo]);
+                        unchecked(gMinlen = state.minLens[gSel]);
+                        unchecked(gLimit = state.limit[gSel]);
+                        unchecked(gPerm = state.perm[gSel]);
+                        unchecked(gBase = state.base[gSel]);
                     }
 
                     gPos--;
@@ -304,11 +304,11 @@ function decompress(state: BZip2State): void {
                 } while (nextSym == BZip2State.BZ_RUNA || nextSym == BZip2State.BZ_RUNB);
 
                 es++;
-                uc = state.seqToUnseq[state.mtfa[state.mtfbase[0]] & 0xFF];
-                state.unzftab[uc & 0xFF] += es;
+                unchecked(uc = state.seqToUnseq[state.mtfa[state.mtfbase[0]] & 0xFF]);
+                unchecked(state.unzftab[uc & 0xFF] += es);
 
                 while (es > 0) {
-                    BZip2State.tt[nblock] = uc & 0xFF;
+                    unchecked(BZip2State.tt[nblock] = uc & 0xFF);
                     nblock++;
                     es--;
                 }
@@ -319,75 +319,75 @@ function decompress(state: BZip2State): void {
 
                 if (nn < BZip2State.MTFL_SIZE) {
                     // avoid general-case expense
-                    pp = state.mtfbase[0];
-                    uc = state.mtfa[pp + nn];
+                    unchecked(pp = state.mtfbase[0]);
+                    unchecked(uc = state.mtfa[pp + nn]);
 
                     while (nn > 3) {
                         const z: i32 = pp + nn;
-                        state.mtfa[z] = state.mtfa[z - 1];
-                        state.mtfa[z - 1] = state.mtfa[z - 2];
-                        state.mtfa[z - 2] = state.mtfa[z - 3];
-                        state.mtfa[z - 3] = state.mtfa[z - 4];
+                        unchecked(state.mtfa[z] = state.mtfa[z - 1]);
+                        unchecked(state.mtfa[z - 1] = state.mtfa[z - 2]);
+                        unchecked(state.mtfa[z - 2] = state.mtfa[z - 3]);
+                        unchecked(state.mtfa[z - 3] = state.mtfa[z - 4]);
                         nn -= 4;
                     }
 
                     while (nn > 0) {
-                        state.mtfa[pp + nn] = state.mtfa[pp + nn - 1];
+                        unchecked(state.mtfa[pp + nn] = state.mtfa[pp + nn - 1]);
                         nn--;
                     }
 
-                    state.mtfa[pp] = uc;
+                    unchecked(state.mtfa[pp] = uc);
                 } else {
                     // general case
                     let lno: i32 = nn / BZip2State.MTFL_SIZE;
                     const off: i32 = nn % BZip2State.MTFL_SIZE;
 
-                    pp = state.mtfbase[lno] + off;
-                    uc = state.mtfa[pp];
+                    unchecked(pp = state.mtfbase[lno] + off);
+                    unchecked(uc = state.mtfa[pp]);
 
-                    while (pp > state.mtfbase[lno]) {
-                        state.mtfa[pp] = state.mtfa[pp - 1];
+                    while (unchecked(pp > state.mtfbase[lno])) {
+                        unchecked(state.mtfa[pp] = state.mtfa[pp - 1]);
                         pp--;
                     }
 
-                    state.mtfbase[lno]++;
+                    unchecked(state.mtfbase[lno]++);
 
                     while (lno > 0) {
-                        state.mtfbase[lno]--;
-                        state.mtfa[state.mtfbase[lno]] = state.mtfa[state.mtfbase[lno - 1] + 16 - 1];
+                        unchecked(state.mtfbase[lno]--);
+                        unchecked(state.mtfa[state.mtfbase[lno]] = state.mtfa[state.mtfbase[lno - 1] + 16 - 1]);
                         lno--;
                     }
 
-                    state.mtfbase[0]--;
-                    state.mtfa[state.mtfbase[0]] = uc;
+                    unchecked(state.mtfbase[0]--);
+                    unchecked(state.mtfa[state.mtfbase[0]] = uc);
 
-                    if (state.mtfbase[0] == 0) {
+                    if (unchecked(state.mtfbase[0] == 0)) {
                         kk = BZip2State.MTFA_SIZE - 1;
                         for (let ii: i32 = 256 / BZip2State.MTFL_SIZE - 1; ii >= 0; ii--) {
                             for (let jj: i32 = BZip2State.MTFL_SIZE - 1; jj >= 0; jj--) {
-                                state.mtfa[kk] = state.mtfa[state.mtfbase[ii] + jj];
+                                unchecked(state.mtfa[kk] = state.mtfa[state.mtfbase[ii] + jj]);
                                 kk--;
                             }
 
-                            state.mtfbase[ii] = kk + 1;
+                            unchecked(state.mtfbase[ii] = kk + 1);
                         }
                     }
                 }
                 // end uc = MTF ( nextSym-1 )
 
-                state.unzftab[state.seqToUnseq[uc & 0xFF] & 0xFF]++;
-                BZip2State.tt[nblock] = state.seqToUnseq[uc & 0xFF] & 0xFF;
+                unchecked(state.unzftab[state.seqToUnseq[uc & 0xFF] & 0xFF]++);
+                unchecked(BZip2State.tt[nblock] = state.seqToUnseq[uc & 0xFF] & 0xFF);
                 nblock++;
 
                 // macro: GET_MTF_VAL
                 if (gPos == 0) {
                     groupNo++;
                     gPos = 50;
-                    gSel = state.selector[groupNo];
-                    gMinlen = state.minLens[gSel];
-                    gLimit = state.limit[gSel];
-                    gPerm = state.perm[gSel];
-                    gBase = state.base[gSel];
+                    unchecked(gSel = state.selector[groupNo]);
+                    unchecked(gMinlen = state.minLens[gSel]);
+                    unchecked(gLimit = state.limit[gSel]);
+                    unchecked(gPerm = state.perm[gSel]);
+                    unchecked(gBase = state.base[gSel]);
                 }
 
                 gPos--;
@@ -403,14 +403,14 @@ function decompress(state: BZip2State): void {
         // Set up cftab to facilitate generation of T^(-1)
 
         // Actually generate cftab
-        state.cftab[0] = 0;
+        unchecked(state.cftab[0] = 0);
 
         for (let i: i32 = 1; i <= 256; i++) {
-            state.cftab[i] = state.unzftab[i - 1];
+            unchecked(state.cftab[i] = state.unzftab[i - 1]);
         }
 
         for (let i: i32 = 1; i <= 256; i++) {
-            state.cftab[i] += state.cftab[i - 1];
+            unchecked(state.cftab[i] += state.cftab[i - 1]);
         }
 
         state.state_out_len = 0;
@@ -418,16 +418,16 @@ function decompress(state: BZip2State): void {
 
         // compute the T^(-1) vector
         for (let i: i32 = 0; i < nblock; i++) {
-            uc = <u8>(BZip2State.tt[i] & 0xFF);
-            BZip2State.tt[state.cftab[uc & 0xFF]] |= i << 8;
-            state.cftab[uc & 0xFF]++;
+            unchecked(uc = <u8>(BZip2State.tt[i] & 0xFF));
+            unchecked(BZip2State.tt[state.cftab[uc & 0xFF]] |= i << 8);
+            unchecked(state.cftab[uc & 0xFF]++);
         }
 
-        state.tPos = BZip2State.tt[state.origPtr] >> 8;
+        unchecked(state.tPos = BZip2State.tt[state.origPtr] >> 8);
         state.c_nblock_used = 0;
 
         // macro: BZ_GET_FAST
-        state.tPos = BZip2State.tt[state.tPos];
+        unchecked(state.tPos = BZip2State.tt[state.tPos]);
         state.k0 = <u8>(state.tPos & 0xFF);
         state.tPos >>= 8;
         state.c_nblock_used++;
@@ -440,7 +440,7 @@ function decompress(state: BZip2State): void {
 
 function getBits(n: i32, state: BZip2State): i32 {
     while (state.bsLive < n) {
-        state.bsBuff = state.bsBuff << 8 | (state.stream[state.next_in] & 0xFF);
+        unchecked(state.bsBuff = state.bsBuff << 8 | (state.stream[state.next_in] & 0xFF));
         state.bsLive += 8;
         state.next_in++;
         state.avail_in--;
@@ -467,8 +467,8 @@ function makeMaps(state: BZip2State): void {
     state.nInUse = 0;
 
     for (let i: i32 = 0; i < 256; i++) {
-        if (state.inUse[i]) {
-            state.seqToUnseq[state.nInUse] = <u8>i;
+        if (unchecked(state.inUse[i])) {
+            unchecked(state.seqToUnseq[state.nInUse] = <u8>i);
             state.nInUse++;
         }
     }
@@ -479,38 +479,38 @@ function createDecodeTables(limit: Int32Array, base: Int32Array, perm: Int32Arra
 
     for (let i: i32 = minLen; i <= maxLen; i++) {
         for (let j: i32 = 0; j < alphaSize; j++) {
-            if (length[j] == i) {
-                perm[pp] = j;
+            if (unchecked(length[j] == i)) {
+                unchecked(perm[pp] = j);
                 pp++;
             }
         }
     }
 
     for (let i: i32 = 0; i < BZip2State.BZ_MAX_CODE_LEN; i++) {
-        base[i] = 0;
+        unchecked(base[i] = 0);
     }
 
     for (let i: i32 = 0; i < alphaSize; i++) {
-        base[length[i] + 1]++;
+        unchecked(base[length[i] + 1]++);
     }
 
     for (let i: i32 = 1; i < BZip2State.BZ_MAX_CODE_LEN; i++) {
-        base[i] += base[i - 1];
+        unchecked(base[i] += base[i - 1]);
     }
 
     for (let i: i32 = 0; i < BZip2State.BZ_MAX_CODE_LEN; i++) {
-        limit[i] = 0;
+        unchecked(limit[i] = 0);
     }
 
     let vec: i32 = 0;
     for (let i: i32 = minLen; i <= maxLen; i++) {
-        vec += base[i + 1] - base[i];
-        limit[i] = vec - 1;
+        unchecked(vec += base[i + 1] - base[i]);
+        unchecked(limit[i] = vec - 1);
         vec <<= 1;
     }
 
     for (let i: i32 = minLen + 1; i <= maxLen; i++) {
-        base[i] = (limit[i - 1] + 1 << 1) - base[i];
+        unchecked(base[i] = (limit[i - 1] + 1 << 1) - base[i]);
     }
 }
 
@@ -537,7 +537,7 @@ function finish(state: BZip2State): void {
                     outer = false;
                     inner = false;
                 } else {
-                    cs_decompressed[cs_next_out] = c_state_out_ch;
+                    unchecked(cs_decompressed[cs_next_out] = c_state_out_ch);
                     if (c_state_out_len == 1) {
                         cs_next_out++;
                         cs_avail_out--;
@@ -562,7 +562,7 @@ function finish(state: BZip2State): void {
 
                 // macro: BZ_GET_FAST_C
                 c_state_out_ch = <u8>c_k0;
-                c_tPos = c_tt[c_tPos];
+                unchecked(c_tPos = c_tt[c_tPos]);
                 k1 = <u8>(c_tPos & 0xFF);
                 c_tPos >>= 0x8;
                 c_nblock_used++;
@@ -573,7 +573,7 @@ function finish(state: BZip2State): void {
                         c_state_out_len = 1;
                         outer = false;
                     } else {
-                        cs_decompressed[cs_next_out] = c_state_out_ch;
+                        unchecked(cs_decompressed[cs_next_out] = c_state_out_ch);
                         cs_next_out++;
                         cs_avail_out--;
                         next = true;
@@ -583,7 +583,7 @@ function finish(state: BZip2State): void {
                         c_state_out_len = 1;
                         outer = false;
                     } else {
-                        cs_decompressed[cs_next_out] = c_state_out_ch;
+                        unchecked(cs_decompressed[cs_next_out] = c_state_out_ch);
                         cs_next_out++;
                         cs_avail_out--;
                         next = true;
@@ -595,7 +595,7 @@ function finish(state: BZip2State): void {
         if (outer) {
             // macro: BZ_GET_FAST_C
             c_state_out_len = 2;
-            c_tPos = c_tt[c_tPos];
+            unchecked(c_tPos = c_tt[c_tPos]);
             k1 = <u8>(c_tPos & 0xFF);
             c_tPos >>= 0x8;
             c_nblock_used++;
@@ -604,7 +604,7 @@ function finish(state: BZip2State): void {
                 if (k1 == c_k0) {
                     // macro: BZ_GET_FAST_C
                     c_state_out_len = 3;
-                    c_tPos = c_tt[c_tPos];
+                    unchecked(c_tPos = c_tt[c_tPos]);
                     k1 = <u8>(c_tPos & 0xFF);
                     c_tPos >>= 0x8;
                     c_nblock_used++;
@@ -612,14 +612,14 @@ function finish(state: BZip2State): void {
                     if (c_nblock_used != s_save_nblockPP) {
                         if (k1 == c_k0) {
                             // macro: BZ_GET_FAST_C
-                            c_tPos = c_tt[c_tPos];
+                            unchecked(c_tPos = c_tt[c_tPos]);
                             k1 = <u8>(c_tPos & 0xFF);
                             c_tPos >>= 0x8;
                             c_nblock_used++;
 
                             // macro: BZ_GET_FAST_C
                             c_state_out_len = (k1 & 0xFF) + 4;
-                            c_tPos = c_tt[c_tPos];
+                            unchecked(c_tPos = c_tt[c_tPos]);
                             c_k0 = <u8>(c_tPos & 0xFF);
                             c_tPos >>= 0x8;
                             c_nblock_used++;

@@ -19,6 +19,7 @@ export default class Jagfile {
     fileUnpackedSize: number[];
     filePackedSize: number[];
     fileOffset: number[];
+    fileUnpacked: Uint8Array[] = [];
 
     constructor(src: Int8Array) {
         let data: Packet = new Packet(src);
@@ -29,7 +30,9 @@ export default class Jagfile {
             this.buffer = src;
             this.compressedWhole = false;
         } else {
+            // console.time('bzip2');
             this.buffer = Bz2.decompressBz2(unpackedSize, src, packedSize, 6);
+            // console.timeEnd('bzip2');
             data = new Packet(this.buffer);
             this.compressedWhole = true;
         }
@@ -64,12 +67,20 @@ export default class Jagfile {
             return null;
         }
 
+        if (this.fileUnpacked[index] != null) {
+            return this.fileUnpacked[index];
+        }
+
         const offset: number = this.fileOffset[index];
         const length: number = offset + this.filePackedSize[index];
         if (this.compressedWhole) {
-            return Uint8Array.from(this.buffer.subarray(offset, offset + length));
+            const data: Uint8Array = Uint8Array.from(this.buffer.subarray(offset, offset + length));
+            this.fileUnpacked[index] = data;
+            return data;
         } else {
-            return Uint8Array.from(Bz2.decompressBz2(this.fileUnpackedSize[index], this.buffer, this.filePackedSize[index], this.fileOffset[index]));
+            const data: Uint8Array = Uint8Array.from(Bz2.decompressBz2(this.fileUnpackedSize[index], this.buffer, this.filePackedSize[index], this.fileOffset[index]));
+            this.fileUnpacked[index] = data;
+            return data;
         }
     };
 }
