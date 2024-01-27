@@ -1,6 +1,7 @@
 import Linkable from '../../datastruct/Linkable';
 
 export default class LocTemporary extends Linkable {
+    // constructor
     plane: number;
     layer: number;
     x: number;
@@ -12,17 +13,17 @@ export default class LocTemporary extends Linkable {
     lastAngle: number;
     lastShape: number;
 
-    constructor() {
+    constructor(plane: number, layer: number, x: number, z: number, locIndex: number, angle: number, shape: number, lastLocIndex: number, lastAngle: number, lastShape: number) {
         super();
-        this.plane = 0;
-        this.layer = 0;
-        this.x = 0;
-        this.z = 0;
-        this.locIndex = 0;
-        this.angle = 0;
-        this.shape = 0;
-        this.lastLocIndex = 0;
-        this.lastAngle = 0;
-        this.lastShape = 0;
+        this.plane = plane;
+        this.layer = layer;
+        this.x = x;
+        this.z = z;
+        this.locIndex = locIndex;
+        this.angle = angle;
+        this.shape = shape;
+        this.lastLocIndex = lastLocIndex;
+        this.lastAngle = lastAngle;
+        this.lastShape = lastShape;
     }
 }
