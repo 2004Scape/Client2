@@ -30,13 +30,15 @@ export default class ComType {
     static readonly BUTTON_CONTINUE: number = 6;
 
     // client codes
-    //// friends
+    //// friends (1-203)
+    static readonly CC_FRIENDS_START: number = 1;
+    static readonly CC_FRIENDS_END: number = 200;
     static readonly CC_ADD_FRIEND: number = 201;
     static readonly CC_DEL_FRIEND: number = 202;
     static readonly CC_FRIENDS_SIZE: number = 203;
     //// logout
     static readonly CC_LOGOUT: number = 205;
-    //// player design
+    //// player design (300-327)
     static readonly CC_CHANGE_HEAD_L: number = 300;
     static readonly CC_CHANGE_HEAD_R: number = 301;
     static readonly CC_CHANGE_JAW_L: number = 302;
@@ -65,11 +67,13 @@ export default class ComType {
     static readonly CC_SWITCH_TO_FEMALE: number = 325;
     static readonly CC_ACCEPT_DESIGN: number = 326;
     static readonly CC_DESIGN_PREVIEW: number = 327;
-    //// ignores
+    //// ignores (401-503)
+    static readonly CC_IGNORES_START: number = 401;
+    static readonly CC_IGNORES_END: number = 500;
     static readonly CC_ADD_IGNORE: number = 501;
     static readonly CC_DEL_IGNORE: number = 502;
     static readonly CC_IGNORES_SIZE: number = 503;
-    //// reportabuse
+    //// reportabuse (601-613)
     static readonly CC_REPORT_RULE1: number = 601;
     static readonly CC_REPORT_RULE2: number = 602;
     static readonly CC_REPORT_RULE3: number = 603;
@@ -83,7 +87,7 @@ export default class ComType {
     static readonly CC_REPORT_RULE11: number = 611;
     static readonly CC_REPORT_RULE12: number = 612;
     static readonly CC_MOD_MUTE: number = 613;
-    //// welcome_screen/welcome_screen2
+    //// welcome_screen/welcome_screen2 (650-655)?
     static readonly CC_LAST_LOGIN_INFO: number = 650; // has recovery questions
     static readonly CC_UNREAD_MESSAGES: number = 651;
     static readonly CC_LAST_LOGIN_INFO2: number = 655; // has no recovery questions

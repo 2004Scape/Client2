@@ -5275,7 +5275,7 @@ class Client extends GameShell {
 
     private handleSocialMenuOption = (component: ComType): boolean => {
         let type: number = component.clientCode;
-        if (type >= 1 && type <= 200) {
+        if (type >= ComType.CC_FRIENDS_START && type <= ComType.CC_FRIENDS_END) {
             if (type >= 101) {
                 type -= 101;
             } else {
@@ -5288,7 +5288,7 @@ class Client extends GameShell {
             this.menuAction[this.menuSize] = 679;
             this.menuSize++;
             return true;
-        } else if (type >= 401 && type <= 500) {
+        } else if (type >= ComType.CC_IGNORES_START && type <= ComType.CC_IGNORES_END) {
             this.menuOption[this.menuSize] = 'Remove @whi@' + component.text;
             this.menuAction[this.menuSize] = 556;
             this.menuSize++;
@@ -5316,6 +5316,7 @@ class Client extends GameShell {
             // this.handlePrivateChatInput(this.mouseX, this.mouseY);
             this.lastHoveredInterfaceId = 0;
 
+            // the main viewport area
             if (this.mouseX > 8 && this.mouseY > 11 && this.mouseX < 520 && this.mouseY < 345) {
                 if (this.viewportInterfaceID === -1) {
                     this.handleViewportOptions();
@@ -5330,6 +5331,7 @@ class Client extends GameShell {
 
             this.lastHoveredInterfaceId = 0;
 
+            // the sidebar/tabs area
             if (this.mouseX > 562 && this.mouseY > 231 && this.mouseX < 752 && this.mouseY < 492) {
                 if (this.sidebarInterfaceId !== -1) {
                     this.handleInterfaceInput(ComType.instances[this.sidebarInterfaceId], this.mouseX, this.mouseY, 562, 231, 0);
@@ -5345,6 +5347,7 @@ class Client extends GameShell {
 
             this.lastHoveredInterfaceId = 0;
 
+            // the chatbox area
             if (this.mouseX > 22 && this.mouseY > 375 && this.mouseX < 431 && this.mouseY < 471) {
                 if (this.chatInterfaceId === -1) {
                     this.handleChatMouseInput(this.mouseX - 22, this.mouseY - 375);
@@ -5409,6 +5412,8 @@ class Client extends GameShell {
 
         let x: number;
         let y: number;
+
+        // the main viewport area
         if (this.mouseClickX > 8 && this.mouseClickY > 11 && this.mouseClickX < 520 && this.mouseClickY < 345) {
             x = this.mouseClickX - Math.trunc(width / 2) - 8;
             if (x + width > 512) {
@@ -5431,6 +5436,8 @@ class Client extends GameShell {
             this.menuWidth = width;
             this.menuHeight = this.menuSize * 15 + 22;
         }
+
+        // the sidebar/tabs area
         if (this.mouseClickX > 562 && this.mouseClickY > 231 && this.mouseClickX < 752 && this.mouseClickY < 492) {
             x = this.mouseClickX - Math.trunc(width / 2) - 562;
             if (x < 0) {
@@ -5453,6 +5460,8 @@ class Client extends GameShell {
             this.menuWidth = width;
             this.menuHeight = this.menuSize * 15 + 22;
         }
+
+        // the chatbox area
         if (this.mouseClickX > 22 && this.mouseClickY > 375 && this.mouseClickX < 501 && this.mouseClickY < 471) {
             x = this.mouseClickX - Math.trunc(width / 2) - 22;
             if (x < 0) {
