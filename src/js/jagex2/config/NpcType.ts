@@ -207,7 +207,7 @@ export default class NpcType extends ConfigType {
     };
 
     getHeadModel = (): Model | null => {
-        if (this.heads === null) {
+        if (!this.heads) {
             return null;
         }
 

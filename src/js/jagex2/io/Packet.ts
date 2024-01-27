@@ -1,10 +1,21 @@
 import {arraycopy, bigIntModPow, bigIntToBytes, bytesToBigInt} from '../util/JsUtil';
 import Isaac from './Isaac';
+import LinkList from '../datastruct/LinkList';
+import Hashable from '../datastruct/Hashable';
 
-export default class Packet {
-    static crctable: Int32Array = new Int32Array(256);
-    static CRC32_POLYNOMIAL: number = 0xedb88320;
-    static bitmask: Uint32Array = new Uint32Array(33);
+export default class Packet extends Hashable {
+    private static readonly CRC32_POLYNOMIAL: number = 0xedb88320;
+
+    private static readonly crctable: Int32Array = new Int32Array(256);
+    private static readonly bitmask: Uint32Array = new Uint32Array(33);
+
+    private static readonly cacheMin: LinkList = new LinkList();
+    private static readonly cacheMid: LinkList = new LinkList();
+    private static readonly cacheMax: LinkList = new LinkList();
+
+    private static cacheMinCount: number = 0;
+    private static cacheMidCount: number = 0;
+    private static cacheMaxCount: number = 0;
 
     static {
         for (let i: number = 0; i < 32; i++) {
@@ -47,17 +58,49 @@ export default class Packet {
         if (!src) {
             throw new Error('Input src packet array was null!');
         }
+        super();
         this.data = new Uint8Array(src);
         this.pos = 0;
     }
 
     static alloc = (type: number): Packet => {
+        let cached: Packet | null = null;
+        if (type === 0 && Packet.cacheMinCount > 0) {
+            Packet.cacheMinCount--;
+            cached = Packet.cacheMin.pollFront() as Packet | null;
+        } else if (type === 1 && Packet.cacheMidCount > 0) {
+            Packet.cacheMidCount--;
+            cached = Packet.cacheMid.pollFront() as Packet | null;
+        } else if (type === 2 && Packet.cacheMaxCount > 0) {
+            Packet.cacheMaxCount--;
+            cached = Packet.cacheMax.pollFront() as Packet | null;
+        }
+
+        if (cached) {
+            cached.pos = 0;
+            return cached;
+        }
+
         if (type === 0) {
             return new Packet(new Uint8Array(100));
         } else if (type === 1) {
             return new Packet(new Uint8Array(5000));
         }
         return new Packet(new Uint8Array(30000));
+    };
+
+    release = (): void => {
+        this.pos = 0;
+        if (this.data.length === 100 && Packet.cacheMinCount < 1000) {
+            Packet.cacheMin.pushBack(this);
+            Packet.cacheMinCount++;
+        } else if (this.data.length === 5000 && Packet.cacheMidCount < 250) {
+            Packet.cacheMid.pushBack(this);
+            Packet.cacheMidCount++;
+        } else if (this.data.length === 30000 && Packet.cacheMaxCount < 50) {
+            Packet.cacheMax.pushBack(this);
+            Packet.cacheMaxCount++;
+        }
     };
 
     get g1(): number {

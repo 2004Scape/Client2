@@ -65,7 +65,7 @@ export default class Jagfile {
             return null;
         }
 
-        if (this.fileUnpacked[index] != null) {
+        if (this.fileUnpacked[index]) {
             return this.fileUnpacked[index];
         }
 

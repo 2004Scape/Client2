@@ -98,7 +98,7 @@ class Viewer extends GameShell {
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
-            const checksums: Packet = new Packet(Uint8Array.from(await downloadUrl(`${Viewer.HOST}/crc`)));
+            const checksums: Packet = new Packet(await downloadUrl(`${Viewer.HOST}/crc`));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -263,7 +263,7 @@ class Viewer extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                data = await downloadUrl(`${Viewer.HOST}/${filename}${crc}`);
+                data = new Int8Array(await downloadUrl(`${Viewer.HOST}/${filename}${crc}`));
             } catch (e) {
                 data = undefined;
                 for (let i: number = retry; i > 0; i--) {
@@ -809,5 +809,5 @@ new Viewer().run().then((): void => {});
 
 // prevent space from scrolling page
 window.onkeydown = function (e): boolean {
-    return !(e.key == ' ' && e.target == document.body);
+    return !(e.key === ' ' && e.target === document.body);
 };

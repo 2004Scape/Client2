@@ -20,15 +20,24 @@ export default class CollisionFlag {
     static readonly WALL_WEST_PROJ_BLOCKER: number = CollisionFlag.WALL_EAST_PROJ_BLOCKER << 4; // 65536 0x10000
     static readonly LOC_PROJ_BLOCKER: number = CollisionFlag.LOC << 9; // 131072 0x20000
 
-    static readonly FLOOR_DECORATION: number = 0x80000; // 524288 // yes this is actually correct server is wrong ifu math it out
+    static readonly FLOOR_DECORATION: number = 0x80000; // 524288
     static readonly FLOOR: number = 0x200000; // 2097152
 
     static readonly FLOOR_BLOCKED: number = CollisionFlag.FLOOR | CollisionFlag.FLOOR_DECORATION; // 2621440 0x280000
     static readonly WALK_BLOCKED: number = CollisionFlag.LOC | CollisionFlag.FLOOR_BLOCKED; // 2621696 0x280100
-    static readonly BLOCK_WEST: number = CollisionFlag.WALL_EAST | CollisionFlag.WALK_BLOCKED; // 2621704 0x280108
-    static readonly BLOCK_EAST: number = CollisionFlag.WALL_WEST | CollisionFlag.WALK_BLOCKED; // 2621824 0x280180
+
     static readonly BLOCK_SOUTH: number = CollisionFlag.WALL_NORTH | CollisionFlag.WALK_BLOCKED; // 2621698 0x280102
+
+    static readonly BLOCK_WEST: number = CollisionFlag.WALL_EAST | CollisionFlag.WALK_BLOCKED; // 2621704 0x280108
+    static readonly BLOCK_SOUTH_WEST: number = CollisionFlag.WALL_NORTH | CollisionFlag.WALL_NORTH_EAST | CollisionFlag.BLOCK_WEST; // 2621710 0x28010E
+
     static readonly BLOCK_NORTH: number = CollisionFlag.WALL_SOUTH | CollisionFlag.WALK_BLOCKED; // 2621728 0x280120
+    static readonly BLOCK_NORTH_WEST: number = CollisionFlag.WALL_EAST | CollisionFlag.WALL_SOUTH_EAST | CollisionFlag.BLOCK_NORTH; // 2621752 0x280138
+
+    static readonly BLOCK_EAST: number = CollisionFlag.WALL_WEST | CollisionFlag.WALK_BLOCKED; // 2621824 0x280180
+    static readonly BLOCK_SOUTH_EAST: number = CollisionFlag.WALL_NORTH_WEST | CollisionFlag.WALL_NORTH | CollisionFlag.BLOCK_EAST; // 2621827 0x280183
+
+    static readonly BLOCK_NORTH_EAST: number = CollisionFlag.WALL_SOUTH | CollisionFlag.WALL_SOUTH_WEST | CollisionFlag.BLOCK_EAST; // 2621920 0x2801E0
 
     static readonly BOUNDS: number = 0xffffff; // 16777215
 }

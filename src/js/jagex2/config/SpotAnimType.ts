@@ -41,7 +41,7 @@ export default class SpotAnimType extends ConfigType {
         } else if (code === 2) {
             this.anim = dat.g2;
 
-            if (SeqType.instances !== null) {
+            if (SeqType.instances) {
                 this.seq = SeqType.instances[this.anim];
             }
         } else if (code === 3) {

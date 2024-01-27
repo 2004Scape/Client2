@@ -384,7 +384,7 @@ export default class WordFilter {
                 }
                 const current: number = this.getIndex(currentChar);
                 const next: number = this.getIndex(nextChar);
-                if (combos !== null && this.comboMatches(current, combos, next)) {
+                if (combos && this.comboMatches(current, combos, next)) {
                     shouldFilter = false;
                 }
             }

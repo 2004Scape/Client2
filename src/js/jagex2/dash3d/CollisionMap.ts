@@ -4,6 +4,9 @@ import LocShape from './LocShape';
 import DirectionFlag from './DirectionFlag';
 
 export default class CollisionMap {
+    static readonly SIZE: number = 104;
+    static index = (x: number, z: number): number => x * CollisionMap.SIZE + z;
+
     // constructor
     readonly offsetX: number;
     readonly offsetZ: number;
@@ -11,21 +14,19 @@ export default class CollisionMap {
     readonly sizeZ: number;
     readonly flags: Int32Array;
 
-    constructor(sizeX: number, sizeZ: number) {
+    constructor() {
         this.offsetX = 0;
         this.offsetZ = 0;
-        this.sizeX = sizeX;
-        this.sizeZ = sizeZ;
+        this.sizeX = CollisionMap.SIZE;
+        this.sizeZ = CollisionMap.SIZE;
         this.flags = new Int32Array(this.sizeX * this.sizeZ);
         this.reset();
     }
 
-    index = (x: number, z: number): number => x * this.sizeZ + z;
-
     reset = (): void => {
         for (let x: number = 0; x < this.sizeX; x++) {
             for (let z: number = 0; z < this.sizeZ; z++) {
-                const index: number = this.index(x, z);
+                const index: number = CollisionMap.index(x, z);
                 if (x === 0 || z === 0 || x === this.sizeX - 1 || z === this.sizeZ - 1) {
                     this.flags[index] = CollisionFlag.BOUNDS;
                 } else {
@@ -36,11 +37,11 @@ export default class CollisionMap {
     };
 
     addFloor = (tileX: number, tileZ: number): void => {
-        this.flags[this.index(tileX - this.offsetX, tileZ - this.offsetZ)] |= CollisionFlag.FLOOR;
+        this.flags[CollisionMap.index(tileX - this.offsetX, tileZ - this.offsetZ)] |= CollisionFlag.FLOOR;
     };
 
     removeFloor = (tileX: number, tileZ: number): void => {
-        this.flags[this.index(tileX - this.offsetX, tileZ - this.offsetZ)] &= ~CollisionFlag.FLOOR;
+        this.flags[CollisionMap.index(tileX - this.offsetX, tileZ - this.offsetZ)] &= ~CollisionFlag.FLOOR;
     };
 
     addLoc = (tileX: number, tileZ: number, sizeX: number, sizeZ: number, angle: LocAngle, blockrange: boolean): void => {
@@ -239,7 +240,7 @@ export default class CollisionMap {
         const sz: number = sourceZ - this.offsetZ;
         const dx: number = destX - this.offsetX;
         const dz: number = destZ - this.offsetZ;
-        const index: number = this.index(sx, sz);
+        const index: number = CollisionMap.index(sx, sz);
 
         if (shape === LocShape.WALL_STRAIGHT) {
             if (angle === LocAngle.WEST) {
@@ -340,7 +341,7 @@ export default class CollisionMap {
         const sz: number = sourceZ - this.offsetZ;
         const dx: number = destX - this.offsetX;
         const dz: number = destZ - this.offsetZ;
-        const index: number = this.index(sx, sz);
+        const index: number = CollisionMap.index(sx, sz);
 
         if (shape === LocShape.WALLDECOR_DIAGONAL_OFFSET || shape === LocShape.WALLDECOR_DIAGONAL_NOOFFSET) {
             if (shape === LocShape.WALLDECOR_DIAGONAL_NOOFFSET) {
@@ -389,7 +390,7 @@ export default class CollisionMap {
     reachedLoc = (srcX: number, srcZ: number, dstX: number, dstZ: number, dstSizeX: number, dstSizeZ: number, forceapproach: number): boolean => {
         const maxX: number = dstX + dstSizeX - 1;
         const maxZ: number = dstZ + dstSizeZ - 1;
-        const index: number = this.index(srcX - this.offsetX, srcZ - this.offsetZ);
+        const index: number = CollisionMap.index(srcX - this.offsetX, srcZ - this.offsetZ);
 
         if (srcX >= dstX && srcX <= maxX && srcZ >= dstZ && srcZ <= maxZ) {
             return true;
@@ -406,10 +407,10 @@ export default class CollisionMap {
     };
 
     private add = (x: number, z: number, flags: number): void => {
-        this.flags[this.index(x, z)] |= flags;
+        this.flags[CollisionMap.index(x, z)] |= flags;
     };
 
     private remove = (x: number, z: number, flags: number): void => {
-        this.flags[this.index(x, z)] &= CollisionFlag.BOUNDS - flags;
+        this.flags[CollisionMap.index(x, z)] &= CollisionFlag.BOUNDS - flags;
     };
 }

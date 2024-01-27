@@ -1765,7 +1765,7 @@ export default class Model extends Hashable {
 
         let sinYaw: number = 0;
         let cosYaw: number = 0;
-        if (yaw != 0) {
+        if (yaw !== 0) {
             sinYaw = Draw3D.sin[yaw];
             cosYaw = Draw3D.cos[yaw];
         }
@@ -1776,7 +1776,7 @@ export default class Model extends Hashable {
             let z: number = this.vertexZ[v];
 
             let temp: number;
-            if (yaw != 0) {
+            if (yaw !== 0) {
                 temp = (z * sinYaw + x * cosYaw) >> 16;
                 z = (z * cosYaw - x * sinYaw) >> 16;
                 x = temp;
@@ -2450,7 +2450,7 @@ export default class Model extends Hashable {
     private applyTransform2 = (x: number, y: number, z: number, labels: Uint8Array, type: number): void => {
         const labelCount: number = labels.length;
 
-        if (type == 0) {
+        if (type === 0) {
             let count: number = 0;
             Model.baseX = 0;
             Model.baseY = 0;
@@ -2482,7 +2482,7 @@ export default class Model extends Hashable {
                 Model.baseY = y;
                 Model.baseZ = z;
             }
-        } else if (type == 1) {
+        } else if (type === 1) {
             for (let g: number = 0; g < labelCount; g++) {
                 const group: number = labels[g];
                 if (!this.labelVertices || group >= this.labelVertices.length) {
@@ -2497,7 +2497,7 @@ export default class Model extends Hashable {
                     this.vertexZ[v] += z;
                 }
             }
-        } else if (type == 2) {
+        } else if (type === 2) {
             for (let g: number = 0; g < labelCount; g++) {
                 const label: number = labels[g];
                 if (!this.labelVertices || label >= this.labelVertices.length) {
@@ -2518,7 +2518,7 @@ export default class Model extends Hashable {
                     let sin: number;
                     let cos: number;
 
-                    if (roll != 0) {
+                    if (roll !== 0) {
                         sin = Draw3D.sin[roll];
                         cos = Draw3D.cos[roll];
                         const x_: number = (this.vertexY[v] * sin + this.vertexX[v] * cos) >> 16;
@@ -2526,7 +2526,7 @@ export default class Model extends Hashable {
                         this.vertexX[v] = x_;
                     }
 
-                    if (pitch != 0) {
+                    if (pitch !== 0) {
                         sin = Draw3D.sin[pitch];
                         cos = Draw3D.cos[pitch];
                         const y_: number = (this.vertexY[v] * cos - this.vertexZ[v] * sin) >> 16;
@@ -2534,7 +2534,7 @@ export default class Model extends Hashable {
                         this.vertexY[v] = y_;
                     }
 
-                    if (yaw != 0) {
+                    if (yaw !== 0) {
                         sin = Draw3D.sin[yaw];
                         cos = Draw3D.cos[yaw];
                         const x_: number = (this.vertexZ[v] * sin + this.vertexX[v] * cos) >> 16;
@@ -2547,7 +2547,7 @@ export default class Model extends Hashable {
                     this.vertexZ[v] += Model.baseZ;
                 }
             }
-        } else if (type == 3) {
+        } else if (type === 3) {
             for (let g: number = 0; g < labelCount; g++) {
                 const label: number = labels[g];
                 if (!this.labelVertices || label >= this.labelVertices.length) {
@@ -2568,7 +2568,7 @@ export default class Model extends Hashable {
                     this.vertexZ[v] += Model.baseZ;
                 }
             }
-        } else if (type == 5 && this.labelFaces && this.faceAlpha) {
+        } else if (type === 5 && this.labelFaces && this.faceAlpha) {
             for (let g: number = 0; g < labelCount; g++) {
                 const label: number = labels[g];
                 if (label >= this.labelFaces.length) {

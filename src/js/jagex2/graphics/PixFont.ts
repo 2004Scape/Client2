@@ -203,12 +203,12 @@ export default class PixFont extends Hashable {
         const rand: number = (this.random.nextInt() & 0x1f) + 192;
         const offY: number = y - this.fontHeight;
         for (let i: number = 0; i < str.length; i++) {
-            if (str.charAt(i) == '@' && i + 4 < str.length && str.charAt(i + 4) == '@') {
+            if (str.charAt(i) === '@' && i + 4 < str.length && str.charAt(i + 4) === '@') {
                 color = this.evaluateTag(str.substring(i + 1, i + 4));
                 i += 4;
             } else {
                 const c: number = PixFont.CHARSET[str.charCodeAt(i)];
-                if (c != 94) {
+                if (c !== 94) {
                     if (shadowed) {
                         this.drawCharAlpha(x + this.clipX[c] + 1, offY + this.clipY[c] + 1, this.charWidth[c], this.charHeight[c], 0, 192, this.pixels[c]);
                     }
@@ -217,7 +217,7 @@ export default class PixFont extends Hashable {
                 }
 
                 x += this.charSpace[c];
-                if ((this.random.nextInt() & 0x3) == 0) {
+                if ((this.random.nextInt() & 0x3) === 0) {
                     x++;
                 }
             }
@@ -382,7 +382,7 @@ export default class PixFont extends Hashable {
 
         for (let y: number = -h; y < 0; y++) {
             for (let x: number = -w; x < 0; x++) {
-                if (mask[maskOff++] == 0) {
+                if (mask[maskOff++] === 0) {
                     dstOff++;
                 } else {
                     const dstRgb: number = dst[dstOff];

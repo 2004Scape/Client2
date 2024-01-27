@@ -2255,7 +2255,7 @@ export default class Draw3D {
     };
 
     static pushTexture = (id: number): void => {
-        if (this.activeTexels[id] !== null && this.texelPool) {
+        if (this.activeTexels[id] && this.texelPool) {
             this.texelPool[this.poolSize++] = this.activeTexels[id];
             this.activeTexels[id] = null;
         }
@@ -2263,7 +2263,7 @@ export default class Draw3D {
 
     private static getTexels = (id: number): Int32Array | null => {
         this.textureCycle[id] = this.cycle++;
-        if (this.activeTexels[id] !== null) {
+        if (this.activeTexels[id]) {
             return this.activeTexels[id];
         }
 
@@ -2275,7 +2275,7 @@ export default class Draw3D {
             let cycle: number = 0;
             let selected: number = -1;
             for (let t: number = 0; t < this.textureCount; t++) {
-                if (this.activeTexels[t] !== null && (this.textureCycle[t] < cycle || selected === -1)) {
+                if (this.activeTexels[t] && (this.textureCycle[t] < cycle || selected === -1)) {
                     cycle = this.textureCycle[t];
                     selected = t;
                 }
