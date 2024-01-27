@@ -155,7 +155,11 @@ export default class Packet extends Hashable {
         return str;
     }
 
-    gdata = (offset: number, length: number): Uint8Array => this.data.subarray(offset, offset + length);
+    gdata = (length: number, offset: number, dest: Int8Array): void => {
+        for (let i: number = offset; i < offset + length; i++) {
+            dest[i] = this.data[this.pos++];
+        }
+    };
 
     p1isaac = (opcode: number): void => {
         this.data[this.pos++] = (opcode + (this.random?.nextInt ?? 0)) & 0xff;

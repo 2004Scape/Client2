@@ -34,7 +34,7 @@ export default class Database {
         return await new Promise<Int8Array | undefined>((resolve): void => {
             const transaction: IDBTransaction = this.db.transaction('cache', 'readonly');
             const store: IDBObjectStore = transaction.objectStore('cache');
-            const request: IDBRequest<Int8Array> = store.get(this.genHash(name));
+            const request: IDBRequest<Int8Array> = store.get(name); // this.genHash(name)
 
             request.onsuccess = (): void => {
                 console.log('cacheload successful!');
@@ -57,7 +57,7 @@ export default class Database {
 
             const transaction: IDBTransaction = this.db.transaction('cache', 'readwrite');
             const store: IDBObjectStore = transaction.objectStore('cache');
-            const request: IDBRequest<IDBValidKey> = store.put(src, this.genHash(name));
+            const request: IDBRequest<IDBValidKey> = store.put(src, name); // this.genHash(name)
 
             request.onsuccess = (): void => {
                 console.log('cachesave successful!');

@@ -42,6 +42,7 @@ import CollisionFlag from './jagex2/dash3d/CollisionFlag';
 import PlayerEntity from './jagex2/dash3d/entity/PlayerEntity';
 import NpcEntity from './jagex2/dash3d/entity/NpcEntity';
 import LinkList from './jagex2/datastruct/LinkList';
+import LocTemporary from './jagex2/dash3d/type/LocTemporary';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -269,9 +270,9 @@ class Client extends GameShell {
     private chatbackInput: string = '';
     private chatbackInputOpen: boolean = false;
     private stickyChatInterfaceId: number = -1;
-    private messageText: (string | null)[] = new Array(100);
-    private messageSender: string[] = new Array(100);
-    private messageType: number[] = new Array(100);
+    private messageText: (string | null)[] = new Array(100).fill(null);
+    private messageSender: (string | null)[] = new Array(100).fill(null);
+    private messageType: Int32Array = new Int32Array(100);
     private splitPrivateChat: number = 0;
     private chatTyped: string = '';
     private viewportHoveredInterfaceIndex: number = 0;
@@ -302,10 +303,10 @@ class Client extends GameShell {
     private activeSpellFlags: number = 0;
     private spellCaption: string | null = null;
     private mouseButtonsOption: number = 0;
-    private menuAction: number[] = new Array(500).fill(0);
-    private menuParamA: number[] = new Array(500).fill(0);
-    private menuParamB: number[] = new Array(500).fill(0);
-    private menuParamC: number[] = new Array(500).fill(0);
+    private menuAction: Int32Array = new Int32Array(500);
+    private menuParamA: Int32Array = new Int32Array(500);
+    private menuParamB: Int32Array = new Int32Array(500);
+    private menuParamC: Int32Array = new Int32Array(500);
     private hoveredSlotParentId: number = 0;
     private hoveredSlot: number = 0;
     private lastHoveredInterfaceId: number = 0;
@@ -326,7 +327,7 @@ class Client extends GameShell {
     private cameraOffsetZModifier: number = 2;
     private cameraOffsetYawModifier: number = 1;
     private cameraModifierCycle: Int32Array = new Int32Array(5);
-    private cameraModifierEnabled: Int32Array = new Int32Array(5);
+    private cameraModifierEnabled: boolean[] = new Array(5).fill(false);
     private cameraModifierJitter: Int32Array = new Int32Array(5);
     private cameraModifierWobbleScale: Int32Array = new Int32Array(5);
     private cameraModifierWobbleSpeed: Int32Array = new Int32Array(5);
@@ -348,11 +349,13 @@ class Client extends GameShell {
     private sceneCenterZoneZ: number = 0;
     private sceneBaseTileX: number = 0;
     private sceneBaseTileZ: number = 0;
-    private sceneMapLandData: number[][] = [];
-    private sceneMapLocData: number[][] = [];
-    private sceneMapIndex: number[] = [];
+    private sceneMapLandData: (Int8Array | null)[] | null = null;
+    private sceneMapLocData: (Int8Array | null)[] | null = null;
+    private sceneMapIndex: Int32Array | null = null;
+    private mapLastBaseX: number = 0;
+    private mapLastBaseZ: number = 0;
     private textureBuffer: Int8Array = new Int8Array(16384);
-    private levelCollisionMap: (CollisionMap | null)[] = new Array(4);
+    private levelCollisionMap: (CollisionMap | null)[] = new Array(4).fill(null);
     private currentLevel: number = 0;
     private cameraMovedWrite: number = 0;
     private orbitCameraPitch: number = 128;
@@ -361,18 +364,20 @@ class Client extends GameShell {
     private orbitCameraPitchVelocity: number = 0;
 
     // entities
-    private players: (PlayerEntity | null)[] = new Array(this.MAX_PLAYER_COUNT);
+    private players: (PlayerEntity | null)[] = new Array(this.MAX_PLAYER_COUNT).fill(null);
     private playerCount: number = 0;
     private playerIds: Int32Array = new Int32Array(this.MAX_PLAYER_COUNT);
     private entityUpdateCount: number = 0;
     private entityUpdateIds: Int32Array = new Int32Array(this.MAX_PLAYER_COUNT);
-    private playerAppearanceBuffer: (Packet | null)[] = new Array(this.MAX_PLAYER_COUNT);
-    private npcs: (NpcEntity | null)[] = new Array(8192);
+    private playerAppearanceBuffer: (Packet | null)[] = new Array(this.MAX_PLAYER_COUNT).fill(null);
+    private npcs: (NpcEntity | null)[] = new Array(8192).fill(null);
     private npcCount: number = 0;
     private npcIds: Int32Array = new Int32Array(8192);
     private projectiles: LinkList = new LinkList();
     private spotanims: LinkList = new LinkList();
     private temporaryLocs: LinkList = new LinkList();
+    private levelObjStacks: Array<Array<Array<LinkList | null>>> = new Array(4).fill(null).map((): Array<Array<LinkList>> => new Array(104).fill(null).map((): Array<LinkList> => new Array(104).fill(null)));
+    private spawnedLocations: LinkList = new LinkList();
 
     // bfs pathfinder
     private bfsStepX: Int32Array = new Int32Array(4000);
@@ -402,8 +407,8 @@ class Client extends GameShell {
     private chatColors: Int32Array = new Int32Array(50);
     private chatStyles: Int32Array = new Int32Array(50);
     private chatTimers: Int32Array = new Int32Array(50);
-    private chats: string[] = new Array(50);
-    private friendName: string[] = new Array(100);
+    private chats: string[] = new Array(50).fill(null);
+    private friendName: string[] = new Array(100).fill(null);
     private friendName37: BigInt64Array = new BigInt64Array(100);
     private friendWorld: Int32Array = new Int32Array(100);
 
@@ -2192,8 +2197,9 @@ class Client extends GameShell {
             let line: number = 0;
             Draw2D.setBounds(0, 0, 463, 77);
             for (let i: number = 0; i < 100; i++) {
+                const sender: string | null = this.messageSender[i];
                 const message: string | null = this.messageText[i];
-                if (!message) {
+                if (!message || sender === null) {
                     continue;
                 }
                 const type: number = this.messageType[i];
@@ -2207,25 +2213,25 @@ class Client extends GameShell {
                 if (type === 1) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ':', 16777215);
-                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, message, 255);
+                        font?.drawString(font.stringWidth(sender) + 12, offset, message, 255);
                     }
                     line++;
                 }
-                if (type === 2 && (this.publicChatSetting === 0 || (this.publicChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
+                if (type === 2 && (this.publicChatSetting === 0 || (this.publicChatSetting === 1 && this.isFriend(sender)))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ':', 0);
-                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, message, 255);
+                        font?.drawString(font.stringWidth(sender) + 12, offset, message, 255);
                     }
                     line++;
                 }
-                if ((type === 3 || type === 7) && this.splitPrivateChat === 0 && (type === 7 || this.privateChatSetting === 0 || (this.privateChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
+                if ((type === 3 || type === 7) && this.splitPrivateChat === 0 && (type === 7 || this.privateChatSetting === 0 || (this.privateChatSetting === 1 && this.isFriend(sender)))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, 'From ' + this.messageSender[i] + ':', 0);
                         font?.drawString(font.stringWidth('From ' + this.messageSender[i]) + 12, offset, message, 8388608);
                     }
                     line++;
                 }
-                if (type === 4 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
+                if (type === 4 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(sender)))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], 8388736);
                     }
@@ -2244,7 +2250,7 @@ class Client extends GameShell {
                     }
                     line++;
                 }
-                if (type === 8 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
+                if (type === 8 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(sender)))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], 13350793);
                     }
@@ -3645,16 +3651,24 @@ class Client extends GameShell {
                 // DATA_LAND_DONE
                 const x: number = this.in.g1;
                 const z: number = this.in.g1;
-                // let index = -1;
-                // for (int i = 0; i < this.sceneMapIndex.length; i++) {
-                //     if (this.sceneMapIndex[i] === (x << 8) + z) {
-                //         index = i;
-                //     }
-                // }
-                // if (index !== -1) {
-                //     signlink.cachesave("m" + x + "_" + z, this.sceneMapLandData[index]);
-                //     this.sceneState = 1;
-                // }
+                let index: number = -1;
+                if (this.sceneMapIndex) {
+                    for (let i: number = 0; i < this.sceneMapIndex.length; i++) {
+                        if (this.sceneMapIndex[i] === (x << 8) + z) {
+                            index = i;
+                        }
+                    }
+                }
+                if (index !== -1) {
+                    const mapdata: (Int8Array | null)[] | null = this.sceneMapLandData;
+                    if (mapdata) {
+                        const data: Int8Array | null = mapdata[index];
+                        if (index !== -1 && data) {
+                            this.db?.cachesave(`m${x}_${z}`, data);
+                            this.sceneState = 1;
+                        }
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -3684,191 +3698,130 @@ class Client extends GameShell {
                 this.areaViewport?.draw(8, 11);
                 // signlink.looprate(5);
 
-                // const regions: number = Math.trunc((this.packetSize - 2) / 10);
-                //
-                // this.sceneMapLandData = [];
-                // this.sceneMapLocData = [];
-                // this.sceneMapIndex = [];
-                //
-                // this.out.p1isaac(150);
-                // this.out.p1(0);
-                //
-                // let mapCount: number = 0;
-                //
-                // for (let i: number = 0; i < regions; i++) {
-                //     const mapsquareX: number = this.in.g1;
-                //     const mapsquareZ: number = this.in.g1;
-                //     const landCrc: number = this.in.g4;
-                //     const locCrc: number = this.in.g4;
-                //     this.sceneMapIndex[i] = (mapsquareX << 8) + mapsquareZ;
-                //
-                //     if (landCrc !== 0) {
-                //         // TODO
-                //         let data: Uint8Array | null = null; // await downloadUrl(`https://2004scape.org:8080/m${mapsquareX}_${mapsquareZ}`);
-                //         // data = signlink.cacheload("m" + mapsquareX + "_" + mapsquareZ);
-                //         if (data) {
-                //             if (Packet.crc32(data) !== landCrc) {
-                //                 data = null;
-                //             }
-                //             // this.crc32.reset();
-                //             // this.crc32.update(data);
-                //             // if (this.crc32.getValue() !== landCrc) {
-                //             //     data = null;
-                //             // }
-                //         }
-                //         if (!data) {
-                //             this.sceneState = 0;
-                //             this.out.p1(0);
-                //             this.out.p1(mapsquareX);
-                //             this.out.p1(mapsquareZ);
-                //             mapCount += 3;
-                //         } else {
-                //             // this.sceneMapLandData[i] = data;
-                //         }
-                //     }
-                // }
+                const regions: number = Math.trunc((this.packetSize - 2) / 10);
 
-                //     if (this.sceneCenterZoneX === zoneX && this.sceneCenterZoneZ === zoneZ && this.sceneState !== 0) {
-                //         this.packetType = -1;
-                //         return true;
-                //     }
-                //     this.sceneCenterZoneX = zoneX;
-                //     this.sceneCenterZoneZ = zoneZ;
-                //     this.sceneBaseTileX = (this.sceneCenterZoneX - 6) * 8;
-                //     this.sceneBaseTileZ = (this.sceneCenterZoneZ - 6) * 8;
-                //     this.sceneState = 1;
-                //     this.areaViewport?.bind();
-                //     this.fontPlain12?.drawStringCenter(257, 151, "Loading - please wait.", 0);
-                //     this.fontPlain12?.drawStringCenter(256, 150, "Loading - please wait.", 16777215);
-                //     this.areaViewport?.draw(super.graphics, 8, 11);
-                //     signlink.looprate(5);
-                //     int regions = (this.packetSize - 2) / 10;
-                //     this.sceneMapLandData = new byte[regions][];
-                //     this.sceneMapLocData = new byte[regions][];
-                //     this.sceneMapIndex = new int[regions];
-                //     this.out.p1isaac(150);
-                //     this.out.p1(0);
-                //     int mapCount = 0;
-                //     for (int i = 0; i < regions; i++) {
-                //         int mapsquareX = this.in.g1;
-                //         int mapsquareZ = this.in.g1;
-                //         int landCrc = this.in.g4;
-                //         int locCrc = this.in.g4;
-                //         this.sceneMapIndex[i] = (mapsquareX << 8) + mapsquareZ;
-                //     @Pc(686) byte[] data;
-                //         if (landCrc !== 0) {
-                //             data = signlink.cacheload("m" + mapsquareX + "_" + mapsquareZ);
-                //             if (data !== null) {
-                //                 this.crc32.reset();
-                //                 this.crc32.update(data);
-                //                 if ((int) this.crc32.getValue() !== landCrc) {
-                //                     data = null;
-                //                 }
-                //             }
-                //             if (data === null) {
-                //                 this.sceneState = 0;
-                //                 this.out.p1(0);
-                //                 this.out.p1(mapsquareX);
-                //                 this.out.p1(mapsquareZ);
-                //                 mapCount += 3;
-                //             } else {
-                //                 this.sceneMapLandData[i] = data;
-                //             }
-                //         }
-                //         if (locCrc !== 0) {
-                //             data = signlink.cacheload("l" + mapsquareX + "_" + mapsquareZ);
-                //             if (data !== null) {
-                //                 this.crc32.reset();
-                //                 this.crc32.update(data);
-                //                 if ((int) this.crc32.getValue() !== locCrc) {
-                //                     data = null;
-                //                 }
-                //             }
-                //             if (data === null) {
-                //                 this.sceneState = 0;
-                //                 this.out.p1(1);
-                //                 this.out.p1(mapsquareX);
-                //                 this.out.p1(mapsquareZ);
-                //                 mapCount += 3;
-                //             } else {
-                //                 this.sceneMapLocData[i] = data;
-                //             }
-                //         }
-                //     }
-                //     this.out.psize1(mapCount);
-                //     signlink.looprate(50);
-                //     this.areaViewport.bind();
-                //     if (this.sceneState === 0) {
-                //         this.fontPlain12.drawStringCenter(257, 166, "Map area updated since last visit, so load will take longer this time only", 0);
-                //         this.fontPlain12.drawStringCenter(256, 165, "Map area updated since last visit, so load will take longer this time only", 16777215);
-                //     }
-                //     this.areaViewport.draw(super.graphics, 8, 11);
-                //     int dx = this.sceneBaseTileX - this.mapLastBaseX;
-                //     int dz = this.sceneBaseTileZ - this.mapLastBaseZ;
-                //     this.mapLastBaseX = this.sceneBaseTileX;
-                //     this.mapLastBaseZ = this.sceneBaseTileZ;
-                //     for (int i = 0; i < 8192; i++) {
-                //     @Pc(856) NpcEntity npc = this.npcs[i];
-                //         if (npc !== null) {
-                //             for (@Pc(860) int j = 0; j < 10; j++) {
-                //                 npc.pathTileX[j] -= dx;
-                //                 npc.pathTileZ[j] -= dz;
-                //             }
-                //             npc.x -= dx * 128;
-                //             npc.z -= dz * 128;
-                //         }
-                //     }
-                //     for (int i = 0; i < this.MAX_PLAYER_COUNT; i++) {
-                //     @Pc(911) PlayerEntity player = this.players[i];
-                //         if (player !== null) {
-                //             for (@Pc(915) int j = 0; j < 10; j++) {
-                //                 player.pathTileX[j] -= dx;
-                //                 player.pathTileZ[j] -= dz;
-                //             }
-                //             player.x -= dx * 128;
-                //             player.z -= dz * 128;
-                //         }
-                //     }
-                // @Pc(960) byte startTileX = 0;
-                // @Pc(962) byte endTileX = 104;
-                // @Pc(964) byte dirX = 1;
-                //     if (dx < 0) {
-                //         startTileX = 103;
-                //         endTileX = -1;
-                //         dirX = -1;
-                //     }
-                // @Pc(974) byte startTileZ = 0;
-                // @Pc(976) byte endTileZ = 104;
-                // @Pc(978) byte dirZ = 1;
-                //     if (dz < 0) {
-                //         startTileZ = 103;
-                //         endTileZ = -1;
-                //         dirZ = -1;
-                //     }
-                //     for (@Pc(988) int x = startTileX; x !== endTileX; x += dirX) {
-                //         for (@Pc(992) int z = startTileZ; z !== endTileZ; z += dirZ) {
-                //         @Pc(998) int lastX = x + dx;
-                //         @Pc(1002) int lastZ = z + dz;
-                //             for (@Pc(1004) int level = 0; level < 4; level++) {
-                //                 if (lastX >= 0 && lastZ >= 0 && lastX < 104 && lastZ < 104) {
-                //                     this.levelObjStacks[level][x][z] = this.levelObjStacks[level][lastX][lastZ];
-                //                 } else {
-                //                     this.levelObjStacks[level][x][z] = null;
-                //                 }
-                //             }
-                //         }
-                //     }
-                //     for (@Pc(1066) LocTemporary loc = (LocTemporary) this.spawnedLocations.peekFront(); loc !== null; loc = (LocTemporary) this.spawnedLocations.prev()) {
-                //         loc.x -= dx;
-                //         loc.z -= dz;
-                //         if (loc.x < 0 || loc.z < 0 || loc.x >= 104 || loc.z >= 104) {
-                //             loc.unlink();
-                //         }
-                //     }
-                //     if (this.flagSceneTileX !== 0) {
-                //         this.flagSceneTileX -= dx;
-                //         this.flagSceneTileZ -= dz;
-                //     }
+                this.sceneMapLandData = new Array(regions);
+                this.sceneMapLocData = new Array(regions);
+                this.sceneMapIndex = new Int32Array(regions);
+
+                this.out.p1isaac(150);
+                this.out.p1(0);
+
+                let mapCount: number = 0;
+
+                for (let i: number = 0; i < regions; i++) {
+                    const mapsquareX: number = this.in.g1;
+                    const mapsquareZ: number = this.in.g1;
+                    const landCrc: number = this.in.g4;
+                    const locCrc: number = this.in.g4;
+                    this.sceneMapIndex[i] = (mapsquareX << 8) + mapsquareZ;
+
+                    let data: Int8Array | undefined;
+                    if (landCrc !== 0) {
+                        data = await this.db?.cacheload(`m${mapsquareX}_${mapsquareZ}`);
+                        if (data && Packet.crc32(data) !== landCrc) {
+                            data = undefined;
+                        }
+                        if (!data) {
+                            this.sceneState = 0;
+                            this.out.p1(0); // map request
+                            this.out.p1(mapsquareX);
+                            this.out.p1(mapsquareZ);
+                            mapCount += 3;
+                        } else {
+                            this.sceneMapLandData[i] = data;
+                        }
+                    }
+                    if (locCrc !== 0) {
+                        data = await this.db?.cacheload(`l${mapsquareX}_${mapsquareZ}`);
+                        if (data && Packet.crc32(data) !== locCrc) {
+                            data = undefined;
+                        }
+                        if (!data) {
+                            this.sceneState = 0;
+                            this.out.p1(1); // loc request
+                            this.out.p1(mapsquareX);
+                            this.out.p1(mapsquareZ);
+                            mapCount += 3;
+                        } else {
+                            this.sceneMapLocData[i] = data;
+                        }
+                    }
+                }
+                this.out.psize1(mapCount);
+                // signlink.looprate(50);
+                this.areaViewport?.bind();
+                if (this.sceneState == 0) {
+                    this.fontPlain12?.drawStringCenter(257, 166, 'Map area updated since last visit, so load will take longer this time only', 0);
+                    this.fontPlain12?.drawStringCenter(256, 165, 'Map area updated since last visit, so load will take longer this time only', 16777215);
+                }
+                this.areaViewport?.draw(8, 11);
+                const dx: number = this.sceneBaseTileX - this.mapLastBaseX;
+                const dz: number = this.sceneBaseTileZ - this.mapLastBaseZ;
+                this.mapLastBaseX = this.sceneBaseTileX;
+                this.mapLastBaseZ = this.sceneBaseTileZ;
+                for (let i: number = 0; i < 8192; i++) {
+                    const npc: NpcEntity | null = this.npcs[i];
+                    if (npc) {
+                        for (let j: number = 0; j < 10; j++) {
+                            npc.pathTileX[j] -= dx;
+                            npc.pathTileZ[j] -= dz;
+                        }
+                        npc.x -= dx * 128;
+                        npc.z -= dz * 128;
+                    }
+                }
+                for (let i: number = 0; i < this.MAX_PLAYER_COUNT; i++) {
+                    const player: PlayerEntity | null = this.players[i];
+                    if (player) {
+                        for (let j: number = 0; j < 10; j++) {
+                            player.pathTileX[j] -= dx;
+                            player.pathTileZ[j] -= dz;
+                        }
+                        player.x -= dx * 128;
+                        player.z -= dz * 128;
+                    }
+                }
+                let startTileX: number = 0;
+                let endTileX: number = 104;
+                let dirX: number = 1;
+                if (dx < 0) {
+                    startTileX = 103;
+                    endTileX = -1;
+                    dirX = -1;
+                }
+                let startTileZ: number = 0;
+                let endTileZ: number = 104;
+                let dirZ: number = 1;
+                if (dz < 0) {
+                    startTileZ = 103;
+                    endTileZ = -1;
+                    dirZ = -1;
+                }
+                for (let x: number = startTileX; x != endTileX; x += dirX) {
+                    for (let z: number = startTileZ; z != endTileZ; z += dirZ) {
+                        const lastX: number = x + dx;
+                        const lastZ: number = z + dz;
+                        for (let level: number = 0; level < 4; level++) {
+                            if (lastX >= 0 && lastZ >= 0 && lastX < 104 && lastZ < 104) {
+                                this.levelObjStacks[level][x][z] = this.levelObjStacks[level][lastX][lastZ];
+                            } else {
+                                this.levelObjStacks[level][x][z] = null;
+                            }
+                        }
+                    }
+                }
+                for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc != null; loc = this.spawnedLocations.prev() as LocTemporary | null) {
+                    loc.x -= dx;
+                    loc.z -= dz;
+                    if (loc.x < 0 || loc.z < 0 || loc.x >= 104 || loc.z >= 104) {
+                        loc.unlink();
+                    }
+                }
+                if (this.flagSceneTileX != 0) {
+                    this.flagSceneTileX -= dx;
+                    this.flagSceneTileZ -= dz;
+                }
                 this.cutscene = false;
                 this.packetType = -1;
                 return true;
@@ -3876,7 +3829,7 @@ class Client extends GameShell {
             if (this.packetType === 197) {
                 // IF_SETPLAYERHEAD
                 const com: number = this.in.g2;
-                // ComType.instances[com].model = this.localPlayer.getHeadModel();
+                ComType.instances[com].model = this.localPlayer?.getHeadModel() || null;
                 this.packetType = -1;
                 return true;
             }
@@ -3922,13 +3875,13 @@ class Client extends GameShell {
                 const name: string = this.in.gjstr;
                 const crc: number = this.in.g4;
                 const length: number = this.in.g4;
-                // if (!name.equals(this.currentMidi) && this.midiActive && !lowMemory) {
-                //     this.setMidi(name, crc, length);
-                // }
-                // this.currentMidi = name;
-                // this.midiCrc = crc;
-                // this.midiSize = length;
-                // this.nextMusicDelay = 0;
+                if (!(name === this.currentMidi) && this.midiActive && !Client.LOW_MEMORY) {
+                    await this.setMidi(name, crc /*, length*/);
+                }
+                this.currentMidi = name;
+                this.midiCrc = crc;
+                this.midiSize = length;
+                this.nextMusicDelay = 0;
                 this.packetType = -1;
                 return true;
             }
@@ -3942,16 +3895,24 @@ class Client extends GameShell {
                 // DATA_LOC_DONE
                 const x: number = this.in.g1;
                 const z: number = this.in.g1;
-                // let index: number = -1;
-                // for (int i = 0; i < this.sceneMapIndex.length; i++) {
-                //     if (this.sceneMapIndex[i] === (x << 8) + z) {
-                //         index = i;
-                //     }
-                // }
-                // if (index !== -1) {
-                //     signlink.cachesave("l" + x + "_" + z, this.sceneMapLocData[index]);
-                //     this.sceneState = 1;
-                // }
+                let index: number = -1;
+                if (this.sceneMapIndex) {
+                    for (let i: number = 0; i < this.sceneMapIndex.length; i++) {
+                        if (this.sceneMapIndex[i] === (x << 8) + z) {
+                            index = i;
+                        }
+                    }
+                }
+                if (index !== -1) {
+                    const mapdata: (Int8Array | null)[] | null = this.sceneMapLocData;
+                    if (mapdata) {
+                        const data: Int8Array | null = mapdata[index];
+                        if (index !== -1 && data) {
+                            this.db?.cachesave(`l${x}_${z}`, data);
+                            this.sceneState = 1;
+                        }
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -4046,18 +4007,23 @@ class Client extends GameShell {
                 const z: number = this.in.g1;
                 const off: number = this.in.g2;
                 const length: number = this.in.g2;
-                // let index = -1;
-                // for (int i = 0; i < this.sceneMapIndex.length; i++) {
-                //     if (this.sceneMapIndex[i] === (x << 8) + z) {
-                //         index = i;
-                //     }
-                // }
-                // if (index !== -1) {
-                //     if (this.sceneMapLocData[index] === null || this.sceneMapLocData[index].length !== length) {
-                //         this.sceneMapLocData[index] = new byte[length];
-                //     }
-                //     this.in.gdata(this.packetSize - 6, off, this.sceneMapLocData[index]);
-                // }
+                let index: number = -1;
+                if (this.sceneMapIndex) {
+                    for (let i: number = 0; i < this.sceneMapIndex.length; i++) {
+                        if (this.sceneMapIndex[i] === (x << 8) + z) {
+                            index = i;
+                        }
+                    }
+                }
+                if (index !== -1 && this.sceneMapLocData) {
+                    if (!this.sceneMapLocData[index] || this.sceneMapLocData[index]?.length !== length) {
+                        this.sceneMapLocData[index] = new Int8Array(length);
+                    }
+                    const data: Int8Array | null = this.sceneMapLocData[index];
+                    if (data) {
+                        this.in.gdata(this.packetSize - 6, off, data);
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -4068,7 +4034,7 @@ class Client extends GameShell {
                     this.out.p1isaac(81);
                     this.out.p2(tracking.pos);
                     this.out.pdata(tracking.data, tracking.pos, 0);
-                    // tracking.release(); TODO?
+                    tracking.release();
                 }
                 this.packetType = -1;
                 return true;
@@ -4194,12 +4160,12 @@ class Client extends GameShell {
                 const id: number = this.in.g2;
                 const loop: number = this.in.g1;
                 const delay: number = this.in.g2;
-                // if (this.waveEnabled && !lowMemory && this.waveCount < 50) {
-                //     this.waveIds[this.waveCount] = id;
-                //     this.waveLoops[this.waveCount] = loop;
-                //     this.waveDelay[this.waveCount] = delay + Wave.delays[id];
-                //     this.waveCount++;
-                // }
+                if (this.waveEnabled && !Client.LOW_MEMORY && this.waveCount < 50) {
+                    this.waveIds[this.waveCount] = id;
+                    this.waveLoops[this.waveCount] = loop;
+                    this.waveDelay[this.waveCount] = delay + Wave.delays[id];
+                    this.waveCount++;
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -4328,20 +4294,25 @@ class Client extends GameShell {
                 // DATA_LAND
                 const x: number = this.in.g1;
                 const z: number = this.in.g1;
-                const offset: number = this.in.g2;
+                const off: number = this.in.g2;
                 const length: number = this.in.g2;
-                // let index = -1;
-                // for (let i = 0; i < this.sceneMapIndex.length; i++) {
-                //     if (this.sceneMapIndex[i] === (x << 8) + z) {
-                //         index = i;
-                //     }
-                // }
-                // if (index !== -1) {
-                //     if (this.sceneMapLandData[index] === null || this.sceneMapLandData[index].length !== length) {
-                //         this.sceneMapLandData[index] = new byte[length];
-                //     }
-                //     this.in.gdata(this.packetSize - 6, offset, this.sceneMapLandData[index]);
-                // }
+                let index: number = -1;
+                if (this.sceneMapIndex) {
+                    for (let i: number = 0; i < this.sceneMapIndex.length; i++) {
+                        if (this.sceneMapIndex[i] === (x << 8) + z) {
+                            index = i;
+                        }
+                    }
+                }
+                if (index !== -1 && this.sceneMapLandData) {
+                    if (!this.sceneMapLandData[index] || this.sceneMapLandData[index]?.length !== length) {
+                        this.sceneMapLandData[index] = new Int8Array(length);
+                    }
+                    const data: Int8Array | null = this.sceneMapLandData[index];
+                    if (data) {
+                        this.in.gdata(this.packetSize - 6, off, data);
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -4539,16 +4510,20 @@ class Client extends GameShell {
             }
             if (this.packetType === 136) {
                 // RESET_ANIMS
-                // for (let i = 0; i < this.players.length; i++) {
-                //     if (this.players[i] !== null) {
-                //         this.players[i].primarySeqId = -1;
-                //     }
-                // }
-                // for (let i = 0; i < this.npcs.length; i++) {
-                //     if (this.npcs[i] !== null) {
-                //         this.npcs[i].primarySeqId = -1;
-                //     }
-                // }
+                for (let i: number = 0; i < this.players.length; i++) {
+                    const player: PlayerEntity | null = this.players[i];
+                    if (!player) {
+                        continue;
+                    }
+                    player.primarySeqId = -1;
+                }
+                for (let i: number = 0; i < this.npcs.length; i++) {
+                    const npc: NpcEntity | null = this.npcs[i];
+                    if (!npc) {
+                        continue;
+                    }
+                    npc.primarySeqId = -1;
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -4561,19 +4536,19 @@ class Client extends GameShell {
             }
             if (this.packetType === 21) {
                 // UPDATE_IGNORELIST
-                // this.ignoreCount = this.packetSize / 8;
-                // for (int i = 0; i < this.ignoreCount; i++) {
-                //     this.ignoreName37[i] = this.in.g8;
-                // }
+                this.ignoreCount = Math.trunc(this.packetSize / 8);
+                for (let i: number = 0; i < this.ignoreCount; i++) {
+                    this.ignoreName37[i] = this.in.g8;
+                }
                 this.packetType = -1;
                 return true;
             }
             if (this.packetType === 239) {
                 // CAM_RESET
                 this.cutscene = false;
-                // for (let i = 0; i < 5; i++) {
-                //     this.cameraModifierEnabled[i] = false;
-                // }
+                for (let i: number = 0; i < 5; i++) {
+                    this.cameraModifierEnabled[i] = false;
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -4650,11 +4625,11 @@ class Client extends GameShell {
                 const jitter: number = this.in.g1;
                 const wobbleScale: number = this.in.g1;
                 const wobbleSpeed: number = this.in.g1;
-                // this.cameraModifierEnabled[type] = true;
-                // this.cameraModifierJitter[type] = jitter;
-                // this.cameraModifierWobbleScale[type] = wobbleScale;
-                // this.cameraModifierWobbleSpeed[type] = wobbleSpeed;
-                // this.cameraModifierCycle[type] = 0;
+                this.cameraModifierEnabled[type] = true;
+                this.cameraModifierJitter[type] = jitter;
+                this.cameraModifierWobbleScale[type] = wobbleScale;
+                this.cameraModifierWobbleSpeed[type] = wobbleSpeed;
+                this.cameraModifierCycle[type] = 0;
                 this.packetType = -1;
                 return true;
             }
