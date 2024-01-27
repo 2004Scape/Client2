@@ -1865,9 +1865,9 @@ class Client extends GameShell {
                 this.areaMapback?.draw(561, 5);
             }
         }
-        // if (this.sceneState === 2) { TODO
-        this.drawScene();
-        // }
+        if (this.sceneState === 2) {
+            this.drawScene();
+        }
         if (this.menuVisible && this.menuArea === 1) {
             this.redrawSidebar = true;
         }
