@@ -374,8 +374,8 @@ class Viewer extends GameShell {
             childY += child.y;
 
             if (child.type === 0) {
-                if (child.scrollPosition > child.scrollableHeight - child.height) {
-                    child.scrollPosition = child.scrollableHeight - child.height;
+                if (child.scrollPosition > child.scroll - child.height) {
+                    child.scrollPosition = child.scroll - child.height;
                 }
 
                 if (child.scrollPosition < 0) {
@@ -387,13 +387,13 @@ class Viewer extends GameShell {
                 /* todo */
             } else if (child.type === 3) {
                 if (child.fill) {
-                    Draw2D.fillRect(childX, childY, child.width, child.height, child.color);
+                    Draw2D.fillRect(childX, childY, child.width, child.height, child.colour);
                 } else {
-                    Draw2D.drawRect(childX, childY, child.width, child.height, child.color);
+                    Draw2D.drawRect(childX, childY, child.width, child.height, child.colour);
                 }
             } else if (child.type === 4) {
                 const font: PixFont | null = child.font;
-                const color: number = child.color;
+                const color: number = child.colour;
                 let text: string | null = child.text;
 
                 if (!font || !text) {
@@ -412,9 +412,9 @@ class Viewer extends GameShell {
                     }
 
                     if (child.center) {
-                        font.drawStringTaggableCenter(childX + child.width / 2, lineY, split, color, child.shadow);
+                        font.drawStringTaggableCenter(childX + child.width / 2, lineY, split, color, child.shadowed);
                     } else {
-                        font.drawStringTaggable(childX, lineY, split, color, child.shadow);
+                        font.drawStringTaggable(childX, lineY, split, color, child.shadowed);
                     }
                 }
             } else if (child.type === 5) {
@@ -426,15 +426,15 @@ class Viewer extends GameShell {
                 Draw3D.centerX = childX + child.width / 2;
                 Draw3D.centerY = childY + child.height / 2;
 
-                const eyeY: number = (Draw3D.sin[child.modelPitch] * child.modelZoom) >> 16;
-                const eyeZ: number = (Draw3D.cos[child.modelPitch] * child.modelZoom) >> 16;
+                const eyeY: number = (Draw3D.sin[child.xan] * child.zoom) >> 16;
+                const eyeZ: number = (Draw3D.cos[child.xan] * child.zoom) >> 16;
 
                 const active: boolean = false;
                 let seqId: number;
                 if (active) {
-                    seqId = child.activeSeqId;
+                    seqId = child.activeAnim;
                 } else {
-                    seqId = child.seqId;
+                    seqId = child.anim;
                 }
 
                 let model: Model | null = null;
@@ -448,7 +448,7 @@ class Viewer extends GameShell {
                 }
 
                 if (model) {
-                    model.drawSimple(0, child.modelYaw, 0, child.modelPitch, 0, eyeY, eyeZ);
+                    model.drawSimple(0, child.yan, 0, child.xan, 0, eyeY, eyeZ);
                 }
 
                 Draw3D.centerX = tmpX;
@@ -647,7 +647,7 @@ class Viewer extends GameShell {
 
         if (this.chatInterfaceId !== -1) {
             const com: ComType = ComType.instances[this.chatInterfaceId + 1];
-            const seq: SeqType = SeqType.instances[com.seqId];
+            const seq: SeqType = SeqType.instances[com.anim];
 
             com.seqCycle += 1;
 
@@ -755,7 +755,7 @@ class Viewer extends GameShell {
             this.chatInterfaceId = 4882;
 
             ComType.instances[4883].model = npc.getHeadModel();
-            ComType.instances[4883].seqId = this.splitGetAnim(page);
+            ComType.instances[4883].anim = this.splitGetAnim(page);
             ComType.instances[4883].seqFrame = 0;
             ComType.instances[4883].seqCycle = 0;
 
@@ -766,7 +766,7 @@ class Viewer extends GameShell {
             this.chatInterfaceId = 4887;
 
             ComType.instances[4888].model = npc.getHeadModel();
-            ComType.instances[4888].seqId = this.splitGetAnim(page);
+            ComType.instances[4888].anim = this.splitGetAnim(page);
             ComType.instances[4888].seqFrame = 0;
             ComType.instances[4888].seqCycle = 0;
 
@@ -778,7 +778,7 @@ class Viewer extends GameShell {
             this.chatInterfaceId = 4893;
 
             ComType.instances[4894].model = npc.getHeadModel();
-            ComType.instances[4894].seqId = this.splitGetAnim(page);
+            ComType.instances[4894].anim = this.splitGetAnim(page);
             ComType.instances[4894].seqFrame = 0;
             ComType.instances[4894].seqCycle = 0;
 
@@ -791,7 +791,7 @@ class Viewer extends GameShell {
             this.chatInterfaceId = 4900;
 
             ComType.instances[4901].model = npc.getHeadModel();
-            ComType.instances[4901].seqId = this.splitGetAnim(page);
+            ComType.instances[4901].anim = this.splitGetAnim(page);
             ComType.instances[4901].seqFrame = 0;
             ComType.instances[4901].seqCycle = 0;
 
