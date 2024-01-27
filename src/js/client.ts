@@ -245,6 +245,7 @@ class Client extends GameShell {
     private showSocialInput: boolean = false;
     private socialMessage: string = '';
     private socialInput: string = '';
+    private socialAction: number = 0;
     private chatbackInput: string = '';
     private chatbackInputOpen: boolean = false;
     private stickyChatInterfaceId: number = -1;
@@ -2663,7 +2664,9 @@ class Client extends GameShell {
         if (action === 903 || action === 363) {
             // TODO
         } else if (action == 450 && this.interactWithLoc(75, b, c, a)) {
-            // TODO
+            this.out.p2(this.objInterface);
+            this.out.p2(this.objSelectedSlot);
+            this.out.p2(this.objSelectedInterface);
         } else if (action === 405 || action === 38 || action === 422 || action === 478 || action === 347) {
             // TODO
         } else if (action === 728 || action === 542 || action === 6 || action === 963 || action === 245) {
@@ -2675,13 +2678,54 @@ class Client extends GameShell {
         } else if (action == 285) {
             this.interactWithLoc(245, b, c, a);
         } else if (action == 881) {
-            // TODO
+            this.out.p1isaac(130);
+            this.out.p2(a);
+            this.out.p2(b);
+            this.out.p2(c);
+            this.out.p2(this.objInterface);
+            this.out.p2(this.objSelectedSlot);
+            this.out.p2(this.objSelectedInterface);
+
+            this.selectedCycle = 0;
+            this.selectedInterface = c;
+            this.selectedItem = b;
+            this.selectedArea = 2;
+
+            if (ComType.instances[c].parentId == this.viewportInterfaceID) {
+                this.selectedArea = 1;
+            }
+
+            if (ComType.instances[c].parentId == this.chatInterfaceId) {
+                this.selectedArea = 3;
+            }
         } else if (action == 391) {
-            // TODO
+            this.out.p1isaac(48);
+            this.out.p2(a);
+            this.out.p2(b);
+            this.out.p2(c);
+            this.out.p2(this.activeSpellId);
+
+            this.selectedCycle = 0;
+            this.selectedInterface = c;
+            this.selectedItem = b;
+            this.selectedArea = 2;
+
+            if (ComType.instances[c].parentId == this.viewportInterfaceID) {
+                this.selectedArea = 1;
+            }
+
+            if (ComType.instances[c].parentId == this.chatInterfaceId) {
+                this.selectedArea = 3;
+            }
         } else if (action == 660) {
             // TODO
         } else if (action == 188) {
-            // TODO
+            this.objSelected = 1;
+            this.objSelectedSlot = b;
+            this.objSelectedInterface = c;
+            this.objInterface = a;
+            this.objSelectedName = ObjType.get(a).name;
+            this.spellSelected = 0;
             return;
         } else if (action == 44) {
             if (!this.pressedContinueOption) {
@@ -2690,7 +2734,17 @@ class Client extends GameShell {
                 this.pressedContinueOption = true;
             }
         } else if (action == 1773) {
-            // TODO
+            const obj: ObjType = ObjType.get(a);
+            let examine: string;
+
+            if (c >= 100000) {
+                examine = c + ' x ' + obj.name;
+            } else if (!obj.desc) {
+                examine = "It's a " + obj.name + '.';
+            } else {
+                examine = obj.desc;
+            }
+            this.addMessage(0, examine, '');
         } else if (action == 900) {
             // TODO
         } else if (action == 1373 || action == 1544 || action == 151 || action == 1101) {
@@ -2700,7 +2754,9 @@ class Client extends GameShell {
         } else if (action == 679) {
             // TODO
         } else if (action == 55) {
-            // TODO
+            if (this.interactWithLoc(9, b, c, a)) {
+                this.out.p2(this.activeSpellId);
+            }
         } else if (action == 224 || action == 993 || action == 99 || action == 746 || action == 877) {
             // TODO
         } else if (action == 1607) {
@@ -2708,10 +2764,42 @@ class Client extends GameShell {
         } else if (action == 504) {
             this.interactWithLoc(172, b, c, a);
         } else if (action == 930) {
-            // TODO
+            const com: ComType = ComType.instances[c];
+            this.spellSelected = 1;
+            this.activeSpellId = c;
+            this.activeSpellFlags = com.spellFlags;
+            this.objSelected = 0;
+
+            let prefix: string | null = com.spellAction;
+            if (prefix && prefix.indexOf(' ') != -1) {
+                prefix = prefix.substring(0, prefix.indexOf(' '));
+            }
+
+            let suffix: string | null = com.spellAction;
+            if (suffix && suffix.indexOf(' ') != -1) {
+                suffix = suffix.substring(suffix.indexOf(' ') + 1);
+            }
+
+            this.spellCaption = prefix + ' ' + com.spellName + ' ' + suffix;
+            if (this.activeSpellFlags == 16) {
+                this.redrawSidebar = true;
+                this.selectedTab = 3;
+                this.redrawSideicons = true;
+            }
+
             return;
         } else if (action == 951) {
-            // TODO
+            const com: ComType = ComType.instances[c];
+            let notify: boolean = true;
+
+            if (com.contentType > 0) {
+                notify = this.handleInterfaceAction(com);
+            }
+
+            if (notify) {
+                this.out.p1isaac(155);
+                this.out.p2(c);
+            }
         } else if (action == 602 || action == 596 || action == 22 || action == 892 || action == 415) {
             // TODO
         } else if (action == 581) {
@@ -2726,7 +2814,7 @@ class Client extends GameShell {
             const obj: ObjType = ObjType.get(a);
             let examine: string;
 
-            if (obj.desc == null) {
+            if (!obj.desc) {
                 examine = "It's a " + obj.name + '.';
             } else {
                 examine = obj.desc;
@@ -2770,6 +2858,141 @@ class Client extends GameShell {
 
         this.objSelected = 0;
         this.spellSelected = 0;
+    };
+
+    private handleInterfaceAction = (com: ComType): boolean => {
+        const contentType: number = com.contentType;
+        if (contentType == 201) {
+            this.redrawChatback = true;
+            this.chatbackInputOpen = false;
+            this.showSocialInput = true;
+            this.socialInput = '';
+            this.socialAction = 1;
+            this.socialMessage = 'Enter name of friend to add to list';
+        }
+
+        if (contentType == 202) {
+            this.redrawChatback = true;
+            this.chatbackInputOpen = false;
+            this.showSocialInput = true;
+            this.socialInput = '';
+            this.socialAction = 2;
+            this.socialMessage = 'Enter name of friend to delete from list';
+        }
+
+        if (contentType == 205) {
+            this.idleTimeout = 250;
+            return true;
+        }
+
+        if (contentType == 501) {
+            this.redrawChatback = true;
+            this.chatbackInputOpen = false;
+            this.showSocialInput = true;
+            this.socialInput = '';
+            this.socialAction = 4;
+            this.socialMessage = 'Enter name of player to add to list';
+        }
+
+        if (contentType == 502) {
+            this.redrawChatback = true;
+            this.chatbackInputOpen = false;
+            this.showSocialInput = true;
+            this.socialInput = '';
+            this.socialAction = 5;
+            this.socialMessage = 'Enter name of player to delete from list';
+        }
+
+        if (contentType >= 300 && contentType <= 313) {
+            // int part = (contentType - 300) / 2;
+            // int direction = contentType & 0x1;
+            // int kit = this.designIdentikits[part];
+            //
+            // if (kit != -1) {
+            //     while (true) {
+            //         if (direction == 0) {
+            //             kit--;
+            //             if (kit < 0) {
+            //                 kit = IdkType.count - 1;
+            //             }
+            //         }
+            //
+            //         if (direction == 1) {
+            //             kit++;
+            //             if (kit >= IdkType.count) {
+            //                 kit = 0;
+            //             }
+            //         }
+            //
+            //         if (!IdkType.instances[kit].disable && IdkType.instances[kit].type == part + (this.designGenderMale ? 0 : 7)) {
+            //             this.designIdentikits[part] = kit;
+            //             this.updateDesignModel = true;
+            //             break;
+            //         }
+            //     }
+            // }
+        }
+
+        if (contentType >= 314 && contentType <= 323) {
+            // int part = (contentType - 314) / 2;
+            // int direction = contentType & 0x1;
+            // int color = this.designColors[part];
+            //
+            // if (direction == 0) {
+            //     color--;
+            //     if (color < 0) {
+            //         color = PlayerEntity.DESIGN_BODY_COLOR[part].length - 1;
+            //     }
+            // }
+            //
+            // if (direction == 1) {
+            //     color++;
+            //     if (color >= PlayerEntity.DESIGN_BODY_COLOR[part].length) {
+            //         color = 0;
+            //     }
+            // }
+            //
+            // this.designColors[part] = color;
+            // this.updateDesignModel = true;
+        }
+
+        if (contentType == 324 /* && !this.designGenderMale*/) {
+            // this.designGenderMale = true;
+            // this.validateCharacterDesign();
+        }
+
+        if (contentType == 325 /* && this.designGenderMale*/) {
+            // this.designGenderMale = false;
+            // this.validateCharacterDesign();
+        }
+
+        if (contentType == 326) {
+            // this.out.p1isaac(52);
+            // this.out.p1(this.designGenderMale ? 0 : 1);
+            // for (int i = 0; i < 7; i++) {
+            //     this.out.p1(this.designIdentikits[i]);
+            // }
+            // for (int i = 0; i < 5; i++) {
+            //     this.out.p1(this.designColors[i]);
+            // }
+            return true;
+        }
+
+        if (contentType == 613) {
+            // this.reportAbuseMuteOption = !this.reportAbuseMuteOption;
+        }
+
+        if (contentType >= 601 && contentType <= 612) {
+            // this.closeInterfaces();
+            //
+            // if (this.reportAbuseInput.length() > 0) {
+            //     this.out.p1isaac(190);
+            //     this.out.p8(JString.toBase37(this.reportAbuseInput));
+            //     this.out.p1(contentType - 601);
+            //     this.out.p1(this.reportAbuseMuteOption ? 1 : 0);
+            // }
+        }
+        return false;
     };
 
     private interactWithLoc = (opcode: number, x: number, z: number, bitset: number): boolean => {
