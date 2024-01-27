@@ -312,6 +312,9 @@ class Client extends GameShell {
     private hoveredSlotParentId: number = 0;
     private hoveredSlot: number = 0;
     private lastHoveredInterfaceId: number = 0;
+    private reportAbuseInput: string = '';
+    private reportAbuseMuteOption: boolean = false;
+    private reportAbuseInterfaceID: number = -1;
 
     // scene
     private scene: World3D | null = null;
@@ -1732,7 +1735,7 @@ class Client extends GameShell {
             this.handleMouseInput();
             // this.handleMinimapInput();
             this.handleTabInput();
-            // this.handleChatSettingsInput();
+            this.handleChatSettingsInput();
 
             if (this.mouseButton === 1 || this.mouseClickButton === 1) {
                 this.dragCycles++;
@@ -2728,6 +2731,7 @@ class Client extends GameShell {
     private drawMinimap = (): void => {
         // TODO
         this.areaMapback?.bind();
+        // the white square local player position in the center of the minimap.
         Draw2D.fillRect(93, 82, 3, 3, 0xffffff);
         this.areaViewport?.bind();
     };
@@ -2759,10 +2763,13 @@ class Client extends GameShell {
         const w: number = this.menuWidth;
         const h: number = this.menuHeight;
         const background: number = 0x5d5447;
+
+        // the menu area square.
         Draw2D.fillRect(x, y, w, h, background);
         Draw2D.fillRect(x + 1, y + 1, w - 2, 16, 0);
         Draw2D.drawRect(x + 1, y + 18, w - 2, h - 19, 0);
 
+        // the menu title header at the top.
         this.fontBold12?.drawString(x + 3, y + 14, 'Choose Option', background);
         let mouseX: number = this.mouseX;
         let mouseY: number = this.mouseY;
@@ -3390,6 +3397,51 @@ class Client extends GameShell {
         }
     };
 
+    private handleChatSettingsInput = (): void => {
+        if (this.mouseClickButton === 1) {
+            if (this.mouseClickX >= 8 && this.mouseClickX <= 108 && this.mouseClickY >= 490 && this.mouseClickY <= 522) {
+                this.publicChatSetting = (this.publicChatSetting + 1) % 4;
+                this.redrawPrivacySettings = true;
+                this.redrawChatback = true;
+
+                this.out.p1isaac(244);
+                this.out.p1(this.publicChatSetting);
+                this.out.p1(this.privateChatSetting);
+                this.out.p1(this.tradeChatSetting);
+            } else if (this.mouseClickX >= 137 && this.mouseClickX <= 237 && this.mouseClickY >= 490 && this.mouseClickY <= 522) {
+                this.privateChatSetting = (this.privateChatSetting + 1) % 3;
+                this.redrawPrivacySettings = true;
+                this.redrawChatback = true;
+
+                this.out.p1isaac(244);
+                this.out.p1(this.publicChatSetting);
+                this.out.p1(this.privateChatSetting);
+                this.out.p1(this.tradeChatSetting);
+            } else if (this.mouseClickX >= 275 && this.mouseClickX <= 375 && this.mouseClickY >= 490 && this.mouseClickY <= 522) {
+                this.tradeChatSetting = (this.tradeChatSetting + 1) % 3;
+                this.redrawPrivacySettings = true;
+                this.redrawChatback = true;
+
+                this.out.p1isaac(244);
+                this.out.p1(this.publicChatSetting);
+                this.out.p1(this.privateChatSetting);
+                this.out.p1(this.tradeChatSetting);
+            } else if (this.mouseClickX >= 416 && this.mouseClickX <= 516 && this.mouseClickY >= 490 && this.mouseClickY <= 522) {
+                this.closeInterfaces();
+
+                this.reportAbuseInput = '';
+                this.reportAbuseMuteOption = false;
+
+                for (let i: number = 0; i < ComType.instances.length; i++) {
+                    if (ComType.instances[i] && ComType.instances[i].contentType === 600) {
+                        this.reportAbuseInterfaceID = this.viewportInterfaceID = ComType.instances[i].parentId;
+                        return;
+                    }
+                }
+            }
+        }
+    };
+
     private handleScrollInput = (mouseX: number, mouseY: number, scrollableHeight: number, height: number, redraw: boolean, left: number, top: number, component: ComType): void => {
         if (this.scrollGrabbed) {
             this.scrollInputPadding = 32;
@@ -3481,6 +3533,25 @@ class Client extends GameShell {
         } else {
             return Math.floor(amount / 1000000) + 'M';
         }
+    };
+
+    private closeInterfaces = (): void => {
+        this.out.p1isaac(231);
+
+        if (this.sidebarInterfaceId !== -1) {
+            this.sidebarInterfaceId = -1;
+            this.redrawSidebar = true;
+            this.pressedContinueOption = false;
+            this.redrawSideicons = true;
+        }
+
+        if (this.chatInterfaceId !== -1) {
+            this.chatInterfaceId = -1;
+            this.redrawChatback = true;
+            this.pressedContinueOption = false;
+        }
+
+        this.viewportInterfaceID = -1;
     };
 
     private executeClientscript1 = (component: ComType, scriptId: number): number => {
