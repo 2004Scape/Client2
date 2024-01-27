@@ -22,7 +22,7 @@ export default class Jagfile {
     fileUnpacked: Uint8Array[] = [];
 
     constructor(src: Int8Array) {
-        let data: Packet = new Packet(src);
+        let data: Packet = new Packet(new Uint8Array(src));
         const unpackedSize: number = data.g3;
         const packedSize: number = data.g3;
 
@@ -31,7 +31,7 @@ export default class Jagfile {
             this.compressedWhole = false;
         } else {
             this.buffer = Bzip.decompressBz2(unpackedSize, src, packedSize, 6);
-            data = new Packet(this.buffer);
+            data = new Packet(new Uint8Array(this.buffer));
             this.compressedWhole = true;
         }
 

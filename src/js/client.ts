@@ -43,6 +43,8 @@ import PlayerEntity from './jagex2/dash3d/entity/PlayerEntity';
 import NpcEntity from './jagex2/dash3d/entity/NpcEntity';
 import LinkList from './jagex2/datastruct/LinkList';
 import LocTemporary from './jagex2/dash3d/type/LocTemporary';
+import WordPack from './jagex2/wordenc/WordPack';
+import World from './jagex2/dash3d/World';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -368,13 +370,16 @@ class Client extends GameShell {
     private playerCount: number = 0;
     private playerIds: Int32Array = new Int32Array(this.MAX_PLAYER_COUNT);
     private entityUpdateCount: number = 0;
+    private entityRemovalCount: number = 0;
     private entityUpdateIds: Int32Array = new Int32Array(this.MAX_PLAYER_COUNT);
+    private entityRemovalIds: Int32Array = new Int32Array(1000);
     private playerAppearanceBuffer: (Packet | null)[] = new Array(this.MAX_PLAYER_COUNT).fill(null);
     private npcs: (NpcEntity | null)[] = new Array(8192).fill(null);
     private npcCount: number = 0;
     private npcIds: Int32Array = new Int32Array(8192);
     private projectiles: LinkList = new LinkList();
     private spotanims: LinkList = new LinkList();
+    private locList: LinkList = new LinkList();
     private temporaryLocs: LinkList = new LinkList();
     private levelObjStacks: Array<Array<Array<LinkList | null>>> = new Array(4).fill(null).map((): Array<Array<LinkList>> => new Array(104).fill(null).map((): Array<LinkList> => new Array(104).fill(null)));
     private spawnedLocations: LinkList = new LinkList();
@@ -450,7 +455,7 @@ class Client extends GameShell {
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
-            const checksums: Packet = new Packet(await downloadUrl(`${Client.HOST}/crc`));
+            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.HOST}/crc`)));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -4655,24 +4660,24 @@ class Client extends GameShell {
             }
             if (this.packetType === 184) {
                 // PLAYER_INFO
-                // this.readPlayerInfo(this.in, this.packetSize);
+                this.readPlayerInfo(this.in, this.packetSize);
                 if (this.sceneState === 1) {
                     this.sceneState = 2;
-                    // World.levelBuilt = this.currentLevel;
+                    World.levelBuilt = this.currentLevel;
                     this.buildScene();
                 }
-                if (Client.LOW_MEMORY && this.sceneState === 2 /* && World.levelBuilt !== this.currentLevel*/) {
+                if (Client.LOW_MEMORY && this.sceneState === 2 && World.levelBuilt !== this.currentLevel) {
                     this.areaViewport?.bind();
                     this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', 0);
                     this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', 16777215);
                     this.areaViewport?.draw(8, 11);
-                    // World.levelBuilt = this.currentLevel;
+                    World.levelBuilt = this.currentLevel;
                     this.buildScene();
                 }
-                // if (this.currentLevel !== this.minimapLevel && this.sceneState === 2) {
-                //     this.minimapLevel = this.currentLevel;
-                //     this.createMinimap(this.currentLevel);
-                // }
+                if (this.currentLevel !== this.minimapLevel && this.sceneState === 2) {
+                    this.minimapLevel = this.currentLevel;
+                    this.createMinimap(this.currentLevel);
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -4686,10 +4691,29 @@ class Client extends GameShell {
     };
 
     private buildScene = (): void => {
-        Draw3D.clearTexels();
-        this.areaViewport?.bind();
+        try {
+            this.minimapLevel = -1;
+            this.temporaryLocs.clear();
+            this.locList.clear();
+            this.spotanims.clear();
+            this.projectiles.clear();
+            Draw3D.clearTexels();
+            this.clearCaches();
+            this.scene?.reset();
+            for (let level: number = 0; level < 4; level++) {
+                this.levelCollisionMap[level]?.reset();
+            }
+            // TODO build the world here
+            this.areaViewport?.bind();
+        } catch (e) {
+            /* empty */
+        }
         LocType.modelCacheStatic?.clear();
         Draw3D.initPool(20);
+    };
+
+    private createMinimap = (level: number): void => {
+        // TODO
     };
 
     private resetInterfaceAnimation = (id: number): void => {
@@ -5463,12 +5487,7 @@ class Client extends GameShell {
         }
 
         if (length > 0) {
-            bufferSize = length;
-
-            if (length > 25) {
-                bufferSize = 25;
-            }
-
+            bufferSize = Math.min(length, 25);
             length--;
 
             const startX: number = this.bfsStepX[length];
@@ -5508,6 +5527,325 @@ class Client extends GameShell {
         return type !== 1;
     };
 
+    private readPlayerInfo = (buf: Packet, size: number): void => {
+        this.entityRemovalCount = 0;
+        this.entityUpdateCount = 0;
+
+        this.readLocalPlayer(buf, size);
+        this.readPlayers(buf, size);
+        this.readNewPlayers(buf, size);
+        this.readPlayerUpdates(buf, size);
+
+        for (let i: number = 0; i < this.entityRemovalCount; i++) {
+            const index: number = this.entityRemovalIds[i];
+            const player: PlayerEntity | null = this.players[index];
+            if (!player) {
+                continue;
+            }
+            if (player.cycle != this.loopCycle) {
+                this.players[index] = null;
+            }
+        }
+
+        if (buf.pos != size) {
+            throw new Error(`eek! Error packet size mismatch in getplayer pos:${buf.pos} psize:${size}`);
+        }
+        for (let index: number = 0; index < this.playerCount; index++) {
+            if (this.players[this.playerIds[index]] == null) {
+                throw new Error(`eek! ${this.username} null entry in pl list - pos:${index} size:${this.playerCount}`);
+            }
+        }
+    };
+
+    private readLocalPlayer = (buf: Packet, size: number): void => {
+        buf.bits();
+
+        const hasUpdate: number = buf.gBit(1);
+        if (hasUpdate != 0) {
+            const updateType: number = buf.gBit(2);
+
+            if (updateType == 0) {
+                this.entityUpdateIds[this.entityUpdateCount++] = this.LOCAL_PLAYER_INDEX;
+            } else if (updateType == 1) {
+                const walkDir: number = buf.gBit(3);
+                this.localPlayer?.step(false, walkDir);
+
+                const hasMaskUpdate: number = buf.gBit(1);
+                if (hasMaskUpdate == 1) {
+                    this.entityUpdateIds[this.entityUpdateCount++] = this.LOCAL_PLAYER_INDEX;
+                }
+            } else if (updateType == 2) {
+                const walkDir: number = buf.gBit(3);
+                this.localPlayer?.step(true, walkDir);
+                const runDir: number = buf.gBit(3);
+                this.localPlayer?.step(true, runDir);
+
+                const hasMaskUpdate: number = buf.gBit(1);
+                if (hasMaskUpdate == 1) {
+                    this.entityUpdateIds[this.entityUpdateCount++] = this.LOCAL_PLAYER_INDEX;
+                }
+            } else if (updateType == 3) {
+                this.currentLevel = buf.gBit(2);
+                const localX: number = buf.gBit(7);
+                const localZ: number = buf.gBit(7);
+                const jump: number = buf.gBit(1);
+                this.localPlayer?.move(jump == 1, localX, localZ);
+
+                const hasMaskUpdate: number = buf.gBit(1);
+                if (hasMaskUpdate == 1) {
+                    this.entityUpdateIds[this.entityUpdateCount++] = this.LOCAL_PLAYER_INDEX;
+                }
+            }
+        }
+    };
+
+    private readPlayers = (buf: Packet, size: number): void => {
+        const count: number = buf.gBit(8);
+
+        if (count < this.playerCount) {
+            for (let i: number = count; i < this.playerCount; i++) {
+                this.entityRemovalIds[this.entityRemovalCount++] = this.playerIds[i];
+            }
+        }
+
+        if (count > this.playerCount) {
+            throw new Error(`eek! ${this.username} Too many players`);
+        }
+
+        this.playerCount = 0;
+        for (let i: number = 0; i < count; i++) {
+            const index: number = this.playerIds[i];
+            const player: PlayerEntity | null = this.players[index];
+
+            const hasUpdate: number = buf.gBit(1);
+            if (hasUpdate == 0) {
+                this.playerIds[this.playerCount++] = index;
+                if (player) {
+                    player.cycle = this.loopCycle;
+                }
+            } else {
+                const updateType: number = buf.gBit(2);
+
+                if (updateType == 0) {
+                    this.playerIds[this.playerCount++] = index;
+                    if (player) {
+                        player.cycle = this.loopCycle;
+                    }
+                    this.entityUpdateIds[this.entityUpdateCount++] = index;
+                } else if (updateType == 1) {
+                    this.playerIds[this.playerCount++] = index;
+                    if (player) {
+                        player.cycle = this.loopCycle;
+                    }
+
+                    const walkDir: number = buf.gBit(3);
+                    player?.step(false, walkDir);
+
+                    const hasMaskUpdate: number = buf.gBit(1);
+                    if (hasMaskUpdate == 1) {
+                        this.entityUpdateIds[this.entityUpdateCount++] = index;
+                    }
+                } else if (updateType == 2) {
+                    this.playerIds[this.playerCount++] = index;
+                    if (player) {
+                        player.cycle = this.loopCycle;
+                    }
+
+                    const walkDir: number = buf.gBit(3);
+                    player?.step(true, walkDir);
+                    const runDir: number = buf.gBit(3);
+                    player?.step(true, runDir);
+
+                    const hasMaskUpdate: number = buf.gBit(1);
+                    if (hasMaskUpdate == 1) {
+                        this.entityUpdateIds[this.entityUpdateCount++] = index;
+                    }
+                } else if (updateType == 3) {
+                    this.entityRemovalIds[this.entityRemovalCount++] = index;
+                }
+            }
+        }
+    };
+
+    private readNewPlayers = (buf: Packet, size: number): void => {
+        let index: number;
+        while (buf.bitPos + 10 < size * 8) {
+            index = buf.gBit(11);
+            if (index == 2047) {
+                break;
+            }
+
+            if (this.players[index] == null) {
+                this.players[index] = new PlayerEntity();
+                const appearance: Packet | null = this.playerAppearanceBuffer[index];
+                if (appearance) {
+                    this.players[index]?.read(appearance);
+                }
+            }
+
+            this.playerIds[this.playerCount++] = index;
+            const player: PlayerEntity | null = this.players[index];
+            if (player) {
+                player.cycle = this.loopCycle;
+            }
+            let dx: number = buf.gBit(5);
+            if (dx > 15) {
+                dx -= 32;
+            }
+            let dz: number = buf.gBit(5);
+            if (dz > 15) {
+                dz -= 32;
+            }
+            const jump: number = buf.gBit(1);
+            if (this.localPlayer) {
+                player?.move(jump == 1, this.localPlayer.pathTileX[0] + dx, this.localPlayer.pathTileZ[0] + dz);
+            }
+
+            const hasMaskUpdate: number = buf.gBit(1);
+            if (hasMaskUpdate == 1) {
+                this.entityUpdateIds[this.entityUpdateCount++] = index;
+            }
+        }
+
+        buf.bytes();
+    };
+
+    private readPlayerUpdates = (buf: Packet, size: number): void => {
+        for (let i: number = 0; i < this.entityUpdateCount; i++) {
+            const index: number = this.entityUpdateIds[i];
+            const player: PlayerEntity | null = this.players[index];
+            if (!player) {
+                continue;
+            }
+            let mask: number = buf.g1;
+            if ((mask & 0x80) == 128) {
+                mask += buf.g1 << 8;
+            }
+            this.readPlayerUpdatesBlocks(player, index, mask, buf);
+        }
+    };
+
+    private readPlayerUpdatesBlocks = (player: PlayerEntity, index: number, mask: number, buf: Packet): void => {
+        player.lastMask = mask;
+        player.lastMaskCycle = this.loopCycle;
+
+        if ((mask & 0x1) == 1) {
+            const length: number = buf.g1;
+            const data: Uint8Array = new Uint8Array(length);
+            const appearance: Packet = new Packet(data);
+            buf.gdata(length, 0, data);
+            this.playerAppearanceBuffer[index] = appearance;
+            player.read(appearance);
+        }
+        if ((mask & 0x2) == 2) {
+            let seqId: number = buf.g2;
+            if (seqId == 65535) {
+                seqId = -1;
+            }
+            if (seqId == player.primarySeqId) {
+                player.primarySeqLoop = 0;
+            }
+            const delay: number = buf.g1;
+            if (seqId == -1 || player.primarySeqId == -1 || SeqType.instances[seqId].priority > SeqType.instances[player.primarySeqId].priority || SeqType.instances[player.primarySeqId].priority == 0) {
+                player.primarySeqId = seqId;
+                player.primarySeqFrame = 0;
+                player.primarySeqCycle = 0;
+                player.primarySeqDelay = delay;
+                player.primarySeqLoop = 0;
+            }
+        }
+        if ((mask & 0x4) == 4) {
+            player.targetId = buf.g2;
+            if (player.targetId == 65535) {
+                player.targetId = -1;
+            }
+        }
+        if ((mask & 0x8) == 8) {
+            player.chat = buf.gjstr;
+            player.chatColor = 0;
+            player.chatStyle = 0;
+            player.chatTimer = 150;
+            if (player.name) {
+                this.addMessage(2, player.chat, player.name);
+            }
+        }
+        if ((mask & 0x10) == 16) {
+            player.damage = buf.g1;
+            player.damageType = buf.g1;
+            player.combatCycle = this.loopCycle + 400;
+            player.health = buf.g1;
+            player.totalHealth = buf.g1;
+        }
+        if ((mask & 0x20) == 32) {
+            player.targetTileX = buf.g2;
+            player.targetTileZ = buf.g2;
+            player.lastFaceX = player.targetTileX;
+            player.lastFaceZ = player.targetTileZ;
+        }
+        if ((mask & 0x40) == 64) {
+            const colorEffect: number = buf.g2;
+            const type: number = buf.g1;
+            const length: number = buf.g1;
+            const start: number = buf.pos;
+            if (player.name != null) {
+                const username: bigint = JString.toBase37(player.name);
+                let ignored: boolean = false;
+                if (type <= 1) {
+                    for (let i: number = 0; i < this.ignoreCount; i++) {
+                        if (this.ignoreName37[i] == username) {
+                            ignored = true;
+                            break;
+                        }
+                    }
+                }
+                if (!ignored && this.overrideChat == 0) {
+                    try {
+                        const uncompressed: string = WordPack.unpack(buf, length);
+                        const filtered: string = WordFilter.filter(uncompressed);
+                        player.chat = filtered;
+                        player.chatColor = colorEffect >> 8;
+                        player.chatStyle = colorEffect & 0xff;
+                        player.chatTimer = 150;
+                        if (type > 1) {
+                            this.addMessage(1, filtered, player.name);
+                        } else {
+                            this.addMessage(2, filtered, player.name);
+                        }
+                    } catch (e) {
+                        // signlink.reporterror("cde2");
+                    }
+                }
+            }
+            buf.pos = start + length;
+        }
+        if ((mask & 0x100) == 256) {
+            player.spotanimId = buf.g2;
+            const heightDelay: number = buf.g4;
+            player.spotanimOffset = heightDelay >> 16;
+            player.spotanimLastCycle = this.loopCycle + (heightDelay & 0xffff);
+            player.spotanimFrame = 0;
+            player.spotanimCycle = 0;
+            if (player.spotanimLastCycle > this.loopCycle) {
+                player.spotanimFrame = -1;
+            }
+            if (player.spotanimId == 65535) {
+                player.spotanimId = -1;
+            }
+        }
+        if ((mask & 0x200) == 512) {
+            player.forceMoveStartSceneTileX = buf.g1;
+            player.forceMoveStartSceneTileZ = buf.g1;
+            player.forceMoveEndSceneTileX = buf.g1;
+            player.forceMoveEndSceneTileZ = buf.g1;
+            player.forceMoveEndCycle = buf.g2 + this.loopCycle;
+            player.forceMoveStartCycle = buf.g2 + this.loopCycle;
+            player.forceMoveFaceDirection = buf.g1;
+            player.pathLength = 0;
+            player.pathTileX[0] = player.forceMoveEndSceneTileX;
+            player.pathTileZ[0] = player.forceMoveEndSceneTileZ;
+        }
+    };
+
     private unloadTitle = (): void => {
         this.flameActive = false;
         if (this.flamesInterval) {
@@ -5544,7 +5882,7 @@ class Client extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                data = new Int8Array(await downloadUrl(`${Client.HOST}/${filename}${crc}`));
+                data = await downloadUrl(`${Client.HOST}/${filename}${crc}`);
             } catch (e) {
                 data = undefined;
                 for (let i: number = retry; i > 0; i--) {
@@ -5562,8 +5900,8 @@ class Client extends GameShell {
     };
 
     private setMidi = async (name: string, crc: number): Promise<void> => {
-        const data: Int8Array = new Int8Array(await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`));
-        playMidi(Bzip.decompressBz2(new Packet(data).g4, data, data.length, 4), 192);
+        const data: Int8Array = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
+        playMidi(Bzip.decompressBz2(new Packet(Uint8Array.from(data)).g4, data, data.length, 4), 192);
     };
 
     private drawError = (): void => {

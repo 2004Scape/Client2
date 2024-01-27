@@ -41,11 +41,11 @@ export default class JString {
         }
 
         let len: number = 0;
-        const chars: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        const chars: string[] = Array(12);
         while (value !== 0n) {
             const l1: bigint = value;
             value /= 37n;
-            chars[11 - len++] = Number(this.BASE37_LOOKUP[Number(l1 - value * 37n)]);
+            chars[11 - len++] = this.BASE37_LOOKUP[Number(l1 - value * 37n)];
         }
 
         return chars.slice(12 - len).join('');

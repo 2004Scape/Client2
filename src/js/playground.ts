@@ -49,7 +49,7 @@ class Playground extends GameShell {
         await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
         this.db = new Database(await Database.openDatabase());
 
-        const checksums: Packet = new Packet(await downloadUrl(`${Playground.HOST}/crc`));
+        const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Playground.HOST}/crc`)));
         const archiveChecksums: number[] = [];
         for (let i: number = 0; i < 9; i++) {
             archiveChecksums[i] = checksums.g4;

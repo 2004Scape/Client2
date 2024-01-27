@@ -98,7 +98,7 @@ class Viewer extends GameShell {
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
-            const checksums: Packet = new Packet(await downloadUrl(`${Viewer.HOST}/crc`));
+            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Viewer.HOST}/crc`)));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -122,7 +122,7 @@ class Viewer extends GameShell {
             // this.packfiles[2] = await this.loadPack(`${Viewer.REPO}/data/pack/mesanim.pack`);
             // this.packfiles[3] = await this.loadPack(`${Viewer.REPO}/data/pack/seq.pack`);
 
-            const mesanim: Packet = new Packet(await downloadUrl(`${Viewer.HOST}/server/mesanim.dat`));
+            const mesanim: Packet = new Packet(new Uint8Array(await downloadUrl(`${Viewer.HOST}/server/mesanim.dat`)));
 
             await this.showProgress(75, 'Unpacking media');
             this.imageChatback = Pix8.fromArchive(media, 'chatback', 0);
@@ -263,7 +263,7 @@ class Viewer extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                data = new Int8Array(await downloadUrl(`${Viewer.HOST}/${filename}${crc}`));
+                data = await downloadUrl(`${Viewer.HOST}/${filename}${crc}`);
             } catch (e) {
                 data = undefined;
                 for (let i: number = retry; i > 0; i--) {

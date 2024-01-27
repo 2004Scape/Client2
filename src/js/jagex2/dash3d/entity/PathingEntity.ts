@@ -50,10 +50,15 @@ export default abstract class PathingEntity extends Entity {
     height: number = 0;
     dstYaw: number = 0;
     pathLength: number = 0;
-    pathTileX: number[] = [];
-    pathTileZ: number[] = [];
-    pathRunning: boolean[] = [];
+    pathTileX: Int32Array = new Int32Array(10);
+    pathTileZ: Int32Array = new Int32Array(10);
+    pathRunning: boolean[] = new Array(10).fill(false);
     seqTrigger: number = 0;
+
+    lastMask: number = -1;
+    lastMaskCycle: number = -1;
+    lastFaceX: number = -1;
+    lastFaceZ: number = -1;
 
     abstract isVisible(): boolean;
 

@@ -54,12 +54,12 @@ export default class Packet extends Hashable {
     bitPos: number = 0;
     random: Isaac | null = null;
 
-    constructor(src: ArrayBuffer | null) {
+    constructor(src: Uint8Array | null) {
         if (!src) {
             throw new Error('Input src packet array was null!');
         }
         super();
-        this.data = new Uint8Array(src);
+        this.data = src;
         this.pos = 0;
     }
 
@@ -155,7 +155,7 @@ export default class Packet extends Hashable {
         return str;
     }
 
-    gdata = (length: number, offset: number, dest: Int8Array): void => {
+    gdata = (length: number, offset: number, dest: Uint8Array | Int8Array): void => {
         for (let i: number = offset; i < offset + length; i++) {
             dest[i] = this.data[this.pos++];
         }
@@ -226,7 +226,7 @@ export default class Packet extends Hashable {
     };
 
     bytes = (): void => {
-        this.pos = ((this.bitPos + 7) / 8) >>> 0;
+        this.pos = Math.trunc((this.bitPos + 7) / 8);
     };
 
     gBit = (n: number): number => {

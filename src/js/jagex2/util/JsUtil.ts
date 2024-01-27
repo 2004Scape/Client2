@@ -1,5 +1,5 @@
 export const sleep = async (ms: number): Promise<void> => new Promise((resolve): NodeJS.Timeout => setTimeout(resolve, ms));
-export const downloadUrl = async (url: string): Promise<ArrayBuffer> => await (await fetch(url)).arrayBuffer();
+export const downloadUrl = async (url: string): Promise<Int8Array> => new Int8Array(await (await fetch(url)).arrayBuffer());
 export const downloadText = async (url: string): Promise<string> => (await fetch(url)).text();
 
 export const arraycopy = (src: Int32Array | Uint8Array, srcPos: number, dst: Int32Array | Uint8Array, dstPos: number, length: number): void => {
