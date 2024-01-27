@@ -49,7 +49,7 @@ export default class WordPack {
                 uppercase = true;
             }
         }
-        return this.charBuffer.join('');
+        return this.charBuffer.slice(0, pos).join('');
     };
 
     static pack = (word: Packet, str: string): void => {

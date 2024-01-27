@@ -134,7 +134,7 @@ export default class Packet extends Hashable {
     }
 
     get g8(): bigint {
-        return (BigInt(this.g4) << 32n) | BigInt(this.g4);
+        return ((BigInt(this.g4) & 0xffffffffn) << 32n) | (BigInt(this.g4) & 0xffffffffn);
     }
 
     get gsmart(): number {

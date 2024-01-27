@@ -36,9 +36,9 @@ export default class JString {
             return 'invalid_name';
         }
 
-        /*if (value % 37n === 0n) {
-            return 'invalid_name'; // TODO idk this is broken or something
-        }*/
+        if (value % 37n === 0n) {
+            return 'invalid_name';
+        }
 
         let len: number = 0;
         const chars: string[] = Array(12);

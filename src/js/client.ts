@@ -4235,7 +4235,7 @@ class Client extends GameShell {
             }
             if (this.packetType === 1) {
                 // NPC_INFO
-                // this.readNpcInfo(this.in, this.packetSize);
+                this.readNpcInfo(this.in, this.packetSize);
                 this.packetType = -1;
                 return true;
             }
@@ -6280,7 +6280,7 @@ class Client extends GameShell {
             const index: number = this.entityUpdateIds[i];
             const player: PlayerEntity | null = this.players[index];
             if (!player) {
-                continue;
+                continue; // its fine cos buffer gets out of pos and throws error which is ok
             }
             let mask: number = buf.g1;
             if ((mask & 0x80) == 128) {
@@ -6371,6 +6371,7 @@ class Client extends GameShell {
                         player.chatColor = colorEffect >> 8;
                         player.chatStyle = colorEffect & 0xff;
                         player.chatTimer = 150;
+                        console.log(filtered);
                         if (type > 1) {
                             this.addMessage(1, filtered, player.name);
                         } else {
@@ -6408,6 +6409,225 @@ class Client extends GameShell {
             player.pathLength = 0;
             player.pathTileX[0] = player.forceMoveEndSceneTileX;
             player.pathTileZ[0] = player.forceMoveEndSceneTileZ;
+        }
+    };
+
+    private readNpcInfo = (buf: Packet, size: number): void => {
+        this.entityRemovalCount = 0;
+        this.entityUpdateCount = 0;
+
+        this.readNpcs(buf, size);
+        this.readNewNpcs(buf, size);
+        this.readNpcUpdates(buf, size);
+
+        for (let i: number = 0; i < this.entityRemovalCount; i++) {
+            const index: number = this.entityRemovalIds[i];
+            const npc: NpcEntity | null = this.npcs[index];
+            if (!npc) {
+                continue;
+            }
+            if (npc.cycle != this.loopCycle) {
+                npc.type = null;
+                this.npcs[index] = null;
+            }
+        }
+
+        if (buf.pos != size) {
+            throw new Error(`eek! ${this.username} size mismatch in getnpcpos - pos:${buf.pos} psize:${size}`);
+        }
+
+        for (let i: number = 0; i < this.npcCount; i++) {
+            if (this.npcs[this.npcIds[i]] == null) {
+                throw new Error(`eek! ${this.username} null entry in npc list - pos:${i} size:${this.npcCount}`);
+            }
+        }
+    };
+
+    private readNpcs = (buf: Packet, size: number): void => {
+        buf.bits();
+
+        const count: number = buf.gBit(8);
+        if (count < this.npcCount) {
+            for (let i: number = count; i < this.npcCount; i++) {
+                this.entityRemovalIds[this.entityRemovalCount++] = this.npcIds[i];
+            }
+        }
+
+        if (count > this.npcCount) {
+            throw new Error(`eek! ${this.username} Too many npc!`);
+        }
+
+        this.npcCount = 0;
+        for (let i: number = 0; i < count; i++) {
+            const index: number = this.npcIds[i];
+            const npc: NpcEntity | null = this.npcs[index];
+
+            const hasUpdate: number = buf.gBit(1);
+            if (hasUpdate == 0) {
+                this.npcIds[this.npcCount++] = index;
+                if (npc) {
+                    npc.cycle = this.loopCycle;
+                }
+            } else {
+                const updateType: number = buf.gBit(2);
+
+                if (updateType == 0) {
+                    this.npcIds[this.npcCount++] = index;
+                    if (npc) {
+                        npc.cycle = this.loopCycle;
+                    }
+                    this.entityUpdateIds[this.entityUpdateCount++] = index;
+                } else if (updateType == 1) {
+                    this.npcIds[this.npcCount++] = index;
+                    if (npc) {
+                        npc.cycle = this.loopCycle;
+                    }
+
+                    const walkDir: number = buf.gBit(3);
+                    npc?.step(false, walkDir);
+
+                    const hasMaskUpdate: number = buf.gBit(1);
+                    if (hasMaskUpdate == 1) {
+                        this.entityUpdateIds[this.entityUpdateCount++] = index;
+                    }
+                } else if (updateType == 2) {
+                    this.npcIds[this.npcCount++] = index;
+                    if (npc) {
+                        npc.cycle = this.loopCycle;
+                    }
+
+                    const walkDir: number = buf.gBit(3);
+                    npc?.step(true, walkDir);
+                    const runDir: number = buf.gBit(3);
+                    npc?.step(true, runDir);
+
+                    const hasMaskUpdate: number = buf.gBit(1);
+                    if (hasMaskUpdate == 1) {
+                        this.entityUpdateIds[this.entityUpdateCount++] = index;
+                    }
+                } else if (updateType == 3) {
+                    this.entityRemovalIds[this.entityRemovalCount++] = index;
+                }
+            }
+        }
+    };
+
+    private readNewNpcs = (buf: Packet, size: number): void => {
+        while (buf.bitPos + 21 < size * 8) {
+            const index: number = buf.gBit(13);
+            if (index == 8191) {
+                break;
+            }
+            if (this.npcs[index] == null) {
+                this.npcs[index] = new NpcEntity();
+            }
+            const npc: NpcEntity | null = this.npcs[index];
+            this.npcIds[this.npcCount++] = index;
+            if (npc) {
+                npc.cycle = this.loopCycle;
+                npc.type = NpcType.get(buf.gBit(11));
+                npc.size = npc.type.size;
+                npc.seqWalkId = npc.type.walkanim;
+                npc.seqTurnAroundId = npc.type.walkanim_b;
+                npc.seqTurnLeftId = npc.type.walkanim_r;
+                npc.seqTurnRightId = npc.type.walkanim_l;
+                npc.seqStandId = npc.type.readyanim;
+            } else {
+                buf.gBit(11);
+            }
+            let dx: number = buf.gBit(5);
+            if (dx > 15) {
+                dx -= 32;
+            }
+            let dz: number = buf.gBit(5);
+            if (dz > 15) {
+                dz -= 32;
+            }
+            if (this.localPlayer) {
+                npc?.move(false, this.localPlayer.pathTileX[0] + dx, this.localPlayer.pathTileZ[0] + dz);
+            }
+            const update: number = buf.gBit(1);
+            if (update == 1) {
+                this.entityUpdateIds[this.entityUpdateCount++] = index;
+            }
+        }
+        buf.bytes();
+    };
+
+    private readNpcUpdates = (buf: Packet, size: number): void => {
+        for (let i: number = 0; i < this.entityUpdateCount; i++) {
+            const id: number = this.entityUpdateIds[i];
+            const npc: NpcEntity | null = this.npcs[id];
+            if (!npc) {
+                continue; // its fine cos buffer gets out of pos and throws error which is ok
+            }
+            const mask: number = buf.g1;
+
+            npc.lastMask = mask;
+            npc.lastMaskCycle = this.loopCycle;
+
+            if ((mask & 0x2) == 2) {
+                let seqId: number = buf.g2;
+                if (seqId == 65535) {
+                    seqId = -1;
+                }
+                if (seqId == npc.primarySeqId) {
+                    npc.primarySeqLoop = 0;
+                }
+                const delay: number = buf.g1;
+                if (seqId == -1 || npc.primarySeqId == -1 || SeqType.instances[seqId].priority > SeqType.instances[npc.primarySeqId].priority || SeqType.instances[npc.primarySeqId].priority == 0) {
+                    npc.primarySeqId = seqId;
+                    npc.primarySeqFrame = 0;
+                    npc.primarySeqCycle = 0;
+                    npc.primarySeqDelay = delay;
+                    npc.primarySeqLoop = 0;
+                }
+            }
+            if ((mask & 0x4) == 4) {
+                npc.targetId = buf.g2;
+                if (npc.targetId == 65535) {
+                    npc.targetId = -1;
+                }
+            }
+            if ((mask & 0x8) == 8) {
+                npc.chat = buf.gjstr;
+                npc.chatTimer = 100;
+            }
+            if ((mask & 0x10) == 16) {
+                npc.damage = buf.g1;
+                npc.damageType = buf.g1;
+                npc.combatCycle = this.loopCycle + 400;
+                npc.health = buf.g1;
+                npc.totalHealth = buf.g1;
+            }
+            if ((mask & 0x20) == 32) {
+                npc.type = NpcType.get(buf.g2);
+                npc.seqWalkId = npc.type.walkanim;
+                npc.seqTurnAroundId = npc.type.walkanim_b;
+                npc.seqTurnLeftId = npc.type.walkanim_r;
+                npc.seqTurnRightId = npc.type.walkanim_l;
+                npc.seqStandId = npc.type.readyanim;
+            }
+            if ((mask & 0x40) == 64) {
+                npc.spotanimId = buf.g2;
+                const info: number = buf.g4;
+                npc.spotanimOffset = info >> 16;
+                npc.spotanimLastCycle = this.loopCycle + (info & 0xffff);
+                npc.spotanimFrame = 0;
+                npc.spotanimCycle = 0;
+                if (npc.spotanimLastCycle > this.loopCycle) {
+                    npc.spotanimFrame = -1;
+                }
+                if (npc.spotanimId == 65535) {
+                    npc.spotanimId = -1;
+                }
+            }
+            if ((mask & 0x80) == 128) {
+                npc.targetTileX = buf.g2;
+                npc.targetTileZ = buf.g2;
+                npc.lastFaceX = npc.targetTileX;
+                npc.lastFaceZ = npc.targetTileZ;
+            }
         }
     };
 
