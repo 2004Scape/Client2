@@ -18,7 +18,7 @@ export default class PlayerEntity extends PathingEntity {
         [4550, 4537, 5681, 5673, 5790, 6806, 8076, 4574]
     ];
 
-    static readonly modelCache: LruCache = new LruCache(200);
+    static modelCache: LruCache | null = new LruCache(200);
 
     name: string | null = null;
     visible: boolean = false;
@@ -272,7 +272,7 @@ export default class PlayerEntity extends PathingEntity {
             }
         }
 
-        let model: Model | null = PlayerEntity.modelCache.get(hashCode) as Model | null;
+        let model: Model | null = PlayerEntity.modelCache?.get(hashCode) as Model | null;
         if (!model) {
             const models: Model[] = [];
             let modelCount: number = 0;
@@ -317,7 +317,7 @@ export default class PlayerEntity extends PathingEntity {
 
             model.createLabelReferences();
             model.calculateNormals(64, 850, -30, -50, -30, true);
-            PlayerEntity.modelCache.put(hashCode, model);
+            PlayerEntity.modelCache?.put(hashCode, model);
         }
 
         if (this.lowMemory) {

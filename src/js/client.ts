@@ -432,14 +432,7 @@ class Client extends GameShell {
     private midiCrc: number = 0;
     private midiSize: number = 0;
 
-    runFlames = (): void => {
-        if (!this.flameActive) {
-            return;
-        }
-        this.updateFlames();
-        this.updateFlames();
-        this.drawFlames();
-    };
+    // ---- function overrides
 
     load = async (): Promise<void> => {
         if (this.alreadyStarted) {
@@ -766,7 +759,142 @@ class Client extends GameShell {
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     };
 
-    // ----
+    unload = (): void => {
+        try {
+            if (this.stream) {
+                this.stream.close();
+            }
+        } catch (e) {
+            /* empty */
+        }
+        this.stream = null;
+        // this.stopMidi();
+        // this.midiThreadActive = false;
+        // this.out = null;
+        // this.login = null;
+        // this.in = null;
+        this.sceneMapIndex = null;
+        this.sceneMapLandData = null;
+        this.sceneMapLocData = null;
+        // this.levelHeightmap = null;
+        // this.levelTileFlags = null;
+        this.scene = null;
+        // this.levelCollisionMap = null;
+        // this.bfsDirection = null;
+        // this.bfsCost = null;
+        // this.bfsStepX = null;
+        // this.bfsStepZ = null;
+        // this.textureBuffer = null;
+        this.areaSidebar = null;
+        this.areaMapback = null;
+        this.areaViewport = null;
+        this.areaChatback = null;
+        this.areaBackbase1 = null;
+        this.areaBackbase2 = null;
+        this.areaBackhmid1 = null;
+        this.areaBackleft1 = null;
+        this.areaBackleft2 = null;
+        this.areaBackright1 = null;
+        this.areaBackright2 = null;
+        this.areaBacktop1 = null;
+        this.areaBacktop2 = null;
+        this.areaBackvmid1 = null;
+        this.areaBackvmid2 = null;
+        this.areaBackvmid3 = null;
+        this.areaBackhmid2 = null;
+        this.imageInvback = null;
+        this.imageMapback = null;
+        this.imageChatback = null;
+        this.imageBackbase1 = null;
+        this.imageBackbase2 = null;
+        this.imageBackhmid1 = null;
+        // this.imageSideicons = null;
+        this.imageRedstone1 = null;
+        this.imageRedstone2 = null;
+        this.imageRedstone3 = null;
+        this.imageRedstone1h = null;
+        this.imageRedstone2h = null;
+        this.imageRedstone1v = null;
+        this.imageRedstone2v = null;
+        this.imageRedstone3v = null;
+        this.imageRedstone1hv = null;
+        this.imageRedstone2hv = null;
+        this.imageCompass = null;
+        // this.imageHitmarks = null;
+        // this.imageHeadicons = null;
+        // this.imageCrosses = null;
+        this.imageMapdot0 = null;
+        this.imageMapdot1 = null;
+        this.imageMapdot2 = null;
+        this.imageMapdot3 = null;
+        // this.imageMapscene = null;
+        // this.imageMapfunction = null;
+        // this.tileLastOccupiedCycle = null;
+        // this.players = null;
+        // this.playerIds = null;
+        // this.entityUpdateIds = null;
+        // this.playerAppearanceBuffer = null;
+        // this.entityRemovalIds = null;
+        // this.npcs = null;
+        // this.npcIds = null;
+        // this.levelObjStacks = null;
+        // this.spawnedLocations = null;
+        // this.temporaryLocs = null;
+        // this.projectiles = null;
+        // this.spotanims = null;
+        // this.locList = null;
+        // this.menuParamB = null;
+        // this.menuParamC = null;
+        // this.menuAction = null;
+        // this.menuParamA = null;
+        // this.menuOption = null;
+        // this.varps = null;
+        // this.activeMapFunctionX = null;
+        // this.activeMapFunctionZ = null;
+        // this.activeMapFunctions = null;
+        // this.imageMinimap = null;
+        // this.friendName = null;
+        // this.friendName37 = null;
+        // this.friendWorld = null;
+        this.imageTitle0 = null;
+        this.imageTitle1 = null;
+        this.imageTitle2 = null;
+        this.imageTitle3 = null;
+        this.imageTitle4 = null;
+        this.imageTitle5 = null;
+        this.imageTitle6 = null;
+        this.imageTitle7 = null;
+        this.imageTitle8 = null;
+        this.unloadTitle();
+        LocType.unload();
+        NpcType.unload();
+        ObjType.unload();
+        FloType.instances = [];
+        IdkType.instances = [];
+        ComType.instances = [];
+        SeqType.instances = [];
+        SpotAnimType.instances = [];
+        SpotAnimType.modelCache = null;
+        VarpType.instances = [];
+        this.drawArea = null;
+        PlayerEntity.modelCache = null;
+        Draw3D.unload();
+        World3D.unload();
+        Model.unload();
+        SeqBase.instances = [];
+        SeqFrame.instances = [];
+    };
+
+    // ---- everything else
+
+    runFlames = (): void => {
+        if (!this.flameActive) {
+            return;
+        }
+        this.updateFlames();
+        this.updateFlames();
+        this.drawFlames();
+    };
 
     private loadTitle = async (): Promise<void> => {
         if (!this.imageTitle2) {
@@ -2099,8 +2227,8 @@ class Client extends GameShell {
         NpcType.modelCache?.clear();
         ObjType.modelCache?.clear();
         ObjType.iconCache?.clear();
-        PlayerEntity.modelCache.clear();
-        SpotAnimType.modelCache.clear();
+        PlayerEntity.modelCache?.clear();
+        SpotAnimType.modelCache?.clear();
     };
 
     private draw3DEntityElements = (): void => {

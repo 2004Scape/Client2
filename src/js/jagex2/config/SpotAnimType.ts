@@ -8,7 +8,7 @@ import LruCache from '../datastruct/LruCache';
 export default class SpotAnimType extends ConfigType {
     static count: number = 0;
     static instances: SpotAnimType[] = [];
-    static modelCache: LruCache = new LruCache(30);
+    static modelCache: LruCache | null = new LruCache(30);
 
     static unpack = (config: Jagfile): void => {
         const dat: Packet = new Packet(config.read('spotanim.dat'));
@@ -66,7 +66,7 @@ export default class SpotAnimType extends ConfigType {
     };
 
     getModel = (): Model => {
-        let model: Model | null = SpotAnimType.modelCache.get(this.index) as Model | null;
+        let model: Model | null = SpotAnimType.modelCache?.get(this.index) as Model | null;
         if (model) {
             return model;
         }
@@ -76,7 +76,7 @@ export default class SpotAnimType extends ConfigType {
                 model.recolor(this.recol_s[i], this.recol_d[i]);
             }
         }
-        SpotAnimType.modelCache.put(this.index, model);
+        SpotAnimType.modelCache?.put(this.index, model);
         return model;
     };
 }

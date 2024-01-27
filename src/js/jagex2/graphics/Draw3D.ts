@@ -49,6 +49,22 @@ export default class Draw3D {
         }
     }
 
+    static unload = (): void => {
+        // this.reciprocal15 = null;
+        // this.reciprocal15 = null;
+        // this.sin = null;
+        // this.cos = null;
+        // this.lineOffset = null;
+        // this.textures = null;
+        // this.textureTranslucent = null;
+        // this.averageTextureRGB = null;
+        // this.texelPool = null;
+        // this.activeTexels = null;
+        // this.textureCycle = null;
+        // this.palette = null;
+        // this.texturePalette = null;
+    };
+
     static init2D = (): void => {
         this.lineOffset = new Int32Array(Draw2D.height);
         for (let y: number = 0; y < Draw2D.height; y++) {

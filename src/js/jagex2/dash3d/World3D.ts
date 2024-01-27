@@ -110,6 +110,15 @@ export default class World3D {
         }
     };
 
+    static unload = (): void => {
+        // this.locBuffer = null;
+        // this.levelOccluderCount = null;
+        // this.levelOccluders = null;
+        // this.drawTileQueue = null;
+        // this.visibilityMatrix = null;
+        // this.visibilityMap = null;
+    };
+
     reset = (): void => {
         // TODO
     };
@@ -122,8 +131,8 @@ export default class World3D {
         if (pz < 50 || pz > 3500) {
             return false;
         }
-        const viewportX: number = this.viewportCenterX + (px << 9) / pz;
-        const viewportY: number = this.viewportCenterY + (py << 9) / pz;
+        const viewportX: number = this.viewportCenterX + Math.trunc((px << 9) / pz);
+        const viewportY: number = this.viewportCenterY + Math.trunc((py << 9) / pz);
         return viewportX >= this.viewportLeft && viewportX <= this.viewportRight && viewportY >= this.viewportTop && viewportY <= this.viewportBottom;
     };
 }
