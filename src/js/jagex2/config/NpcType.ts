@@ -96,7 +96,7 @@ export default class NpcType extends ConfigType {
         } else if (code === 3) {
             this.desc = dat.gjstr;
         } else if (code === 12) {
-            this.size = dat.g1;
+            this.size = dat.g1b;
         } else if (code === 13) {
             this.readyanim = dat.g2;
         } else if (code === 14) {
