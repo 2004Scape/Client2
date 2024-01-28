@@ -27,6 +27,7 @@ import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
 import {canvas2d} from './jagex2/graphics/Canvas';
 import Bzip from './vendor/bzip';
+import Colors from './jagex2/graphics/Colors';
 
 class Viewer extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
@@ -178,7 +179,7 @@ class Viewer extends GameShell {
         }
 
         Draw2D.clear();
-        Draw2D.fillRect(0, 0, this.width, this.height, 0x000000);
+        Draw2D.fillRect(0, 0, this.width, this.height, Colors.BLACK);
 
         if (this.model.built === null) {
             this.model.built = Model.model(this.model.id);
@@ -188,8 +189,8 @@ class Viewer extends GameShell {
         this.model.built.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
         // debug
-        this.fontBold12?.drawRight(this.width - 1, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xffff00);
-        this.fontBold12?.draw(1, this.fontBold12.fontHeight, `ID: ${this.model.id}`, 0xffff00);
+        this.fontBold12?.drawRight(this.width - 1, this.fontBold12.fontHeight, `FPS: ${this.fps}`, Colors.YELLOW);
+        this.fontBold12?.draw(1, this.fontBold12.fontHeight, `ID: ${this.model.id}`, Colors.YELLOW);
 
         this.drawArea?.draw(0, 0);
     };

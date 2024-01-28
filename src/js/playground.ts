@@ -25,6 +25,7 @@ import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
 import Bzip from './vendor/bzip';
+import Colors from './jagex2/graphics/Colors';
 
 class Playground extends GameShell {
     static HOST = 'https://w2.225.2004scape.org';
@@ -152,7 +153,7 @@ class Playground extends GameShell {
         // let y = this.b12.fontHeight;
         // for (let i = 0; i < FloType.count; i++) {
         //     let flo = FloType.get(i);
-        //     this.b12.draw(x, y, `${i}: ${flo.name}`, 0xFFFF00);
+        //     this.b12.draw(x, y, `${i}: ${flo.name}`, Colors.YELLOW);
 
         //     let textSize = this.b12.getTextWidth(`${i}: ${flo.name}`);
 
@@ -176,32 +177,32 @@ class Playground extends GameShell {
 
         // debug
         if (this.fontBold12) {
-            this.fontBold12.drawRight(this.width, this.fontBold12.fontHeight, `FPS: ${this.fps}`, 0xffff00);
-            this.fontBold12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, 0xffff00);
+            this.fontBold12.drawRight(this.width, this.fontBold12.fontHeight, `FPS: ${this.fps}`, Colors.YELLOW);
+            this.fontBold12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, Colors.YELLOW);
 
             // controls
             let leftY: number = this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `Model: ${this.model.id}`, 0xffff00);
+            this.fontBold12.draw(0, leftY, `Model: ${this.model.id}`, Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'Controls:', 0xffff00);
+            this.fontBold12.draw(0, leftY, 'Controls:', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'r - reset camera and model rotation + movement speed', 0xffff00);
+            this.fontBold12.draw(0, leftY, 'r - reset camera and model rotation + movement speed', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, '1 and 2 - change model', 0xffff00);
+            this.fontBold12.draw(0, leftY, '1 and 2 - change model', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, '[ and ] - adjust movement speed', 0xffff00);
+            this.fontBold12.draw(0, leftY, '[ and ] - adjust movement speed', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'left and right - adjust model yaw', 0xffff00);
+            this.fontBold12.draw(0, leftY, 'left and right - adjust model yaw', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'up and down - adjust model pitch', 0xffff00);
+            this.fontBold12.draw(0, leftY, 'up and down - adjust model pitch', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, '. and / - adjust model roll', 0xffff00);
+            this.fontBold12.draw(0, leftY, '. and / - adjust model roll', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'w and s - move camera along z axis', 0xffff00);
+            this.fontBold12.draw(0, leftY, 'w and s - move camera along z axis', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'a and d - move camera along x axis', 0xffff00);
+            this.fontBold12.draw(0, leftY, 'a and d - move camera along x axis', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'q and e - move camera along y axis', 0xffff00);
+            this.fontBold12.draw(0, leftY, 'q and e - move camera along y axis', Colors.YELLOW);
         }
 
         this.drawArea?.draw(0, 0);

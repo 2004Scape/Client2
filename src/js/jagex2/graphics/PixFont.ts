@@ -4,6 +4,7 @@ import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
 import Hashable from '../datastruct/Hashable';
 import JavaRandom from '../util/JavaRandom';
+import Colors from './Colors';
 
 export default class PixFont extends Hashable {
     static CHARSET: number[] = [];
@@ -140,7 +141,7 @@ export default class PixFont extends Hashable {
 
                 if (c !== 94) {
                     if (shadowed) {
-                        this.copyCharacter(x + this.clipX[c] + 1, y + this.clipY[c] + 1, this.charWidth[c], this.charHeight[c], this.pixels[c], 0);
+                        this.copyCharacter(x + this.clipX[c] + 1, y + this.clipY[c] + 1, this.charWidth[c], this.charHeight[c], this.pixels[c], Colors.BLACK);
                     }
                     this.copyCharacter(x + this.clipX[c], y + this.clipY[c], this.charWidth[c], this.charHeight[c], this.pixels[c], color);
                 }
@@ -210,7 +211,7 @@ export default class PixFont extends Hashable {
                 const c: number = PixFont.CHARSET[str.charCodeAt(i)];
                 if (c !== 94) {
                     if (shadowed) {
-                        this.drawCharAlpha(x + this.clipX[c] + 1, offY + this.clipY[c] + 1, this.charWidth[c], this.charHeight[c], 0, 192, this.pixels[c]);
+                        this.drawCharAlpha(x + this.clipX[c] + 1, offY + this.clipY[c] + 1, this.charWidth[c], this.charHeight[c], Colors.BLACK, 192, this.pixels[c]);
                     }
 
                     this.drawCharAlpha(x + this.clipX[c], offY + this.clipY[c], this.charWidth[c], this.charHeight[c], color, rand, this.pixels[c]);
@@ -229,7 +230,7 @@ export default class PixFont extends Hashable {
         y = Math.trunc(y);
 
         if (shadowed) {
-            this.draw(x - this.stringWidth(str) + 1, y + 1, str, 0);
+            this.draw(x - this.stringWidth(str) + 1, y + 1, str, Colors.BLACK);
         }
         this.draw(x - this.stringWidth(str), y, str, color);
     };
@@ -457,43 +458,42 @@ export default class PixFont extends Hashable {
     };
 
     evaluateTag = (tag: string): number => {
-        switch (tag) {
-            case 'red':
-                return 0xff0000;
-            case 'gre':
-                return 0xff00;
-            case 'blu':
-                return 0xff;
-            case 'yel':
-                return 0xffff00;
-            case 'cya':
-                return 0xffff;
-            case 'mag':
-                return 0xff00ff;
-            case 'whi':
-                return 0xffffff;
-            case 'bla':
-                return 0;
-            case 'lre':
-                return 0xff9040;
-            case 'dre':
-                return 0x800000;
-            case 'dbl':
-                return 0x80;
-            case 'or1':
-                return 0xffb000;
-            case 'or2':
-                return 0xff7000;
-            case 'or3':
-                return 0xff3000;
-            case 'gr1':
-                return 0xc0ff00;
-            case 'gr2':
-                return 0x80ff00;
-            case 'gr3':
-                return 0x40ff00;
-            default:
-                return 0;
+        if (tag === 'red') {
+            return Colors.RED;
+        } else if (tag === 'gre') {
+            return Colors.GREEN;
+        } else if (tag === 'blu') {
+            return Colors.BLUE;
+        } else if (tag === 'yel') {
+            return Colors.YELLOW;
+        } else if (tag === 'cya') {
+            return Colors.CYAN;
+        } else if (tag === 'mag') {
+            return Colors.MAGENTA;
+        } else if (tag === 'whi') {
+            return Colors.WHITE;
+        } else if (tag === 'bla') {
+            return Colors.BLACK;
+        } else if (tag === 'lre') {
+            return Colors.LIGHTRED;
+        } else if (tag === 'dre') {
+            return Colors.DARKRED;
+        } else if (tag === 'dbl') {
+            return Colors.DARKBLUE;
+        } else if (tag === 'or1') {
+            return Colors.ORANGE1;
+        } else if (tag === 'or2') {
+            return Colors.ORANGE2;
+        } else if (tag === 'or3') {
+            return Colors.ORANGE3;
+        } else if (tag === 'gr1') {
+            return Colors.GREEN1;
+        } else if (tag === 'gr2') {
+            return Colors.GREEN2;
+        } else if (tag === 'gr3') {
+            return Colors.GREEN3;
+        } else {
+            return Colors.BLACK;
         }
     };
 

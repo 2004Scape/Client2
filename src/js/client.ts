@@ -45,6 +45,7 @@ import LinkList from './jagex2/datastruct/LinkList';
 import LocTemporary from './jagex2/dash3d/type/LocTemporary';
 import WordPack from './jagex2/wordenc/WordPack';
 import World from './jagex2/dash3d/World';
+import Colors from './jagex2/graphics/Colors';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -76,10 +77,6 @@ class Client extends GameShell {
 
     static nodeId: number = 0; // TODO
 
-    private readonly SCROLLBAR_TRACK: number = 0x23201b;
-    private readonly SCROLLBAR_GRIP_FOREGROUND: number = 0x4d4233;
-    private readonly SCROLLBAR_GRIP_HIGHLIGHT: number = 0x766654;
-    private readonly SCROLLBAR_GRIP_LOWLIGHT: number = 0x332d25;
     private readonly MAX_PLAYER_COUNT: number = 2048;
     private readonly LOCAL_PLAYER_INDEX: number = 2047;
 
@@ -750,15 +747,15 @@ class Client extends GameShell {
         const y: number = 200;
 
         const offsetY: number = 20;
-        this.fontBold12?.drawStringCenter(x / 2, y / 2 - offsetY - 26, 'RuneScape is loading - please wait...', 0xffffff);
+        this.fontBold12?.drawStringCenter(x / 2, y / 2 - offsetY - 26, 'RuneScape is loading - please wait...', Colors.WHITE);
         const midY: number = y / 2 - 18 - offsetY;
 
-        Draw2D.drawRect(x / 2 - 152, midY, 304, 34, 0x8c1111);
-        Draw2D.drawRect(x / 2 - 151, midY + 1, 302, 32, 0x000000);
-        Draw2D.fillRect(x / 2 - 150, midY + 2, progress * 3, 30, 0x8c1111);
-        Draw2D.fillRect(x / 2 - 150 + progress * 3, midY + 2, 300 - progress * 3, 30, 0x000000);
+        Draw2D.drawRect(x / 2 - 152, midY, 304, 34, Colors.PROGRESS_RED);
+        Draw2D.drawRect(x / 2 - 151, midY + 1, 302, 32, Colors.BLACK);
+        Draw2D.fillRect(x / 2 - 150, midY + 2, progress * 3, 30, Colors.PROGRESS_RED);
+        Draw2D.fillRect(x / 2 - 150 + progress * 3, midY + 2, 300 - progress * 3, 30, Colors.BLACK);
 
-        this.fontBold12?.drawStringCenter(x / 2, y / 2 + 5 - offsetY, str, 0xffffff);
+        this.fontBold12?.drawStringCenter(x / 2, y / 2 + 5 - offsetY, str, Colors.WHITE);
         this.imageTitle4?.draw(214, 186);
 
         if (this.redrawTitleBackground) {
@@ -1098,39 +1095,39 @@ class Client extends GameShell {
             this.flameGradient0[index] = index * 262144;
         }
         for (let index: number = 0; index < 64; index++) {
-            this.flameGradient0[index + 64] = index * 1024 + 16711680;
+            this.flameGradient0[index + 64] = index * 1024 + Colors.RED;
         }
         for (let index: number = 0; index < 64; index++) {
-            this.flameGradient0[index + 128] = index * 4 + 16776960;
+            this.flameGradient0[index + 128] = index * 4 + Colors.YELLOW;
         }
         for (let index: number = 0; index < 64; index++) {
-            this.flameGradient0[index + 192] = 16777215;
+            this.flameGradient0[index + 192] = Colors.WHITE;
         }
         this.flameGradient1 = new Int32Array(256);
         for (let index: number = 0; index < 64; index++) {
             this.flameGradient1[index] = index * 1024;
         }
         for (let index: number = 0; index < 64; index++) {
-            this.flameGradient1[index + 64] = index * 4 + 65280;
+            this.flameGradient1[index + 64] = index * 4 + Colors.GREEN;
         }
         for (let index: number = 0; index < 64; index++) {
-            this.flameGradient1[index + 128] = index * 262144 + 65535;
+            this.flameGradient1[index + 128] = index * 262144 + Colors.CYAN;
         }
         for (let index: number = 0; index < 64; index++) {
-            this.flameGradient1[index + 192] = 16777215;
+            this.flameGradient1[index + 192] = Colors.WHITE;
         }
         this.flameGradient2 = new Int32Array(256);
         for (let index: number = 0; index < 64; index++) {
             this.flameGradient2[index] = index * 4;
         }
         for (let index: number = 0; index < 64; index++) {
-            this.flameGradient2[index + 64] = index * 262144 + 255;
+            this.flameGradient2[index + 64] = index * 262144 + Colors.BLUE;
         }
         for (let index: number = 0; index < 64; index++) {
-            this.flameGradient2[index + 128] = index * 1024 + 16711935;
+            this.flameGradient2[index + 128] = index * 1024 + Colors.MAGENTA;
         }
         for (let index: number = 0; index < 64; index++) {
-            this.flameGradient2[index + 192] = 16777215;
+            this.flameGradient2[index + 192] = Colors.WHITE;
         }
 
         this.flameGradient = new Int32Array(256);
@@ -1267,62 +1264,62 @@ class Client extends GameShell {
         if (this.titleScreenState === 0) {
             let x: number = w / 2;
             let y: number = h / 2 - 20;
-            this.fontBold12?.drawStringTaggableCenter(x, y, 'Welcome to RuneScape', 0xffffff00, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y, 'Welcome to RuneScape', Colors.YELLOW, true);
 
             x = w / 2 - 80;
             y = h / 2 + 20;
             this.imageTitlebutton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'New user', 0xffffffff, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'New user', Colors.WHITE, true);
 
             x = w / 2 + 80;
             this.imageTitlebutton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Existing User', 0xffffffff, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Existing User', Colors.WHITE, true);
         } else if (this.titleScreenState === 2) {
             let x: number = w / 2 - 80;
             let y: number = h / 2 - 40;
             if (this.loginMessage0.length > 0) {
-                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 15, this.loginMessage0, 0xffff00, true);
-                this.fontBold12?.drawStringTaggableCenter(w / 2, y, this.loginMessage1, 0xffff00, true);
+                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 15, this.loginMessage0, Colors.YELLOW, true);
+                this.fontBold12?.drawStringTaggableCenter(w / 2, y, this.loginMessage1, Colors.YELLOW, true);
                 y += 30;
             } else {
-                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 7, this.loginMessage1, 0xffff00, true);
+                this.fontBold12?.drawStringTaggableCenter(w / 2, y - 7, this.loginMessage1, Colors.YELLOW, true);
                 y += 30;
             }
 
-            this.fontBold12?.drawStringTaggable(w / 2 - 90, y, `Username: ${this.username}${this.titleLoginField === 0 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, 0xffffff, true);
+            this.fontBold12?.drawStringTaggable(w / 2 - 90, y, `Username: ${this.username}${this.titleLoginField === 0 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, Colors.WHITE, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${JString.toAsterisks(this.password)}${this.titleLoginField === 1 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, 0xffffff, true);
+            this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${JString.toAsterisks(this.password)}${this.titleLoginField === 1 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, Colors.WHITE, true);
 
             // x = w / 2 - 80; dead code
             y = h / 2 + 50;
             this.imageTitlebutton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Login', 0xffffff, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Login', Colors.WHITE, true);
 
             x = w / 2 + 80;
             this.imageTitlebutton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 0xffffff, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', Colors.WHITE, true);
         } else if (this.titleScreenState === 3) {
-            this.fontBold12?.drawStringTaggableCenter(w / 2, 16776960, 'Create a free account', h / 2 - 60, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, h / 2 - 60, 'Create a free account', Colors.WHITE, true);
 
             const x: number = w / 2;
             let y: number = h / 2 - 35;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'To create a new account you need to', 0xffffff, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'To create a new account you need to', Colors.YELLOW, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'go back to the main RuneScape webpage', 0xffffff, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'go back to the main RuneScape webpage', Colors.WHITE, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "and choose the red 'create account'", 0xffffff, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "and choose the red 'create account'", Colors.WHITE, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'button at the top right of that page.', 0xffffff, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'button at the top right of that page.', Colors.WHITE, true);
             // y += 15; dead code
 
             y = h / 2 + 50;
             this.imageTitlebutton?.draw(x - 73, y - 20);
-            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', 16777215, true);
+            this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', Colors.WHITE, true);
         }
 
         this.imageTitle4?.draw(214, 186);
@@ -2080,43 +2077,43 @@ class Client extends GameShell {
             this.areaBackbase1?.bind();
             this.imageBackbase1?.draw(0, 0);
 
-            this.fontPlain12?.drawStringTaggableCenter(57, 33, 'Public chat', 16777215, true);
+            this.fontPlain12?.drawStringTaggableCenter(57, 33, 'Public chat', Colors.WHITE, true);
             if (this.publicChatSetting === 0) {
-                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'On', 65280, true);
+                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'On', Colors.GREEN, true);
             }
             if (this.publicChatSetting === 1) {
-                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'Friends', 16776960, true);
+                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'Friends', Colors.YELLOW, true);
             }
             if (this.publicChatSetting === 2) {
-                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'Off', 16711680, true);
+                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'Off', Colors.RED, true);
             }
             if (this.publicChatSetting === 3) {
-                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'Hide', 65535, true);
+                this.fontPlain12?.drawStringTaggableCenter(57, 46, 'Hide', Colors.CYAN, true);
             }
 
-            this.fontPlain12?.drawStringTaggableCenter(186, 33, 'Private chat', 16777215, true);
+            this.fontPlain12?.drawStringTaggableCenter(186, 33, 'Private chat', Colors.WHITE, true);
             if (this.privateChatSetting === 0) {
-                this.fontPlain12?.drawStringTaggableCenter(186, 46, 'On', 65280, true);
+                this.fontPlain12?.drawStringTaggableCenter(186, 46, 'On', Colors.GREEN, true);
             }
             if (this.privateChatSetting === 1) {
-                this.fontPlain12?.drawStringTaggableCenter(186, 46, 'Friends', 16776960, true);
+                this.fontPlain12?.drawStringTaggableCenter(186, 46, 'Friends', Colors.YELLOW, true);
             }
             if (this.privateChatSetting === 2) {
-                this.fontPlain12?.drawStringTaggableCenter(186, 46, 'Off', 16711680, true);
+                this.fontPlain12?.drawStringTaggableCenter(186, 46, 'Off', Colors.RED, true);
             }
 
-            this.fontPlain12?.drawStringTaggableCenter(326, 33, 'Trade/duel', 16777215, true);
+            this.fontPlain12?.drawStringTaggableCenter(326, 33, 'Trade/duel', Colors.WHITE, true);
             if (this.tradeChatSetting === 0) {
-                this.fontPlain12?.drawStringTaggableCenter(326, 46, 'On', 65280, true);
+                this.fontPlain12?.drawStringTaggableCenter(326, 46, 'On', Colors.GREEN, true);
             }
             if (this.tradeChatSetting === 1) {
-                this.fontPlain12?.drawStringTaggableCenter(326, 46, 'Friends', 16776960, true);
+                this.fontPlain12?.drawStringTaggableCenter(326, 46, 'Friends', Colors.YELLOW, true);
             }
             if (this.tradeChatSetting === 2) {
-                this.fontPlain12?.drawStringTaggableCenter(326, 46, 'Off', 16711680, true);
+                this.fontPlain12?.drawStringTaggableCenter(326, 46, 'Off', Colors.RED, true);
             }
 
-            this.fontPlain12?.drawStringTaggableCenter(462, 38, 'Report abuse', 16777215, true);
+            this.fontPlain12?.drawStringTaggableCenter(462, 38, 'Report abuse', Colors.WHITE, true);
             this.areaBackbase1?.draw(0, 471);
             this.areaViewport?.bind();
         }
@@ -2233,11 +2230,11 @@ class Client extends GameShell {
     private drawDebug = (): void => {
         const x: number = 507;
         let y: number = 20;
-        this.fontPlain11?.drawRight(x, y, `FPS: ${this.fps}`, 0xffff00, true);
+        this.fontPlain11?.drawRight(x, y, `FPS: ${this.fps}`, Colors.YELLOW, true);
         y += 13;
-        this.fontPlain11?.drawRight(x, y, `Speed: ${this.ms.toFixed(4)} ms`, 0xffff00, true);
+        this.fontPlain11?.drawRight(x, y, `Speed: ${this.ms.toFixed(4)} ms`, Colors.YELLOW, true);
         y += 13;
-        this.fontPlain11?.drawRight(x, y, `Rate: ${this.deltime} ms`, 0xffff00, true);
+        this.fontPlain11?.drawRight(x, y, `Rate: ${this.deltime} ms`, Colors.YELLOW, true);
     };
 
     private clearCaches = (): void => {
@@ -2285,12 +2282,12 @@ class Client extends GameShell {
 
         if (this.wildernessLevel > 0) {
             this.imageHeadicons[0].draw(472, 296);
-            this.fontPlain12?.drawStringCenter(484, 329, 'Level: ' + this.wildernessLevel, 16776960);
+            this.fontPlain12?.drawStringCenter(484, 329, 'Level: ' + this.wildernessLevel, Colors.YELLOW);
         }
 
         if (this.worldLocationState === 1) {
             this.imageHeadicons[6].draw(472, 296);
-            this.fontPlain12?.drawStringCenter(484, 329, 'Arena', 16776960);
+            this.fontPlain12?.drawStringCenter(484, 329, 'Arena', Colors.YELLOW);
         }
 
         if (this.systemUpdateTimer !== 0) {
@@ -2299,9 +2296,9 @@ class Client extends GameShell {
             seconds %= 60;
 
             if (seconds < 10) {
-                this.fontPlain12?.drawString(4, 329, 'System update in: ' + minutes + ':0' + seconds, 16776960);
+                this.fontPlain12?.drawString(4, 329, 'System update in: ' + minutes + ':0' + seconds, Colors.YELLOW);
             } else {
-                this.fontPlain12?.drawString(4, 329, 'System update in: ' + minutes + ':' + seconds, 16776960);
+                this.fontPlain12?.drawString(4, 329, 'System update in: ' + minutes + ':' + seconds, Colors.YELLOW);
             }
         }
     };
@@ -2334,14 +2331,14 @@ class Client extends GameShell {
         }
         this.imageChatback?.draw(0, 0);
         if (this.showSocialInput) {
-            this.fontBold12?.drawStringCenter(239, 40, this.socialMessage, 0);
-            this.fontBold12?.drawStringCenter(239, 60, this.socialInput + '*', 128);
+            this.fontBold12?.drawStringCenter(239, 40, this.socialMessage, Colors.BLACK);
+            this.fontBold12?.drawStringCenter(239, 60, this.socialInput + '*', Colors.DARKBLUE);
         } else if (this.chatbackInputOpen) {
-            this.fontBold12?.drawStringCenter(239, 40, 'Enter amount:', 0);
-            this.fontBold12?.drawStringCenter(239, 60, this.chatbackInput + '*', 128);
+            this.fontBold12?.drawStringCenter(239, 40, 'Enter amount:', Colors.BLACK);
+            this.fontBold12?.drawStringCenter(239, 60, this.chatbackInput + '*', Colors.DARKBLUE);
         } else if (this.modalMessage) {
-            this.fontBold12?.drawStringCenter(239, 40, this.modalMessage, 0);
-            this.fontBold12?.drawStringCenter(239, 60, 'Click to continue', 128);
+            this.fontBold12?.drawStringCenter(239, 40, this.modalMessage, Colors.BLACK);
+            this.fontBold12?.drawStringCenter(239, 60, 'Click to continue', Colors.DARKBLUE);
         } else if (this.chatInterfaceId !== -1) {
             this.drawInterface(ComType.instances[this.chatInterfaceId], 0, 0, 0);
         } else if (this.stickyChatInterfaceId === -1) {
@@ -2358,53 +2355,53 @@ class Client extends GameShell {
                 const offset: number = this.chatScrollOffset + 70 - line * 14;
                 if (type === 0) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, message, 0);
+                        font?.drawString(4, offset, message, Colors.BLACK);
                     }
                     line++;
                 }
                 if (type === 1) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, this.messageSender[i] + ':', 16777215);
-                        font?.drawString(font.stringWidth(sender) + 12, offset, message, 255);
+                        font?.drawString(4, offset, this.messageSender[i] + ':', Colors.WHITE);
+                        font?.drawString(font.stringWidth(sender) + 12, offset, message, Colors.BLUE);
                     }
                     line++;
                 }
                 if (type === 2 && (this.publicChatSetting === 0 || (this.publicChatSetting === 1 && this.isFriend(sender)))) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, this.messageSender[i] + ':', 0);
-                        font?.drawString(font.stringWidth(sender) + 12, offset, message, 255);
+                        font?.drawString(4, offset, this.messageSender[i] + ':', Colors.BLACK);
+                        font?.drawString(font.stringWidth(sender) + 12, offset, message, Colors.BLUE);
                     }
                     line++;
                 }
                 if ((type === 3 || type === 7) && this.splitPrivateChat === 0 && (type === 7 || this.privateChatSetting === 0 || (this.privateChatSetting === 1 && this.isFriend(sender)))) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, 'From ' + this.messageSender[i] + ':', 0);
-                        font?.drawString(font.stringWidth('From ' + this.messageSender[i]) + 12, offset, message, 8388608);
+                        font?.drawString(4, offset, 'From ' + this.messageSender[i] + ':', Colors.BLACK);
+                        font?.drawString(font.stringWidth('From ' + this.messageSender[i]) + 12, offset, message, Colors.DARKRED);
                     }
                     line++;
                 }
                 if (type === 4 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(sender)))) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], 8388736);
+                        font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], Colors.TRADE_MESSAGE);
                     }
                     line++;
                 }
                 if (type === 5 && this.splitPrivateChat === 0 && this.privateChatSetting < 2) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, message, 8388608);
+                        font?.drawString(4, offset, message, Colors.DARKRED);
                     }
                     line++;
                 }
                 if (type === 6 && this.splitPrivateChat === 0 && this.privateChatSetting < 2) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, 'To ' + this.messageSender[i] + ':', 0);
-                        font?.drawString(font.stringWidth('To ' + this.messageSender[i]) + 12, offset, message, 8388608);
+                        font?.drawString(4, offset, 'To ' + this.messageSender[i] + ':', Colors.BLACK);
+                        font?.drawString(font.stringWidth('To ' + this.messageSender[i]) + 12, offset, message, Colors.DARKRED);
                     }
                     line++;
                 }
                 if (type === 8 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(sender)))) {
                     if (offset > 0 && offset < 110) {
-                        font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], 13350793);
+                        font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], Colors.DUEL_MESSAGE);
                     }
                     line++;
                 }
@@ -2415,9 +2412,9 @@ class Client extends GameShell {
                 this.chatScrollHeight = 78;
             }
             this.drawScrollbar(463, 0, this.chatScrollHeight - this.chatScrollOffset - 77, this.chatScrollHeight, 77);
-            font?.drawString(4, 90, JString.formatName(this.username) + ':', 0);
-            font?.drawString(font.stringWidth(this.username + ': ') + 6, 90, this.chatTyped + '*', 255);
-            Draw2D.drawHorizontalLine(0, 77, 0, 479);
+            font?.drawString(4, 90, JString.formatName(this.username) + ':', Colors.BLACK);
+            font?.drawString(font.stringWidth(this.username + ': ') + 6, 90, this.chatTyped + '*', Colors.BLUE);
+            Draw2D.drawHorizontalLine(0, 77, Colors.BLACK, 479);
         } else {
             this.drawInterface(ComType.instances[this.stickyChatInterfaceId], 0, 0, 0);
         }
@@ -2434,7 +2431,7 @@ class Client extends GameShell {
     private drawScrollbar = (x: number, y: number, scrollY: number, scrollHeight: number, height: number): void => {
         this.imageScrollbar0?.draw(x, y);
         this.imageScrollbar1?.draw(x, y + height - 16);
-        Draw2D.fillRect(x, y + 16, 16, height - 32, this.SCROLLBAR_TRACK);
+        Draw2D.fillRect(x, y + 16, 16, height - 32, Colors.SCROLLBAR_TRACK);
 
         let gripSize: number = Math.trunc(((height - 32) * height) / scrollHeight);
         if (gripSize < 8) {
@@ -2442,19 +2439,19 @@ class Client extends GameShell {
         }
 
         const gripY: number = Math.trunc(((height - gripSize - 32) * scrollY) / (scrollHeight - height));
-        Draw2D.fillRect(x, y + gripY + 16, 16, gripSize, this.SCROLLBAR_GRIP_FOREGROUND);
+        Draw2D.fillRect(x, y + gripY + 16, 16, gripSize, Colors.SCROLLBAR_GRIP_FOREGROUND);
 
-        Draw2D.drawVerticalLine(x, y + gripY + 16, this.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
-        Draw2D.drawVerticalLine(x + 1, y + gripY + 16, this.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
+        Draw2D.drawVerticalLine(x, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
+        Draw2D.drawVerticalLine(x + 1, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
 
-        Draw2D.drawHorizontalLine(x, y + gripY + 16, this.SCROLLBAR_GRIP_HIGHLIGHT, 16);
-        Draw2D.drawHorizontalLine(x, y + gripY + 17, this.SCROLLBAR_GRIP_HIGHLIGHT, 16);
+        Draw2D.drawHorizontalLine(x, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, 16);
+        Draw2D.drawHorizontalLine(x, y + gripY + 17, Colors.SCROLLBAR_GRIP_HIGHLIGHT, 16);
 
-        Draw2D.drawVerticalLine(x + 15, y + gripY + 16, this.SCROLLBAR_GRIP_LOWLIGHT, gripSize);
-        Draw2D.drawVerticalLine(x + 14, y + gripY + 17, this.SCROLLBAR_GRIP_LOWLIGHT, gripSize - 1);
+        Draw2D.drawVerticalLine(x + 15, y + gripY + 16, Colors.SCROLLBAR_GRIP_LOWLIGHT, gripSize);
+        Draw2D.drawVerticalLine(x + 14, y + gripY + 17, Colors.SCROLLBAR_GRIP_LOWLIGHT, gripSize - 1);
 
-        Draw2D.drawHorizontalLine(x, y + gripY + gripSize + 15, this.SCROLLBAR_GRIP_LOWLIGHT, 16);
-        Draw2D.drawHorizontalLine(x + 1, y + gripY + gripSize + 14, this.SCROLLBAR_GRIP_LOWLIGHT, 15);
+        Draw2D.drawHorizontalLine(x, y + gripY + gripSize + 15, Colors.SCROLLBAR_GRIP_LOWLIGHT, 16);
+        Draw2D.drawHorizontalLine(x + 1, y + gripY + gripSize + 14, Colors.SCROLLBAR_GRIP_LOWLIGHT, 15);
     };
 
     private drawInterface = (com: ComType, x: number, y: number, scrollY: number): void => {
@@ -2549,8 +2546,8 @@ class Client extends GameShell {
 
                                 if (icon.cropW === 33 || child.invSlotObjCount[slot] !== 1) {
                                     const count: number = child.invSlotObjCount[slot];
-                                    this.fontPlain11?.drawString(slotX + dx + 1, slotY + 10 + dy, this.formatObjCount(count), 0);
-                                    this.fontPlain11?.drawString(slotX + dx, slotY + 9 + dy, this.formatObjCount(count), 0xffff00);
+                                    this.fontPlain11?.drawString(slotX + dx + 1, slotY + 10 + dy, this.formatObjCount(count), Colors.BLACK);
+                                    this.fontPlain11?.drawString(slotX + dx, slotY + 9 + dy, this.formatObjCount(count), Colors.YELLOW);
                                 }
                             }
                         } else if (child.invSlotSprite && slot < 20) {
@@ -2748,7 +2745,7 @@ class Client extends GameShell {
         // TODO
         this.areaMapback?.bind();
         // the white square local player position in the center of the minimap.
-        Draw2D.fillRect(93, 82, 3, 3, 0xffffff);
+        Draw2D.fillRect(93, 82, 3, 3, Colors.WHITE);
         this.areaViewport?.bind();
     };
 
@@ -2770,7 +2767,7 @@ class Client extends GameShell {
             tooltip = tooltip + '@whi@ / ' + (this.menuSize - 2) + ' more options';
         }
 
-        this.fontBold12?.drawStringTooltip(4, 15, tooltip, 16777215, true, Math.trunc(this.loopCycle / 1000));
+        this.fontBold12?.drawStringTooltip(4, 15, tooltip, Colors.WHITE, true, Math.trunc(this.loopCycle / 1000));
     };
 
     private drawMenu = (): void => {
@@ -2778,12 +2775,12 @@ class Client extends GameShell {
         const y: number = this.menuY;
         const w: number = this.menuWidth;
         const h: number = this.menuHeight;
-        const background: number = 0x5d5447;
+        const background: number = Colors.OPTIONS_MENU;
 
         // the menu area square.
         Draw2D.fillRect(x, y, w, h, background);
-        Draw2D.fillRect(x + 1, y + 1, w - 2, 16, 0);
-        Draw2D.drawRect(x + 1, y + 18, w - 2, h - 19, 0);
+        Draw2D.fillRect(x + 1, y + 1, w - 2, 16, Colors.BLACK);
+        Draw2D.drawRect(x + 1, y + 18, w - 2, h - 19, Colors.BLACK);
 
         // the menu title header at the top.
         this.fontBold12?.drawString(x + 3, y + 14, 'Choose Option', background);
@@ -2804,9 +2801,9 @@ class Client extends GameShell {
 
         for (let i: number = 0; i < this.menuSize; i++) {
             const optionY: number = y + (this.menuSize - 1 - i) * 15 + 31;
-            let rgb: number = 0xffffff;
+            let rgb: number = Colors.WHITE;
             if (mouseX > x && mouseX < x + w && mouseY > optionY - 13 && mouseY < optionY + 3) {
-                rgb = 0xffff00;
+                rgb = Colors.YELLOW;
             }
             this.fontBold12?.drawStringTaggable(x + 3, optionY, this.menuOption[i], rgb, true);
         }
@@ -4185,10 +4182,10 @@ class Client extends GameShell {
             if (!this.rights) {
                 component.text = '';
             } else if (this.reportAbuseMuteOption) {
-                component.colour = 16711680;
+                component.colour = Colors.RED;
                 component.text = 'Moderator option: Mute player for 48 hours: <ON>';
             } else {
-                component.colour = 16777215;
+                component.colour = Colors.WHITE;
                 component.text = 'Moderator option: Mute player for 48 hours: <OFF>';
             }
         } else if (clientCode == ComType.CC_LAST_LOGIN_INFO || clientCode == ComType.CC_LAST_LOGIN_INFO2) {
@@ -4208,15 +4205,15 @@ class Client extends GameShell {
         } else if (clientCode == ComType.CC_UNREAD_MESSAGES) {
             if (this.unreadMessages == 0) {
                 component.text = '0 unread messages';
-                component.colour = 16776960;
+                component.colour = Colors.YELLOW;
             }
             if (this.unreadMessages == 1) {
                 component.text = '1 unread message';
-                component.colour = 65280;
+                component.colour = Colors.GREEN;
             }
             if (this.unreadMessages > 1) {
                 component.text = this.unreadMessages + ' unread messages';
-                component.colour = 65280;
+                component.colour = Colors.GREEN;
             }
         } else if (clientCode == ComType.CC_RECOVERY1) {
             if (this.daysSinceRecoveriesChanged == 201) {
@@ -4258,10 +4255,10 @@ class Client extends GameShell {
             this.logout();
         } else {
             this.areaViewport?.bind();
-            this.fontPlain12?.drawStringCenter(257, 144, 'Connection lost', 0);
-            this.fontPlain12?.drawStringCenter(256, 143, 'Connection lost', 16777215);
-            this.fontPlain12?.drawStringCenter(257, 159, 'Please wait - attempting to reestablish', 0);
-            this.fontPlain12?.drawStringCenter(256, 158, 'Please wait - attempting to reestablish', 16777215);
+            this.fontPlain12?.drawStringCenter(257, 144, 'Connection lost', Colors.BLACK);
+            this.fontPlain12?.drawStringCenter(256, 143, 'Connection lost', Colors.WHITE);
+            this.fontPlain12?.drawStringCenter(257, 159, 'Please wait - attempting to reestablish', Colors.BLACK);
+            this.fontPlain12?.drawStringCenter(256, 158, 'Please wait - attempting to reestablish', Colors.WHITE);
             this.areaViewport?.draw(8, 11);
             this.flagSceneTileX = 0;
             const stream: ClientStream | null = this.stream;
@@ -4473,8 +4470,8 @@ class Client extends GameShell {
                 this.sceneBaseTileZ = (this.sceneCenterZoneZ - 6) * 8;
                 this.sceneState = 1;
                 this.areaViewport?.bind();
-                this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', 0);
-                this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', 16777215);
+                this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', Colors.BLACK);
+                this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', Colors.WHITE);
                 this.areaViewport?.draw(8, 11);
                 // signlink.looprate(5);
 
@@ -4532,8 +4529,8 @@ class Client extends GameShell {
                 // signlink.looprate(50);
                 this.areaViewport?.bind();
                 if (this.sceneState == 0) {
-                    this.fontPlain12?.drawStringCenter(257, 166, 'Map area updated since last visit, so load will take longer this time only', 0);
-                    this.fontPlain12?.drawStringCenter(256, 165, 'Map area updated since last visit, so load will take longer this time only', 16777215);
+                    this.fontPlain12?.drawStringCenter(257, 166, 'Map area updated since last visit, so load will take longer this time only', Colors.BLACK);
+                    this.fontPlain12?.drawStringCenter(256, 165, 'Map area updated since last visit, so load will take longer this time only', Colors.WHITE);
                 }
                 this.areaViewport?.draw(8, 11);
                 const dx: number = this.sceneBaseTileX - this.mapLastBaseX;
@@ -5443,8 +5440,8 @@ class Client extends GameShell {
                 }
                 if (Client.LOW_MEMORY && this.sceneState === 2 && World.levelBuilt !== this.currentLevel) {
                     this.areaViewport?.bind();
-                    this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', 0);
-                    this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', 16777215);
+                    this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', Colors.BLACK);
+                    this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', Colors.WHITE);
                     this.areaViewport?.draw(8, 11);
                     World.levelBuilt = this.currentLevel;
                     this.buildScene();

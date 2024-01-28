@@ -6,6 +6,7 @@ import LruCache from '../datastruct/LruCache';
 import Model from '../graphics/Model';
 import Draw3D from '../graphics/Draw3D';
 import Draw2D from '../graphics/Draw2D';
+import Colors from '../graphics/Colors';
 
 export default class ObjType extends ConfigType {
     static count: number = 0;
@@ -123,7 +124,7 @@ export default class ObjType extends ConfigType {
 
         Draw3D.jagged = false;
         Draw2D.bind(icon.pixels, 32, 32);
-        Draw2D.fillRect(0, 0, 32, 32, 0);
+        Draw2D.fillRect(0, 0, 32, 32, Colors.BLACK);
         Draw3D.init2D();
 
         const iModel: Model = obj.getInterfaceModel(1);
