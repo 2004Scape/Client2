@@ -241,18 +241,18 @@ export default abstract class GameShell {
 
         // draw full progress bar
         canvas2d.fillStyle = 'rgb(140, 17, 17)';
-        canvas2d.rect(width / 2 - 152, y, 304, 34);
-        canvas2d.fillRect(width / 2 - 150, y + 2, progress * 3, 30);
+        canvas2d.rect(Math.trunc(width / 2) - 152, y, 304, 34);
+        canvas2d.fillRect(Math.trunc(width / 2) - 150, y + 2, progress * 3, 30);
 
         // cover up progress bar
         canvas2d.fillStyle = 'black';
-        canvas2d.fillRect(width / 2 - 150 + progress * 3, y + 2, 300 - progress * 3, 30);
+        canvas2d.fillRect(Math.trunc(width / 2) - 150 + progress * 3, y + 2, 300 - progress * 3, 30);
 
         // draw text
         canvas2d.font = 'bold 13px helvetica, sans-serif';
         canvas2d.textAlign = 'center';
         canvas2d.fillStyle = 'white';
-        canvas2d.fillText(message, width / 2, y + 22);
+        canvas2d.fillText(message, Math.trunc(width / 2), y + 22);
 
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }

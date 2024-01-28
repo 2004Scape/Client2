@@ -762,15 +762,15 @@ class Client extends GameShell {
         const y: number = 200;
 
         const offsetY: number = 20;
-        this.fontBold12?.drawStringCenter(x / 2, y / 2 - offsetY - 26, 'RuneScape is loading - please wait...', Colors.WHITE);
+        this.fontBold12?.drawStringCenter(x / 2, Math.trunc(y / 2) - offsetY - 26, 'RuneScape is loading - please wait...', Colors.WHITE);
         const midY: number = Math.trunc(y / 2) - 18 - offsetY;
 
-        Draw2D.drawRect(x / 2 - 152, midY, 304, 34, Colors.PROGRESS_RED);
-        Draw2D.drawRect(x / 2 - 151, midY + 1, 302, 32, Colors.BLACK);
-        Draw2D.fillRect(x / 2 - 150, midY + 2, progress * 3, 30, Colors.PROGRESS_RED);
-        Draw2D.fillRect(x / 2 - 150 + progress * 3, midY + 2, 300 - progress * 3, 30, Colors.BLACK);
+        Draw2D.drawRect(Math.trunc(x / 2) - 152, midY, 304, 34, Colors.PROGRESS_RED);
+        Draw2D.drawRect(Math.trunc(x / 2) - 151, midY + 1, 302, 32, Colors.BLACK);
+        Draw2D.fillRect(Math.trunc(x / 2) - 150, midY + 2, progress * 3, 30, Colors.PROGRESS_RED);
+        Draw2D.fillRect(Math.trunc(x / 2) - 150 + progress * 3, midY + 2, 300 - progress * 3, 30, Colors.BLACK);
 
-        this.fontBold12?.drawStringCenter(x / 2, y / 2 + 5 - offsetY, str, Colors.WHITE);
+        this.fontBold12?.drawStringCenter(x / 2, Math.trunc(y / 2) + 5 - offsetY, str, Colors.WHITE);
         this.imageTitle4?.draw(214, 186);
 
         if (this.redrawTitleBackground) {
