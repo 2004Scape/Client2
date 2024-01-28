@@ -44,7 +44,7 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier src/**/*.{js,ts} --write",
     "prepare": "husky install",
-    "test": "jest",
+    "test": "npm run asc && jest",
     "asc": "asc --target release --optimizeLevel 3 --converge",
     "local": "npm run asc && npm run build:dev && npx serve public"
   },

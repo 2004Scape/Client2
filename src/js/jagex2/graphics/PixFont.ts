@@ -151,7 +151,11 @@ export default class PixFont extends Hashable {
         }
     };
 
-    stringWidth = (str: string): number => {
+    stringWidth = (str: string | null): number => {
+        if (!str) {
+            return 0;
+        }
+
         const length: number = str.length;
         let w: number = 0;
         for (let i: number = 0; i < length; i++) {

@@ -46,6 +46,7 @@ import LocTemporary from './jagex2/dash3d/type/LocTemporary';
 import WordPack from './jagex2/wordenc/WordPack';
 import World from './jagex2/dash3d/World';
 import Colors from './jagex2/graphics/Colors';
+import ObjStackEntity from './jagex2/dash3d/entity/ObjStackEntity';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -280,6 +281,7 @@ class Client extends GameShell {
     private messageSender: (string | null)[] = new Array(100).fill(null);
     private messageType: Int32Array = new Int32Array(100);
     private splitPrivateChat: number = 0;
+    private chatEffects: number = 0;
     private chatTyped: string = '';
     private viewportHoveredInterfaceIndex: number = 0;
     private sidebarHoveredInterfaceIndex: number = 0;
@@ -2185,19 +2187,19 @@ class Client extends GameShell {
                 jitter = Math.trunc(
                     Math.random() * (this.cameraModifierJitter[type] * 2 + 1) - this.cameraModifierJitter[type] + Math.sin(this.cameraModifierCycle[type] * (this.cameraModifierWobbleSpeed[type] / 100.0)) * this.cameraModifierWobbleScale[type]
                 );
-                if (type == 0) {
+                if (type === 0) {
                     this.cameraX += jitter;
                 }
-                if (type == 1) {
+                if (type === 1) {
                     this.cameraY += jitter;
                 }
-                if (type == 2) {
+                if (type === 2) {
                     this.cameraZ += jitter;
                 }
-                if (type == 3) {
+                if (type === 3) {
                     this.cameraYaw = (this.cameraYaw + jitter) & 0x7ff;
                 }
-                if (type == 4) {
+                if (type === 4) {
                     this.cameraPitch += jitter;
                     if (this.cameraPitch < 128) {
                         this.cameraPitch = 128;
@@ -2346,9 +2348,8 @@ class Client extends GameShell {
             let line: number = 0;
             Draw2D.setBounds(0, 0, 463, 77);
             for (let i: number = 0; i < 100; i++) {
-                const sender: string | null = this.messageSender[i];
                 const message: string | null = this.messageText[i];
-                if (!message || sender === null) {
+                if (!message) {
                     continue;
                 }
                 const type: number = this.messageType[i];
@@ -2362,25 +2363,25 @@ class Client extends GameShell {
                 if (type === 1) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ':', Colors.WHITE);
-                        font?.drawString(font.stringWidth(sender) + 12, offset, message, Colors.BLUE);
+                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, message, Colors.BLUE);
                     }
                     line++;
                 }
-                if (type === 2 && (this.publicChatSetting === 0 || (this.publicChatSetting === 1 && this.isFriend(sender)))) {
+                if (type === 2 && (this.publicChatSetting === 0 || (this.publicChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ':', Colors.BLACK);
-                        font?.drawString(font.stringWidth(sender) + 12, offset, message, Colors.BLUE);
+                        font?.drawString(font.stringWidth(this.messageSender[i]) + 12, offset, message, Colors.BLUE);
                     }
                     line++;
                 }
-                if ((type === 3 || type === 7) && this.splitPrivateChat === 0 && (type === 7 || this.privateChatSetting === 0 || (this.privateChatSetting === 1 && this.isFriend(sender)))) {
+                if ((type === 3 || type === 7) && this.splitPrivateChat === 0 && (type === 7 || this.privateChatSetting === 0 || (this.privateChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, 'From ' + this.messageSender[i] + ':', Colors.BLACK);
                         font?.drawString(font.stringWidth('From ' + this.messageSender[i]) + 12, offset, message, Colors.DARKRED);
                     }
                     line++;
                 }
-                if (type === 4 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(sender)))) {
+                if (type === 4 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], Colors.TRADE_MESSAGE);
                     }
@@ -2399,7 +2400,7 @@ class Client extends GameShell {
                     }
                     line++;
                 }
-                if (type === 8 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(sender)))) {
+                if (type === 8 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
                     if (offset > 0 && offset < 110) {
                         font?.drawString(4, offset, this.messageSender[i] + ' ' + this.messageText[i], Colors.DUEL_MESSAGE);
                     }
@@ -3115,10 +3116,10 @@ class Client extends GameShell {
 
                     // OPNPC3
                     this.out.p1isaac(27);
-                } else if (action == 963) {
+                } else if (action === 963) {
                     // OPNPC4
                     this.out.p1isaac(113);
-                } else if (action == 728) {
+                } else if (action === 728) {
                     // OPNPC1
                     this.out.p1isaac(194);
                 } else if (action === 245) {
@@ -3291,10 +3292,10 @@ class Client extends GameShell {
 
                     // OPPLAYER2
                     this.out.p1isaac(53);
-                } else if (action == 1373) {
+                } else if (action === 1373) {
                     // OPPLAYER4
                     this.out.p1isaac(206);
-                } else if (action == 1544) {
+                } else if (action === 1544) {
                     // OPPLAYER3
                     this.out.p1isaac(185);
                 }
@@ -3324,7 +3325,7 @@ class Client extends GameShell {
                 const name37: bigint = JString.toBase37(option.substring(tag + 5).trim());
                 let friend: number = -1;
                 for (let i: number = 0; i < this.friendCount; i++) {
-                    if (this.friendName37[i] == name37) {
+                    if (this.friendName37[i] === name37) {
                         friend = i;
                         break;
                     }
@@ -3454,7 +3455,7 @@ class Client extends GameShell {
                 // INV_BUTTON1
                 this.out.p1isaac(31);
             } else if (action === 892) {
-                if ((b & 0x3) == 0) {
+                if ((b & 0x3) === 0) {
                     Client.opHeld9Counter++;
                 }
 
@@ -3568,7 +3569,7 @@ class Client extends GameShell {
                 this.reportAbuseMuteOption = false;
 
                 for (let i: number = 0; i < ComType.instances.length; i++) {
-                    if (ComType.instances[i] && ComType.instances[i].clientCode == ComType.CC_REPORT_INPUT) {
+                    if (ComType.instances[i] && ComType.instances[i].clientCode === ComType.CC_REPORT_INPUT) {
                         this.reportAbuseInterfaceID = this.viewportInterfaceId = ComType.instances[i].layer;
                         break;
                     }
@@ -3864,12 +3865,12 @@ class Client extends GameShell {
                 // eslint-disable-next-line no-constant-condition
                 while (true) {
                     key = this.pollKey();
-                    if (key == -1) {
+                    if (key === -1) {
                         return;
                     }
 
-                    if (this.viewportInterfaceId != -1 && this.viewportInterfaceId == this.reportAbuseInterfaceID) {
-                        if (key == 8 && this.reportAbuseInput.length > 0) {
+                    if (this.viewportInterfaceId !== -1 && this.viewportInterfaceId === this.reportAbuseInterfaceID) {
+                        if (key === 8 && this.reportAbuseInput.length > 0) {
                             this.reportAbuseInput = this.reportAbuseInput.substring(0, this.reportAbuseInput.length - 1);
                         }
                         break;
@@ -3881,27 +3882,27 @@ class Client extends GameShell {
                             this.redrawChatback = true;
                         }
 
-                        if (key == 8 && this.socialInput.length > 0) {
+                        if (key === 8 && this.socialInput.length > 0) {
                             this.socialInput = this.socialInput.substring(0, this.socialInput.length - 1);
                             this.redrawChatback = true;
                         }
 
-                        if (key == 13 || key == 10) {
+                        if (key === 13 || key === 10) {
                             this.showSocialInput = false;
                             this.redrawChatback = true;
 
                             let username: bigint;
-                            if (this.socialAction == 1) {
+                            if (this.socialAction === 1) {
                                 username = JString.toBase37(this.socialInput);
                                 this.addFriend(username);
                             }
 
-                            if (this.socialAction == 2 && this.friendCount > 0) {
+                            if (this.socialAction === 2 && this.friendCount > 0) {
                                 username = JString.toBase37(this.socialInput);
                                 this.removeFriend(username);
                             }
 
-                            if (this.socialAction == 3 && this.socialInput.length > 0 && this.socialName37) {
+                            if (this.socialAction === 3 && this.socialInput.length > 0 && this.socialName37) {
                                 // MESSAGE_PRIVATE
                                 this.out.p1isaac(148);
                                 this.out.p1(0);
@@ -3912,7 +3913,7 @@ class Client extends GameShell {
                                 this.socialInput = JString.toSentenceCase(this.socialInput);
                                 this.socialInput = WordFilter.filter(this.socialInput);
                                 this.addMessage(6, this.socialInput, JString.formatName(JString.fromBase37(this.socialName37)));
-                                if (this.privateChatSetting == 2) {
+                                if (this.privateChatSetting === 2) {
                                     this.privateChatSetting = 1;
                                     this.redrawPrivacySettings = true;
                                     // CHAT_SETMODE
@@ -3923,12 +3924,12 @@ class Client extends GameShell {
                                 }
                             }
 
-                            if (this.socialAction == 4 && this.ignoreCount < 100) {
+                            if (this.socialAction === 4 && this.ignoreCount < 100) {
                                 username = JString.toBase37(this.socialInput);
                                 this.addIgnore(username);
                             }
 
-                            if (this.socialAction == 5 && this.ignoreCount > 0) {
+                            if (this.socialAction === 5 && this.ignoreCount > 0) {
                                 username = JString.toBase37(this.socialInput);
                                 this.removeIgnore(username);
                             }
@@ -3939,12 +3940,12 @@ class Client extends GameShell {
                             this.redrawChatback = true;
                         }
 
-                        if (key == 8 && this.chatbackInput.length > 0) {
+                        if (key === 8 && this.chatbackInput.length > 0) {
                             this.chatbackInput = this.chatbackInput.substring(0, this.chatbackInput.length - 1);
                             this.redrawChatback = true;
                         }
 
-                        if (key == 13 || key == 10) {
+                        if (key === 13 || key === 10) {
                             if (this.chatbackInput.length > 0) {
                                 let value: number = 0;
                                 try {
@@ -3959,20 +3960,20 @@ class Client extends GameShell {
                             this.chatbackInputOpen = false;
                             this.redrawChatback = true;
                         }
-                    } else if (this.chatInterfaceId == -1) {
+                    } else if (this.chatInterfaceId === -1) {
                         if (key >= 32 && key <= 122 && this.chatTyped.length < 80) {
                             this.chatTyped = this.chatTyped + String.fromCharCode(key);
                             this.redrawChatback = true;
                         }
 
-                        if (key == 8 && this.chatTyped.length > 0) {
+                        if (key === 8 && this.chatTyped.length > 0) {
                             this.chatTyped = this.chatTyped.substring(0, this.chatTyped.length - 1);
                             this.redrawChatback = true;
                         }
 
-                        if ((key == 13 || key == 10) && this.chatTyped.length > 0) {
+                        if ((key === 13 || key === 10) && this.chatTyped.length > 0) {
                             // if (this.rights) {
-                            if (this.chatTyped === '::clientdrop' /* && super.frame != null*/) {
+                            if (this.chatTyped === '::clientdrop' /* && super.frame !== null*/) {
                                 await this.tryReconnect();
                             } else if (this.chatTyped === '::noclip') {
                                 for (let level: number = 0; level < 4; level++) {
@@ -4062,7 +4063,7 @@ class Client extends GameShell {
                                     this.addMessage(2, this.localPlayer.chat, this.localPlayer.name);
                                 }
 
-                                if (this.publicChatSetting == 2) {
+                                if (this.publicChatSetting === 2) {
                                     this.publicChatSetting = 3;
                                     this.redrawPrivacySettings = true;
                                     // CHAT_SETMODE
@@ -4078,7 +4079,7 @@ class Client extends GameShell {
                         }
                     }
                 }
-            } while ((key < 97 || key > 122) && (key < 65 || key > 90) && (key < 48 || key > 57) && key != 32);
+            } while ((key < 97 || key > 122) && (key < 65 || key > 90) && (key < 48 || key > 57) && key !== 32);
 
             if (this.reportAbuseInput.length < 12) {
                 this.reportAbuseInput = this.reportAbuseInput + String.fromCharCode(key);
@@ -4192,10 +4193,10 @@ class Client extends GameShell {
         }
     };
 
-    private isFriend = (username: string): boolean => {
-        /*if (username == null) {
+    private isFriend = (username: string | null): boolean => {
+        if (!username) {
             return false;
-        }*/
+        }
 
         for (let i: number = 0; i < this.friendCount; i++) {
             if (username.toLowerCase() === this.friendName[i].toLowerCase()) {
@@ -4211,7 +4212,7 @@ class Client extends GameShell {
     };
 
     private addFriend = (username: bigint): void => {
-        if (username == 0n) {
+        if (username === 0n) {
             return;
         }
 
@@ -4222,14 +4223,14 @@ class Client extends GameShell {
 
         const displayName: string = JString.formatName(JString.fromBase37(username));
         for (let i: number = 0; i < this.friendCount; i++) {
-            if (this.friendName37[i] == username) {
+            if (this.friendName37[i] === username) {
                 this.addMessage(0, displayName + ' is already on your friend list', '');
                 return;
             }
         }
 
         for (let i: number = 0; i < this.ignoreCount; i++) {
-            if (this.ignoreName37[i] == username) {
+            if (this.ignoreName37[i] === username) {
                 this.addMessage(0, 'Please remove ' + displayName + ' from your ignore list first', '');
                 return;
             }
@@ -4252,12 +4253,12 @@ class Client extends GameShell {
     };
 
     private removeFriend = (username: bigint): void => {
-        if (username == 0n) {
+        if (username === 0n) {
             return;
         }
 
         for (let i: number = 0; i < this.friendCount; i++) {
-            if (this.friendName37[i] == username) {
+            if (this.friendName37[i] === username) {
                 this.friendCount--;
                 this.redrawSidebar = true;
                 for (let j: number = i; j < this.friendCount; j++) {
@@ -4274,7 +4275,7 @@ class Client extends GameShell {
     };
 
     private addIgnore = (username: bigint): void => {
-        if (username == 0n) {
+        if (username === 0n) {
             return;
         }
 
@@ -4285,14 +4286,14 @@ class Client extends GameShell {
 
         const displayName: string = JString.formatName(JString.fromBase37(username));
         for (let i: number = 0; i < this.ignoreCount; i++) {
-            if (this.ignoreName37[i] == username) {
+            if (this.ignoreName37[i] === username) {
                 this.addMessage(0, displayName + ' is already on your ignore list', '');
                 return;
             }
         }
 
         for (let i: number = 0; i < this.friendCount; i++) {
-            if (this.friendName37[i] == username) {
+            if (this.friendName37[i] === username) {
                 this.addMessage(0, 'Please remove ' + displayName + ' from your friend list first', '');
                 return;
             }
@@ -4306,12 +4307,12 @@ class Client extends GameShell {
     };
 
     private removeIgnore = (username: bigint): void => {
-        if (username == 0n) {
+        if (username === 0n) {
             return;
         }
 
         for (let i: number = 0; i < this.ignoreCount; i++) {
-            if (this.ignoreName37[i] == username) {
+            if (this.ignoreName37[i] === username) {
                 this.ignoreCount--;
                 this.redrawSidebar = true;
                 for (let j: number = i; j < this.ignoreCount; j++) {
@@ -4516,16 +4517,16 @@ class Client extends GameShell {
                 component.text = '';
                 component.buttonType = 0;
             } else {
-                if (this.friendWorld[clientCode] == 0) {
+                if (this.friendWorld[clientCode] === 0) {
                     component.text = '@red@Offline';
-                } else if (this.friendWorld[clientCode] == Client.nodeId) {
+                } else if (this.friendWorld[clientCode] === Client.nodeId) {
                     component.text = '@gre@World-' + (this.friendWorld[clientCode] - 9);
                 } else {
                     component.text = '@yel@World-' + (this.friendWorld[clientCode] - 9);
                 }
                 component.buttonType = 1;
             }
-        } else if (clientCode == ComType.CC_FRIENDS_SIZE) {
+        } else if (clientCode === ComType.CC_FRIENDS_SIZE) {
             component.scroll = this.friendCount * 15 + 20;
             if (component.scroll <= component.height) {
                 component.scroll = component.height + 1;
@@ -4539,12 +4540,12 @@ class Client extends GameShell {
                 component.text = JString.formatName(JString.fromBase37(this.ignoreName37[clientCode]));
                 component.buttonType = 1;
             }
-        } else if (clientCode == ComType.CC_IGNORES_SIZE) {
+        } else if (clientCode === ComType.CC_IGNORES_SIZE) {
             component.scroll = this.ignoreCount * 15 + 20;
             if (component.scroll <= component.height) {
                 component.scroll = component.height + 1;
             }
-        } else if (clientCode == ComType.CC_DESIGN_PREVIEW) {
+        } else if (clientCode === ComType.CC_DESIGN_PREVIEW) {
             component.xan = 150;
             component.yan = Math.trunc(Math.sin(this.loopCycle / 40.0) * 256.0) & 0x7ff;
             if (this.updateDesignModel) {
@@ -4564,9 +4565,9 @@ class Client extends GameShell {
 
                 const model: Model = Model.modelFromModels(models, modelCount);
                 for (let part: number = 0; part < 5; part++) {
-                    if (this.designColors[part] != 0) {
+                    if (this.designColors[part] !== 0) {
                         model.recolor(PlayerEntity.DESIGN_BODY_COLOR[part][0], PlayerEntity.DESIGN_BODY_COLOR[part][this.designColors[part]]);
-                        if (part == 1) {
+                        if (part === 1) {
                             model.recolor(PlayerEntity.DESIGN_HAIR_COLOR[0], PlayerEntity.DESIGN_HAIR_COLOR[this.designColors[part]]);
                         }
                     }
@@ -4582,8 +4583,8 @@ class Client extends GameShell {
                     }
                 }
             }
-        } else if (clientCode == ComType.CC_SWITCH_TO_MALE) {
-            if (this.genderButtonImage0 == null) {
+        } else if (clientCode === ComType.CC_SWITCH_TO_MALE) {
+            if (!this.genderButtonImage0) {
                 this.genderButtonImage0 = component.graphic;
                 this.genderButtonImage1 = component.activeGraphic;
             }
@@ -4592,8 +4593,8 @@ class Client extends GameShell {
             } else {
                 component.graphic = this.genderButtonImage0;
             }
-        } else if (clientCode == ComType.CC_SWITCH_TO_FEMALE) {
-            if (this.genderButtonImage0 == null) {
+        } else if (clientCode === ComType.CC_SWITCH_TO_FEMALE) {
+            if (!this.genderButtonImage0) {
                 this.genderButtonImage0 = component.graphic;
                 this.genderButtonImage1 = component.activeGraphic;
             }
@@ -4602,14 +4603,14 @@ class Client extends GameShell {
             } else {
                 component.graphic = this.genderButtonImage1;
             }
-        } else if (clientCode == ComType.CC_REPORT_INPUT) {
+        } else if (clientCode === ComType.CC_REPORT_INPUT) {
             component.text = this.reportAbuseInput;
             if (this.loopCycle % 20 < 10) {
                 component.text = component.text + '|';
             } else {
                 component.text = component.text + ' ';
             }
-        } else if (clientCode == ComType.CC_MOD_MUTE) {
+        } else if (clientCode === ComType.CC_MOD_MUTE) {
             if (!this.rights) {
                 component.text = '';
             } else if (this.reportAbuseMuteOption) {
@@ -4619,26 +4620,26 @@ class Client extends GameShell {
                 component.colour = Colors.WHITE;
                 component.text = 'Moderator option: Mute player for 48 hours: <OFF>';
             }
-        } else if (clientCode == ComType.CC_LAST_LOGIN_INFO || clientCode == ComType.CC_LAST_LOGIN_INFO2) {
-            if (this.lastAddress == 0) {
+        } else if (clientCode === ComType.CC_LAST_LOGIN_INFO || clientCode === ComType.CC_LAST_LOGIN_INFO2) {
+            if (this.lastAddress === 0) {
                 component.text = '';
             } else {
                 let text: string;
-                if (this.daysSinceLastLogin == 0) {
+                if (this.daysSinceLastLogin === 0) {
                     text = 'earlier today';
-                } else if (this.daysSinceLastLogin == 1) {
+                } else if (this.daysSinceLastLogin === 1) {
                     text = 'yesterday';
                 } else {
                     text = this.daysSinceLastLogin + ' days ago';
                 }
                 component.text = 'You last logged in ' + text + ' from: ' + JString.formatIPv4(this.lastAddress); // TODO dns lookup??
             }
-        } else if (clientCode == ComType.CC_UNREAD_MESSAGES) {
-            if (this.unreadMessages == 0) {
+        } else if (clientCode === ComType.CC_UNREAD_MESSAGES) {
+            if (this.unreadMessages === 0) {
                 component.text = '0 unread messages';
                 component.colour = Colors.YELLOW;
             }
-            if (this.unreadMessages == 1) {
+            if (this.unreadMessages === 1) {
                 component.text = '1 unread message';
                 component.colour = Colors.GREEN;
             }
@@ -4646,34 +4647,34 @@ class Client extends GameShell {
                 component.text = this.unreadMessages + ' unread messages';
                 component.colour = Colors.GREEN;
             }
-        } else if (clientCode == ComType.CC_RECOVERY1) {
-            if (this.daysSinceRecoveriesChanged == 201) {
+        } else if (clientCode === ComType.CC_RECOVERY1) {
+            if (this.daysSinceRecoveriesChanged === 201) {
                 component.text = '';
-            } else if (this.daysSinceRecoveriesChanged == 200) {
+            } else if (this.daysSinceRecoveriesChanged === 200) {
                 component.text = 'You have not yet set any password recovery questions.';
             } else {
                 let text: string;
-                if (this.daysSinceRecoveriesChanged == 0) {
+                if (this.daysSinceRecoveriesChanged === 0) {
                     text = 'Earlier today';
-                } else if (this.daysSinceRecoveriesChanged == 1) {
+                } else if (this.daysSinceRecoveriesChanged === 1) {
                     text = 'Yesterday';
                 } else {
                     text = this.daysSinceRecoveriesChanged + ' days ago';
                 }
                 component.text = text + ' you changed your recovery questions';
             }
-        } else if (clientCode == ComType.CC_RECOVERY2) {
-            if (this.daysSinceRecoveriesChanged == 201) {
+        } else if (clientCode === ComType.CC_RECOVERY2) {
+            if (this.daysSinceRecoveriesChanged === 201) {
                 component.text = '';
-            } else if (this.daysSinceRecoveriesChanged == 200) {
+            } else if (this.daysSinceRecoveriesChanged === 200) {
                 component.text = 'We strongly recommend you do so now to secure your account.';
             } else {
                 component.text = 'If you do not remember making this change then cancel it immediately';
             }
-        } else if (clientCode == ComType.CC_RECOVERY3) {
-            if (this.daysSinceRecoveriesChanged == 201) {
+        } else if (clientCode === ComType.CC_RECOVERY3) {
+            if (this.daysSinceRecoveriesChanged === 201) {
                 component.text = '';
-            } else if (this.daysSinceRecoveriesChanged == 200) {
+            } else if (this.daysSinceRecoveriesChanged === 200) {
                 component.text = "Do this from the 'account management' area on our front webpage";
             } else {
                 component.text = "Do this from the 'account management' area on our front webpage";
@@ -4959,7 +4960,7 @@ class Client extends GameShell {
                 this.out.psize1(mapCount);
                 // signlink.looprate(50);
                 this.areaViewport?.bind();
-                if (this.sceneState == 0) {
+                if (this.sceneState === 0) {
                     this.fontPlain12?.drawStringCenter(257, 166, 'Map area updated since last visit, so load will take longer this time only', Colors.BLACK);
                     this.fontPlain12?.drawStringCenter(256, 165, 'Map area updated since last visit, so load will take longer this time only', Colors.WHITE);
                 }
@@ -5006,8 +5007,8 @@ class Client extends GameShell {
                     endTileZ = -1;
                     dirZ = -1;
                 }
-                for (let x: number = startTileX; x != endTileX; x += dirX) {
-                    for (let z: number = startTileZ; z != endTileZ; z += dirZ) {
+                for (let x: number = startTileX; x !== endTileX; x += dirX) {
+                    for (let z: number = startTileZ; z !== endTileZ; z += dirZ) {
                         const lastX: number = x + dx;
                         const lastZ: number = z + dz;
                         for (let level: number = 0; level < 4; level++) {
@@ -5026,7 +5027,7 @@ class Client extends GameShell {
                         loc.unlink();
                     }
                 }
-                if (this.flagSceneTileX != 0) {
+                if (this.flagSceneTileX !== 0) {
                     this.flagSceneTileX -= dx;
                     this.flagSceneTileZ -= dz;
                 }
@@ -6040,8 +6041,7 @@ class Client extends GameShell {
                 this.mouseButtonsOption = value;
             }
             if (clientcode === 6) {
-                //TODO chatEffects
-                //this.chatEffects = value;
+                this.chatEffects = value;
             }
             if (clientcode === 8) {
                 this.splitPrivateChat = value;
@@ -6051,7 +6051,84 @@ class Client extends GameShell {
     };
 
     private handleChatMouseInput = (mouseX: number, mouseY: number): void => {
-        // TODO
+        let line: number = 0;
+        for (let i: number = 0; i < 100; i++) {
+            if (!this.messageText[i]) {
+                continue;
+            }
+
+            const type: number = this.messageType[i];
+            const y: number = this.chatScrollOffset + 70 + 4 - line * 14;
+            if (y < -20) {
+                break;
+            }
+
+            if (type === 0) {
+                line++;
+            }
+
+            if ((type === 1 || type === 2) && (type === 1 || this.publicChatSetting === 0 || (this.publicChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
+                if (mouseY > y - 14 && mouseY <= y && this.localPlayer && this.messageSender[i] !== this.localPlayer.name) {
+                    if (this.rights) {
+                        this.menuOption[this.menuSize] = 'Report abuse @whi@' + this.messageSender[i];
+                        this.menuAction[this.menuSize] = 34;
+                        this.menuSize++;
+                    }
+
+                    this.menuOption[this.menuSize] = 'Add ignore @whi@' + this.messageSender[i];
+                    this.menuAction[this.menuSize] = 436;
+                    this.menuSize++;
+                    this.menuOption[this.menuSize] = 'Add friend @whi@' + this.messageSender[i];
+                    this.menuAction[this.menuSize] = 406;
+                    this.menuSize++;
+                }
+
+                line++;
+            }
+
+            if ((type === 3 || type === 7) && this.splitPrivateChat === 0 && (type === 7 || this.privateChatSetting === 0 || (this.privateChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
+                if (mouseY > y - 14 && mouseY <= y) {
+                    if (this.rights) {
+                        this.menuOption[this.menuSize] = 'Report abuse @whi@' + this.messageSender[i];
+                        this.menuAction[this.menuSize] = 34;
+                        this.menuSize++;
+                    }
+
+                    this.menuOption[this.menuSize] = 'Add ignore @whi@' + this.messageSender[i];
+                    this.menuAction[this.menuSize] = 436;
+                    this.menuSize++;
+                    this.menuOption[this.menuSize] = 'Add friend @whi@' + this.messageSender[i];
+                    this.menuAction[this.menuSize] = 406;
+                    this.menuSize++;
+                }
+
+                line++;
+            }
+
+            if (type === 4 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
+                if (mouseY > y - 14 && mouseY <= y) {
+                    this.menuOption[this.menuSize] = 'Accept trade @whi@' + this.messageSender[i];
+                    this.menuAction[this.menuSize] = 903;
+                    this.menuSize++;
+                }
+
+                line++;
+            }
+
+            if ((type === 5 || type === 6) && this.splitPrivateChat === 0 && this.privateChatSetting < 2) {
+                line++;
+            }
+
+            if (type === 8 && (this.tradeChatSetting === 0 || (this.tradeChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
+                if (mouseY > y - 14 && mouseY <= y) {
+                    this.menuOption[this.menuSize] = 'Accept duel @whi@' + this.messageSender[i];
+                    this.menuAction[this.menuSize] = 363;
+                    this.menuSize++;
+                }
+
+                line++;
+            }
+        }
     };
 
     private handleInterfaceInput = (com: ComType, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): void => {
@@ -6296,7 +6373,385 @@ class Client extends GameShell {
             this.menuParamC[this.menuSize] = this.mouseY;
             this.menuSize++;
         }
-        // TODO
+
+        let lastBitset: number = -1;
+        for (let picked: number = 0; picked < Model.pickedCount; picked++) {
+            const bitset: number = Model.pickedBitsets[picked];
+            const x: number = bitset & 0x7f;
+            const z: number = (bitset >> 7) & 0x7f;
+            const entityType: number = (bitset >> 29) & 0x3;
+            const typeId: number = (bitset >> 14) & 0x7fff;
+
+            if (bitset === lastBitset) {
+                continue;
+            }
+
+            lastBitset = bitset;
+
+            if (entityType === 2 /*&& this.scene.getInfo(this.currentLevel, x, z, bitset) >= 0*/) {
+                // TODO enable
+                const loc: LocType = LocType.get(typeId);
+                if (this.objSelected === 1) {
+                    this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @cya@' + loc.name;
+                    this.menuAction[this.menuSize] = 450;
+                    this.menuParamA[this.menuSize] = bitset;
+                    this.menuParamB[this.menuSize] = x;
+                    this.menuParamC[this.menuSize] = z;
+                    this.menuSize++;
+                } else if (this.spellSelected !== 1) {
+                    if (loc.ops) {
+                        for (let op: number = 4; op >= 0; op--) {
+                            if (loc.ops[op]) {
+                                this.menuOption[this.menuSize] = loc.ops[op] + ' @cya@' + loc.name;
+                                if (op === 0) {
+                                    this.menuAction[this.menuSize] = 285;
+                                }
+
+                                if (op === 1) {
+                                    this.menuAction[this.menuSize] = 504;
+                                }
+
+                                if (op === 2) {
+                                    this.menuAction[this.menuSize] = 364;
+                                }
+
+                                if (op === 3) {
+                                    this.menuAction[this.menuSize] = 581;
+                                }
+
+                                if (op === 4) {
+                                    this.menuAction[this.menuSize] = 1501;
+                                }
+
+                                this.menuParamA[this.menuSize] = bitset;
+                                this.menuParamB[this.menuSize] = x;
+                                this.menuParamC[this.menuSize] = z;
+                                this.menuSize++;
+                            }
+                        }
+                    }
+
+                    this.menuOption[this.menuSize] = 'Examine @cya@' + loc.name;
+                    this.menuAction[this.menuSize] = 1175;
+                    this.menuParamA[this.menuSize] = bitset;
+                    this.menuParamB[this.menuSize] = x;
+                    this.menuParamC[this.menuSize] = z;
+                    this.menuSize++;
+                } else if ((this.activeSpellFlags & 0x4) === 4) {
+                    this.menuOption[this.menuSize] = this.spellCaption + ' @cya@' + loc.name;
+                    this.menuAction[this.menuSize] = 55;
+                    this.menuParamA[this.menuSize] = bitset;
+                    this.menuParamB[this.menuSize] = x;
+                    this.menuParamC[this.menuSize] = z;
+                    this.menuSize++;
+                }
+            }
+
+            if (entityType === 1) {
+                const npc: NpcEntity | null = this.npcs[typeId];
+                if (npc && npc.type && npc.type.size === 1 && (npc.x & 0x7f) === 64 && (npc.z & 0x7f) === 64) {
+                    for (let i: number = 0; i < this.npcCount; i++) {
+                        const other: NpcEntity | null = this.npcs[this.npcIds[i]];
+
+                        if (other && other !== npc && other.type && other.type.size === 1 && other.x === npc.x && other.z === npc.z) {
+                            this.addNpcOptions(other.type, this.npcIds[i], x, z);
+                        }
+                    }
+                }
+
+                if (npc && npc.type) {
+                    this.addNpcOptions(npc.type, typeId, x, z);
+                }
+            }
+
+            if (entityType === 0) {
+                const player: PlayerEntity | null = this.players[typeId];
+                if (player && (player.x & 0x7f) === 64 && (player.z & 0x7f) === 64) {
+                    for (let i: number = 0; i < this.npcCount; i++) {
+                        const other: NpcEntity | null = this.npcs[this.npcIds[i]];
+
+                        if (other && other.type && other.type.size === 1 && other.x === player.x && other.z === player.z) {
+                            this.addNpcOptions(other.type, this.npcIds[i], x, z);
+                        }
+                    }
+
+                    for (let i: number = 0; i < this.playerCount; i++) {
+                        const other: PlayerEntity | null = this.players[this.playerIds[i]];
+
+                        if (other && other !== player && other.x === player.x && other.z === player.z) {
+                            this.addPlayerOptions(other, this.playerIds[i], x, z);
+                        }
+                    }
+                }
+
+                if (player) {
+                    this.addPlayerOptions(player, typeId, x, z);
+                }
+            }
+
+            if (entityType === 3) {
+                const objs: LinkList | null = this.levelObjStacks[this.currentLevel][x][z];
+                if (!objs) {
+                    continue;
+                }
+
+                for (let obj: ObjStackEntity | null = objs.peekBack() as ObjStackEntity | null; obj; obj = objs.next() as ObjStackEntity | null) {
+                    const type: ObjType = ObjType.get(obj.index);
+                    if (this.objSelected === 1) {
+                        this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @lre@' + type.name;
+                        this.menuAction[this.menuSize] = 217;
+                        this.menuParamA[this.menuSize] = obj.index;
+                        this.menuParamB[this.menuSize] = x;
+                        this.menuParamC[this.menuSize] = z;
+                        this.menuSize++;
+                    } else if (this.spellSelected !== 1) {
+                        for (let op: number = 4; op >= 0; op--) {
+                            if (type.ops && type.ops[op]) {
+                                this.menuOption[this.menuSize] = type.ops[op] + ' @lre@' + type.name;
+                                if (op === 0) {
+                                    this.menuAction[this.menuSize] = 224;
+                                }
+
+                                if (op === 1) {
+                                    this.menuAction[this.menuSize] = 993;
+                                }
+
+                                if (op === 2) {
+                                    this.menuAction[this.menuSize] = 99;
+                                }
+
+                                if (op === 3) {
+                                    this.menuAction[this.menuSize] = 746;
+                                }
+
+                                if (op === 4) {
+                                    this.menuAction[this.menuSize] = 877;
+                                }
+
+                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamB[this.menuSize] = x;
+                                this.menuParamC[this.menuSize] = z;
+                                this.menuSize++;
+                            } else if (op === 2) {
+                                this.menuOption[this.menuSize] = 'Take @lre@' + type.name;
+                                this.menuAction[this.menuSize] = 99;
+                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamB[this.menuSize] = x;
+                                this.menuParamC[this.menuSize] = z;
+                                this.menuSize++;
+                            }
+                        }
+
+                        this.menuOption[this.menuSize] = 'Examine @lre@' + type.name;
+                        this.menuAction[this.menuSize] = 1102;
+                        this.menuParamA[this.menuSize] = obj.index;
+                        this.menuParamB[this.menuSize] = x;
+                        this.menuParamC[this.menuSize] = z;
+                        this.menuSize++;
+                    } else if ((this.activeSpellFlags & 0x1) === 1) {
+                        this.menuOption[this.menuSize] = this.spellCaption + ' @lre@' + type.name;
+                        this.menuAction[this.menuSize] = 965;
+                        this.menuParamA[this.menuSize] = obj.index;
+                        this.menuParamB[this.menuSize] = x;
+                        this.menuParamC[this.menuSize] = z;
+                        this.menuSize++;
+                    }
+                }
+            }
+        }
+    };
+
+    private addNpcOptions = (npc: NpcType, a: number, b: number, c: number): void => {
+        if (this.menuSize >= 400) {
+            return;
+        }
+
+        let tooltip: string | null = npc.name;
+        if (npc.vislevel !== 0 && this.localPlayer) {
+            tooltip = tooltip + this.getCombatLevelColorTag(this.localPlayer.combatLevel, npc.vislevel) + ' (level-' + npc.vislevel + ')';
+        }
+
+        if (this.objSelected === 1) {
+            this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @yel@' + tooltip;
+            this.menuAction[this.menuSize] = 900;
+            this.menuParamA[this.menuSize] = a;
+            this.menuParamB[this.menuSize] = b;
+            this.menuParamC[this.menuSize] = c;
+            this.menuSize++;
+        } else if (this.spellSelected !== 1) {
+            let type: number;
+            if (npc.ops) {
+                for (type = 4; type >= 0; type--) {
+                    if (npc.ops[type] && npc.ops[type]?.toLowerCase() !== 'attack') {
+                        this.menuOption[this.menuSize] = npc.ops[type] + ' @yel@' + tooltip;
+
+                        if (type === 0) {
+                            this.menuAction[this.menuSize] = 728;
+                        } else if (type === 1) {
+                            this.menuAction[this.menuSize] = 542;
+                        } else if (type === 2) {
+                            this.menuAction[this.menuSize] = 6;
+                        } else if (type === 3) {
+                            this.menuAction[this.menuSize] = 963;
+                        } else if (type === 4) {
+                            this.menuAction[this.menuSize] = 245;
+                        }
+
+                        this.menuParamA[this.menuSize] = a;
+                        this.menuParamB[this.menuSize] = b;
+                        this.menuParamC[this.menuSize] = c;
+                        this.menuSize++;
+                    }
+                }
+            }
+
+            if (npc.ops) {
+                for (type = 4; type >= 0; type--) {
+                    if (npc.ops[type] && npc.ops[type]?.toLowerCase() === 'attack') {
+                        let action: number = 0;
+                        if (this.localPlayer && npc.vislevel > this.localPlayer.combatLevel) {
+                            action = 2000;
+                        }
+
+                        this.menuOption[this.menuSize] = npc.ops[type] + ' @yel@' + tooltip;
+
+                        if (type === 0) {
+                            this.menuAction[this.menuSize] = action + 728;
+                        } else if (type === 1) {
+                            this.menuAction[this.menuSize] = action + 542;
+                        } else if (type === 2) {
+                            this.menuAction[this.menuSize] = action + 6;
+                        } else if (type === 3) {
+                            this.menuAction[this.menuSize] = action + 963;
+                        } else if (type === 4) {
+                            this.menuAction[this.menuSize] = action + 245;
+                        }
+
+                        this.menuParamA[this.menuSize] = a;
+                        this.menuParamB[this.menuSize] = b;
+                        this.menuParamC[this.menuSize] = c;
+                        this.menuSize++;
+                    }
+                }
+            }
+
+            this.menuOption[this.menuSize] = 'Examine @yel@' + tooltip;
+            this.menuAction[this.menuSize] = 1607;
+            this.menuParamA[this.menuSize] = a;
+            this.menuParamB[this.menuSize] = b;
+            this.menuParamC[this.menuSize] = c;
+            this.menuSize++;
+        } else if ((this.activeSpellFlags & 0x2) === 2) {
+            this.menuOption[this.menuSize] = this.spellCaption + ' @yel@' + tooltip;
+            this.menuAction[this.menuSize] = 265;
+            this.menuParamA[this.menuSize] = a;
+            this.menuParamB[this.menuSize] = b;
+            this.menuParamC[this.menuSize] = c;
+            this.menuSize++;
+        }
+    };
+
+    private addPlayerOptions = (player: PlayerEntity, a: number, b: number, c: number): void => {
+        if (player === this.localPlayer || this.menuSize >= 400) {
+            return;
+        }
+
+        let tooltip: string | null = null;
+        if (this.localPlayer) {
+            tooltip = player.name + this.getCombatLevelColorTag(this.localPlayer.combatLevel, player.combatLevel) + ' (level-' + player.combatLevel + ')';
+        }
+        if (this.objSelected === 1) {
+            this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @whi@' + tooltip;
+            this.menuAction[this.menuSize] = 367;
+            this.menuParamA[this.menuSize] = a;
+            this.menuParamB[this.menuSize] = b;
+            this.menuParamC[this.menuSize] = c;
+            this.menuSize++;
+        } else if (this.spellSelected !== 1) {
+            this.menuOption[this.menuSize] = 'Follow @whi@' + tooltip;
+            this.menuAction[this.menuSize] = 1544;
+            this.menuParamA[this.menuSize] = a;
+            this.menuParamB[this.menuSize] = b;
+            this.menuParamC[this.menuSize] = c;
+            this.menuSize++;
+
+            if (this.overrideChat === 0) {
+                this.menuOption[this.menuSize] = 'Trade with @whi@' + tooltip;
+                this.menuAction[this.menuSize] = 1373;
+                this.menuParamA[this.menuSize] = a;
+                this.menuParamB[this.menuSize] = b;
+                this.menuParamC[this.menuSize] = c;
+                this.menuSize++;
+            }
+
+            if (this.wildernessLevel > 0) {
+                this.menuOption[this.menuSize] = 'Attack @whi@' + tooltip;
+                if (this.localPlayer && this.localPlayer.combatLevel >= player.combatLevel) {
+                    this.menuAction[this.menuSize] = 151;
+                } else {
+                    this.menuAction[this.menuSize] = 2151;
+                }
+                this.menuParamA[this.menuSize] = a;
+                this.menuParamB[this.menuSize] = b;
+                this.menuParamC[this.menuSize] = c;
+                this.menuSize++;
+            }
+
+            if (this.worldLocationState === 1) {
+                this.menuOption[this.menuSize] = 'Fight @whi@' + tooltip;
+                this.menuAction[this.menuSize] = 151;
+                this.menuParamA[this.menuSize] = a;
+                this.menuParamB[this.menuSize] = b;
+                this.menuParamC[this.menuSize] = c;
+                this.menuSize++;
+            }
+
+            if (this.worldLocationState === 2) {
+                this.menuOption[this.menuSize] = 'Duel-with @whi@' + tooltip;
+                this.menuAction[this.menuSize] = 1101;
+                this.menuParamA[this.menuSize] = a;
+                this.menuParamB[this.menuSize] = b;
+                this.menuParamC[this.menuSize] = c;
+                this.menuSize++;
+            }
+        } else if ((this.activeSpellFlags & 0x8) === 8) {
+            this.menuOption[this.menuSize] = this.spellCaption + ' @whi@' + tooltip;
+            this.menuAction[this.menuSize] = 651;
+            this.menuParamA[this.menuSize] = a;
+            this.menuParamB[this.menuSize] = b;
+            this.menuParamC[this.menuSize] = c;
+            this.menuSize++;
+        }
+
+        for (let i: number = 0; i < this.menuSize; i++) {
+            if (this.menuAction[i] === 660) {
+                this.menuOption[i] = 'Walk here @whi@' + tooltip;
+                return;
+            }
+        }
+    };
+
+    private getCombatLevelColorTag = (viewerLevel: number, otherLevel: number): string => {
+        const diff: number = viewerLevel - otherLevel;
+        if (diff < -9) {
+            return '@red@';
+        } else if (diff < -6) {
+            return '@or3@';
+        } else if (diff < -3) {
+            return '@or2@';
+        } else if (diff < 0) {
+            return '@or1@';
+        } else if (diff > 9) {
+            return '@gre@';
+        } else if (diff > 6) {
+            return '@gr3@';
+        } else if (diff > 3) {
+            return '@gr2@';
+        } else if (diff > 0) {
+            return '@gr1@';
+        } else {
+            return '@yel@';
+        }
     };
 
     private handleInput = (): void => {
@@ -6754,16 +7209,16 @@ class Client extends GameShell {
             if (!player) {
                 continue;
             }
-            if (player.cycle != this.loopCycle) {
+            if (player.cycle !== this.loopCycle) {
                 this.players[index] = null;
             }
         }
 
-        if (buf.pos != size) {
+        if (buf.pos !== size) {
             throw new Error(`eek! Error packet size mismatch in getplayer pos:${buf.pos} psize:${size}`);
         }
         for (let index: number = 0; index < this.playerCount; index++) {
-            if (this.players[this.playerIds[index]] == null) {
+            if (!this.players[this.playerIds[index]]) {
                 throw new Error(`eek! ${this.username} null entry in pl list - pos:${index} size:${this.playerCount}`);
             }
         }
@@ -6773,38 +7228,38 @@ class Client extends GameShell {
         buf.bits();
 
         const hasUpdate: number = buf.gBit(1);
-        if (hasUpdate != 0) {
+        if (hasUpdate !== 0) {
             const updateType: number = buf.gBit(2);
 
-            if (updateType == 0) {
+            if (updateType === 0) {
                 this.entityUpdateIds[this.entityUpdateCount++] = this.LOCAL_PLAYER_INDEX;
-            } else if (updateType == 1) {
+            } else if (updateType === 1) {
                 const walkDir: number = buf.gBit(3);
                 this.localPlayer?.step(false, walkDir);
 
                 const hasMaskUpdate: number = buf.gBit(1);
-                if (hasMaskUpdate == 1) {
+                if (hasMaskUpdate === 1) {
                     this.entityUpdateIds[this.entityUpdateCount++] = this.LOCAL_PLAYER_INDEX;
                 }
-            } else if (updateType == 2) {
+            } else if (updateType === 2) {
                 const walkDir: number = buf.gBit(3);
                 this.localPlayer?.step(true, walkDir);
                 const runDir: number = buf.gBit(3);
                 this.localPlayer?.step(true, runDir);
 
                 const hasMaskUpdate: number = buf.gBit(1);
-                if (hasMaskUpdate == 1) {
+                if (hasMaskUpdate === 1) {
                     this.entityUpdateIds[this.entityUpdateCount++] = this.LOCAL_PLAYER_INDEX;
                 }
-            } else if (updateType == 3) {
+            } else if (updateType === 3) {
                 this.currentLevel = buf.gBit(2);
                 const localX: number = buf.gBit(7);
                 const localZ: number = buf.gBit(7);
                 const jump: number = buf.gBit(1);
-                this.localPlayer?.move(jump == 1, localX, localZ);
+                this.localPlayer?.move(jump === 1, localX, localZ);
 
                 const hasMaskUpdate: number = buf.gBit(1);
-                if (hasMaskUpdate == 1) {
+                if (hasMaskUpdate === 1) {
                     this.entityUpdateIds[this.entityUpdateCount++] = this.LOCAL_PLAYER_INDEX;
                 }
             }
@@ -6830,7 +7285,7 @@ class Client extends GameShell {
             const player: PlayerEntity | null = this.players[index];
 
             const hasUpdate: number = buf.gBit(1);
-            if (hasUpdate == 0) {
+            if (hasUpdate === 0) {
                 this.playerIds[this.playerCount++] = index;
                 if (player) {
                     player.cycle = this.loopCycle;
@@ -6838,13 +7293,13 @@ class Client extends GameShell {
             } else {
                 const updateType: number = buf.gBit(2);
 
-                if (updateType == 0) {
+                if (updateType === 0) {
                     this.playerIds[this.playerCount++] = index;
                     if (player) {
                         player.cycle = this.loopCycle;
                     }
                     this.entityUpdateIds[this.entityUpdateCount++] = index;
-                } else if (updateType == 1) {
+                } else if (updateType === 1) {
                     this.playerIds[this.playerCount++] = index;
                     if (player) {
                         player.cycle = this.loopCycle;
@@ -6854,10 +7309,10 @@ class Client extends GameShell {
                     player?.step(false, walkDir);
 
                     const hasMaskUpdate: number = buf.gBit(1);
-                    if (hasMaskUpdate == 1) {
+                    if (hasMaskUpdate === 1) {
                         this.entityUpdateIds[this.entityUpdateCount++] = index;
                     }
-                } else if (updateType == 2) {
+                } else if (updateType === 2) {
                     this.playerIds[this.playerCount++] = index;
                     if (player) {
                         player.cycle = this.loopCycle;
@@ -6869,10 +7324,10 @@ class Client extends GameShell {
                     player?.step(true, runDir);
 
                     const hasMaskUpdate: number = buf.gBit(1);
-                    if (hasMaskUpdate == 1) {
+                    if (hasMaskUpdate === 1) {
                         this.entityUpdateIds[this.entityUpdateCount++] = index;
                     }
-                } else if (updateType == 3) {
+                } else if (updateType === 3) {
                     this.entityRemovalIds[this.entityRemovalCount++] = index;
                 }
             }
@@ -6883,11 +7338,11 @@ class Client extends GameShell {
         let index: number;
         while (buf.bitPos + 10 < size * 8) {
             index = buf.gBit(11);
-            if (index == 2047) {
+            if (index === 2047) {
                 break;
             }
 
-            if (this.players[index] == null) {
+            if (!this.players[index]) {
                 this.players[index] = new PlayerEntity();
                 const appearance: Packet | null = this.playerAppearanceBuffer[index];
                 if (appearance) {
@@ -6910,11 +7365,11 @@ class Client extends GameShell {
             }
             const jump: number = buf.gBit(1);
             if (this.localPlayer) {
-                player?.move(jump == 1, this.localPlayer.pathTileX[0] + dx, this.localPlayer.pathTileZ[0] + dz);
+                player?.move(jump === 1, this.localPlayer.pathTileX[0] + dx, this.localPlayer.pathTileZ[0] + dz);
             }
 
             const hasMaskUpdate: number = buf.gBit(1);
-            if (hasMaskUpdate == 1) {
+            if (hasMaskUpdate === 1) {
                 this.entityUpdateIds[this.entityUpdateCount++] = index;
             }
         }
@@ -6930,7 +7385,7 @@ class Client extends GameShell {
                 continue; // its fine cos buffer gets out of pos and throws error which is ok
             }
             let mask: number = buf.g1;
-            if ((mask & 0x80) == 128) {
+            if ((mask & 0x80) === 128) {
                 mask += buf.g1 << 8;
             }
             this.readPlayerUpdatesBlocks(player, index, mask, buf);
@@ -6941,7 +7396,7 @@ class Client extends GameShell {
         player.lastMask = mask;
         player.lastMaskCycle = this.loopCycle;
 
-        if ((mask & 0x1) == 1) {
+        if ((mask & 0x1) === 1) {
             const length: number = buf.g1;
             const data: Uint8Array = new Uint8Array(length);
             const appearance: Packet = new Packet(data);
@@ -6949,16 +7404,16 @@ class Client extends GameShell {
             this.playerAppearanceBuffer[index] = appearance;
             player.read(appearance);
         }
-        if ((mask & 0x2) == 2) {
+        if ((mask & 0x2) === 2) {
             let seqId: number = buf.g2;
-            if (seqId == 65535) {
+            if (seqId === 65535) {
                 seqId = -1;
             }
-            if (seqId == player.primarySeqId) {
+            if (seqId === player.primarySeqId) {
                 player.primarySeqLoop = 0;
             }
             const delay: number = buf.g1;
-            if (seqId == -1 || player.primarySeqId == -1 || SeqType.instances[seqId].priority > SeqType.instances[player.primarySeqId].priority || SeqType.instances[player.primarySeqId].priority == 0) {
+            if (seqId === -1 || player.primarySeqId === -1 || SeqType.instances[seqId].priority > SeqType.instances[player.primarySeqId].priority || SeqType.instances[player.primarySeqId].priority === 0) {
                 player.primarySeqId = seqId;
                 player.primarySeqFrame = 0;
                 player.primarySeqCycle = 0;
@@ -6966,13 +7421,13 @@ class Client extends GameShell {
                 player.primarySeqLoop = 0;
             }
         }
-        if ((mask & 0x4) == 4) {
+        if ((mask & 0x4) === 4) {
             player.targetId = buf.g2;
-            if (player.targetId == 65535) {
+            if (player.targetId === 65535) {
                 player.targetId = -1;
             }
         }
-        if ((mask & 0x8) == 8) {
+        if ((mask & 0x8) === 8) {
             player.chat = buf.gjstr;
             player.chatColor = 0;
             player.chatStyle = 0;
@@ -6981,20 +7436,20 @@ class Client extends GameShell {
                 this.addMessage(2, player.chat, player.name);
             }
         }
-        if ((mask & 0x10) == 16) {
+        if ((mask & 0x10) === 16) {
             player.damage = buf.g1;
             player.damageType = buf.g1;
             player.combatCycle = this.loopCycle + 400;
             player.health = buf.g1;
             player.totalHealth = buf.g1;
         }
-        if ((mask & 0x20) == 32) {
+        if ((mask & 0x20) === 32) {
             player.targetTileX = buf.g2;
             player.targetTileZ = buf.g2;
             player.lastFaceX = player.targetTileX;
             player.lastFaceZ = player.targetTileZ;
         }
-        if ((mask & 0x40) == 64) {
+        if ((mask & 0x40) === 64) {
             const colorEffect: number = buf.g2;
             const type: number = buf.g1;
             const length: number = buf.g1;
@@ -7004,13 +7459,13 @@ class Client extends GameShell {
                 let ignored: boolean = false;
                 if (type <= 1) {
                     for (let i: number = 0; i < this.ignoreCount; i++) {
-                        if (this.ignoreName37[i] == username) {
+                        if (this.ignoreName37[i] === username) {
                             ignored = true;
                             break;
                         }
                     }
                 }
-                if (!ignored && this.overrideChat == 0) {
+                if (!ignored && this.overrideChat === 0) {
                     try {
                         const uncompressed: string = WordPack.unpack(buf, length);
                         const filtered: string = WordFilter.filter(uncompressed);
@@ -7031,7 +7486,7 @@ class Client extends GameShell {
             }
             buf.pos = start + length;
         }
-        if ((mask & 0x100) == 256) {
+        if ((mask & 0x100) === 256) {
             player.spotanimId = buf.g2;
             const heightDelay: number = buf.g4;
             player.spotanimOffset = heightDelay >> 16;
@@ -7041,11 +7496,11 @@ class Client extends GameShell {
             if (player.spotanimLastCycle > this.loopCycle) {
                 player.spotanimFrame = -1;
             }
-            if (player.spotanimId == 65535) {
+            if (player.spotanimId === 65535) {
                 player.spotanimId = -1;
             }
         }
-        if ((mask & 0x200) == 512) {
+        if ((mask & 0x200) === 512) {
             player.forceMoveStartSceneTileX = buf.g1;
             player.forceMoveStartSceneTileZ = buf.g1;
             player.forceMoveEndSceneTileX = buf.g1;
@@ -7073,18 +7528,18 @@ class Client extends GameShell {
             if (!npc) {
                 continue;
             }
-            if (npc.cycle != this.loopCycle) {
+            if (npc.cycle !== this.loopCycle) {
                 npc.type = null;
                 this.npcs[index] = null;
             }
         }
 
-        if (buf.pos != size) {
+        if (buf.pos !== size) {
             throw new Error(`eek! ${this.username} size mismatch in getnpcpos - pos:${buf.pos} psize:${size}`);
         }
 
         for (let i: number = 0; i < this.npcCount; i++) {
-            if (this.npcs[this.npcIds[i]] == null) {
+            if (!this.npcs[this.npcIds[i]]) {
                 throw new Error(`eek! ${this.username} null entry in npc list - pos:${i} size:${this.npcCount}`);
             }
         }
@@ -7110,7 +7565,7 @@ class Client extends GameShell {
             const npc: NpcEntity | null = this.npcs[index];
 
             const hasUpdate: number = buf.gBit(1);
-            if (hasUpdate == 0) {
+            if (hasUpdate === 0) {
                 this.npcIds[this.npcCount++] = index;
                 if (npc) {
                     npc.cycle = this.loopCycle;
@@ -7118,13 +7573,13 @@ class Client extends GameShell {
             } else {
                 const updateType: number = buf.gBit(2);
 
-                if (updateType == 0) {
+                if (updateType === 0) {
                     this.npcIds[this.npcCount++] = index;
                     if (npc) {
                         npc.cycle = this.loopCycle;
                     }
                     this.entityUpdateIds[this.entityUpdateCount++] = index;
-                } else if (updateType == 1) {
+                } else if (updateType === 1) {
                     this.npcIds[this.npcCount++] = index;
                     if (npc) {
                         npc.cycle = this.loopCycle;
@@ -7134,10 +7589,10 @@ class Client extends GameShell {
                     npc?.step(false, walkDir);
 
                     const hasMaskUpdate: number = buf.gBit(1);
-                    if (hasMaskUpdate == 1) {
+                    if (hasMaskUpdate === 1) {
                         this.entityUpdateIds[this.entityUpdateCount++] = index;
                     }
-                } else if (updateType == 2) {
+                } else if (updateType === 2) {
                     this.npcIds[this.npcCount++] = index;
                     if (npc) {
                         npc.cycle = this.loopCycle;
@@ -7149,10 +7604,10 @@ class Client extends GameShell {
                     npc?.step(true, runDir);
 
                     const hasMaskUpdate: number = buf.gBit(1);
-                    if (hasMaskUpdate == 1) {
+                    if (hasMaskUpdate === 1) {
                         this.entityUpdateIds[this.entityUpdateCount++] = index;
                     }
-                } else if (updateType == 3) {
+                } else if (updateType === 3) {
                     this.entityRemovalIds[this.entityRemovalCount++] = index;
                 }
             }
@@ -7162,10 +7617,10 @@ class Client extends GameShell {
     private readNewNpcs = (buf: Packet, size: number): void => {
         while (buf.bitPos + 21 < size * 8) {
             const index: number = buf.gBit(13);
-            if (index == 8191) {
+            if (index === 8191) {
                 break;
             }
-            if (this.npcs[index] == null) {
+            if (!this.npcs[index]) {
                 this.npcs[index] = new NpcEntity();
             }
             const npc: NpcEntity | null = this.npcs[index];
@@ -7194,7 +7649,7 @@ class Client extends GameShell {
                 npc?.move(false, this.localPlayer.pathTileX[0] + dx, this.localPlayer.pathTileZ[0] + dz);
             }
             const update: number = buf.gBit(1);
-            if (update == 1) {
+            if (update === 1) {
                 this.entityUpdateIds[this.entityUpdateCount++] = index;
             }
         }
@@ -7213,16 +7668,16 @@ class Client extends GameShell {
             npc.lastMask = mask;
             npc.lastMaskCycle = this.loopCycle;
 
-            if ((mask & 0x2) == 2) {
+            if ((mask & 0x2) === 2) {
                 let seqId: number = buf.g2;
-                if (seqId == 65535) {
+                if (seqId === 65535) {
                     seqId = -1;
                 }
-                if (seqId == npc.primarySeqId) {
+                if (seqId === npc.primarySeqId) {
                     npc.primarySeqLoop = 0;
                 }
                 const delay: number = buf.g1;
-                if (seqId == -1 || npc.primarySeqId == -1 || SeqType.instances[seqId].priority > SeqType.instances[npc.primarySeqId].priority || SeqType.instances[npc.primarySeqId].priority == 0) {
+                if (seqId === -1 || npc.primarySeqId === -1 || SeqType.instances[seqId].priority > SeqType.instances[npc.primarySeqId].priority || SeqType.instances[npc.primarySeqId].priority === 0) {
                     npc.primarySeqId = seqId;
                     npc.primarySeqFrame = 0;
                     npc.primarySeqCycle = 0;
@@ -7230,24 +7685,24 @@ class Client extends GameShell {
                     npc.primarySeqLoop = 0;
                 }
             }
-            if ((mask & 0x4) == 4) {
+            if ((mask & 0x4) === 4) {
                 npc.targetId = buf.g2;
-                if (npc.targetId == 65535) {
+                if (npc.targetId === 65535) {
                     npc.targetId = -1;
                 }
             }
-            if ((mask & 0x8) == 8) {
+            if ((mask & 0x8) === 8) {
                 npc.chat = buf.gjstr;
                 npc.chatTimer = 100;
             }
-            if ((mask & 0x10) == 16) {
+            if ((mask & 0x10) === 16) {
                 npc.damage = buf.g1;
                 npc.damageType = buf.g1;
                 npc.combatCycle = this.loopCycle + 400;
                 npc.health = buf.g1;
                 npc.totalHealth = buf.g1;
             }
-            if ((mask & 0x20) == 32) {
+            if ((mask & 0x20) === 32) {
                 npc.type = NpcType.get(buf.g2);
                 npc.seqWalkId = npc.type.walkanim;
                 npc.seqTurnAroundId = npc.type.walkanim_b;
@@ -7255,7 +7710,7 @@ class Client extends GameShell {
                 npc.seqTurnRightId = npc.type.walkanim_l;
                 npc.seqStandId = npc.type.readyanim;
             }
-            if ((mask & 0x40) == 64) {
+            if ((mask & 0x40) === 64) {
                 npc.spotanimId = buf.g2;
                 const info: number = buf.g4;
                 npc.spotanimOffset = info >> 16;
@@ -7265,11 +7720,11 @@ class Client extends GameShell {
                 if (npc.spotanimLastCycle > this.loopCycle) {
                     npc.spotanimFrame = -1;
                 }
-                if (npc.spotanimId == 65535) {
+                if (npc.spotanimId === 65535) {
                     npc.spotanimId = -1;
                 }
             }
-            if ((mask & 0x80) == 128) {
+            if ((mask & 0x80) === 128) {
                 npc.targetTileX = buf.g2;
                 npc.targetTileZ = buf.g2;
                 npc.lastFaceX = npc.targetTileX;
