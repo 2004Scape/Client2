@@ -75,6 +75,10 @@ export default class JString {
         return temp;
     };
 
+    static formatIPv4 = (ip: number): string => {
+        return ((ip >> 24) & 0xff) + '.' + ((ip >> 16) & 0xff) + '.' + ((ip >> 8) & 0xff) + '.' + (ip & 0xff);
+    };
+
     static formatName = (str: string): string => {
         if (str.length === 0) {
             return str;

@@ -74,6 +74,8 @@ class Client extends GameShell {
     static ifButton5Counter: number = 0;
     static updateLocCounter: number = 0;
 
+    static nodeId: number = 0; // TODO
+
     private readonly SCROLLBAR_TRACK: number = 0x23201b;
     private readonly SCROLLBAR_GRIP_FOREGROUND: number = 0x4d4233;
     private readonly SCROLLBAR_GRIP_HIGHLIGHT: number = 0x766654;
@@ -218,6 +220,11 @@ class Client extends GameShell {
     private imageRedstone1hv: Pix8 | null = null;
     private imageRedstone2hv: Pix8 | null = null;
 
+    private genderButtonImage0: Pix24 | null = null;
+    private genderButtonImage1: Pix24 | null = null;
+
+    private activeMapFunctions: (Pix24 | null)[] = new Array(1000).fill(null);
+
     private redrawSidebar: boolean = false;
     private redrawChatback: boolean = false;
     private redrawSideicons: boolean = false;
@@ -315,6 +322,10 @@ class Client extends GameShell {
     private reportAbuseInput: string = '';
     private reportAbuseMuteOption: boolean = false;
     private reportAbuseInterfaceID: number = -1;
+    private lastAddress: number = 0;
+    private daysSinceLastLogin: number = 0;
+    private daysSinceRecoveriesChanged: number = 0;
+    private unreadMessages: number = 0;
 
     // scene
     private scene: World3D | null = null;
@@ -404,6 +415,10 @@ class Client extends GameShell {
     private wildernessLevel: number = 0;
     private worldLocationState: number = 0;
     private rights: boolean = false;
+    private designGenderMale: boolean = true;
+    private updateDesignModel: boolean = false;
+    private designIdentikits: Int32Array = new Int32Array(7);
+    private designColors: Int32Array = new Int32Array(5);
 
     // friends/chats
     private friendCount: number = 0;
@@ -2993,6 +3008,7 @@ class Client extends GameShell {
         if (action === 903 || action === 363) {
             // TODO
         } else if (action === 450 && this.interactWithLoc(75, b, c, a)) {
+            // oploc#
             this.out.p2(this.objInterface);
             this.out.p2(this.objSelectedSlot);
             this.out.p2(this.objSelectedInterface);
@@ -3005,6 +3021,7 @@ class Client extends GameShell {
         } else if (action === 1175) {
             // TODO
         } else if (action === 285) {
+            // oploc#
             this.interactWithLoc(245, b, c, a);
         } else if (action === 881) {
             this.out.p1isaac(130);
@@ -3049,6 +3066,7 @@ class Client extends GameShell {
         } else if (action === 660) {
             // TODO
         } else if (action === 188) {
+            // select obj interface
             this.objSelected = 1;
             this.objSelectedSlot = b;
             this.objSelectedInterface = c;
@@ -3057,12 +3075,14 @@ class Client extends GameShell {
             this.spellSelected = 0;
             return;
         } else if (action === 44) {
+            // resume dialog
             if (!this.pressedContinueOption) {
                 this.out.p1isaac(235);
                 this.out.p2(c);
                 this.pressedContinueOption = true;
             }
         } else if (action === 1773) {
+            // loc examine
             const obj: ObjType = ObjType.get(a);
             let examine: string;
 
@@ -3083,6 +3103,7 @@ class Client extends GameShell {
         } else if (action === 679) {
             // TODO
         } else if (action === 55) {
+            // oploc#
             if (this.interactWithLoc(9, b, c, a)) {
                 this.out.p2(this.activeSpellId);
             }
@@ -3091,6 +3112,7 @@ class Client extends GameShell {
         } else if (action === 1607) {
             // TODO
         } else if (action === 504) {
+            // oploc#
             this.interactWithLoc(172, b, c, a);
         } else if (action === 930) {
             const com: ComType = ComType.instances[c];
@@ -3140,6 +3162,7 @@ class Client extends GameShell {
         } else if (action === 364) {
             this.interactWithLoc(96, b, c, a);
         } else if (action === 1102) {
+            // obj examine
             const obj: ObjType = ObjType.get(a);
             let examine: string;
 
@@ -3163,9 +3186,26 @@ class Client extends GameShell {
                 }
             }
         } else if (action === 34) {
-            // TODO
+            // reportabuse input
+            const option: string = this.menuOption[optionId];
+            const tag: number = option.indexOf('@whi@');
+
+            if (tag != -1) {
+                this.closeInterfaces();
+
+                this.reportAbuseInput = option.substring(tag + 5).trim();
+                this.reportAbuseMuteOption = false;
+
+                for (let i: number = 0; i < ComType.instances.length; i++) {
+                    if (ComType.instances[i] != null && ComType.instances[i].clientCode == ComType.CC_REPORT_INPUT) {
+                        this.reportAbuseInterfaceID = this.viewportInterfaceId = ComType.instances[i].layer;
+                        break;
+                    }
+                }
+            }
         } else if (action === 947) {
-            // TODO
+            // close interfaces
+            this.closeInterfaces();
         } else if (action === 367) {
             // TODO
         } else if (action === 465) {
@@ -4031,7 +4071,186 @@ class Client extends GameShell {
     };
 
     private updateInterfaceContent = (component: ComType): void => {
-        // TODO
+        let clientCode: number = component.clientCode;
+
+        if (clientCode >= ComType.CC_FRIENDS_START && clientCode <= ComType.CC_FRIENDS_END) {
+            clientCode--;
+            if (clientCode >= this.friendCount) {
+                component.text = '';
+                component.buttonType = 0;
+            } else {
+                component.text = this.friendName[clientCode];
+                component.buttonType = 1;
+            }
+        } else if (clientCode >= ComType.CC_FRIENDS_UPDATE_START && clientCode <= ComType.CC_FRIENDS_UPDATE_END) {
+            clientCode -= ComType.CC_FRIENDS_UPDATE_START;
+            if (clientCode >= this.friendCount) {
+                component.text = '';
+                component.buttonType = 0;
+            } else {
+                if (this.friendWorld[clientCode] == 0) {
+                    component.text = '@red@Offline';
+                } else if (this.friendWorld[clientCode] == Client.nodeId) {
+                    component.text = '@gre@World-' + (this.friendWorld[clientCode] - 9);
+                } else {
+                    component.text = '@yel@World-' + (this.friendWorld[clientCode] - 9);
+                }
+                component.buttonType = 1;
+            }
+        } else if (clientCode == ComType.CC_FRIENDS_SIZE) {
+            component.scroll = this.friendCount * 15 + 20;
+            if (component.scroll <= component.height) {
+                component.scroll = component.height + 1;
+            }
+        } else if (clientCode >= ComType.CC_IGNORES_START && clientCode <= ComType.CC_IGNORES_END) {
+            clientCode -= ComType.CC_IGNORES_START;
+            if (clientCode >= this.ignoreCount) {
+                component.text = '';
+                component.buttonType = 0;
+            } else {
+                component.text = JString.formatName(JString.fromBase37(this.ignoreName37[clientCode]));
+                component.buttonType = 1;
+            }
+        } else if (clientCode == ComType.CC_IGNORES_SIZE) {
+            component.scroll = this.ignoreCount * 15 + 20;
+            if (component.scroll <= component.height) {
+                component.scroll = component.height + 1;
+            }
+        } else if (clientCode == ComType.CC_DESIGN_PREVIEW) {
+            component.xan = 150;
+            component.yan = Math.trunc(Math.sin(this.loopCycle / 40.0) * 256.0) & 0x7ff;
+            if (this.updateDesignModel) {
+                this.updateDesignModel = false;
+
+                const models: Model[] = [];
+                let modelCount: number = 0;
+                for (let part: number = 0; part < 7; part++) {
+                    const kit: number = this.designIdentikits[part];
+                    if (kit >= 0) {
+                        const model: Model | null = IdkType.instances[kit].getModel();
+                        if (model) {
+                            models[modelCount++] = model;
+                        }
+                    }
+                }
+
+                const model: Model = Model.modelFromModels(models, modelCount);
+                for (let part: number = 0; part < 5; part++) {
+                    if (this.designColors[part] != 0) {
+                        model.recolor(PlayerEntity.DESIGN_BODY_COLOR[part][0], PlayerEntity.DESIGN_BODY_COLOR[part][this.designColors[part]]);
+                        if (part == 1) {
+                            model.recolor(PlayerEntity.DESIGN_HAIR_COLOR[0], PlayerEntity.DESIGN_HAIR_COLOR[this.designColors[part]]);
+                        }
+                    }
+                }
+
+                if (this.localPlayer) {
+                    const frames: Int16Array | null = SeqType.instances[this.localPlayer.seqStandId].frames;
+                    if (frames) {
+                        model.createLabelReferences();
+                        model.applyTransform(frames[0]);
+                        model.calculateNormals(64, 850, -30, -50, -30, true);
+                        component.model = model;
+                    }
+                }
+            }
+        } else if (clientCode == ComType.CC_SWITCH_TO_MALE) {
+            if (this.genderButtonImage0 == null) {
+                this.genderButtonImage0 = component.graphic;
+                this.genderButtonImage1 = component.activeGraphic;
+            }
+            if (this.designGenderMale) {
+                component.graphic = this.genderButtonImage1;
+            } else {
+                component.graphic = this.genderButtonImage0;
+            }
+        } else if (clientCode == ComType.CC_SWITCH_TO_FEMALE) {
+            if (this.genderButtonImage0 == null) {
+                this.genderButtonImage0 = component.graphic;
+                this.genderButtonImage1 = component.activeGraphic;
+            }
+            if (this.designGenderMale) {
+                component.graphic = this.genderButtonImage0;
+            } else {
+                component.graphic = this.genderButtonImage1;
+            }
+        } else if (clientCode == ComType.CC_REPORT_INPUT) {
+            component.text = this.reportAbuseInput;
+            if (this.loopCycle % 20 < 10) {
+                component.text = component.text + '|';
+            } else {
+                component.text = component.text + ' ';
+            }
+        } else if (clientCode == ComType.CC_MOD_MUTE) {
+            if (!this.rights) {
+                component.text = '';
+            } else if (this.reportAbuseMuteOption) {
+                component.colour = 16711680;
+                component.text = 'Moderator option: Mute player for 48 hours: <ON>';
+            } else {
+                component.colour = 16777215;
+                component.text = 'Moderator option: Mute player for 48 hours: <OFF>';
+            }
+        } else if (clientCode == ComType.CC_LAST_LOGIN_INFO || clientCode == ComType.CC_LAST_LOGIN_INFO2) {
+            if (this.lastAddress == 0) {
+                component.text = '';
+            } else {
+                let text: string;
+                if (this.daysSinceLastLogin == 0) {
+                    text = 'earlier today';
+                } else if (this.daysSinceLastLogin == 1) {
+                    text = 'yesterday';
+                } else {
+                    text = this.daysSinceLastLogin + ' days ago';
+                }
+                component.text = 'You last logged in ' + text + ' from: ' + JString.formatIPv4(this.lastAddress); // TODO dns lookup??
+            }
+        } else if (clientCode == ComType.CC_UNREAD_MESSAGES) {
+            if (this.unreadMessages == 0) {
+                component.text = '0 unread messages';
+                component.colour = 16776960;
+            }
+            if (this.unreadMessages == 1) {
+                component.text = '1 unread message';
+                component.colour = 65280;
+            }
+            if (this.unreadMessages > 1) {
+                component.text = this.unreadMessages + ' unread messages';
+                component.colour = 65280;
+            }
+        } else if (clientCode == ComType.CC_RECOVERY1) {
+            if (this.daysSinceRecoveriesChanged == 201) {
+                component.text = '';
+            } else if (this.daysSinceRecoveriesChanged == 200) {
+                component.text = 'You have not yet set any password recovery questions.';
+            } else {
+                let text: string;
+                if (this.daysSinceRecoveriesChanged == 0) {
+                    text = 'Earlier today';
+                } else if (this.daysSinceRecoveriesChanged == 1) {
+                    text = 'Yesterday';
+                } else {
+                    text = this.daysSinceRecoveriesChanged + ' days ago';
+                }
+                component.text = text + ' you changed your recovery questions';
+            }
+        } else if (clientCode == ComType.CC_RECOVERY2) {
+            if (this.daysSinceRecoveriesChanged == 201) {
+                component.text = '';
+            } else if (this.daysSinceRecoveriesChanged == 200) {
+                component.text = 'We strongly recommend you do so now to secure your account.';
+            } else {
+                component.text = 'If you do not remember making this change then cancel it immediately';
+            }
+        } else if (clientCode == ComType.CC_RECOVERY3) {
+            if (this.daysSinceRecoveriesChanged == 201) {
+                component.text = '';
+            } else if (this.daysSinceRecoveriesChanged == 200) {
+                component.text = "Do this from the 'account management' area on our front webpage";
+            } else {
+                component.text = "Do this from the 'account management' area on our front webpage";
+            }
+        }
     };
 
     private tryReconnect = async (): Promise<void> => {
@@ -4659,26 +4878,26 @@ class Client extends GameShell {
             }
             if (this.packetType === 140) {
                 // LAST_LOGIN_INFO
-                // this.lastAddress = this.in.g4;
-                // this.daysSinceLastLogin = this.in.g2;
-                // this.daysSinceRecoveriesChanged = this.in.g1;
-                // this.unreadMessages = this.in.g2;
-                // if (this.lastAddress !== 0 && this.viewportInterfaceID === -1) {
-                //     signlink.dnslookup(JString.formatIPv4(this.lastAddress));
-                //     this.closeInterfaces();
-                // @Pc(1915) short contentType = 650;
-                //     if (this.daysSinceRecoveriesChanged !== 201) {
-                //         contentType = 655;
-                //     }
-                //     this.reportAbuseInput = "";
-                //     this.reportAbuseMuteOption = false;
-                //     for (int i = 0; i < ComType.instances.length; i++) {
-                //         if (ComType.instances[i] !== null && ComType.instances[i].contentType === contentType) {
-                //             this.viewportInterfaceID = ComType.instances[i].parentId;
-                //             break;
-                //         }
-                //     }
-                // }
+                this.lastAddress = this.in.g4;
+                this.daysSinceLastLogin = this.in.g2;
+                this.daysSinceRecoveriesChanged = this.in.g1;
+                this.unreadMessages = this.in.g2;
+                if (this.lastAddress !== 0 && this.viewportInterfaceId === -1) {
+                    // signlink.dnslookup(JString.formatIPv4(this.lastAddress));
+                    this.closeInterfaces();
+                    let contentType: number = 650;
+                    if (this.daysSinceRecoveriesChanged !== 201) {
+                        contentType = 655;
+                    }
+                    this.reportAbuseInput = '';
+                    this.reportAbuseMuteOption = false;
+                    for (let i: number = 0; i < ComType.instances.length; i++) {
+                        if (ComType.instances[i] && ComType.instances[i].clientCode === contentType) {
+                            this.viewportInterfaceId = ComType.instances[i].layer;
+                            break;
+                        }
+                    }
+                }
                 this.packetType = -1;
                 return true;
             }
@@ -5619,9 +5838,9 @@ class Client extends GameShell {
 
     private handleSocialMenuOption = (component: ComType): boolean => {
         let type: number = component.clientCode;
-        if (type >= ComType.CC_FRIENDS_START && type <= ComType.CC_FRIENDS_END) {
-            if (type >= 101) {
-                type -= 101;
+        if (type >= ComType.CC_FRIENDS_START && type <= ComType.CC_FRIENDS_UPDATE_END) {
+            if (type >= ComType.CC_FRIENDS_UPDATE_START) {
+                type -= ComType.CC_FRIENDS_UPDATE_START;
             } else {
                 type--;
             }
