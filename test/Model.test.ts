@@ -8,7 +8,7 @@ beforeAll(async (): Promise<void> => {
     await Bzip.load(fs.readFileSync('./test/resources/bz2.wasm'));
     const models: Jagfile = new Jagfile(Int8Array.from(fs.readFileSync('./test/resources/models')));
     Model.unpack(models);
-})
+});
 
 describe('Model', (): void => {
     describe('lighting', (): void => {
