@@ -475,9 +475,9 @@ export default class World {
                 return;
             }
 
-            /*if (this.getDrawLevel(level, x, z) !== levelBuilt) {
+            if (this.getDrawLevel(level, x, z) !== World.levelBuilt) {
                 return;
-            }*/
+            }
         }
 
         const heightSW: number = this.levelHeightmap[level][x][z];
@@ -762,5 +762,12 @@ export default class World {
                 locs.pushBack(new LocEntity(locId, level, 1, x, z, SeqType.instances[loc.anim], true));
             }
         }
+    };
+
+    private getDrawLevel = (level: number, stx: number, stz: number): number => {
+        if ((this.levelTileFlags[level][stx][stz] & 0x8) == 0) {
+            return level <= 0 || (this.levelTileFlags[1][stx][stz] & 0x2) == 0 ? level : level - 1;
+        }
+        return 0;
     };
 }
