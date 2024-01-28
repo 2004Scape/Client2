@@ -1,5 +1,3 @@
-import {type} from 'jquery';
-
 export default class Occluder {
     // constructor
     readonly minTileX: number;
