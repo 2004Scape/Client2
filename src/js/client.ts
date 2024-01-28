@@ -3014,7 +3014,7 @@ class Client extends GameShell {
                 for (let i: number = 0; i < this.playerCount; i++) {
                     const player: PlayerEntity | null = this.players[this.playerIds[i]];
 
-                    if (player && player.name && player.name === name && this.localPlayer) {
+                    if (player && player.name && player.name.toLowerCase() === name.toLowerCase() && this.localPlayer) {
                         this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], player.pathTileX[0], player.pathTileZ[0], 2, 1, 1, 0, 0, 0, false);
 
                         if (action === 903) {
@@ -4193,8 +4193,21 @@ class Client extends GameShell {
     };
 
     private isFriend = (username: string): boolean => {
-        // TODO
-        return false;
+        /*if (username == null) {
+            return false;
+        }*/
+
+        for (let i: number = 0; i < this.friendCount; i++) {
+            if (username.toLowerCase() === this.friendName[i].toLowerCase()) {
+                return true;
+            }
+        }
+
+        if (!this.localPlayer) {
+            return false;
+        }
+
+        return username.toLowerCase() === this.localPlayer.name?.toLowerCase();
     };
 
     private addFriend = (username: bigint): void => {
