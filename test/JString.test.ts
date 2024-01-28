@@ -54,4 +54,22 @@ describe('JString', (): void => {
             expect(JString.formatName(JString.fromBase37(187939216216112118n))).toBe('Abcdefghijkl');
         });
     });
+
+    describe('hashCode', (): void => {
+        it('result after jordan', (): void => {
+            expect(JString.hashCode('jordan')).toBe(36135284234n);
+        });
+
+        it('result after pazaz', (): void => {
+            expect(JString.hashCode('pazaz')).toBe(672308630n);
+        });
+
+        it('result after ABCDEFGHIJKL', (): void => {
+            expect(JString.hashCode('ABCDEFGHIJKL')).toBe(21823874400251892n);
+        });
+
+        it('result after ABCDEFGHIJKLMNOPQRSTUVWXYZ', (): void => {
+            expect(JString.hashCode('ABCDEFGHIJKLMNOPQRSTUVWXYZ')).toBe(39086606027599198n);
+        });
+    });
 });

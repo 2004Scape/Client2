@@ -1,10 +1,10 @@
 export default class Linkable {
-    id: number;
+    id: bigint;
     prev: Linkable | null;
     next: Linkable | null;
 
     constructor() {
-        this.id = 0;
+        this.id = 0n;
         this.prev = this;
         this.next = this;
     }

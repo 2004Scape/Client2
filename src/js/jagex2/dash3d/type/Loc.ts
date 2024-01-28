@@ -3,39 +3,25 @@ import Entity from '../entity/Entity';
 
 export default class Loc {
     // constructor
-    level: number;
-    y: number;
-    x: number;
-    z: number;
-    model: Model;
-    entity: Entity;
-    yaw: number;
-    minSceneTileX: number;
-    maxSceneTileX: number;
-    minSceneTileZ: number;
-    maxSceneTileZ: number;
-    distance: number;
-    cycle: number;
-    bitset: number;
-    info: number; // byte
+    readonly level: number;
+    readonly y: number;
+    readonly x: number;
+    readonly z: number;
+    readonly model: Model;
+    readonly entity: Entity;
+    readonly yaw: number;
+    readonly minSceneTileX: number;
+    readonly maxSceneTileX: number;
+    readonly minSceneTileZ: number;
+    readonly maxSceneTileZ: number;
+    readonly bitset: number;
+    readonly info: number; // byte
 
-    constructor(
-        level: number,
-        y: number,
-        x: number,
-        z: number,
-        model: Model,
-        entity: Entity,
-        yaw: number,
-        minSceneTileX: number,
-        maxSceneTileX: number,
-        minSceneTileZ: number,
-        maxSceneTileZ: number,
-        distance: number,
-        cycle: number,
-        bitset: number,
-        info: number
-    ) {
+    // runtime
+    distance: number = 0;
+    cycle: number = 0;
+
+    constructor(level: number, y: number, x: number, z: number, model: Model, entity: Entity, yaw: number, minSceneTileX: number, maxSceneTileX: number, minSceneTileZ: number, maxSceneTileZ: number, bitset: number, info: number) {
         this.level = level;
         this.y = y;
         this.x = x;
@@ -47,8 +33,6 @@ export default class Loc {
         this.maxSceneTileX = maxSceneTileX;
         this.minSceneTileZ = minSceneTileZ;
         this.maxSceneTileZ = maxSceneTileZ;
-        this.distance = distance;
-        this.cycle = cycle;
         this.bitset = bitset;
         this.info = info;
     }

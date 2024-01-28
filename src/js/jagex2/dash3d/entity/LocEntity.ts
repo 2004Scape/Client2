@@ -3,7 +3,7 @@ import SeqType from '../../config/SeqType';
 
 export default class LocEntity extends Linkable {
     // constructor
-    readonly heightmapSW: number;
+    heightmapSW: number;
     readonly heightmapSE: number;
     readonly heightmapNE: number;
     readonly heightmapNW: number;

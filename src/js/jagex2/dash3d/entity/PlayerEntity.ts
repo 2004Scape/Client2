@@ -27,7 +27,7 @@ export default class PlayerEntity extends PathingEntity {
     appearances: Uint16Array = new Uint16Array(12);
     colors: Uint16Array = new Uint16Array(5);
     combatLevel: number = 0;
-    appearanceHashcode: number = 0;
+    appearanceHashcode: bigint = 0n;
     y: number = 0;
     locStartCycle: number = 0;
     locStopCycle: number = 0;
@@ -179,25 +179,25 @@ export default class PlayerEntity extends PathingEntity {
         this.combatLevel = buf.g1;
         this.visible = true;
 
-        this.appearanceHashcode = 0;
+        this.appearanceHashcode = 0n;
         for (let part: number = 0; part < 12; part++) {
-            this.appearanceHashcode <<= 0x4;
+            this.appearanceHashcode <<= 0x4n;
             if (this.appearances[part] >= 256) {
-                this.appearanceHashcode += this.appearances[part] - 256;
+                this.appearanceHashcode += BigInt(this.appearances[part]) - 256n;
             }
         }
         if (this.appearances[0] >= 256) {
-            this.appearanceHashcode += (this.appearances[0] - 256) >> 4;
+            this.appearanceHashcode += (BigInt(this.appearances[0]) - 256n) >> 4n;
         }
         if (this.appearances[1] >= 256) {
-            this.appearanceHashcode += (this.appearances[1] - 256) >> 8;
+            this.appearanceHashcode += (BigInt(this.appearances[1]) - 256n) >> 8n;
         }
         for (let part: number = 0; part < 5; part++) {
-            this.appearanceHashcode <<= 0x3;
-            this.appearanceHashcode += this.colors[part];
+            this.appearanceHashcode <<= 0x3n;
+            this.appearanceHashcode += BigInt(this.colors[part]);
         }
-        this.appearanceHashcode <<= 0x1;
-        this.appearanceHashcode += this.gender;
+        this.appearanceHashcode <<= 0x1n;
+        this.appearanceHashcode += BigInt(this.gender);
     };
 
     getHeadModel = (): Model | null => {
@@ -237,7 +237,7 @@ export default class PlayerEntity extends PathingEntity {
     };
 
     private getSequencedModel = (): Model => {
-        let hashCode: number = this.appearanceHashcode;
+        let hashCode: bigint = this.appearanceHashcode;
         let primaryTransformId: number = -1;
         let secondaryTransformId: number = -1;
         let rightHandValue: number = -1;
@@ -258,12 +258,12 @@ export default class PlayerEntity extends PathingEntity {
 
             if (seq.mainhand >= 0) {
                 rightHandValue = seq.mainhand;
-                hashCode += (rightHandValue - this.appearances[5]) << 8;
+                hashCode += BigInt(rightHandValue - this.appearances[5]) << 8n;
             }
 
             if (seq.offhand >= 0) {
                 leftHandValue = seq.offhand;
-                hashCode += (leftHandValue - this.appearances[3]) << 16;
+                hashCode += BigInt(leftHandValue - this.appearances[3]) << 16n;
             }
         } else if (this.secondarySeqId >= 0) {
             const secondFrames: Int16Array | null = SeqType.instances[this.secondarySeqId].frames;

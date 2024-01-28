@@ -151,7 +151,7 @@ export default class NpcType extends ConfigType {
         let tmp: Model | null = null;
         let model: Model | null = null;
         if (NpcType.modelCache) {
-            model = NpcType.modelCache.get(this.index) as Model | null;
+            model = NpcType.modelCache.get(BigInt(this.index)) as Model | null;
 
             if (!model && this.models) {
                 const models: Model[] = [];
@@ -173,7 +173,7 @@ export default class NpcType extends ConfigType {
 
                 model.createLabelReferences();
                 model.calculateNormals(64, 850, -30, -50, -30, true);
-                NpcType.modelCache.put(this.index, model);
+                NpcType.modelCache.put(BigInt(this.index), model);
             }
         }
 

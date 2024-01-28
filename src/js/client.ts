@@ -47,6 +47,8 @@ import WordPack from './jagex2/wordenc/WordPack';
 import World from './jagex2/dash3d/World';
 import Colors from './jagex2/graphics/Colors';
 import ObjStackEntity from './jagex2/dash3d/entity/ObjStackEntity';
+import LocEntity from './jagex2/dash3d/entity/LocEntity';
+import LocLayer from './jagex2/dash3d/LocLayer';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -194,6 +196,7 @@ class Client extends GameShell {
     private imageBackbase2: Pix8 | null = null;
     private imageBackhmid1: Pix8 | null = null;
     private imageSideicons: Pix8[] = [];
+    private imageMinimap: Pix24 | null = null;
     private imageCompass: Pix24 | null = null;
     private imageMapscene: Pix8[] = [];
     private imageMapfunction: Pix24[] = [];
@@ -370,13 +373,17 @@ class Client extends GameShell {
     private mapLastBaseX: number = 0;
     private mapLastBaseZ: number = 0;
     private textureBuffer: Int8Array = new Int8Array(16384);
-    private levelCollisionMap: (CollisionMap | null)[] = new Array(4).fill(null);
+    private levelCollisionMap: (CollisionMap | null)[] = new Array(CollisionMap.LEVELS).fill(null);
     private currentLevel: number = 0;
     private cameraMovedWrite: number = 0;
     private orbitCameraPitch: number = 128;
     private orbitCameraYaw: number = 0;
     private orbitCameraYawVelocity: number = 0;
     private orbitCameraPitchVelocity: number = 0;
+    private orbitCameraX: number = 0;
+    private orbitCameraZ: number = 0;
+    private levelHeightmap: Int32Array[][] | null = null;
+    private levelTileFlags: Uint8Array[][] | null = null;
 
     // entities
     private players: (PlayerEntity | null)[] = new Array(this.MAX_PLAYER_COUNT).fill(null);
@@ -394,7 +401,7 @@ class Client extends GameShell {
     private spotanims: LinkList = new LinkList();
     private locList: LinkList = new LinkList();
     private temporaryLocs: LinkList = new LinkList();
-    private levelObjStacks: Array<Array<Array<LinkList | null>>> = new Array(4).fill(null).map((): Array<Array<LinkList>> => new Array(104).fill(null).map((): Array<LinkList> => new Array(104).fill(null)));
+    private levelObjStacks: (LinkList | null)[][][] = new Array(CollisionMap.LEVELS).fill(null).map((): LinkList[][] => new Array(CollisionMap.SIZE).fill(null).map((): LinkList[] => new Array(CollisionMap.SIZE).fill(null)));
     private spawnedLocations: LinkList = new LinkList();
 
     // bfs pathfinder
@@ -500,6 +507,12 @@ class Client extends GameShell {
             this.wordencArchive = wordenc;
             this.soundsArchive = sounds;
 
+            this.levelTileFlags = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(CollisionMap.SIZE).fill(null).map((): Uint8Array => new Uint8Array(CollisionMap.SIZE)));
+            this.levelHeightmap = new Array(CollisionMap.LEVELS).fill(null).map((): Int32Array[] => new Array(CollisionMap.SIZE + 1).fill(null).map((): Int32Array => new Int32Array(CollisionMap.SIZE + 1)));
+            if (this.levelHeightmap) {
+                this.scene = new World3D(this.levelHeightmap, CollisionMap.SIZE, CollisionMap.LEVELS, CollisionMap.SIZE);
+            }
+            this.imageMinimap = new Pix24(512, 512);
             await this.showProgress(75, 'Unpacking media');
             this.imageInvback = Pix8.fromArchive(media, 'invback', 0);
             this.imageChatback = Pix8.fromArchive(media, 'chatback', 0);
@@ -750,7 +763,7 @@ class Client extends GameShell {
 
         const offsetY: number = 20;
         this.fontBold12?.drawStringCenter(x / 2, y / 2 - offsetY - 26, 'RuneScape is loading - please wait...', Colors.WHITE);
-        const midY: number = y / 2 - 18 - offsetY;
+        const midY: number = Math.trunc(y / 2) - 18 - offsetY;
 
         Draw2D.drawRect(x / 2 - 152, midY, 304, 34, Colors.PROGRESS_RED);
         Draw2D.drawRect(x / 2 - 151, midY + 1, 302, 32, Colors.BLACK);
@@ -794,8 +807,8 @@ class Client extends GameShell {
         this.sceneMapIndex = null;
         this.sceneMapLandData = null;
         this.sceneMapLocData = null;
-        // this.levelHeightmap = null;
-        // this.levelTileFlags = null;
+        this.levelHeightmap = null;
+        this.levelTileFlags = null;
         this.scene = null;
         // this.levelCollisionMap = null;
         // this.bfsDirection = null;
@@ -870,7 +883,7 @@ class Client extends GameShell {
         // this.activeMapFunctionX = null;
         // this.activeMapFunctionZ = null;
         // this.activeMapFunctions = null;
-        // this.imageMinimap = null;
+        this.imageMinimap = null;
         // this.friendName = null;
         // this.friendName37 = null;
         // this.friendWorld = null;
@@ -1025,7 +1038,7 @@ class Client extends GameShell {
 
         const logo: Pix24 = Pix24.fromArchive(this.titleArchive, 'logo');
         this.imageTitle2?.bind();
-        logo.draw(this.width / 2 - logo.width / 2 - 128, 18);
+        logo.draw(Math.trunc(this.width / 2) - Math.trunc(logo.width / 2) - 128, 18);
     };
 
     private updateFlameBuffer = (image: Pix8 | null): void => {
@@ -1149,8 +1162,8 @@ class Client extends GameShell {
 
     private updateTitleScreen = async (): Promise<void> => {
         if (this.titleScreenState === 0) {
-            let x: number = this.width / 2 - 80;
-            let y: number = this.height / 2 + 20;
+            let x: number = Math.trunc(this.width / 2) - 80;
+            let y: number = Math.trunc(this.height / 2) + 20;
 
             y += 20;
             if (this.mouseClickButton === 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
@@ -1158,7 +1171,7 @@ class Client extends GameShell {
                 this.titleLoginField = 0;
             }
 
-            x = this.width / 2 + 80;
+            x = Math.trunc(this.width / 2) + 80;
             if (this.mouseClickButton === 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
                 this.loginMessage0 = '';
                 this.loginMessage1 = 'Enter your username & password.';
@@ -1166,7 +1179,7 @@ class Client extends GameShell {
                 this.titleLoginField = 0;
             }
         } else if (this.titleScreenState === 2) {
-            let y: number = this.height / 2 - 40;
+            let y: number = Math.trunc(this.height / 2) - 40;
             y += 30;
             y += 25;
 
@@ -1180,15 +1193,15 @@ class Client extends GameShell {
             }
             // y += 15; dead code
 
-            let buttonX: number = this.width / 2 - 80;
-            let buttonY: number = this.height / 2 + 50;
+            let buttonX: number = Math.trunc(this.width / 2) - 80;
+            let buttonY: number = Math.trunc(this.height / 2) + 50;
             buttonY += 20;
 
             if (this.mouseClickButton === 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
                 await this.login(this.username, this.password, false);
             }
 
-            buttonX = this.width / 2 + 80;
+            buttonX = Math.trunc(this.width / 2) + 80;
             if (this.mouseClickButton === 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
                 this.titleScreenState = 0;
                 this.username = '';
@@ -1245,8 +1258,8 @@ class Client extends GameShell {
                 }
             }
         } else if (this.titleScreenState === 3) {
-            const x: number = this.width / 2;
-            let y: number = this.height / 2 + 50;
+            const x: number = Math.trunc(this.width / 2);
+            let y: number = Math.trunc(this.height / 2) + 50;
             y += 20;
 
             if (this.mouseClickButton === 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
@@ -1264,21 +1277,21 @@ class Client extends GameShell {
         const h: number = 200;
 
         if (this.titleScreenState === 0) {
-            let x: number = w / 2;
-            let y: number = h / 2 - 20;
+            let x: number = Math.trunc(w / 2);
+            let y: number = Math.trunc(h / 2) - 20;
             this.fontBold12?.drawStringTaggableCenter(x, y, 'Welcome to RuneScape', Colors.YELLOW, true);
 
-            x = w / 2 - 80;
-            y = h / 2 + 20;
+            x = Math.trunc(w / 2) - 80;
+            y = Math.trunc(h / 2) + 20;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'New user', Colors.WHITE, true);
 
-            x = w / 2 + 80;
+            x = Math.trunc(w / 2) + 80;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Existing User', Colors.WHITE, true);
         } else if (this.titleScreenState === 2) {
-            let x: number = w / 2 - 80;
-            let y: number = h / 2 - 40;
+            let x: number = Math.trunc(w / 2) - 80;
+            let y: number = Math.trunc(h / 2) - 40;
             if (this.loginMessage0.length > 0) {
                 this.fontBold12?.drawStringTaggableCenter(w / 2, y - 15, this.loginMessage0, Colors.YELLOW, true);
                 this.fontBold12?.drawStringTaggableCenter(w / 2, y, this.loginMessage1, Colors.YELLOW, true);
@@ -1294,20 +1307,20 @@ class Client extends GameShell {
             this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${JString.toAsterisks(this.password)}${this.titleLoginField === 1 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, Colors.WHITE, true);
 
             // x = w / 2 - 80; dead code
-            y = h / 2 + 50;
+            y = Math.trunc(h / 2) + 50;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Login', Colors.WHITE, true);
 
-            x = w / 2 + 80;
+            x = Math.trunc(w / 2) + 80;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', Colors.WHITE, true);
         } else if (this.titleScreenState === 3) {
-            this.fontBold12?.drawStringTaggableCenter(w / 2, h / 2 - 60, 'Create a free account', Colors.WHITE, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, h / 2 - 60, 'Create a free account', Colors.YELLOW, true);
 
-            const x: number = w / 2;
-            let y: number = h / 2 - 35;
+            const x: number = Math.trunc(w / 2);
+            let y: number = Math.trunc(h / 2) - 35;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'To create a new account you need to', Colors.YELLOW, true);
+            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'To create a new account you need to', Colors.WHITE, true);
             y += 15;
 
             this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'go back to the main RuneScape webpage', Colors.WHITE, true);
@@ -1319,7 +1332,7 @@ class Client extends GameShell {
             this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'button at the top right of that page.', Colors.WHITE, true);
             // y += 15; dead code
 
-            y = h / 2 + 50;
+            y = Math.trunc(h / 2) + 50;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', Colors.WHITE, true);
         }
@@ -1432,14 +1445,14 @@ class Client extends GameShell {
                 this.projectiles.clear();
                 this.spotanims.clear();
                 this.temporaryLocs.clear();
-                // for (let level = 0; level < 4; level++) {
-                //     for (let x = 0; x < 104; x++) {
-                //         for (let z = 0; z < 104; z++) {
-                //             this.levelObjStacks[level][x][z] = null;
-                //         }
-                //     }
-                // }
-                // this.spawnedLocations = new LinkList();
+                for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
+                    for (let x: number = 0; x < CollisionMap.SIZE; x++) {
+                        for (let z: number = 0; z < CollisionMap.SIZE; z++) {
+                            this.levelObjStacks[level][x][z] = null;
+                        }
+                    }
+                }
+                this.spawnedLocations = new LinkList();
                 this.friendCount = 0;
                 this.stickyChatInterfaceId = -1;
                 this.chatInterfaceId = -1;
@@ -1453,11 +1466,11 @@ class Client extends GameShell {
                 this.modalMessage = null;
                 this.inMultizone = 0;
                 this.flashingTab = -1;
-                // this.designGenderMale = true;
+                this.designGenderMale = true;
                 // this.validateCharacterDesign();
-                // for (let i = 0; i < 5; i++) {
-                //     this.designColors[i] = 0;
-                // }
+                for (let i: number = 0; i < 5; i++) {
+                    this.designColors[i] = 0;
+                }
                 Client.opLoc4Counter = 0;
                 Client.opNpc3Counter = 0;
                 Client.opHeld4Counter = 0;
@@ -1757,7 +1770,7 @@ class Client extends GameShell {
             }
 
             if (this.sceneState === 2) {
-                // this.updateOrbitCamera();
+                this.updateOrbitCamera();
             }
             if (this.sceneState === 2 && this.cutscene) {
                 // this.applyCutscene();
@@ -2125,6 +2138,7 @@ class Client extends GameShell {
 
     private drawScene = (): void => {
         this.sceneCycle++;
+        // TODO
         // this.pushPlayers();
         // this.pushNpcs();
         // this.pushProjectiles();
@@ -2134,7 +2148,7 @@ class Client extends GameShell {
         if (!this.cutscene) {
             let pitch: number = this.orbitCameraPitch;
 
-            if (this.cameraPitchClamp / 256 > pitch) {
+            if (Math.trunc(this.cameraPitchClamp / 256) > pitch) {
                 pitch = Math.trunc(this.cameraPitchClamp / 256);
             }
 
@@ -2143,7 +2157,9 @@ class Client extends GameShell {
             }
 
             const yaw: number = (this.orbitCameraYaw + this.cameraAnticheatAngle) & 0x7ff;
-            // this.orbitCamera(this.orbitCameraX, this.getHeightmapY(this.currentLevel, this.localPlayer.x, this.localPlayer.z) - 50, this.orbitCameraZ, yaw, pitch, pitch * 3 + 600);
+            if (this.localPlayer) {
+                this.orbitCamera(this.orbitCameraX, this.getHeightmapY(this.currentLevel, this.localPlayer.x, this.localPlayer.z) - 50, this.orbitCameraZ, yaw, pitch, pitch * 3 + 600);
+            }
 
             Client.drawCounter++;
             if (Client.drawCounter > 1802) {
@@ -2169,12 +2185,12 @@ class Client extends GameShell {
             }
         }
 
-        // int level;
-        // if (this.cutscene) {
-        //     level = this.getTopLevelCutscene();
-        // } else {
-        //     level = this.getTopLevel();
-        // }
+        let level: number;
+        if (this.cutscene) {
+            level = this.getTopLevelCutscene();
+        } else {
+            level = this.getTopLevel();
+        }
 
         const cameraX: number = this.cameraX;
         const cameraY: number = this.cameraY;
@@ -2216,8 +2232,8 @@ class Client extends GameShell {
         Model.mouseX = this.mouseX - 8;
         Model.mouseZ = this.mouseY - 11;
         Draw2D.clear();
-        // this.scene.draw(this.cameraX, this.cameraY, this.cameraZ, level, this.cameraYaw, this.cameraPitch, loopCycle);
-        // this.scene.clearTemporaryLocs();
+        this.scene?.draw(this.cameraX, this.cameraY, this.cameraZ, level, this.cameraYaw, this.cameraPitch, this.loopCycle);
+        this.scene?.clearTemporaryLocs();
         this.drawDebug();
         this.updateTextures(jitter);
         this.draw3DEntityElements();
@@ -2236,7 +2252,12 @@ class Client extends GameShell {
         y += 13;
         this.fontPlain11?.drawRight(x, y, `Speed: ${this.ms.toFixed(4)} ms`, Colors.YELLOW, true);
         y += 13;
-        this.fontPlain11?.drawRight(x, y, `Rate: ${this.deltime} ms`, Colors.YELLOW, true);
+        this.fontPlain11?.drawRight(x, y, `Average: ${this.msAvg.toFixed(4)} ms`, Colors.YELLOW, true);
+        y += 13;
+        this.fontPlain11?.drawRight(x, y, `Slowest: ${this.slowestMS.toFixed(4)} ms`, Colors.YELLOW, true);
+        y += 13;
+        this.fontPlain11?.drawRight(x, y, `Occluders: ${World3D.activeOccluderCount}`, Colors.YELLOW, true);
+        // this.fontPlain11?.drawRight(x, y, `Rate: ${this.deltime} ms`, Colors.YELLOW, true);
     };
 
     private clearCaches = (): void => {
@@ -2250,8 +2271,7 @@ class Client extends GameShell {
     };
 
     private draw3DEntityElements = (): void => {
-        // TODO
-        // this.drawPrivateMessages();
+        this.drawPrivateMessages();
         if (this.crossMode === 1) {
             this.imageCrosses[Math.trunc(this.crossCycle / 100)].draw(this.crossX - 8 - 8, this.crossY - 8 - 11);
         }
@@ -2265,7 +2285,7 @@ class Client extends GameShell {
             this.drawInterface(ComType.instances[this.viewportInterfaceId], 0, 0, 0);
         }
 
-        // this.drawWildyLevel();
+        this.drawWildyLevel();
 
         if (!this.menuVisible) {
             this.handleInput();
@@ -2302,6 +2322,111 @@ class Client extends GameShell {
             } else {
                 this.fontPlain12?.drawString(4, 329, 'System update in: ' + minutes + ':' + seconds, Colors.YELLOW);
             }
+        }
+    };
+
+    private drawPrivateMessages = (): void => {
+        if (this.splitPrivateChat === 0) {
+            return;
+        }
+
+        const font: PixFont | null = this.fontPlain12;
+        let lineOffset: number = 0;
+        if (this.systemUpdateTimer !== 0) {
+            lineOffset = 1;
+        }
+
+        for (let i: number = 0; i < 100; i++) {
+            if (!this.messageText[i]) {
+                continue;
+            }
+
+            const type: number = this.messageType[i];
+            let y: number;
+            if ((type === 3 || type === 7) && (type === 7 || this.privateChatSetting === 0 || (this.privateChatSetting === 1 && this.isFriend(this.messageSender[i])))) {
+                y = 329 - lineOffset * 13;
+                font?.drawString(4, y, 'From ' + this.messageSender[i] + ': ' + this.messageText[i], Colors.BLACK);
+                font?.drawString(4, y - 1, 'From ' + this.messageSender[i] + ': ' + this.messageText[i], Colors.CYAN);
+
+                lineOffset++;
+                if (lineOffset >= 5) {
+                    return;
+                }
+            }
+
+            if (type === 5 && this.privateChatSetting < 2) {
+                y = 329 - lineOffset * 13;
+                font?.drawString(4, y, this.messageText[i], Colors.BLACK);
+                font?.drawString(4, y - 1, this.messageText[i], Colors.CYAN);
+
+                lineOffset++;
+                if (lineOffset >= 5) {
+                    return;
+                }
+            }
+
+            if (type === 6 && this.privateChatSetting < 2) {
+                y = 329 - lineOffset * 13;
+                font?.drawString(4, y, 'To ' + this.messageSender[i] + ': ' + this.messageText[i], Colors.BLACK);
+                font?.drawString(4, y - 1, 'To ' + this.messageSender[i] + ': ' + this.messageText[i], Colors.CYAN);
+
+                lineOffset++;
+                if (lineOffset >= 5) {
+                    return;
+                }
+            }
+        }
+    };
+
+    private drawWildyLevel = (): void => {
+        if (!this.localPlayer) {
+            return;
+        }
+
+        const x: number = (this.localPlayer.x >> 7) + this.sceneBaseTileX;
+        const z: number = (this.localPlayer.z >> 7) + this.sceneBaseTileZ;
+
+        if (x >= 2944 && x < 3392 && z >= 3520 && z < 6400) {
+            this.wildernessLevel = Math.trunc((z - 3520) / 8) + 1;
+        } else if (x >= 2944 && x < 3392 && z >= 9920 && z < 12800) {
+            this.wildernessLevel = Math.trunc((z - 9920) / 8) + 1;
+        } else {
+            this.wildernessLevel = 0;
+        }
+
+        this.worldLocationState = 0;
+        if (x >= 3328 && x < 3392 && z >= 3200 && z < 3264) {
+            const localX: number = x & 63;
+            const localZ: number = z & 63;
+
+            if (localX >= 4 && localX <= 29 && localZ >= 44 && localZ <= 58) {
+                this.worldLocationState = 1;
+            } else if (localX >= 36 && localX <= 61 && localZ >= 44 && localZ <= 58) {
+                this.worldLocationState = 1;
+            } else if (localX >= 4 && localX <= 29 && localZ >= 25 && localZ <= 39) {
+                this.worldLocationState = 1;
+            } else if (localX >= 36 && localX <= 61 && localZ >= 25 && localZ <= 39) {
+                this.worldLocationState = 1;
+            } else if (localX >= 4 && localX <= 29 && localZ >= 6 && localZ <= 20) {
+                this.worldLocationState = 1;
+            } else if (localX >= 36 && localX <= 61 && localZ >= 6 && localZ <= 20) {
+                this.worldLocationState = 1;
+            }
+        }
+
+        if (this.worldLocationState === 0 && x >= 3328 && x <= 3393 && z >= 3203 && z <= 3325) {
+            this.worldLocationState = 2;
+        }
+
+        this.overrideChat = 0;
+        if (x >= 3053 && x <= 3156 && z >= 3056 && z <= 3136) {
+            this.overrideChat = 1;
+        } else if (x >= 3072 && x <= 3118 && z >= 9492 && z <= 9535) {
+            this.overrideChat = 1;
+        }
+
+        if (this.overrideChat === 1 && x >= 3139 && x <= 3199 && z >= 3008 && z <= 3062) {
+            this.overrideChat = 0;
         }
     };
 
@@ -4353,6 +4478,94 @@ class Client extends GameShell {
         }
     };
 
+    private sortObjStacks = (x: number, z: number): void => {
+        // TODO
+    };
+
+    private addLoc = (level: number, x: number, z: number, id: number, angle: number, shape: number, layer: number): void => {
+        if (x < 1 || z < 1 || x > 102 || z > 102) {
+            return;
+        }
+
+        if (Client.LOW_MEMORY && level !== this.currentLevel) {
+            return;
+        }
+
+        if (!this.scene) {
+            return;
+        }
+
+        let bitset: number = 0;
+
+        if (layer === LocLayer.WALL) {
+            bitset = this.scene.getWallBitset(level, x, z);
+        }
+
+        if (layer === LocLayer.WALL_DECOR) {
+            bitset = this.scene.getWallDecorationBitset(level, z, x);
+        }
+
+        if (layer === LocLayer.GROUND) {
+            bitset = this.scene.getLocBitset(level, x, z);
+        }
+
+        if (layer === LocLayer.GROUND_DECOR) {
+            bitset = this.scene.getGroundDecorationBitset(level, x, z);
+        }
+
+        if (bitset !== 0) {
+            const otherInfo: number = this.scene.getInfo(level, x, z, bitset);
+            const otherId: number = (bitset >> 14) & 0x7fff;
+            const otherShape: number = otherInfo & 0x1f;
+            const otherRotation: number = otherInfo >> 6;
+
+            if (layer === LocLayer.WALL) {
+                this.scene?.removeWall(level, x, z, 1);
+                const type: LocType = LocType.get(otherId);
+
+                if (type.blockwalk) {
+                    this.levelCollisionMap[level]?.removeWall(x, z, otherShape, otherRotation, type.blockrange);
+                }
+            }
+
+            if (layer === LocLayer.WALL_DECOR) {
+                this.scene?.removeWallDecoration(level, x, z);
+            }
+
+            if (layer === LocLayer.GROUND) {
+                this.scene.removeLoc(level, x, z);
+                const type: LocType = LocType.get(otherId);
+
+                if (x + type.width > 103 || z + type.width > 103 || x + type.length > 103 || z + type.length > 103) {
+                    return;
+                }
+
+                if (type.blockwalk) {
+                    this.levelCollisionMap[level]?.removeLoc(x, z, type.width, type.length, otherRotation, type.blockrange);
+                }
+            }
+
+            if (layer === LocLayer.GROUND_DECOR) {
+                this.scene?.removeGroundDecoration(level, x, z);
+                const type: LocType = LocType.get(otherId);
+
+                if (type.blockwalk && type.active) {
+                    this.levelCollisionMap[level]?.removeFloor(x, z);
+                }
+            }
+        }
+
+        if (id >= 0) {
+            let tileLevel: number = level;
+
+            if (this.levelTileFlags && level < 3 && (this.levelTileFlags[1][x][z] & 0x2) === 2) {
+                tileLevel = level + 1;
+            }
+
+            World.addLoc(level, x, z, this.scene, this.levelHeightmap!, this.locList, this.levelCollisionMap[level]!, id, shape, angle, tileLevel); // wrapped in a try catch
+        }
+    };
+
     private closeInterfaces = (): void => {
         this.out.p1isaac(231);
 
@@ -5907,8 +6120,88 @@ class Client extends GameShell {
             for (let level: number = 0; level < 4; level++) {
                 this.levelCollisionMap[level]?.reset();
             }
-            // TODO build the world here
+
+            const world: World = new World(CollisionMap.SIZE, CollisionMap.SIZE, this.levelHeightmap!, this.levelTileFlags!); // has try catch here
+            World.lowMemory = Client.LOW_MEMORY;
+
+            const maps: number = this.sceneMapLandData?.length ?? 0;
+
+            if (this.sceneMapIndex) {
+                for (let index: number = 0; index < maps; index++) {
+                    const mapsquareX: number = this.sceneMapIndex[index] >> 8;
+                    const mapsquareZ: number = this.sceneMapIndex[index] & 0xff;
+
+                    // underground pass check
+                    if (mapsquareX === 33 && mapsquareZ >= 71 && mapsquareZ <= 73) {
+                        World.lowMemory = false;
+                        break;
+                    }
+                }
+            }
+
+            if (Client.LOW_MEMORY) {
+                this.scene?.setMinLevel(this.currentLevel);
+            } else {
+                this.scene?.setMinLevel(0);
+            }
+
+            if (this.sceneMapIndex && this.sceneMapLandData) {
+                // NO_TIMEOUT
+                this.out.p1isaac(108);
+                for (let i: number = 0; i < maps; i++) {
+                    const x: number = (this.sceneMapIndex[i] >> 8) * 64 - this.sceneBaseTileX;
+                    const z: number = (this.sceneMapIndex[i] & 0xff) * 64 - this.sceneBaseTileZ;
+                    const src: Int8Array | null = this.sceneMapLandData[i];
+                    if (src) {
+                        const length: number = new Packet(new Uint8Array(src)).g4;
+                        const data: Int8Array = Bzip.read(length, src, src.length - 4, 4);
+                        world.readLandscape((this.sceneCenterZoneX - 6) * 8, (this.sceneCenterZoneZ - 6) * 8, x, z, data);
+                    } else if (this.sceneCenterZoneZ < 800) {
+                        world.clearLandscape(z, x, 64, 64);
+                    }
+                }
+            }
+
+            if (this.sceneMapIndex && this.sceneMapLocData) {
+                // NO_TIMEOUT
+                this.out.p1isaac(108);
+                for (let i: number = 0; i < maps; i++) {
+                    const src: Int8Array | null = this.sceneMapLocData[i];
+                    if (src) {
+                        const length: number = new Packet(new Uint8Array(src)).g4;
+                        const data: Int8Array = Bzip.read(length, src, src.length - 4, 4);
+                        const x: number = (this.sceneMapIndex[i] >> 8) * 64 - this.sceneBaseTileX;
+                        const z: number = (this.sceneMapIndex[i] & 0xff) * 64 - this.sceneBaseTileZ;
+                        world.readLocs(this.scene, this.locList, this.levelCollisionMap, data, x, z);
+                    }
+                }
+            }
+
+            // NO_TIMEOUT
+            this.out.p1isaac(108);
+            world.build(this.scene, this.levelCollisionMap);
             this.areaViewport?.bind();
+
+            // NO_TIMEOUT
+            this.out.p1isaac(108);
+            for (let loc: LocEntity | null = this.locList.peekFront() as LocEntity | null; loc; loc = this.locList.prev() as LocEntity | null) {
+                if ((this.levelTileFlags && this.levelTileFlags[1][loc.heightmapNE][loc.heightmapNW] & 0x2) === 2) {
+                    loc.heightmapSW--;
+                    if (loc.heightmapSW < 0) {
+                        loc.unlink();
+                    }
+                }
+            }
+
+            for (let x: number = 0; x < CollisionMap.SIZE; x++) {
+                for (let z: number = 0; z < CollisionMap.SIZE; z++) {
+                    this.sortObjStacks(x, z);
+                }
+            }
+
+            for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
+                this.addLoc(loc.plane, loc.x, loc.z, loc.locIndex, loc.angle, loc.shape, loc.layer);
+            }
         } catch (e) {
             /* empty */
         }
@@ -6388,8 +6681,7 @@ class Client extends GameShell {
 
             lastBitset = bitset;
 
-            if (entityType === 2 /*&& this.scene.getInfo(this.currentLevel, x, z, bitset) >= 0*/) {
-                // TODO enable
+            if (entityType === 2 && this.scene && this.scene.getInfo(this.currentLevel, x, z, bitset) >= 0) {
                 const loc: LocType = LocType.get(typeId);
                 if (this.objSelected === 1) {
                     this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @cya@' + loc.name;
@@ -7733,6 +8025,222 @@ class Client extends GameShell {
         }
     };
 
+    private getTopLevel = (): number => {
+        let top: number = 3;
+        if (this.cameraPitch < 310 && this.localPlayer) {
+            let cameraLocalTileX: number = this.cameraX >> 7;
+            let cameraLocalTileZ: number = this.cameraZ >> 7;
+            const playerLocalTileX: number = this.localPlayer.x >> 7;
+            const playerLocalTileZ: number = this.localPlayer.z >> 7;
+            if (this.levelTileFlags && (this.levelTileFlags[this.currentLevel][cameraLocalTileX][cameraLocalTileZ] & 0x4) !== 0) {
+                top = this.currentLevel;
+            }
+            let tileDeltaX: number;
+            if (playerLocalTileX > cameraLocalTileX) {
+                tileDeltaX = playerLocalTileX - cameraLocalTileX;
+            } else {
+                tileDeltaX = cameraLocalTileX - playerLocalTileX;
+            }
+            let tileDeltaZ: number;
+            if (playerLocalTileZ > cameraLocalTileZ) {
+                tileDeltaZ = playerLocalTileZ - cameraLocalTileZ;
+            } else {
+                tileDeltaZ = cameraLocalTileZ - playerLocalTileZ;
+            }
+            let delta: number;
+            let accumulator: number;
+            if (tileDeltaX > tileDeltaZ) {
+                delta = tileDeltaZ * Math.trunc(65536 / tileDeltaX);
+                accumulator = 32768;
+                while (cameraLocalTileX !== playerLocalTileX) {
+                    if (cameraLocalTileX < playerLocalTileX) {
+                        cameraLocalTileX++;
+                    } else if (cameraLocalTileX > playerLocalTileX) {
+                        cameraLocalTileX--;
+                    }
+                    if (this.levelTileFlags && (this.levelTileFlags[this.currentLevel][cameraLocalTileX][cameraLocalTileZ] & 0x4) !== 0) {
+                        top = this.currentLevel;
+                    }
+                    accumulator += delta;
+                    if (accumulator >= 65536) {
+                        accumulator -= 65536;
+                        if (cameraLocalTileZ < playerLocalTileZ) {
+                            cameraLocalTileZ++;
+                        } else if (cameraLocalTileZ > playerLocalTileZ) {
+                            cameraLocalTileZ--;
+                        }
+                        if (this.levelTileFlags && (this.levelTileFlags[this.currentLevel][cameraLocalTileX][cameraLocalTileZ] & 0x4) !== 0) {
+                            top = this.currentLevel;
+                        }
+                    }
+                }
+            } else {
+                delta = tileDeltaX * Math.trunc(65536 / tileDeltaZ);
+                accumulator = 32768;
+                while (cameraLocalTileZ !== playerLocalTileZ) {
+                    if (cameraLocalTileZ < playerLocalTileZ) {
+                        cameraLocalTileZ++;
+                    } else if (cameraLocalTileZ > playerLocalTileZ) {
+                        cameraLocalTileZ--;
+                    }
+                    if (this.levelTileFlags && (this.levelTileFlags[this.currentLevel][cameraLocalTileX][cameraLocalTileZ] & 0x4) !== 0) {
+                        top = this.currentLevel;
+                    }
+                    accumulator += delta;
+                    if (accumulator >= 65536) {
+                        accumulator -= 65536;
+                        if (cameraLocalTileX < playerLocalTileX) {
+                            cameraLocalTileX++;
+                        } else if (cameraLocalTileX > playerLocalTileX) {
+                            cameraLocalTileX--;
+                        }
+                        if (this.levelTileFlags && (this.levelTileFlags[this.currentLevel][cameraLocalTileX][cameraLocalTileZ] & 0x4) !== 0) {
+                            top = this.currentLevel;
+                        }
+                    }
+                }
+            }
+        }
+        if (this.localPlayer && this.levelTileFlags && (this.levelTileFlags[this.currentLevel][this.localPlayer.x >> 7][this.localPlayer.z >> 7] & 0x4) !== 0) {
+            top = this.currentLevel;
+        }
+        return top;
+    };
+
+    private getTopLevelCutscene = (): number => {
+        // TODO
+        return 0;
+    };
+
+    private getHeightmapY = (level: number, sceneX: number, sceneZ: number): number => {
+        if (!this.levelHeightmap) {
+            return 0; // custom
+        }
+        const tileX: number = Math.min(sceneX >> 7, 103);
+        const tileZ: number = Math.min(sceneZ >> 7, 103);
+        let realLevel: number = level;
+        if (level < 3 && this.levelTileFlags && (this.levelTileFlags[1][tileX][tileZ] & 0x2) == 2) {
+            realLevel = level + 1;
+        }
+
+        const tileLocalX: number = sceneX & 0x7f;
+        const tileLocalZ: number = sceneZ & 0x7f;
+        const y00: number = (this.levelHeightmap[realLevel][tileX][tileZ] * (128 - tileLocalX) + this.levelHeightmap[realLevel][tileX + 1][tileZ] * tileLocalX) >> 7;
+        const y11: number = (this.levelHeightmap[realLevel][tileX][tileZ + 1] * (128 - tileLocalX) + this.levelHeightmap[realLevel][tileX + 1][tileZ + 1] * tileLocalX) >> 7;
+        return (y00 * (128 - tileLocalZ) + y11 * tileLocalZ) >> 7;
+    };
+
+    private orbitCamera = (targetX: number, targetY: number, targetZ: number, yaw: number, pitch: number, distance: number): void => {
+        const invPitch: number = (2048 - pitch) & 0x7ff;
+        const invYaw: number = (2048 - yaw) & 0x7ff;
+        let x: number = 0;
+        let z: number = 0;
+        let y: number = distance;
+        let sin: number;
+        let cos: number;
+        let tmp: number;
+
+        if (invPitch !== 0) {
+            sin = Draw3D.sin[invPitch];
+            cos = Draw3D.cos[invPitch];
+            tmp = (z * cos - distance * sin) >> 16;
+            y = (z * sin + distance * cos) >> 16;
+            z = tmp;
+        }
+
+        if (invYaw !== 0) {
+            sin = Draw3D.sin[invYaw];
+            cos = Draw3D.cos[invYaw];
+            tmp = (y * sin + x * cos) >> 16;
+            y = (y * cos - x * sin) >> 16;
+            x = tmp;
+        }
+
+        this.cameraX = targetX - x;
+        this.cameraY = targetY - z;
+        this.cameraZ = targetZ - y;
+        this.cameraPitch = pitch;
+        this.cameraYaw = yaw;
+    };
+
+    private updateOrbitCamera = (): void => {
+        if (!this.localPlayer) {
+            return; // custom
+        }
+        const orbitX: number = this.localPlayer.x + this.cameraAnticheatOffsetX;
+        const orbitZ: number = this.localPlayer.z + this.cameraAnticheatOffsetZ;
+        if (this.orbitCameraX - orbitX < -500 || this.orbitCameraX - orbitX > 500 || this.orbitCameraZ - orbitZ < -500 || this.orbitCameraZ - orbitZ > 500) {
+            this.orbitCameraX = orbitX;
+            this.orbitCameraZ = orbitZ;
+        }
+        if (this.orbitCameraX !== orbitX) {
+            this.orbitCameraX += Math.trunc((orbitX - this.orbitCameraX) / 16);
+        }
+        if (this.orbitCameraZ !== orbitZ) {
+            this.orbitCameraZ += Math.trunc((orbitZ - this.orbitCameraZ) / 16);
+        }
+        if (this.actionKey[1] == 1) {
+            this.orbitCameraYawVelocity += Math.trunc((-this.orbitCameraYawVelocity - 24) / 2);
+        } else if (this.actionKey[2] == 1) {
+            this.orbitCameraYawVelocity += Math.trunc((24 - this.orbitCameraYawVelocity) / 2);
+        } else {
+            this.orbitCameraYawVelocity /= 2;
+        }
+        if (this.actionKey[3] == 1) {
+            this.orbitCameraPitchVelocity += Math.trunc((12 - this.orbitCameraPitchVelocity) / 2);
+        } else if (this.actionKey[4] == 1) {
+            this.orbitCameraPitchVelocity += Math.trunc((-this.orbitCameraPitchVelocity - 12) / 2);
+        } else {
+            this.orbitCameraPitchVelocity = Math.trunc(this.orbitCameraPitchVelocity / 2);
+        }
+        this.orbitCameraYaw = (this.orbitCameraYaw + Math.trunc(this.orbitCameraYawVelocity / 2)) & 0x7ff;
+        this.orbitCameraPitch += Math.trunc(this.orbitCameraPitchVelocity / 2);
+        if (this.orbitCameraPitch < 128) {
+            this.orbitCameraPitch = 128;
+        }
+        if (this.orbitCameraPitch > 383) {
+            this.orbitCameraPitch = 383;
+        }
+
+        const orbitTileX: number = this.orbitCameraX >> 7;
+        const orbitTileZ: number = this.orbitCameraZ >> 7;
+        const orbitY: number = this.getHeightmapY(this.currentLevel, this.orbitCameraX, this.orbitCameraZ);
+        let maxY: number = 0;
+
+        if (this.levelHeightmap) {
+            if (orbitTileX > 3 && orbitTileZ > 3 && orbitTileX < 100 && orbitTileZ < 100) {
+                for (let x: number = orbitTileX - 4; x <= orbitTileX + 4; x++) {
+                    for (let z: number = orbitTileZ - 4; z <= orbitTileZ + 4; z++) {
+                        let level: number = this.currentLevel;
+                        if (level < 3 && this.levelTileFlags && (this.levelTileFlags[1][x][z] & 0x2) === 2) {
+                            level++;
+                        }
+
+                        const y: number = orbitY - this.levelHeightmap[level][x][z];
+                        if (y > maxY) {
+                            maxY = y;
+                        }
+                    }
+                }
+            }
+        }
+
+        let clamp: number = maxY * 192;
+        if (clamp > 98048) {
+            clamp = 98048;
+        }
+
+        if (clamp < 32768) {
+            clamp = 32768;
+        }
+
+        if (clamp > this.cameraPitchClamp) {
+            this.cameraPitchClamp += Math.trunc((clamp - this.cameraPitchClamp) / 24);
+        } else if (clamp < this.cameraPitchClamp) {
+            this.cameraPitchClamp += Math.trunc((clamp - this.cameraPitchClamp) / 80);
+        }
+    };
+
     private unloadTitle = (): void => {
         this.flameActive = false;
         if (this.flamesInterval) {
@@ -7788,7 +8296,7 @@ class Client extends GameShell {
 
     private setMidi = async (name: string, crc: number): Promise<void> => {
         const data: Int8Array = await downloadUrl(`${Client.HOST}/${name.replaceAll(' ', '_')}_${crc}.mid`);
-        playMidi(Bzip.decompressBz2(new Packet(Uint8Array.from(data)).g4, data, data.length, 4), 192);
+        playMidi(Bzip.read(new Packet(Uint8Array.from(data)).g4, data, data.length, 4), 192);
     };
 
     private drawError = (): void => {

@@ -66,7 +66,7 @@ export default class SpotAnimType extends ConfigType {
     };
 
     getModel = (): Model => {
-        let model: Model | null = SpotAnimType.modelCache?.get(this.index) as Model | null;
+        let model: Model | null = SpotAnimType.modelCache?.get(BigInt(this.index)) as Model | null;
         if (model) {
             return model;
         }
@@ -76,7 +76,7 @@ export default class SpotAnimType extends ConfigType {
                 model.recolor(this.recol_s[i], this.recol_d[i]);
             }
         }
-        SpotAnimType.modelCache?.put(this.index, model);
+        SpotAnimType.modelCache?.put(BigInt(this.index), model);
         return model;
     };
 }

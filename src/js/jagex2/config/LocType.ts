@@ -2,6 +2,9 @@ import Jagfile from '../io/Jagfile';
 import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
 import LruCache from '../datastruct/LruCache';
+import Model from '../graphics/Model';
+import LocShape from '../dash3d/LocShape';
+import LocAngle from '../dash3d/LocAngle';
 
 export default class LocType extends ConfigType {
     static count: number = 0;
@@ -48,6 +51,18 @@ export default class LocType extends ConfigType {
         loc.index = id;
         loc.reset();
         loc.decodeType(id, this.dat);
+
+        if (!loc.shapes) {
+            loc.shapes = new Uint8Array(0);
+        }
+
+        if (loc.active2 === -1 && loc.shapes) {
+            loc.active = loc.shapes.length > 0 && loc.shapes[0] === LocShape.CENTREPIECE_STRAIGHT;
+
+            if (loc.ops) {
+                loc.active = true;
+            }
+        }
         return loc;
     };
 
@@ -72,7 +87,8 @@ export default class LocType extends ConfigType {
     length: number = 1;
     blockwalk: boolean = true;
     blockrange: boolean = true;
-    active: number = -1;
+    active: boolean = false;
+    active2: number = -1;
     hillskew: boolean = false;
     sharelight: boolean = false;
     occlude: boolean = false;
@@ -118,7 +134,10 @@ export default class LocType extends ConfigType {
         } else if (code === 18) {
             this.blockrange = false;
         } else if (code === 19) {
-            this.active = dat.g1;
+            this.active2 = dat.g1;
+            if (this.active2 === 1) {
+                this.active = true;
+            }
         } else if (code === 21) {
             this.hillskew = true;
         } else if (code === 22) {
@@ -181,6 +200,146 @@ export default class LocType extends ConfigType {
         }
     };
 
+    getModel = (shape: number, angle: number, heightmapSW: number, heightmapSE: number, heightmapNE: number, heightmapNW: number, transformId: number): Model | null => {
+        if (!this.shapes) {
+            return null;
+        }
+
+        let shapeIndex: number = -1;
+        for (let i: number = 0; i < this.shapes.length; i++) {
+            if (this.shapes[i] === shape) {
+                shapeIndex = i;
+                break;
+            }
+        }
+
+        if (shapeIndex === -1) {
+            return null;
+        }
+
+        const bitset: bigint = BigInt(BigInt(this.index) << 6n) + BigInt(BigInt(shapeIndex) << 3n) + BigInt(angle) + BigInt((BigInt(transformId) + 1n) << 32n);
+        /*if (reset) {
+            bitset = 0L;
+        }*/
+
+        let cached: Model | null = LocType.modelCacheDynamic?.get(bitset) as Model | null;
+        if (cached) {
+            /*if (reset) {
+                return cached;
+            }*/
+
+            if (this.hillskew || this.sharelight) {
+                cached = Model.modelCopyFaces(cached, this.hillskew, this.sharelight);
+            }
+
+            if (this.hillskew) {
+                const groundY: number = Math.trunc((heightmapSW + heightmapSE + heightmapNE + heightmapNW) / 4);
+
+                for (let i: number = 0; i < cached.vertexCount; i++) {
+                    const x: number = cached.vertexX[i];
+                    const z: number = cached.vertexZ[i];
+
+                    const heightS: number = heightmapSW + Math.trunc(((heightmapSE - heightmapSW) * (x + 64)) / 128);
+                    const heightN: number = heightmapNW + Math.trunc(((heightmapNE - heightmapNW) * (x + 64)) / 128);
+                    const y: number = heightS + Math.trunc(((heightN - heightS) * (z + 64)) / 128);
+
+                    cached.vertexY[i] += y - groundY;
+                }
+
+                cached.calculateBoundsY();
+            }
+
+            return cached;
+        }
+
+        if (!this.models) {
+            return null;
+        }
+
+        if (shapeIndex >= this.models.length) {
+            return null;
+        }
+
+        let modelId: number = this.models[shapeIndex];
+        if (modelId === -1) {
+            return null;
+        }
+
+        const flipped: boolean = (this.mirror ? 1 : 0 ^ angle) > 3;
+        if (flipped) {
+            modelId += 65536;
+        }
+
+        let model: Model | null = LocType.modelCacheStatic?.get(BigInt(modelId)) as Model | null;
+        if (!model) {
+            model = Model.model(modelId & 0xffff);
+            if (flipped) {
+                model.rotateY180();
+            }
+            LocType.modelCacheStatic?.put(BigInt(modelId), model);
+        }
+
+        const scaled: boolean = this.resizex !== 128 || this.resizey !== 128 || this.resizez !== 128;
+        const translated: boolean = this.xoff !== 0 || this.yoff !== 0 || this.zoff !== 0;
+
+        let modified: Model = Model.modelShareColored(model, !this.recol_s, !this.disposeAlpha, angle === LocAngle.WEST && transformId === -1 && !scaled && !translated);
+        if (transformId !== -1) {
+            modified.createLabelReferences();
+            modified.applyTransform(transformId);
+            modified.labelFaces = null;
+            modified.labelVertices = null;
+        }
+
+        while (angle-- > 0) {
+            modified.rotateY90();
+        }
+
+        if (this.recol_s && this.recol_d) {
+            for (let i: number = 0; i < this.recol_s.length; i++) {
+                modified.recolor(this.recol_s[i], this.recol_d[i]);
+            }
+        }
+
+        if (scaled) {
+            modified.scale(this.resizex, this.resizey, this.resizez);
+        }
+
+        if (translated) {
+            modified.translate(this.yoff, this.xoff, this.zoff);
+        }
+
+        modified.calculateNormals(this.ambient + 64, this.contrast * 5 + 768, -50, -10, -50, !this.sharelight);
+
+        if (this.blockwalk) {
+            modified.objRaise = modified.maxY;
+        }
+
+        LocType.modelCacheDynamic?.put(bitset, modified);
+
+        if (this.hillskew || this.sharelight) {
+            modified = Model.modelCopyFaces(modified, this.hillskew, this.sharelight);
+        }
+
+        if (this.hillskew) {
+            const groundY: number = Math.trunc((heightmapSW + heightmapSE + heightmapNE + heightmapNW) / 4);
+
+            for (let i: number = 0; i < modified.vertexCount; i++) {
+                const x: number = modified.vertexX[i];
+                const z: number = modified.vertexZ[i];
+
+                const heightS: number = heightmapSW + Math.trunc(((heightmapSE - heightmapSW) * (x + 64)) / 128);
+                const heightN: number = heightmapNW + Math.trunc(((heightmapNE - heightmapNW) * (x + 64)) / 128);
+                const y: number = heightS + Math.trunc(((heightN - heightS) * (z + 64)) / 128);
+
+                modified.vertexY[i] += y - groundY;
+            }
+
+            modified.calculateBoundsY();
+        }
+
+        return modified;
+    };
+
     private reset = (): void => {
         this.models = null;
         this.shapes = null;
@@ -192,7 +351,8 @@ export default class LocType extends ConfigType {
         this.length = 1;
         this.blockwalk = true;
         this.blockrange = true;
-        this.active = 0;
+        this.active = false;
+        this.active2 = -1;
         this.hillskew = false;
         this.sharelight = false;
         this.occlude = false;

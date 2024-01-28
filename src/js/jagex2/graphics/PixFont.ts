@@ -169,7 +169,11 @@ export default class PixFont extends Hashable {
         return w;
     };
 
-    drawString = (x: number, y: number, str: string, color: number): void => {
+    drawString = (x: number, y: number, str: string | null, color: number): void => {
+        if (!str) {
+            return;
+        }
+
         x = Math.trunc(x);
         y = Math.trunc(y);
 

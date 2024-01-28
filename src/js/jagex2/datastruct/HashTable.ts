@@ -13,8 +13,8 @@ export default class HashTable {
         }
     }
 
-    get = (key: number): Linkable | null => {
-        const start: Linkable = this.nodes[key & (this.size - 1)];
+    get = (key: bigint): Linkable | null => {
+        const start: Linkable = this.nodes[Number(key & BigInt(this.size - 1))];
         const prev: Linkable | null = start.prev;
         if (!prev) {
             return null;
@@ -32,12 +32,12 @@ export default class HashTable {
         return null;
     };
 
-    put = (key: number, value: Linkable): void => {
+    put = (key: bigint, value: Linkable): void => {
         if (value.next) {
             value.unlink();
         }
 
-        const node: Linkable = this.nodes[key & (this.size - 1)];
+        const node: Linkable = this.nodes[Number(key & BigInt(this.size - 1))];
         value.next = node.next;
         value.prev = node;
         if (value.next) {

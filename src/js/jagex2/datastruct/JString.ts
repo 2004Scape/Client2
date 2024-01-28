@@ -102,15 +102,15 @@ export default class JString {
         return chars.join('');
     };
 
-    static hashCode = (str: string): number => {
+    static hashCode = (str: string): bigint => {
         const upper: string = str.toUpperCase();
-        let hash: number = 0;
+        let hash: bigint = 0n;
 
         for (let i: number = 0; i < upper.length; i++) {
-            hash = hash * 61 + upper.charCodeAt(i) - 32;
-            hash = (hash + (hash >> 31)) & 0x7fffffff; // 31 bits instead of 56 bits is maybe ok?
+            hash = hash * 61n + BigInt(upper.charCodeAt(i)) - 32n;
+            hash = (hash + (hash >> 56n)) & 0xffffffffffffffn;
         }
 
-        return Number(hash);
+        return hash;
     };
 }

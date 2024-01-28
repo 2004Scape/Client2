@@ -4,6 +4,7 @@ import LocShape from './LocShape';
 import DirectionFlag from './DirectionFlag';
 
 export default class CollisionMap {
+    static readonly LEVELS: number = 4;
     static readonly SIZE: number = 104;
     static index = (x: number, z: number): number => x * CollisionMap.SIZE + z;
 

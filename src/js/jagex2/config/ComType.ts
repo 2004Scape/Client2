@@ -341,7 +341,7 @@ export default class ComType {
     };
 
     private static getImage = (media: Jagfile, sprite: string, spriteId: number): Pix24 | null => {
-        const uid: number = (JString.hashCode(sprite) << 8) | spriteId;
+        const uid: bigint = (JString.hashCode(sprite) << 8n) | BigInt(spriteId);
         if (this.imageCache) {
             const image: Pix24 | null = this.imageCache.get(uid) as Pix24 | null;
             if (image) {
@@ -361,13 +361,13 @@ export default class ComType {
 
     private static getModel = (id: number): Model => {
         if (this.modelCache) {
-            const model: Model | null = this.modelCache.get(id) as Model | null;
+            const model: Model | null = this.modelCache.get(BigInt(id)) as Model | null;
             if (model) {
                 return model;
             }
         }
         const model: Model = Model.model(id);
-        this.modelCache?.put(id, model);
+        this.modelCache?.put(BigInt(id), model);
         return model;
     };
 

@@ -80,7 +80,7 @@ export default class ObjType extends ConfigType {
 
     static getIcon = (id: number, count: number): Pix24 => {
         if (ObjType.iconCache) {
-            let icon: Pix24 | null = ObjType.iconCache.get(id) as Pix24 | null;
+            let icon: Pix24 | null = ObjType.iconCache.get(BigInt(id)) as Pix24 | null;
             if (icon && icon.cropH !== count && icon.cropH !== -1) {
                 icon.unlink();
                 icon = null;
@@ -169,7 +169,7 @@ export default class ObjType extends ConfigType {
             linkedIcon.cropH = h;
         }
 
-        ObjType.iconCache?.put(id, icon);
+        ObjType.iconCache?.put(BigInt(id), icon);
         Draw2D.bind(_data, _w, _h);
         Draw2D.setBounds(_l, _t, _r, _b);
         Draw3D.centerX = _cx;
@@ -409,7 +409,7 @@ export default class ObjType extends ConfigType {
         }
 
         if (ObjType.modelCache) {
-            const model: Model | null = ObjType.modelCache.get(this.index) as Model | null;
+            const model: Model | null = ObjType.modelCache.get(BigInt(this.index)) as Model | null;
             if (model) {
                 return model;
             }
@@ -424,7 +424,7 @@ export default class ObjType extends ConfigType {
 
         model.calculateNormals(64, 768, -50, -10, -50, true);
         model.pickable = true;
-        ObjType.modelCache?.put(this.index, model);
+        ObjType.modelCache?.put(BigInt(this.index), model);
         return model;
     };
 

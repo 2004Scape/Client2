@@ -16,7 +16,7 @@ export default class LruCache {
         this.history = new Stack();
     }
 
-    get = (key: number): Hashable | null => {
+    get = (key: bigint): Hashable | null => {
         const node: Hashable | null = this.hashtable.get(key) as Hashable | null;
         if (node) {
             this.history.push(node);
@@ -24,7 +24,7 @@ export default class LruCache {
         return node;
     };
 
-    put = (key: number, value: Hashable): void => {
+    put = (key: bigint, value: Hashable): void => {
         if (this.available === 0) {
             const node: Hashable | null = this.history.pop();
             node?.unlink();

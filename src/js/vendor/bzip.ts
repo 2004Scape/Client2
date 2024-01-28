@@ -18,7 +18,7 @@ export default class Bzip {
         this.state = bz2.newBzip2State();
     };
 
-    static decompressBz2 = (length: number, stream: Int8Array, avail_in: number, next_in: number): Int8Array => {
+    static read = (length: number, stream: Int8Array, avail_in: number, next_in: number): Int8Array => {
         if (!this.bz2 || !this.state) {
             throw new Error('bz2 not found!!');
         }

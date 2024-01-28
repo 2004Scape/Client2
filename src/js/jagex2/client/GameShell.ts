@@ -18,6 +18,10 @@ export default abstract class GameShell {
         window.history.pushState(null, '', url.toString());
     }
 
+    protected slowestMS: number = 0.0; // custom
+    protected averageMS: number[] = []; // custom
+    protected averageIndexMS: number = 0; // custom
+
     protected drawArea: PixMap | null = null;
     protected state: number = 0;
     protected deltime: number = 20;
@@ -485,7 +489,17 @@ export default abstract class GameShell {
         for (let index: number = 0; index < length; index++) {
             ft += this.frameTime[index];
         }
-        return ft / length;
+        const ms: number = ft / length;
+        if (ms > this.slowestMS) {
+            this.slowestMS = ms;
+        }
+        this.averageMS[this.averageIndexMS] = ms;
+        this.averageIndexMS = (this.averageIndexMS + 1) % 250; // 250 circular limit
+        return ms;
+    }
+
+    protected get msAvg(): number {
+        return this.averageMS.reduce((accumulator: number, currentValue: number): number => accumulator + currentValue, 0) / 250; // 250 circular limit
     }
 
     private get getInsets(): {top: number; left: number} {

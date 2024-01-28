@@ -30,7 +30,7 @@ export default class Jagfile {
             this.buffer = src;
             this.compressedWhole = false;
         } else {
-            this.buffer = Bzip.decompressBz2(unpackedSize, src, packedSize, 6);
+            this.buffer = Bzip.read(unpackedSize, src, packedSize, 6);
             data = new Packet(new Uint8Array(this.buffer));
             this.compressedWhole = true;
         }
@@ -76,7 +76,7 @@ export default class Jagfile {
             this.fileUnpacked[index] = data;
             return data;
         } else {
-            const data: Uint8Array = Uint8Array.from(Bzip.decompressBz2(this.fileUnpackedSize[index], this.buffer, this.filePackedSize[index], this.fileOffset[index]));
+            const data: Uint8Array = Uint8Array.from(Bzip.read(this.fileUnpackedSize[index], this.buffer, this.filePackedSize[index], this.fileOffset[index]));
             this.fileUnpacked[index] = data;
             return data;
         }
