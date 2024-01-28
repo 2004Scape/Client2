@@ -1740,19 +1740,21 @@ class Client extends GameShell {
                 this.out.p3(4991788);
             }
 
-            // if (World3D.clickTileX !== -1) {
-            //     const x = World3D.clickTileX;
-            //     const z = World3D.clickTileZ;
-            //     const success = this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], x, z, 0, 0, 0, 0, 0, 0, true);
-            //     World3D.clickTileX = -1;
-            //
-            //     if (success) {
-            //         this.crossX = this.mouseClickX;
-            //         this.crossY = this.mouseClickY;
-            //         this.crossMode = 1;
-            //         this.crossCycle = 0;
-            //     }
-            // }
+            if (World3D.clickTileX !== -1) {
+                if (this.localPlayer) {
+                    const x: number = World3D.clickTileX;
+                    const z: number = World3D.clickTileZ;
+                    const success: boolean = this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], x, z, 0, 0, 0, 0, 0, 0, true);
+                    World3D.clickTileX = -1;
+
+                    if (success) {
+                        this.crossX = this.mouseClickX;
+                        this.crossY = this.mouseClickY;
+                        this.crossMode = 1;
+                        this.crossCycle = 0;
+                    }
+                }
+            }
 
             if (this.mouseClickButton === 1 && this.modalMessage) {
                 this.modalMessage = null;

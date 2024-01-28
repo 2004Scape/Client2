@@ -7,8 +7,8 @@ export default class Loc {
     readonly y: number;
     readonly x: number;
     readonly z: number;
-    readonly model: Model;
-    readonly entity: Entity;
+    readonly model: Model | null;
+    readonly entity: Entity | null;
     readonly yaw: number;
     readonly minSceneTileX: number;
     readonly maxSceneTileX: number;
@@ -21,7 +21,7 @@ export default class Loc {
     distance: number = 0;
     cycle: number = 0;
 
-    constructor(level: number, y: number, x: number, z: number, model: Model, entity: Entity, yaw: number, minSceneTileX: number, maxSceneTileX: number, minSceneTileZ: number, maxSceneTileZ: number, bitset: number, info: number) {
+    constructor(level: number, y: number, x: number, z: number, model: Model | null, entity: Entity | null, yaw: number, minSceneTileX: number, maxSceneTileX: number, minSceneTileZ: number, maxSceneTileZ: number, bitset: number, info: number) {
         this.level = level;
         this.y = y;
         this.x = x;
