@@ -3003,24 +3003,180 @@ class Client extends GameShell {
         }
 
         if (action === 903 || action === 363) {
-            // TODO
+            let option: string = this.menuOption[optionId];
+            const tag: number = option.indexOf('@whi@');
+
+            if (tag !== -1) {
+                option = option.substring(tag + 5).trim();
+                const name: string = JString.formatName(JString.fromBase37(JString.toBase37(option)));
+                let found: boolean = false;
+
+                for (let i: number = 0; i < this.playerCount; i++) {
+                    const player: PlayerEntity | null = this.players[this.playerIds[i]];
+
+                    if (player && player.name && player.name === name && this.localPlayer) {
+                        this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], player.pathTileX[0], player.pathTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                        if (action === 903) {
+                            // OPPLAYER4
+                            this.out.p1isaac(206);
+                        } else if (action === 363) {
+                            // OPPLAYER1
+                            this.out.p1isaac(164);
+                        }
+
+                        this.out.p2(this.playerIds[i]);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    this.addMessage(0, 'Unable to find ' + name, '');
+                }
+            }
         } else if (action === 450 && this.interactWithLoc(75, b, c, a)) {
-            // oploc#
+            // OPLOCU
             this.out.p2(this.objInterface);
             this.out.p2(this.objSelectedSlot);
             this.out.p2(this.objSelectedInterface);
         } else if (action === 405 || action === 38 || action === 422 || action === 478 || action === 347) {
-            // TODO
+            if (action === 478) {
+                if ((b & 0x3) === 0) {
+                    Client.opHeld1Counter++;
+                }
+
+                if (Client.opHeld1Counter >= 90) {
+                    // ANTICHEAT_OPLOGIC5
+                    this.out.p1isaac(220);
+                }
+
+                // OPHELD4
+                this.out.p1isaac(157);
+            } else if (action === 347) {
+                // OPHELD5
+                this.out.p1isaac(211);
+            } else if (action === 422) {
+                // OPHELD3
+                this.out.p1isaac(133);
+            } else if (action === 405) {
+                Client.opHeld4Counter += a;
+                if (Client.opHeld4Counter >= 97) {
+                    // ANTICHEAT_OPLOGIC3
+                    this.out.p1isaac(30);
+                    this.out.p3(14953816);
+                }
+
+                // OPHELD1
+                this.out.p1isaac(195);
+            } else if (action === 38) {
+                // OPHELD2
+                this.out.p1isaac(71);
+            }
+
+            this.out.p2(a);
+            this.out.p2(b);
+            this.out.p2(c);
+            this.selectedCycle = 0;
+            this.selectedInterface = c;
+            this.selectedItem = b;
+            this.selectedArea = 2;
+
+            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+                this.selectedArea = 1;
+            }
+
+            if (ComType.instances[c].layer === this.chatInterfaceId) {
+                this.selectedArea = 3;
+            }
         } else if (action === 728 || action === 542 || action === 6 || action === 963 || action === 245) {
-            // TODO
+            const npc: NpcEntity | null = this.npcs[a];
+            if (npc && this.localPlayer) {
+                this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], npc.pathTileX[0], npc.pathTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                if (action === 542) {
+                    // OPNPC2
+                    this.out.p1isaac(8);
+                } else if (action === 6) {
+                    if ((a & 0x3) === 0) {
+                        Client.opNpc3Counter++;
+                    }
+
+                    if (Client.opNpc3Counter >= 124) {
+                        // ANTICHEAT_OPLOGIC2
+                        this.out.p1isaac(88);
+                        this.out.p4(0);
+                    }
+
+                    // OPNPC3
+                    this.out.p1isaac(27);
+                } else if (action == 963) {
+                    // OPNPC4
+                    this.out.p1isaac(113);
+                } else if (action == 728) {
+                    // OPNPC1
+                    this.out.p1isaac(194);
+                } else if (action === 245) {
+                    if ((a & 0x3) === 0) {
+                        Client.opNpc5Counter++;
+                    }
+
+                    if (Client.opNpc5Counter >= 85) {
+                        // ANTICHEAT_OPLOGIC4
+                        this.out.p1isaac(176);
+                        this.out.p2(39596);
+                    }
+
+                    // OPNPC5
+                    this.out.p1isaac(100);
+                }
+
+                this.out.p2(a);
+            }
         } else if (action === 217) {
-            // TODO
+            if (this.localPlayer) {
+                const success: boolean = this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
+                if (!success) {
+                    this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], b, c, 2, 1, 1, 0, 0, 0, false);
+                }
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                // OPOBJU
+                this.out.p1isaac(239);
+                this.out.p2(b + this.sceneBaseTileX);
+                this.out.p2(c + this.sceneBaseTileZ);
+                this.out.p2(a);
+                this.out.p2(this.objInterface);
+                this.out.p2(this.objSelectedSlot);
+                this.out.p2(this.objSelectedInterface);
+            }
         } else if (action === 1175) {
-            // TODO
+            // loc examine
+            const locId: number = (a >> 14) & 0x7fff;
+            const loc: LocType = LocType.get(locId);
+
+            let examine: string;
+            if (!loc.desc) {
+                examine = "It's a " + loc.name + '.';
+            } else {
+                examine = loc.desc;
+            }
+
+            this.addMessage(0, examine, '');
         } else if (action === 285) {
-            // oploc#
+            // OPLOC1
             this.interactWithLoc(245, b, c, a);
         } else if (action === 881) {
+            // OPHELDU
             this.out.p1isaac(130);
             this.out.p2(a);
             this.out.p2(b);
@@ -3042,6 +3198,7 @@ class Client extends GameShell {
                 this.selectedArea = 3;
             }
         } else if (action === 391) {
+            // OPHELDT
             this.out.p1isaac(48);
             this.out.p2(a);
             this.out.p2(b);
@@ -3061,7 +3218,11 @@ class Client extends GameShell {
                 this.selectedArea = 3;
             }
         } else if (action === 660) {
-            // TODO
+            if (this.menuVisible) {
+                // this.scene.click(b - 8, c - 11);
+            } else {
+                // this.scene.click(this.mouseClickX - 8, this.mouseClickY - 11);
+            }
         } else if (action === 188) {
             // select obj interface
             this.objSelected = 1;
@@ -3072,7 +3233,7 @@ class Client extends GameShell {
             this.spellSelected = 0;
             return;
         } else if (action === 44) {
-            // resume dialog
+            // RESUME_PAUSEBUTTON
             if (!this.pressedContinueOption) {
                 this.out.p1isaac(235);
                 this.out.p2(c);
@@ -3092,24 +3253,147 @@ class Client extends GameShell {
             }
             this.addMessage(0, examine, '');
         } else if (action === 900) {
-            // TODO
+            const npc: NpcEntity | null = this.npcs[a];
+
+            if (npc && this.localPlayer) {
+                this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], npc.pathTileX[0], npc.pathTileZ[0], 2, 1, 1, 0, 0, 0, false);
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+                // OPNPCU
+                this.out.p1isaac(202);
+                this.out.p2(a);
+                this.out.p2(this.objInterface);
+                this.out.p2(this.objSelectedSlot);
+                this.out.p2(this.objSelectedInterface);
+            }
         } else if (action === 1373 || action === 1544 || action === 151 || action === 1101) {
-            // TODO
+            const player: PlayerEntity | null = this.players[a];
+            if (player && this.localPlayer) {
+                this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], player.pathTileX[0], player.pathTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                if (action === 1101) {
+                    // OPPLAYER1
+                    this.out.p1isaac(164);
+                } else if (action === 151) {
+                    Client.opPlayer2Counter++;
+                    if (Client.opPlayer2Counter >= 90) {
+                        // ANTICHEAT_OPLOGIC8
+                        this.out.p1isaac(2);
+                        this.out.p2(31114);
+                    }
+
+                    // OPPLAYER2
+                    this.out.p1isaac(53);
+                } else if (action == 1373) {
+                    // OPPLAYER4
+                    this.out.p1isaac(206);
+                } else if (action == 1544) {
+                    // OPPLAYER3
+                    this.out.p1isaac(185);
+                }
+
+                this.out.p2(a);
+            }
         } else if (action === 265) {
-            // TODO
+            const npc: NpcEntity | null = this.npcs[a];
+            if (npc && this.localPlayer) {
+                this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], npc.pathTileX[0], npc.pathTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                // OPNPCT
+                this.out.p1isaac(134);
+                this.out.p2(a);
+                this.out.p2(this.activeSpellId);
+            }
         } else if (action === 679) {
-            // TODO
+            const option: string = this.menuOption[optionId];
+            const tag: number = option.indexOf('@whi@');
+
+            if (tag !== -1) {
+                const name37: bigint = JString.toBase37(option.substring(tag + 5).trim());
+                let friend: number = -1;
+                for (let i: number = 0; i < this.friendCount; i++) {
+                    if (this.friendName37[i] == name37) {
+                        friend = i;
+                        break;
+                    }
+                }
+
+                if (friend !== -1 && this.friendWorld[friend] > 0) {
+                    this.redrawChatback = true;
+                    this.chatbackInputOpen = false;
+                    this.showSocialInput = true;
+                    this.socialInput = '';
+                    this.socialAction = 3;
+                    this.socialName37 = this.friendName37[friend];
+                    this.socialMessage = 'Enter message to send to ' + this.friendName[friend];
+                }
+            }
         } else if (action === 55) {
-            // oploc#
+            // OPLOCT
             if (this.interactWithLoc(9, b, c, a)) {
                 this.out.p2(this.activeSpellId);
             }
         } else if (action === 224 || action === 993 || action === 99 || action === 746 || action === 877) {
-            // TODO
+            if (this.localPlayer) {
+                const success: boolean = this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
+                if (!success) {
+                    this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], b, c, 2, 1, 1, 0, 0, 0, false);
+                }
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                if (action === 224) {
+                    // OPOBJ1
+                    this.out.p1isaac(140);
+                } else if (action === 746) {
+                    // OPOBJ4
+                    this.out.p1isaac(178);
+                } else if (action === 877) {
+                    // OPOBJ5
+                    this.out.p1isaac(247);
+                } else if (action === 99) {
+                    // OPOBJ3
+                    this.out.p1isaac(200);
+                } else if (action === 993) {
+                    // OPOBJ2
+                    this.out.p1isaac(40);
+                }
+
+                this.out.p2(b + this.sceneBaseTileX);
+                this.out.p2(c + this.sceneBaseTileZ);
+                this.out.p2(a);
+            }
         } else if (action === 1607) {
-            // TODO
+            // npc examine
+            const npc: NpcEntity | null = this.npcs[a];
+            if (npc && npc.type) {
+                let examine: string;
+
+                if (!npc.type.desc) {
+                    examine = "It's a " + npc.type.name + '.';
+                } else {
+                    examine = npc.type.desc;
+                }
+
+                this.addMessage(0, examine, '');
+            }
         } else if (action === 504) {
-            // oploc#
+            // OPLOC2
             this.interactWithLoc(172, b, c, a);
         } else if (action === 930) {
             const com: ComType = ComType.instances[c];
@@ -3145,18 +3429,107 @@ class Client extends GameShell {
             }
 
             if (notify) {
+                // IF_BUTTON
                 this.out.p1isaac(155);
                 this.out.p2(c);
             }
         } else if (action === 602 || action === 596 || action === 22 || action === 892 || action === 415) {
-            // TODO
+            if (action === 22) {
+                // INV_BUTTON3
+                this.out.p1isaac(212);
+            } else if (action === 415) {
+                if ((c & 0x3) === 0) {
+                    Client.ifButton5Counter++;
+                }
+
+                if (Client.ifButton5Counter >= 55) {
+                    // ANTICHEAT_OPLOGIC7
+                    this.out.p1isaac(17);
+                    this.out.p4(0);
+                }
+
+                // INV_BUTTON5
+                this.out.p1isaac(6);
+            } else if (action === 602) {
+                // INV_BUTTON1
+                this.out.p1isaac(31);
+            } else if (action === 892) {
+                if ((b & 0x3) == 0) {
+                    Client.opHeld9Counter++;
+                }
+
+                if (Client.opHeld9Counter >= 130) {
+                    // ANTICHEAT_OPLOGIC9
+                    this.out.p1isaac(238);
+                    this.out.p1(177);
+                }
+
+                // INV_BUTTON4
+                this.out.p1isaac(38);
+            } else if (action === 596) {
+                // INV_BUTTON2
+                this.out.p1isaac(59);
+            }
+
+            this.out.p2(a);
+            this.out.p2(b);
+            this.out.p2(c);
+
+            this.selectedCycle = 0;
+            this.selectedInterface = c;
+            this.selectedItem = b;
+            this.selectedArea = 2;
+
+            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+                this.selectedArea = 1;
+            }
+
+            if (ComType.instances[c].layer === this.chatInterfaceId) {
+                this.selectedArea = 3;
+            }
         } else if (action === 581) {
-            // TODO
+            if ((a & 0x3) === 0) {
+                Client.opLoc4Counter++;
+            }
+
+            if (Client.opLoc4Counter >= 99) {
+                // ANTICHEAT_OPLOGIC1
+                this.out.p1isaac(7);
+                this.out.p4(0);
+            }
+
+            // OPLOC4
+            this.interactWithLoc(97, b, c, a);
         } else if (action === 965) {
-            // TODO
+            if (this.localPlayer) {
+                const success: boolean = this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
+                if (!success) {
+                    this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], b, c, 2, 1, 1, 0, 0, 0, false);
+                }
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                // OPOBJT
+                this.out.p1isaac(138);
+                this.out.p2(b + this.sceneBaseTileX);
+                this.out.p2(c + this.sceneBaseTileZ);
+                this.out.p2(a);
+                this.out.p2(this.activeSpellId);
+            }
         } else if (action === 1501) {
-            // TODO
+            Client.opLoc5Counter += this.sceneBaseTileZ;
+            if (Client.opLoc5Counter >= 92) {
+                // ANTICHEAT_OPLOGIC6
+                this.out.p1isaac(66);
+                this.out.p4(0);
+            }
+
+            // OPLOC5
+            this.interactWithLoc(116, b, c, a);
         } else if (action === 364) {
+            // OPLOC3
             this.interactWithLoc(96, b, c, a);
         } else if (action === 1102) {
             // obj examine
@@ -3170,6 +3543,7 @@ class Client extends GameShell {
             }
             this.addMessage(0, examine, '');
         } else if (action === 960) {
+            // IF_BUTTON
             this.out.p1isaac(155);
             this.out.p2(c);
 
@@ -3187,14 +3561,14 @@ class Client extends GameShell {
             const option: string = this.menuOption[optionId];
             const tag: number = option.indexOf('@whi@');
 
-            if (tag != -1) {
+            if (tag !== -1) {
                 this.closeInterfaces();
 
                 this.reportAbuseInput = option.substring(tag + 5).trim();
                 this.reportAbuseMuteOption = false;
 
                 for (let i: number = 0; i < ComType.instances.length; i++) {
-                    if (ComType.instances[i] != null && ComType.instances[i].clientCode == ComType.CC_REPORT_INPUT) {
+                    if (ComType.instances[i] && ComType.instances[i].clientCode == ComType.CC_REPORT_INPUT) {
                         this.reportAbuseInterfaceID = this.viewportInterfaceId = ComType.instances[i].layer;
                         break;
                     }
@@ -3204,8 +3578,24 @@ class Client extends GameShell {
             // close interfaces
             this.closeInterfaces();
         } else if (action === 367) {
-            // TODO
+            const player: PlayerEntity | null = this.players[a];
+            if (player && this.localPlayer) {
+                this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], player.pathTileX[0], player.pathTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                // OPPLAYERU
+                this.out.p1isaac(248);
+                this.out.p2(a);
+                this.out.p2(this.objInterface);
+                this.out.p2(this.objSelectedSlot);
+                this.out.p2(this.objSelectedInterface);
+            }
         } else if (action === 465) {
+            // IF_BUTTON
             this.out.p1isaac(155);
             this.out.p2(c);
 
@@ -3217,9 +3607,37 @@ class Client extends GameShell {
                 this.redrawSidebar = true;
             }
         } else if (action === 406 || action === 436 || action === 557 || action === 556) {
-            // TODO
+            const option: string = this.menuOption[optionId];
+            const tag: number = option.indexOf('@whi@');
+
+            if (tag !== -1) {
+                const username: bigint = JString.toBase37(option.substring(tag + 5).trim());
+                if (action === 406) {
+                    this.addFriend(username);
+                } else if (action === 436) {
+                    this.addIgnore(username);
+                } else if (action === 557) {
+                    this.removeFriend(username);
+                } else if (action === 556) {
+                    this.removeIgnore(username);
+                }
+            }
         } else if (action === 651) {
-            // TODO
+            const player: PlayerEntity | null = this.players[a];
+
+            if (player && this.localPlayer) {
+                this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], player.pathTileX[0], player.pathTileZ[0], 2, 1, 1, 0, 0, 0, false);
+
+                this.crossX = this.mouseClickX;
+                this.crossY = this.mouseClickY;
+                this.crossMode = 2;
+                this.crossCycle = 0;
+
+                // OPPLAYERT
+                this.out.p1isaac(177);
+                this.out.p2(a);
+                this.out.p2(this.activeSpellId);
+            }
         }
 
         this.objSelected = 0;
@@ -4588,7 +5006,7 @@ class Client extends GameShell {
                         }
                     }
                 }
-                for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc != null; loc = this.spawnedLocations.prev() as LocTemporary | null) {
+                for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
                     loc.x -= dx;
                     loc.z -= dz;
                     if (loc.x < 0 || loc.z < 0 || loc.x >= 104 || loc.z >= 104) {
@@ -6568,7 +6986,7 @@ class Client extends GameShell {
             const type: number = buf.g1;
             const length: number = buf.g1;
             const start: number = buf.pos;
-            if (player.name != null) {
+            if (player.name) {
                 const username: bigint = JString.toBase37(player.name);
                 let ignored: boolean = false;
                 if (type <= 1) {
