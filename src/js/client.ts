@@ -60,7 +60,7 @@ class Client extends GameShell {
     static EXPONENT: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
     static MODULUS: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
     static MEMBERS: boolean = true;
-    static LOW_MEMORY: boolean = false;
+    static lowMemory: boolean = false;
 
     static updateCounter: number = 0;
     static update2Counter: number = 0;
@@ -79,6 +79,20 @@ class Client extends GameShell {
     static updateLocCounter: number = 0;
 
     static nodeId: number = 0; // TODO
+
+    static setHighMemory = (): void => {
+        World3D.lowMemory = false;
+        Draw3D.lowMemory = false;
+        Client.lowMemory = false;
+        World.lowMemory = false;
+    };
+
+    static setLowMemory = (): void => {
+        World3D.lowMemory = true;
+        Draw3D.lowMemory = true;
+        Client.lowMemory = true;
+        World.lowMemory = true;
+    };
 
     private readonly MAX_PLAYER_COUNT: number = 2048;
     private readonly LOCAL_PLAYER_INDEX: number = 2047;
@@ -651,7 +665,7 @@ class Client extends GameShell {
             SpotAnimType.unpack(config);
             VarpType.unpack(config);
 
-            if (!Client.LOW_MEMORY) {
+            if (!Client.lowMemory) {
                 await this.showProgress(90, 'Unpacking sounds');
                 Wave.unpack(sounds);
             }
@@ -1379,7 +1393,7 @@ class Client extends GameShell {
             }
             this.loginout.p1(this.out.pos + 36 + 1 + 1);
             this.loginout.p1(225);
-            this.loginout.p1(Client.LOW_MEMORY ? 1 : 0);
+            this.loginout.p1(Client.lowMemory ? 1 : 0);
             for (let i: number = 0; i < 9; i++) {
                 this.loginout.p4(this.archiveChecksums[i]);
             }
@@ -2205,6 +2219,7 @@ class Client extends GameShell {
                 jitter = Math.trunc(
                     Math.random() * (this.cameraModifierJitter[type] * 2 + 1) - this.cameraModifierJitter[type] + Math.sin(this.cameraModifierCycle[type] * (this.cameraModifierWobbleSpeed[type] / 100.0)) * this.cameraModifierWobbleScale[type]
                 );
+
                 if (type === 0) {
                     this.cameraX += jitter;
                 }
@@ -4489,7 +4504,7 @@ class Client extends GameShell {
             return;
         }
 
-        if (Client.LOW_MEMORY && level !== this.currentLevel) {
+        if (Client.lowMemory && level !== this.currentLevel) {
             return;
         }
 
@@ -5299,7 +5314,7 @@ class Client extends GameShell {
                 const name: string = this.in.gjstr;
                 const crc: number = this.in.g4;
                 const length: number = this.in.g4;
-                if (!(name === this.currentMidi) && this.midiActive && !Client.LOW_MEMORY) {
+                if (!(name === this.currentMidi) && this.midiActive && !Client.lowMemory) {
                     await this.setMidi(name, crc /*, length*/);
                 }
                 this.currentMidi = name;
@@ -5584,7 +5599,7 @@ class Client extends GameShell {
                 const id: number = this.in.g2;
                 const loop: number = this.in.g1;
                 const delay: number = this.in.g2;
-                if (this.waveEnabled && !Client.LOW_MEMORY && this.waveCount < 50) {
+                if (this.waveEnabled && !Client.lowMemory && this.waveCount < 50) {
                     this.waveIds[this.waveCount] = id;
                     this.waveLoops[this.waveCount] = loop;
                     this.waveDelay[this.waveCount] = delay + Wave.delays[id];
@@ -6085,7 +6100,7 @@ class Client extends GameShell {
                     World.levelBuilt = this.currentLevel;
                     this.buildScene();
                 }
-                if (Client.LOW_MEMORY && this.sceneState === 2 && World.levelBuilt !== this.currentLevel) {
+                if (Client.lowMemory && this.sceneState === 2 && World.levelBuilt !== this.currentLevel) {
                     this.areaViewport?.bind();
                     this.fontPlain12?.drawStringCenter(257, 151, 'Loading - please wait.', Colors.BLACK);
                     this.fontPlain12?.drawStringCenter(256, 150, 'Loading - please wait.', Colors.WHITE);
@@ -6124,7 +6139,7 @@ class Client extends GameShell {
             }
 
             const world: World = new World(CollisionMap.SIZE, CollisionMap.SIZE, this.levelHeightmap!, this.levelTileFlags!); // has try catch here
-            World.lowMemory = Client.LOW_MEMORY;
+            World.lowMemory = Client.lowMemory;
 
             const maps: number = this.sceneMapLandData?.length ?? 0;
 
@@ -6141,7 +6156,7 @@ class Client extends GameShell {
                 }
             }
 
-            if (Client.LOW_MEMORY) {
+            if (Client.lowMemory) {
                 this.scene?.setMinLevel(this.currentLevel);
             } else {
                 this.scene?.setMinLevel(0);
@@ -8055,7 +8070,7 @@ class Client extends GameShell {
             let delta: number;
             let accumulator: number;
             if (tileDeltaX > tileDeltaZ) {
-                delta = tileDeltaZ * Math.trunc(65536 / tileDeltaX);
+                delta = Math.trunc((tileDeltaZ * 65536) / tileDeltaX);
                 accumulator = 32768;
                 while (cameraLocalTileX !== playerLocalTileX) {
                     if (cameraLocalTileX < playerLocalTileX) {
@@ -8080,7 +8095,7 @@ class Client extends GameShell {
                     }
                 }
             } else {
-                delta = tileDeltaX * Math.trunc(65536 / tileDeltaZ);
+                delta = Math.trunc((tileDeltaX * 65536) / tileDeltaZ);
                 accumulator = 32768;
                 while (cameraLocalTileZ !== playerLocalTileZ) {
                     if (cameraLocalTileZ < playerLocalTileZ) {
@@ -8145,19 +8160,19 @@ class Client extends GameShell {
         let cos: number;
         let tmp: number;
 
-        if (invPitch !== 0) {
+        if (invPitch != 0) {
             sin = Draw3D.sin[invPitch];
             cos = Draw3D.cos[invPitch];
-            tmp = (z * cos - distance * sin) >> 16;
-            y = (z * sin + distance * cos) >> 16;
+            tmp = (-distance * sin) >> 16;
+            y = (distance * cos) >> 16;
             z = tmp;
         }
 
-        if (invYaw !== 0) {
+        if (invYaw != 0) {
             sin = Draw3D.sin[invYaw];
             cos = Draw3D.cos[invYaw];
-            tmp = (y * sin + x * cos) >> 16;
-            y = (y * cos - x * sin) >> 16;
+            tmp = (y * sin) >> 16;
+            y = (y * cos) >> 16;
             x = tmp;
         }
 
@@ -8377,7 +8392,7 @@ class Client extends GameShell {
     };
 
     private updateTextures = (cycle: number): void => {
-        if (!Client.LOW_MEMORY) {
+        if (!Client.lowMemory) {
             if (Draw3D.textureCycle[17] >= cycle) {
                 const texture: Pix8 = Draw3D.textures[17];
                 const bottom: number = texture.width * texture.height - 1;
@@ -8585,5 +8600,7 @@ class Client extends GameShell {
     };
 }
 
+const client: Client = new Client();
+Client.setHighMemory();
 console.log('RS2 user client - release #225');
-new Client().run().then((): void => {});
+client.run().then((): void => {});

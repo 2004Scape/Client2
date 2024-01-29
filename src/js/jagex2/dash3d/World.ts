@@ -10,12 +10,13 @@ import LocEntity from './entity/LocEntity';
 import SeqType from '../config/SeqType';
 import LocShape from './LocShape';
 import LocAngle from './LocAngle';
+import Colors from '../graphics/Colors';
 
 export default class World {
-    static readonly ROTATION_WALL_TYPE: Int8Array = Int8Array.of(1, 2, 4, 8);
-    static readonly ROTATION_WALL_CORNER_TYPE: Int8Array = Int8Array.of(16, 32, 64, 128);
-    static readonly WALL_DECORATION_ROTATION_FORWARD_X: Int8Array = Int8Array.of(1, 0, -1, 0);
-    static readonly WALL_DECORATION_ROTATION_FORWARD_Z: Int8Array = Int8Array.of(0, -1, 0, 1);
+    static readonly ROTATION_WALL_TYPE: Int32Array = Int32Array.of(1, 2, 4, 8);
+    static readonly ROTATION_WALL_CORNER_TYPE: Int32Array = Int32Array.of(16, 32, 64, 128);
+    static readonly WALL_DECORATION_ROTATION_FORWARD_X: Int32Array = Int32Array.of(1, 0, -1, 0);
+    static readonly WALL_DECORATION_ROTATION_FORWARD_Z: Int32Array = Int32Array.of(0, -1, 0, 1);
 
     static randomHueOffset: number = Math.trunc(Math.random() * 17.0) - 8;
     static randomLightnessOffset: number = Math.trunc(Math.random() * 33.0) - 16;
@@ -76,7 +77,8 @@ export default class World {
         const y: number = (heightSW + heightSE + heightNW + heightNE) >> 2;
 
         const loc: LocType = LocType.get(locId);
-        let bitset: number = x + (z << 7) + (locId << 14) + 1073741824;
+
+        let bitset: number = x + (z << 7) + (locId << 14) + 0x40000000;
         if (!loc.active) {
             bitset += 0x80000000; // int.min
             // TODO possible some overflow magic happen here idk tho
@@ -323,7 +325,395 @@ export default class World {
         }
 
         for (let level: number = 0; level < 4; level++) {
-            // TODO
+            const shademap: Uint8Array[] = this.levelShademap[level];
+            const lightAmbient: number = 96;
+            const lightAttenuation: number = 768;
+            const lightX: number = -50;
+            const lightY: number = -10;
+            const lightZ: number = -50;
+            const lightMag: number = Math.trunc(Math.sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ));
+            const lightMagnitude: number = (lightAttenuation * lightMag) >> 8;
+
+            for (let z: number = 1; z < this.maxTileZ - 1; z++) {
+                for (let x: number = 1; x < this.maxTileX - 1; x++) {
+                    const dx: number = this.levelHeightmap[level][x + 1][z] - this.levelHeightmap[level][x - 1][z];
+                    const dz: number = this.levelHeightmap[level][x][z + 1] - this.levelHeightmap[level][x][z - 1];
+                    const len: number = Math.trunc(Math.sqrt(dx * dx + dz * dz + 65536));
+                    const normalX: number = Math.trunc((dx << 8) / len);
+                    const normalY: number = Math.trunc(65536 / len);
+                    const normalZ: number = Math.trunc((dz << 8) / len);
+                    const light: number = lightAmbient + Math.trunc((lightX * normalX + lightY * normalY + lightZ * normalZ) / lightMagnitude);
+                    const shade: number = (shademap[x - 1][z] >> 2) + (shademap[x + 1][z] >> 3) + (shademap[x][z - 1] >> 2) + (shademap[x][z + 1] >> 3) + (shademap[x][z] >> 1);
+                    this.levelLightmap[x][z] = light - shade;
+                }
+            }
+
+            for (let z: number = 0; z < this.maxTileZ; z++) {
+                this.blendChroma[z] = 0;
+                this.blendSaturation[z] = 0;
+                this.blendLightness[z] = 0;
+                this.blendLuminance[z] = 0;
+                this.blendMagnitude[z] = 0;
+            }
+
+            for (let x0: number = -5; x0 < this.maxTileX + 5; x0++) {
+                for (let z0: number = 0; z0 < this.maxTileZ; z0++) {
+                    const x1: number = x0 + 5;
+                    let debugMag: number;
+
+                    if (x1 >= 0 && x1 < this.maxTileX) {
+                        const underlayId: number = this.levelTileUnderlayIds[level][x1][z0] & 0xff;
+
+                        if (underlayId > 0) {
+                            const flu: FloType = FloType.instances[underlayId - 1];
+                            this.blendChroma[z0] += flu.chroma;
+                            this.blendSaturation[z0] += flu.saturation;
+                            this.blendLightness[z0] += flu.lightness;
+                            this.blendLuminance[z0] += flu.luminance;
+                            debugMag = this.blendMagnitude[z0]++;
+                        }
+                    }
+
+                    const x2: number = x0 - 5;
+                    if (x2 >= 0 && x2 < this.maxTileX) {
+                        const underlayId: number = this.levelTileUnderlayIds[level][x2][z0] & 0xff;
+
+                        if (underlayId > 0) {
+                            const flu: FloType = FloType.instances[underlayId - 1];
+                            this.blendChroma[z0] -= flu.chroma;
+                            this.blendSaturation[z0] -= flu.saturation;
+                            this.blendLightness[z0] -= flu.lightness;
+                            this.blendLuminance[z0] -= flu.luminance;
+                            debugMag = this.blendMagnitude[z0]--;
+                        }
+                    }
+                }
+
+                if (x0 >= 1 && x0 < this.maxTileX - 1) {
+                    let hueAccumulator: number = 0;
+                    let saturationAccumulator: number = 0;
+                    let lightnessAccumulator: number = 0;
+                    let luminanceAccumulator: number = 0;
+                    let magnitudeAccumulator: number = 0;
+
+                    for (let z0: number = -5; z0 < this.maxTileZ + 5; z0++) {
+                        const dz1: number = z0 + 5;
+                        if (dz1 >= 0 && dz1 < this.maxTileZ) {
+                            hueAccumulator += this.blendChroma[dz1];
+                            saturationAccumulator += this.blendSaturation[dz1];
+                            lightnessAccumulator += this.blendLightness[dz1];
+                            luminanceAccumulator += this.blendLuminance[dz1];
+                            magnitudeAccumulator += this.blendMagnitude[dz1];
+                        }
+
+                        const dz2: number = z0 - 5;
+                        if (dz2 >= 0 && dz2 < this.maxTileZ) {
+                            hueAccumulator -= this.blendChroma[dz2];
+                            saturationAccumulator -= this.blendSaturation[dz2];
+                            lightnessAccumulator -= this.blendLightness[dz2];
+                            luminanceAccumulator -= this.blendLuminance[dz2];
+                            magnitudeAccumulator -= this.blendMagnitude[dz2];
+                        }
+
+                        if (z0 >= 1 && z0 < this.maxTileZ - 1 && (!World.lowMemory || ((this.levelTileFlags[level][x0][z0] & 0x10) == 0 && this.getDrawLevel(level, x0, z0) == World.levelBuilt))) {
+                            const underlayId: number = this.levelTileUnderlayIds[level][x0][z0] & 0xff;
+                            const overlayId: number = this.levelTileOverlayIds[level][x0][z0] & 0xff;
+
+                            if (underlayId > 0 || overlayId > 0) {
+                                const heightSW: number = this.levelHeightmap[level][x0][z0];
+                                const heightSE: number = this.levelHeightmap[level][x0 + 1][z0];
+                                const heightNE: number = this.levelHeightmap[level][x0 + 1][z0 + 1];
+                                const heightNW: number = this.levelHeightmap[level][x0][z0 + 1];
+
+                                const lightSW: number = this.levelLightmap[x0][z0];
+                                const lightSE: number = this.levelLightmap[x0 + 1][z0];
+                                const lightNE: number = this.levelLightmap[x0 + 1][z0 + 1];
+                                const lightNW: number = this.levelLightmap[x0][z0 + 1];
+
+                                let baseColor: number = -1;
+                                let tintColor: number = -1;
+
+                                if (underlayId > 0) {
+                                    const hue: number = Math.trunc((hueAccumulator * 256) / luminanceAccumulator);
+                                    const saturation: number = Math.trunc(saturationAccumulator / magnitudeAccumulator);
+                                    let lightness: number = Math.trunc(lightnessAccumulator / magnitudeAccumulator);
+                                    baseColor = FloType.hsl24to16(hue, saturation, lightness);
+                                    const randomHue: number = (hue + World.randomHueOffset) & 0xff;
+                                    lightness += World.randomLightnessOffset;
+                                    if (lightness < 0) {
+                                        lightness = 0;
+                                    } else if (lightness > 255) {
+                                        lightness = 255;
+                                    }
+                                    tintColor = FloType.hsl24to16(randomHue, saturation, lightness);
+                                }
+
+                                if (level > 0) {
+                                    let occludes: boolean = underlayId != 0 || this.levelTileOverlayShape[level][x0][z0] == 0;
+
+                                    if (overlayId > 0 && !FloType.instances[overlayId - 1].occlude) {
+                                        occludes = false;
+                                    }
+
+                                    // occludes && flat
+                                    if (occludes && heightSW == heightSE && heightSW == heightNE && heightSW == heightNW) {
+                                        this.levelOccludemap[level][x0][z0] |= 0x924;
+                                    }
+                                }
+
+                                let shadeColor: number = 0;
+                                if (baseColor != -1) {
+                                    shadeColor = Draw3D.palette[FloType.mulHSL(tintColor, 96)];
+                                }
+
+                                if (overlayId == 0) {
+                                    scene?.setTile(
+                                        level,
+                                        x0,
+                                        z0,
+                                        0,
+                                        0,
+                                        -1,
+                                        heightSW,
+                                        heightSE,
+                                        heightNE,
+                                        heightNW,
+                                        FloType.mulHSL(baseColor, lightSW),
+                                        FloType.mulHSL(baseColor, lightSE),
+                                        FloType.mulHSL(baseColor, lightNE),
+                                        FloType.mulHSL(baseColor, lightNW),
+                                        0,
+                                        0,
+                                        0,
+                                        0,
+                                        shadeColor,
+                                        0
+                                    );
+                                } else {
+                                    const shape: number = this.levelTileOverlayShape[level][x0][z0] + 1;
+                                    const rotation: number = this.levelTileOverlayRotation[level][x0][z0];
+                                    const flo: FloType = FloType.instances[overlayId - 1];
+                                    let textureId: number = flo.texture;
+                                    let hsl: number;
+                                    let rgb: number;
+
+                                    if (textureId >= 0) {
+                                        rgb = Draw3D.getAverageTextureRGB(textureId);
+                                        hsl = -1;
+                                    } else if (flo.rgb == Colors.MAGENTA) {
+                                        rgb = 0;
+                                        hsl = -2;
+                                        textureId = -1;
+                                    } else {
+                                        hsl = FloType.hsl24to16(flo.hue, flo.saturation, flo.lightness);
+                                        rgb = Draw3D.palette[FloType.adjustLightness(flo.hsl, 96)];
+                                    }
+
+                                    scene?.setTile(
+                                        level,
+                                        x0,
+                                        z0,
+                                        shape,
+                                        rotation,
+                                        textureId,
+                                        heightSW,
+                                        heightSE,
+                                        heightNE,
+                                        heightNW,
+                                        FloType.mulHSL(baseColor, lightSW),
+                                        FloType.mulHSL(baseColor, lightSE),
+                                        FloType.mulHSL(baseColor, lightNE),
+                                        FloType.mulHSL(baseColor, lightNW),
+                                        FloType.adjustLightness(hsl, lightSW),
+                                        FloType.adjustLightness(hsl, lightSE),
+                                        FloType.adjustLightness(hsl, lightNE),
+                                        FloType.adjustLightness(hsl, lightNW),
+                                        shadeColor,
+                                        rgb
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (let stz: number = 1; stz < this.maxTileZ - 1; stz++) {
+                for (let stx: number = 1; stx < this.maxTileX - 1; stx++) {
+                    scene?.setDrawLevel(level, stx, stz, this.getDrawLevel(level, stx, stz));
+                }
+            }
+        }
+
+        if (!World.fullbright) {
+            scene?.buildModels(64, 768, -50, -10, -50);
+        }
+
+        for (let x: number = 0; x < this.maxTileX; x++) {
+            for (let z: number = 0; z < this.maxTileZ; z++) {
+                if ((this.levelTileFlags[1][x][z] & 0x2) == 2) {
+                    scene?.setBridge(x, z);
+                }
+            }
+        }
+
+        if (!World.fullbright) {
+            let wall0: number = 0x1; // this flag is set by walls with rotation 0 or 2
+            let wall1: number = 0x2; // this flag is set by walls with rotation 1 or 3
+            let floor: number = 0x4; // this flag is set by floors which are flat
+
+            for (let topLevel: number = 0; topLevel < 4; topLevel++) {
+                if (topLevel > 0) {
+                    wall0 <<= 0x3;
+                    wall1 <<= 0x3;
+                    floor <<= 0x3;
+                }
+
+                for (let level: number = 0; level <= topLevel; level++) {
+                    for (let tileZ: number = 0; tileZ <= this.maxTileZ; tileZ++) {
+                        for (let tileX: number = 0; tileX <= this.maxTileX; tileX++) {
+                            if ((this.levelOccludemap[level][tileX][tileZ] & wall0) != 0) {
+                                let minTileZ: number = tileZ;
+                                let maxTileZ: number = tileZ;
+                                let minLevel: number = level;
+                                let maxLevel: number = level;
+
+                                while (minTileZ > 0 && (this.levelOccludemap[level][tileX][minTileZ - 1] & wall0) != 0) {
+                                    minTileZ--;
+                                }
+
+                                while (maxTileZ < this.maxTileZ && (this.levelOccludemap[level][tileX][maxTileZ + 1] & wall0) != 0) {
+                                    maxTileZ++;
+                                }
+
+                                find_min_level: while (minLevel > 0) {
+                                    for (let z: number = minTileZ; z <= maxTileZ; z++) {
+                                        if ((this.levelOccludemap[minLevel - 1][tileX][z] & wall0) == 0) {
+                                            break find_min_level;
+                                        }
+                                    }
+                                    minLevel--;
+                                }
+
+                                find_max_level: while (maxLevel < topLevel) {
+                                    for (let z: number = minTileZ; z <= maxTileZ; z++) {
+                                        if ((this.levelOccludemap[maxLevel + 1][tileX][z] & wall0) == 0) {
+                                            break find_max_level;
+                                        }
+                                    }
+                                    maxLevel++;
+                                }
+
+                                const area: number = (maxLevel + 1 - minLevel) * (maxTileZ + 1 - minTileZ);
+                                if (area >= 8) {
+                                    const minY: number = this.levelHeightmap[maxLevel][tileX][minTileZ] - 240;
+                                    const maxX: number = this.levelHeightmap[minLevel][tileX][minTileZ];
+
+                                    World3D.addOccluder(topLevel, 1, tileX * 128, minY, minTileZ * 128, tileX * 128, maxX, maxTileZ * 128 + 128);
+
+                                    for (let l: number = minLevel; l <= maxLevel; l++) {
+                                        for (let z: number = minTileZ; z <= maxTileZ; z++) {
+                                            this.levelOccludemap[l][tileX][z] &= ~wall0;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ((this.levelOccludemap[level][tileX][tileZ] & wall1) != 0) {
+                                let minTileX: number = tileX;
+                                let maxTileX: number = tileX;
+                                let minLevel: number = level;
+                                let maxLevel: number = level;
+
+                                while (minTileX > 0 && (this.levelOccludemap[level][minTileX - 1][tileZ] & wall1) != 0) {
+                                    minTileX--;
+                                }
+
+                                while (maxTileX < this.maxTileX && (this.levelOccludemap[level][maxTileX + 1][tileZ] & wall1) != 0) {
+                                    maxTileX++;
+                                }
+
+                                find_min_level2: while (minLevel > 0) {
+                                    for (let x: number = minTileX; x <= maxTileX; x++) {
+                                        if ((this.levelOccludemap[minLevel - 1][x][tileZ] & wall1) == 0) {
+                                            break find_min_level2;
+                                        }
+                                    }
+                                    minLevel--;
+                                }
+
+                                find_max_level2: while (maxLevel < topLevel) {
+                                    for (let x: number = minTileX; x <= maxTileX; x++) {
+                                        if ((this.levelOccludemap[maxLevel + 1][x][tileZ] & wall1) == 0) {
+                                            break find_max_level2;
+                                        }
+                                    }
+                                    maxLevel++;
+                                }
+
+                                const area: number = (maxLevel + 1 - minLevel) * (maxTileX + 1 - minTileX);
+
+                                if (area >= 8) {
+                                    const minY: number = this.levelHeightmap[maxLevel][minTileX][tileZ] - 240;
+                                    const maxY: number = this.levelHeightmap[minLevel][minTileX][tileZ];
+
+                                    World3D.addOccluder(topLevel, 2, minTileX * 128, minY, tileZ * 128, maxTileX * 128 + 128, maxY, tileZ * 128);
+
+                                    for (let l: number = minLevel; l <= maxLevel; l++) {
+                                        for (let x: number = minTileX; x <= maxTileX; x++) {
+                                            this.levelOccludemap[l][x][tileZ] &= ~wall1;
+                                        }
+                                    }
+                                }
+                            }
+                            if ((this.levelOccludemap[level][tileX][tileZ] & floor) != 0) {
+                                let minTileX: number = tileX;
+                                let maxTileX: number = tileX;
+                                let minTileZ: number = tileZ;
+                                let maxTileZ: number = tileZ;
+
+                                while (minTileZ > 0 && (this.levelOccludemap[level][tileX][minTileZ - 1] & floor) != 0) {
+                                    minTileZ--;
+                                }
+
+                                while (maxTileZ < this.maxTileZ && (this.levelOccludemap[level][tileX][maxTileZ + 1] & floor) != 0) {
+                                    maxTileZ++;
+                                }
+
+                                find_min_tile_xz: while (minTileX > 0) {
+                                    for (let z: number = minTileZ; z <= maxTileZ; z++) {
+                                        if ((this.levelOccludemap[level][minTileX - 1][z] & floor) == 0) {
+                                            break find_min_tile_xz;
+                                        }
+                                    }
+                                    minTileX--;
+                                }
+
+                                find_max_tile_xz: while (maxTileX < this.maxTileX) {
+                                    for (let z: number = minTileZ; z <= maxTileZ; z++) {
+                                        if ((this.levelOccludemap[level][maxTileX + 1][z] & floor) == 0) {
+                                            break find_max_tile_xz;
+                                        }
+                                    }
+                                    maxTileX++;
+                                }
+
+                                if ((maxTileX + 1 - minTileX) * (maxTileZ + 1 - minTileZ) >= 4) {
+                                    const y: number = this.levelHeightmap[level][minTileX][minTileZ];
+
+                                    World3D.addOccluder(topLevel, 4, minTileX * 128, y, minTileZ * 128, maxTileX * 128 + 128, y, maxTileZ * 128 + 128);
+
+                                    for (let x: number = minTileX; x <= maxTileX; x++) {
+                                        for (let z: number = minTileZ; z <= maxTileZ; z++) {
+                                            this.levelOccludemap[level][x][z] &= ~floor;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     };
 
@@ -487,6 +877,7 @@ export default class World {
         const y: number = (heightSW + heightSE + heightNW + heightNE) >> 2;
 
         const loc: LocType = LocType.get(locId);
+
         let bitset: number = x + (z << 7) + (locId << 14) + 0x40000000;
         if (!loc.active) {
             bitset += 0x80000000; // int.min

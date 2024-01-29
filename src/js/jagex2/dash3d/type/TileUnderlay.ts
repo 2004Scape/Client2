@@ -5,16 +5,16 @@ export default class TileUnderlay {
     readonly northeastColor: number;
     readonly northwestColor: number;
     readonly textureId: number;
-    readonly flat: boolean;
     readonly color: number;
+    readonly flat: boolean;
 
-    constructor(southwestColor: number, southeastColor: number, northeastColor: number, northwestColor: number, textureId: number, flat: boolean, color: number) {
+    constructor(southwestColor: number, southeastColor: number, northeastColor: number, northwestColor: number, textureId: number, color: number, flat: boolean) {
         this.southwestColor = southwestColor;
         this.southeastColor = southeastColor;
         this.northeastColor = northeastColor;
         this.northwestColor = northwestColor;
         this.textureId = textureId;
-        this.flat = flat;
         this.color = color;
+        this.flat = flat;
     }
 }

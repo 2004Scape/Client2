@@ -3,7 +3,7 @@ import Loc from './type/Loc';
 import Tile from './type/Tile';
 import Occluder from './type/Occluder';
 import CollisionMap from './CollisionMap';
-import Model from '../graphics/Model';
+import Model, {VertexNormal} from '../graphics/Model';
 import GroundDecoration from './type/GroundDecoration';
 import Entity from './entity/Entity';
 import Wall from './type/Wall';
@@ -16,7 +16,7 @@ import TileOverlay from './type/TileOverlay';
 
 export default class World3D {
     private static readonly visibilityMatrix: boolean[][][][] = new Array(8).fill(false).map((): boolean[][][] => new Array(32).fill(false).map((): boolean[][] => new Array(51).fill(false).map((): boolean[] => new Array(51).fill(false))));
-    private static readonly locBuffer: (Loc | null)[] = new Array(100);
+    private static readonly locBuffer: (Loc | null)[] = new Array(100).fill(null);
     private static readonly levelOccluderCount: Int32Array = new Int32Array(CollisionMap.LEVELS);
     private static readonly levelOccluders: (Occluder | null)[][] = new Array(CollisionMap.LEVELS).fill(null).map((): Occluder[] => new Array(500).fill(null));
     private static readonly activeOccluders: (Occluder | null)[] = new Array(500).fill(null);
@@ -53,19 +53,19 @@ export default class World3D {
 
     private static visibilityMap: boolean[][] | null = null;
 
-    static readonly FRONT_WALL_TYPES: Uint8Array = Uint8Array.of(19, 55, 38, 155, 255, 110, 137, 205, 76);
-    static readonly DIRECTION_ALLOW_WALL_CORNER_TYPE: Uint8Array = Uint8Array.of(160, 192, 80, 96, 0, 144, 80, 48, 160);
-    static readonly BACK_WALL_TYPES: Uint8Array = Uint8Array.of(76, 8, 137, 4, 0, 1, 38, 2, 19);
-    static readonly WALL_CORNER_TYPE_16_BLOCK_LOC_SPANS: Int8Array = Int8Array.of(0, 0, 2, 0, 0, 2, 1, 1, 0);
-    static readonly WALL_CORNER_TYPE_32_BLOCK_LOC_SPANS: Int8Array = Int8Array.of(2, 0, 0, 2, 0, 0, 0, 4, 4);
-    static readonly WALL_CORNER_TYPE_64_BLOCK_LOC_SPANS: Int8Array = Int8Array.of(0, 4, 4, 8, 0, 0, 8, 0, 0);
-    static readonly WALL_CORNER_TYPE_128_BLOCK_LOC_SPANS: Int8Array = Int8Array.of(1, 1, 0, 0, 0, 8, 0, 0, 8);
-    static readonly WALL_DECORATION_INSET_X: Int8Array = Int8Array.of(53, -53, -53, 53);
-    static readonly WALL_DECORATION_INSET_Z: Int8Array = Int8Array.of(-53, -53, 53, 53);
-    static readonly WALL_DECORATION_OUTSET_X: Int8Array = Int8Array.of(-45, 45, 45, -45);
-    static readonly WALL_DECORATION_OUTSET_Z: Int8Array = Int8Array.of(45, 45, -45, -45);
+    static readonly FRONT_WALL_TYPES: Int32Array = Int32Array.of(19, 55, 38, 155, 255, 110, 137, 205, 76);
+    static readonly DIRECTION_ALLOW_WALL_CORNER_TYPE: Int32Array = Int32Array.of(160, 192, 80, 96, 0, 144, 80, 48, 160);
+    static readonly BACK_WALL_TYPES: Int32Array = Int32Array.of(76, 8, 137, 4, 0, 1, 38, 2, 19);
+    static readonly WALL_CORNER_TYPE_16_BLOCK_LOC_SPANS: Int32Array = Int32Array.of(0, 0, 2, 0, 0, 2, 1, 1, 0);
+    static readonly WALL_CORNER_TYPE_32_BLOCK_LOC_SPANS: Int32Array = Int32Array.of(2, 0, 0, 2, 0, 0, 0, 4, 4);
+    static readonly WALL_CORNER_TYPE_64_BLOCK_LOC_SPANS: Int32Array = Int32Array.of(0, 4, 4, 8, 0, 0, 8, 0, 0);
+    static readonly WALL_CORNER_TYPE_128_BLOCK_LOC_SPANS: Int32Array = Int32Array.of(1, 1, 0, 0, 0, 8, 0, 0, 8);
+    static readonly WALL_DECORATION_INSET_X: Int32Array = Int32Array.of(53, -53, -53, 53);
+    static readonly WALL_DECORATION_INSET_Z: Int32Array = Int32Array.of(-53, -53, 53, 53);
+    static readonly WALL_DECORATION_OUTSET_X: Int32Array = Int32Array.of(-45, 45, 45, -45);
+    static readonly WALL_DECORATION_OUTSET_Z: Int32Array = Int32Array.of(45, 45, -45, -45);
 
-    static readonly TEXTURE_HSL: Uint16Array = Uint16Array.of(
+    static readonly TEXTURE_HSL: Int32Array = Int32Array.of(
         41,
         39248,
         41,
@@ -133,18 +133,7 @@ export default class World3D {
         this.viewportCenterX = Math.trunc(viewportWidth / 2);
         this.viewportCenterY = Math.trunc(viewportHeight / 2);
 
-        const matrix: boolean[][][][] = new Array(9);
-
-        for (let i: number = 0; i < 9; i++) {
-            matrix[i] = new Array(32);
-            for (let j: number = 0; j < 32; j++) {
-                matrix[i][j] = new Array(53);
-                for (let k: number = 0; k < 53; k++) {
-                    matrix[i][j][k] = new Array(53).fill(false);
-                }
-            }
-        }
-
+        const matrix: boolean[][][][] = new Array(9).fill(false).map((): boolean[][][] => new Array(32).fill(false).map((): boolean[][] => new Array(53).fill(false).map((): boolean[] => new Array(53).fill(false))));
         for (let pitch: number = 128; pitch <= 384; pitch += 32) {
             for (let yaw: number = 0; yaw < 2048; yaw += 64) {
                 this.sinEyePitch = Draw3D.sin[pitch];
@@ -216,6 +205,11 @@ export default class World3D {
         // this.visibilityMap = null;
     };
 
+    static addOccluder = (level: number, type: number, minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number): void => {
+        const occluder: Occluder = new Occluder(Math.trunc(minX / 128), Math.trunc(maxX / 128), Math.trunc(minZ / 128), Math.trunc(maxZ / 128), type, minX, maxX, minZ, maxZ, minY, maxY);
+        World3D.levelOccluders[level][World3D.levelOccluderCount[level]++] = occluder;
+    };
+
     private static testPoint = (x: number, z: number, y: number): boolean => {
         const px: number = (z * this.sinEyeYaw + x * this.cosEyeYaw) >> 16;
         const tmp: number = (z * this.cosEyeYaw - x * this.sinEyeYaw) >> 16;
@@ -245,6 +239,7 @@ export default class World3D {
     // runtime
     private temporaryLocCount: number = 0;
     private minLevel: number = 0;
+    private tmpMergeIndex: number = 0;
 
     constructor(levelHeightmaps: Int32Array[][], maxTileZ: number, maxLevel: number, maxTileX: number) {
         this.maxLevel = maxLevel;
@@ -297,6 +292,110 @@ export default class World3D {
         }
     };
 
+    setBridge = (stx: number, stz: number): void => {
+        const ground: Tile | null = this.levelTiles[0][stx][stz];
+        for (let level: number = 0; level < 3; level++) {
+            this.levelTiles[level][stx][stz] = this.levelTiles[level + 1][stx][stz];
+            const tile: Tile | null = this.levelTiles[level][stx][stz];
+            if (tile) {
+                tile.level--;
+            }
+        }
+
+        if (!this.levelTiles[0][stx][stz]) {
+            const tile: Tile = new Tile(0, stx, stz);
+            tile.bridge = ground;
+            this.levelTiles[0][stx][stz] = tile;
+        }
+        this.levelTiles[3][stx][stz] = null;
+    };
+
+    setDrawLevel = (level: number, stx: number, stz: number, drawLevel: number): void => {
+        const tile: Tile | null = this.levelTiles[level][stx][stz];
+        if (!tile) {
+            return;
+        }
+        tile.drawLevel = drawLevel;
+    };
+
+    setTile = (
+        level: number,
+        x: number,
+        z: number,
+        shape: number,
+        angle: number,
+        textureId: number,
+        southwestY: number,
+        southeastY: number,
+        northeastY: number,
+        northwestY: number,
+        southwestColor: number,
+        southeastColor: number,
+        northeastColor: number,
+        northwestColor: number,
+        southwestColor2: number,
+        southeastColor2: number,
+        northeastColor2: number,
+        northwestColor2: number,
+        backgroundRgb: number,
+        foregroundRgb: number
+    ): void => {
+        if (shape == 0) {
+            const underlay: TileUnderlay = new TileUnderlay(southwestColor, southeastColor, northeastColor, northwestColor, -1, backgroundRgb, false);
+            for (let l: number = level; l >= 0; l--) {
+                if (this.levelTiles[l][x][z] == null) {
+                    this.levelTiles[l][x][z] = new Tile(l, x, z);
+                }
+            }
+            const tile: Tile | null = this.levelTiles[level][x][z];
+            if (tile) {
+                tile.underlay = underlay;
+            }
+        } else if (shape == 1) {
+            const underlay: TileUnderlay = new TileUnderlay(southwestColor2, southeastColor2, northeastColor2, northwestColor2, textureId, foregroundRgb, southwestY == southeastY && southwestY == northeastY && southwestY == northwestY);
+            for (let l: number = level; l >= 0; l--) {
+                if (this.levelTiles[l][x][z] == null) {
+                    this.levelTiles[l][x][z] = new Tile(l, x, z);
+                }
+            }
+            const tile: Tile | null = this.levelTiles[level][x][z];
+            if (tile) {
+                tile.underlay = underlay;
+            }
+        } else {
+            const overlay: TileOverlay = new TileOverlay(
+                x,
+                shape,
+                southeastColor2,
+                southeastY,
+                northeastColor,
+                angle,
+                southwestColor,
+                northwestY,
+                foregroundRgb,
+                southwestColor2,
+                textureId,
+                northwestColor2,
+                backgroundRgb,
+                northeastY,
+                northeastColor2,
+                northwestColor,
+                southwestY,
+                z,
+                southeastColor
+            );
+            for (let l: number = level; l >= 0; l--) {
+                if (this.levelTiles[l][x][z] == null) {
+                    this.levelTiles[l][x][z] = new Tile(l, x, z);
+                }
+            }
+            const tile: Tile | null = this.levelTiles[level][x][z];
+            if (tile) {
+                tile.overlay = overlay;
+            }
+        }
+    };
+
     addGroundDecoration = (model: Model | null, tileLevel: number, tileX: number, tileZ: number, y: number, bitset: number, info: number): void => {
         if (!model) {
             return;
@@ -319,7 +418,7 @@ export default class World3D {
     };
 
     addWall = (level: number, tileX: number, tileZ: number, y: number, typeA: number, typeB: number, modelA: Model | null, modelB: Model | null, bitset: number, info: number): void => {
-        if (!modelA || !modelB) {
+        if (!modelA && !modelB) {
             return;
         }
         const wall: Wall = new Wall(y, tileX * 128 + 64, tileZ * 128 + 64, typeA, typeB, modelA, modelB, bitset, info);
@@ -379,8 +478,8 @@ export default class World3D {
 
         const sx: number = x * 128 + 64;
         const sz: number = z * 128 + 64;
-        decor.x = sx + (decor.x - sx) * Math.trunc(offset / 16);
-        decor.z = sz + (decor.z - sz) * Math.trunc(offset / 16);
+        decor.x = sx + Math.trunc(((decor.x - sx) * offset) / 16);
+        decor.z = sz + Math.trunc(((decor.z - sz) * offset) / 16);
     };
 
     addLoc = (level: number, tileX: number, tileZ: number, y: number, model: Model | null, entity: Entity | null, bitset: number, info: number, width: number, length: number, yaw: number): boolean => {
@@ -468,6 +567,209 @@ export default class World3D {
                 }
             }
             return -1;
+        }
+    };
+
+    buildModels = (lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number): void => {
+        const lightMagnitude: number = Math.trunc(Math.sqrt(lightSrcX * lightSrcX + lightSrcY * lightSrcY + lightSrcZ * lightSrcZ));
+        const attenuation: number = (lightAttenuation * lightMagnitude) >> 8;
+
+        for (let level: number = 0; level < this.maxLevel; level++) {
+            for (let tileX: number = 0; tileX < this.maxTileX; tileX++) {
+                for (let tileZ: number = 0; tileZ < this.maxTileZ; tileZ++) {
+                    const tile: Tile | null = this.levelTiles[level][tileX][tileZ];
+                    if (!tile) {
+                        continue;
+                    }
+
+                    const wall: Wall | null = tile.wall;
+                    if (wall && wall.modelA && wall.modelA.vertexNormal) {
+                        this.mergeLocNormals(level, tileX, tileZ, 1, 1, wall.modelA);
+                        if (wall.modelB && wall.modelB.vertexNormal) {
+                            this.mergeLocNormals(level, tileX, tileZ, 1, 1, wall.modelB);
+                            this.mergeNormals(wall.modelA, wall.modelB, 0, 0, 0, false);
+                            wall.modelB.applyLighting(lightAmbient, attenuation, lightSrcX, lightSrcY, lightSrcZ);
+                        }
+                        wall.modelA.applyLighting(lightAmbient, attenuation, lightSrcX, lightSrcY, lightSrcZ);
+                    }
+
+                    for (let i: number = 0; i < tile.locCount; i++) {
+                        const loc: Loc | null = tile.locs[i];
+                        if (loc && loc.model && loc.model.vertexNormal) {
+                            this.mergeLocNormals(level, tileX, tileZ, loc.maxSceneTileX + 1 - loc.minSceneTileX, loc.maxSceneTileZ - loc.minSceneTileZ + 1, loc.model);
+                            loc.model.applyLighting(lightAmbient, attenuation, lightSrcX, lightSrcY, lightSrcZ);
+                        }
+                    }
+
+                    const decor: GroundDecoration | null = tile.groundDecoration;
+                    if (decor && decor.model.vertexNormal) {
+                        this.mergeGroundDecorationNormals(level, tileX, tileZ, decor.model);
+                        decor.model.applyLighting(lightAmbient, attenuation, lightSrcX, lightSrcY, lightSrcZ);
+                    }
+                }
+            }
+        }
+    };
+
+    mergeGroundDecorationNormals = (level: number, tileX: number, tileZ: number, model: Model): void => {
+        if (tileX < this.maxTileX) {
+            const tile: Tile | null = this.levelTiles[level][tileX + 1][tileZ];
+            if (tile && tile.groundDecoration && tile.groundDecoration.model.vertexNormal) {
+                this.mergeNormals(model, tile.groundDecoration.model, 128, 0, 0, true);
+            }
+        }
+
+        if (tileZ < this.maxTileX) {
+            const tile: Tile | null = this.levelTiles[level][tileX][tileZ + 1];
+            if (tile && tile.groundDecoration && tile.groundDecoration.model.vertexNormal) {
+                this.mergeNormals(model, tile.groundDecoration.model, 0, 0, 128, true);
+            }
+        }
+
+        if (tileX < this.maxTileX && tileZ < this.maxTileZ) {
+            const tile: Tile | null = this.levelTiles[level][tileX + 1][tileZ + 1];
+            if (tile && tile.groundDecoration && tile.groundDecoration.model.vertexNormal) {
+                this.mergeNormals(model, tile.groundDecoration.model, 128, 0, 128, true);
+            }
+        }
+
+        if (tileX < this.maxTileX && tileZ > 0) {
+            const tile: Tile | null = this.levelTiles[level][tileX + 1][tileZ - 1];
+            if (tile && tile.groundDecoration && tile.groundDecoration.model.vertexNormal) {
+                this.mergeNormals(model, tile.groundDecoration.model, 128, 0, -128, true);
+            }
+        }
+    };
+
+    mergeLocNormals = (level: number, tileX: number, tileZ: number, tileSizeX: number, tileSizeZ: number, model: Model): void => {
+        let allowFaceRemoval: boolean = true;
+
+        let minTileX: number = tileX;
+        const maxTileX: number = tileX + tileSizeX;
+        const minTileZ: number = tileZ - 1;
+        const maxTileZ: number = tileZ + tileSizeZ;
+
+        for (let l: number = level; l <= level + 1; l++) {
+            if (l === this.maxLevel) {
+                continue;
+            }
+
+            for (let x: number = minTileX; x <= maxTileX; x++) {
+                if (x < 0 || x >= this.maxTileX) {
+                    continue;
+                }
+
+                for (let z: number = minTileZ; z <= maxTileZ; z++) {
+                    if (z < 0 || z >= this.maxTileZ || (allowFaceRemoval && x < maxTileX && z < maxTileZ && (z >= tileZ || x == tileX))) {
+                        continue;
+                    }
+
+                    const tile: Tile | null = this.levelTiles[l][x][z];
+                    if (!tile) {
+                        continue;
+                    }
+
+                    const offsetY: number =
+                        Math.trunc((this.levelHeightmaps[l][x][z] + this.levelHeightmaps[l][x + 1][z] + this.levelHeightmaps[l][x][z + 1] + this.levelHeightmaps[l][x + 1][z + 1]) / 4) -
+                        Math.trunc((this.levelHeightmaps[level][tileX][tileZ] + this.levelHeightmaps[level][tileX + 1][tileZ] + this.levelHeightmaps[level][tileX][tileZ + 1] + this.levelHeightmaps[level][tileX + 1][tileZ + 1]) / 4);
+
+                    const wall: Wall | null = tile.wall;
+                    if (wall && wall.modelA && wall.modelA.vertexNormal) {
+                        this.mergeNormals(model, wall.modelA, (x - tileX) * 128 + (1 - tileSizeX) * 64, offsetY, (z - tileZ) * 128 + (1 - tileSizeZ) * 64, allowFaceRemoval);
+                    }
+
+                    if (wall && wall.modelB && wall.modelB.vertexNormal) {
+                        this.mergeNormals(model, wall.modelB, (x - tileX) * 128 + (1 - tileSizeX) * 64, offsetY, (z - tileZ) * 128 + (1 - tileSizeZ) * 64, allowFaceRemoval);
+                    }
+
+                    for (let i: number = 0; i < tile.locCount; i++) {
+                        const loc: Loc | null = tile.locs[i];
+                        if (!loc || !loc.model || !loc.model.vertexNormal) {
+                            continue;
+                        }
+
+                        const locTileSizeX: number = loc.maxSceneTileX + 1 - loc.minSceneTileX;
+                        const locTileSizeZ: number = loc.maxSceneTileZ + 1 - loc.minSceneTileZ;
+                        this.mergeNormals(model, loc.model, (loc.minSceneTileX - tileX) * 128 + (locTileSizeX - tileSizeX) * 64, offsetY, (loc.minSceneTileZ - tileZ) * 128 + (locTileSizeZ - tileSizeZ) * 64, allowFaceRemoval);
+                    }
+                }
+            }
+
+            minTileX--;
+            allowFaceRemoval = false;
+        }
+    };
+
+    mergeNormals = (modelA: Model, modelB: Model, offsetX: number, offsetY: number, offsetZ: number, allowFaceRemoval: boolean): void => {
+        this.tmpMergeIndex++;
+
+        let merged: number = 0;
+        const vertexX: Int32Array = modelB.vertexX;
+        const vertexCountB: number = modelB.vertexCount;
+
+        if (modelA.vertexNormal && modelA.vertexNormalOriginal) {
+            for (let vertexA: number = 0; vertexA < modelA.vertexCount; vertexA++) {
+                const normalA: VertexNormal = modelA.vertexNormal[vertexA];
+                const originalNormalA: VertexNormal = modelA.vertexNormalOriginal[vertexA];
+                if (originalNormalA.w != 0) {
+                    const y: number = modelA.vertexY[vertexA] - offsetY;
+                    if (y > modelB.minY) {
+                        continue;
+                    }
+
+                    const x: number = modelA.vertexX[vertexA] - offsetX;
+                    if (x < modelB.minX || x > modelB.maxX) {
+                        continue;
+                    }
+
+                    const z: number = modelA.vertexZ[vertexA] - offsetZ;
+                    if (z < modelB.minZ || z > modelB.maxZ) {
+                        continue;
+                    }
+
+                    if (modelB.vertexNormal && modelB.vertexNormalOriginal) {
+                        for (let vertexB: number = 0; vertexB < vertexCountB; vertexB++) {
+                            const normalB: VertexNormal = modelB.vertexNormal[vertexB];
+                            const originalNormalB: VertexNormal = modelB.vertexNormalOriginal[vertexB];
+                            if (x != vertexX[vertexB] || z != modelB.vertexZ[vertexB] || y != modelB.vertexY[vertexB] || originalNormalB.w == 0) {
+                                continue;
+                            }
+
+                            normalA.x += originalNormalB.x;
+                            normalA.y += originalNormalB.y;
+                            normalA.z += originalNormalB.z;
+                            normalA.w += originalNormalB.w;
+                            normalB.x += originalNormalA.x;
+                            normalB.y += originalNormalA.y;
+                            normalB.z += originalNormalA.z;
+                            normalB.w += originalNormalA.w;
+                            merged++;
+                            this.mergeIndexA[vertexA] = this.tmpMergeIndex;
+                            this.mergeIndexB[vertexB] = this.tmpMergeIndex;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (merged < 3 || !allowFaceRemoval) {
+            return;
+        }
+
+        if (modelA.faceInfo) {
+            for (let i: number = 0; i < modelA.faceCount; i++) {
+                if (this.mergeIndexA[modelA.faceVertexA[i]] == this.tmpMergeIndex && this.mergeIndexA[modelA.faceVertexB[i]] == this.tmpMergeIndex && this.mergeIndexA[modelA.faceVertexC[i]] == this.tmpMergeIndex) {
+                    modelA.faceInfo[i] = -1;
+                }
+            }
+        }
+
+        if (modelB.faceInfo) {
+            for (let i: number = 0; i < modelB.faceCount; i++) {
+                if (this.mergeIndexB[modelB.faceVertexA[i]] == this.tmpMergeIndex && this.mergeIndexB[modelB.faceVertexB[i]] == this.tmpMergeIndex && this.mergeIndexB[modelB.faceVertexC[i]] == this.tmpMergeIndex) {
+                    modelB.faceInfo[i] = -1;
+                }
+            }
         }
     };
 
@@ -957,7 +1259,7 @@ export default class World3D {
 
                     const wall: Wall | null = bridge.wall;
                     if (wall) {
-                        wall.modelA.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
+                        wall.modelA?.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
                     }
 
                     for (let i: number = 0; i < bridge.locCount; i++) {
@@ -1029,11 +1331,11 @@ export default class World3D {
                     }
 
                     if ((wall.typeA & frontWallTypes) !== 0 && !this.wallVisible(occludeLevel, tileX, tileZ, wall.typeA)) {
-                        wall.modelA.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
+                        wall.modelA?.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
                     }
 
                     if ((wall.typeB & frontWallTypes) !== 0 && !this.wallVisible(occludeLevel, tileX, tileZ, wall.typeB)) {
-                        wall.modelB.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
+                        wall.modelB?.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
                     }
                 }
 
@@ -1146,7 +1448,7 @@ export default class World3D {
                     const wall: Wall | null = tile.wall;
 
                     if (wall && !this.wallVisible(occludeLevel, tileX, tileZ, wall.typeA)) {
-                        wall.modelA.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
+                        wall.modelA?.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
                     }
 
                     tile.checkLocSpans = 0;
@@ -1376,11 +1678,11 @@ export default class World3D {
                 const wall: Wall | null = tile.wall;
                 if (wall) {
                     if ((wall.typeB & tile.backWallTypes) !== 0 && !this.wallVisible(occludeLevel, tileX, tileZ, wall.typeB)) {
-                        wall.modelB.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
+                        wall.modelB?.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
                     }
 
                     if ((wall.typeA & tile.backWallTypes) !== 0 && !this.wallVisible(occludeLevel, tileX, tileZ, wall.typeA)) {
-                        wall.modelA.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
+                        wall.modelA?.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, wall.x - World3D.eyeX, wall.y - World3D.eyeY, wall.z - World3D.eyeZ, wall.bitset);
                     }
                 }
             }
@@ -1786,7 +2088,7 @@ export default class World3D {
         } else if (type === 128) {
             return this.occluded(sceneX, y1, sceneZ);
         }
-        console.log('Warning unsupported wall type!');
+        console.warn('Warning unsupported wall type!');
         return true;
     };
 
@@ -1927,7 +2229,7 @@ export default class World3D {
 
     private mulLightness = (hsl: number, lightness: number): number => {
         const invLightness: number = 127 - lightness;
-        lightness = invLightness * Math.trunc((hsl & 0x7f) / 160);
+        lightness = Math.trunc((invLightness * (hsl & 0x7f)) / 160);
         if (lightness < 2) {
             lightness = 2;
         } else if (lightness > 126) {

@@ -9,7 +9,7 @@ import ObjStack from './ObjStack';
 
 export default class Tile extends Linkable {
     // constructor
-    readonly level: number;
+    level: number;
     readonly x: number;
     readonly z: number;
     readonly occludeLevel: number;

@@ -28,7 +28,7 @@ class Metadata {
     faceTextureAxisOffset: number = -1;
 }
 
-class VertexNormal {
+export class VertexNormal {
     x: number = 0;
     y: number = 0;
     z: number = 0;

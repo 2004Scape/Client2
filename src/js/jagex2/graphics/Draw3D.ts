@@ -31,6 +31,7 @@ export default class Draw3D {
 
     private static opaque: boolean = false;
     private static textureTranslucent: boolean[] = new Array(50);
+    private static averageTextureRGB: Int32Array = new Int32Array(50);
 
     static {
         for (let i: number = 1; i < 512; i++) {
@@ -106,6 +107,35 @@ export default class Draw3D {
                 /* empty */
             }
         }
+    };
+
+    static getAverageTextureRGB = (id: number): number => {
+        if (this.averageTextureRGB[id] != 0) {
+            return this.averageTextureRGB[id];
+        }
+
+        const palette: Int32Array | null = this.texturePalette[id];
+        if (!palette) {
+            return 0;
+        }
+
+        let r: number = 0;
+        let g: number = 0;
+        let b: number = 0;
+        const length: number = palette.length;
+        for (let i: number = 0; i < length; i++) {
+            r += (palette[i] >> 16) & 0xff;
+            g += (palette[i] >> 8) & 0xff;
+            b += palette[i] & 0xff;
+        }
+
+        let rgb: number = (Math.trunc(r / length) << 16) + (Math.trunc(g / length) << 8) + Math.trunc(b / length);
+        rgb = this.setGamma(rgb, 1.4);
+        if (rgb == 0) {
+            rgb = 1;
+        }
+        this.averageTextureRGB[id] = rgb;
+        return rgb;
     };
 
     static setBrightness = (brightness: number): void => {

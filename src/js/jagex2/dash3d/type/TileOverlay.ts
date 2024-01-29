@@ -85,7 +85,7 @@ export default class TileOverlay {
         const ONE: number = 128; // short
         const HALF: number = Math.trunc(ONE / 2);
         const QUARTER: number = Math.trunc(ONE / 4);
-        const THREE_QUARTER: number = ONE * Math.trunc(3 / 4);
+        const THREE_QUARTER: number = Math.trunc((ONE * 3) / 4);
 
         const points: number[] = TileOverlay.SHAPE_POINTS[shape];
         const vertexCount: number = points.length;
