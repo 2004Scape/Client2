@@ -32,7 +32,7 @@ export default class ObjType extends ConfigType {
             offset += idx.g2;
         }
 
-        this.cache = new Array(10);
+        this.cache = new Array(10).fill(null);
         for (let id: number = 0; id < 10; id++) {
             this.cache[id] = new ObjType();
         }
@@ -277,7 +277,7 @@ export default class ObjType extends ConfigType {
             }
         } else if (code >= 35 && code < 40) {
             if (!this.iops) {
-                this.iops = new Array(5);
+                this.iops = new Array(5).fill(null);
             }
             this.iops[code - 35] = dat.gjstr;
         } else if (code === 40) {

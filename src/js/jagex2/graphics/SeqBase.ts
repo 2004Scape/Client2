@@ -17,7 +17,7 @@ export default class SeqBase {
             const length: number = head.g1;
 
             const transformTypes: Uint8Array = new Uint8Array(length);
-            const groupLabels: Uint8Array[] = new Array<Uint8Array>(length);
+            const groupLabels: Uint8Array[] = new Array(length).fill(null);
 
             for (let j: number = 0; j < length; j++) {
                 transformTypes[j] = type.g1;

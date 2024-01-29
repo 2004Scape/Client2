@@ -50,6 +50,9 @@ import ObjStackEntity from './jagex2/dash3d/entity/ObjStackEntity';
 import LocEntity from './jagex2/dash3d/entity/LocEntity';
 import LocLayer from './jagex2/dash3d/LocLayer';
 import LocShape from './jagex2/dash3d/LocShape';
+import LocAngle from './jagex2/dash3d/LocAngle';
+import Loc from './jagex2/dash3d/type/Loc';
+import PathingEntity from './jagex2/dash3d/entity/PathingEntity';
 
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
@@ -402,6 +405,7 @@ class Client extends GameShell {
     private orbitCameraZ: number = 0;
     private levelHeightmap: Int32Array[][] | null = null;
     private levelTileFlags: Uint8Array[][] | null = null;
+    private tileLastOccupiedCycle: Int32Array[] = new Array(CollisionMap.SIZE).fill(null).map((): Int32Array => new Int32Array(CollisionMap.SIZE));
 
     // entities
     private players: (PlayerEntity | null)[] = new Array(this.MAX_PLAYER_COUNT).fill(null);
@@ -529,6 +533,9 @@ class Client extends GameShell {
             this.levelHeightmap = new Array(CollisionMap.LEVELS).fill(null).map((): Int32Array[] => new Array(CollisionMap.SIZE + 1).fill(null).map((): Int32Array => new Int32Array(CollisionMap.SIZE + 1)));
             if (this.levelHeightmap) {
                 this.scene = new World3D(this.levelHeightmap, CollisionMap.SIZE, CollisionMap.LEVELS, CollisionMap.SIZE);
+            }
+            for (let level: number = 0; level < 4; level++) {
+                this.levelCollisionMap[level] = new CollisionMap();
             }
             this.imageMinimap = new Pix24(512, 512);
             await this.showProgress(75, 'Unpacking media');
@@ -1668,8 +1675,8 @@ class Client extends GameShell {
                 await this.tryReconnect();
             }
 
-            // this.updatePlayers();
-            // this.updateNpcs();
+            this.updatePlayers();
+            this.updateNpcs();
             // this.updateEntityChats();
             // this.updateTemporaryLocs();
 
@@ -1800,7 +1807,7 @@ class Client extends GameShell {
                 this.cameraModifierCycle[i]++;
             }
 
-            this.handleInputKey();
+            await this.handleInputKey();
             this.idleCycles++;
             if (this.idleCycles > 4500) {
                 this.idleTimeout = 250;
@@ -2159,8 +2166,8 @@ class Client extends GameShell {
     private drawScene = (): void => {
         this.sceneCycle++;
         // TODO
-        // this.pushPlayers();
-        // this.pushNpcs();
+        this.pushPlayers();
+        this.pushNpcs();
         // this.pushProjectiles();
         // this.pushSpotanims();
         // this.pushLocs();
@@ -2909,7 +2916,7 @@ class Client extends GameShell {
         for (let ltx: number = 0; ltx < 104; ltx++) {
             for (let ltz: number = 0; ltz < 104; ltz++) {
                 const stack: LinkList | null = this.levelObjStacks[this.currentLevel][ltx][ltz];
-                if (stack != null) {
+                if (stack) {
                     anchorX = ltx * 4 + 2 - Math.trunc(this.localPlayer.x / 32);
                     anchorY = ltz * 4 + 2 - Math.trunc(this.localPlayer.z / 32);
                     this.drawOnMinimap(anchorY, this.imageMapdot0, anchorX);
@@ -2919,7 +2926,7 @@ class Client extends GameShell {
 
         for (let i: number = 0; i < this.npcCount; i++) {
             const npc: NpcEntity | null = this.npcs[this.npcIds[i]];
-            if (npc != null && npc.isVisible() && npc.type && npc.type.visonmap) {
+            if (npc && npc.isVisible() && npc.type && npc.type.visonmap) {
                 anchorX = Math.trunc(npc.x / 32) - Math.trunc(this.localPlayer.x / 32);
                 anchorY = Math.trunc(npc.z / 32) - Math.trunc(this.localPlayer.z / 32);
                 this.drawOnMinimap(anchorY, this.imageMapdot1, anchorX);
@@ -2928,14 +2935,14 @@ class Client extends GameShell {
 
         for (let i: number = 0; i < this.playerCount; i++) {
             const player: PlayerEntity | null = this.players[this.playerIds[i]];
-            if (player != null && player.isVisible() && player.name) {
+            if (player && player.isVisible() && player.name) {
                 anchorX = Math.trunc(player.x / 32) - Math.trunc(this.localPlayer.x / 32);
                 anchorY = Math.trunc(player.z / 32) - Math.trunc(this.localPlayer.z / 32);
 
                 let friend: boolean = false;
                 const name37: bigint = JString.toBase37(player.name);
                 for (let j: number = 0; j < this.friendCount; j++) {
-                    if (name37 == this.friendName37[j] && this.friendWorld[j] != 0) {
+                    if (name37 === this.friendName37[j] && this.friendWorld[j] !== 0) {
                         friend = true;
                         break;
                     }
@@ -2949,7 +2956,7 @@ class Client extends GameShell {
             }
         }
 
-        if (this.flagSceneTileX != 0) {
+        if (this.flagSceneTileX !== 0) {
             anchorX = this.flagSceneTileX * 4 + 2 - Math.trunc(this.localPlayer.x / 32);
             anchorY = this.flagSceneTileZ * 4 + 2 - Math.trunc(this.localPlayer.z / 32);
             this.drawOnMinimap(anchorY, this.imageMapflag, anchorX);
@@ -3001,11 +3008,11 @@ class Client extends GameShell {
             let offset: number = (103 - z) * 512 * 4 + 24628;
 
             for (let x: number = 1; x < 103; x++) {
-                if (this.levelTileFlags && (this.levelTileFlags[level][x][z] & 0x18) == 0) {
+                if (this.levelTileFlags && (this.levelTileFlags[level][x][z] & 0x18) === 0) {
                     this.scene?.drawMinimapTile(level, x, z, pixels, offset, 512);
                 }
 
-                if (level < 3 && this.levelTileFlags && (this.levelTileFlags[level + 1][x][z] & 0x8) != 0) {
+                if (level < 3 && this.levelTileFlags && (this.levelTileFlags[level + 1][x][z] & 0x8) !== 0) {
                     this.scene?.drawMinimapTile(level + 1, x, z, pixels, offset, 512);
                 }
 
@@ -3020,11 +3027,11 @@ class Client extends GameShell {
 
         for (let z: number = 1; z < 103; z++) {
             for (let x: number = 1; x < 103; x++) {
-                if (this.levelTileFlags && (this.levelTileFlags[level][x][z] & 0x18) == 0) {
+                if (this.levelTileFlags && (this.levelTileFlags[level][x][z] & 0x18) === 0) {
                     this.drawMinimapLoc(x, z, level, wallRgb, doorRgb);
                 }
 
-                if (level < 3 && this.levelTileFlags && (this.levelTileFlags[level + 1][x][z] & 0x8) != 0) {
+                if (level < 3 && this.levelTileFlags && (this.levelTileFlags[level + 1][x][z] & 0x8) !== 0) {
                     this.drawMinimapLoc(x, z, level + 1, wallRgb, doorRgb);
                 }
             }
@@ -3036,7 +3043,7 @@ class Client extends GameShell {
         for (let x: number = 0; x < 104; x++) {
             for (let z: number = 0; z < 104; z++) {
                 let bitset: number = this.scene?.getGroundDecorationBitset(this.currentLevel, x, z) ?? 0;
-                if (bitset == 0) {
+                if (bitset === 0) {
                     continue;
                 }
 
@@ -3050,7 +3057,7 @@ class Client extends GameShell {
                 let stx: number = x;
                 let stz: number = z;
 
-                if (func != 22 && func != 29 && func != 34 && func != 36 && func != 46 && func != 47 && func != 48) {
+                if (func !== 22 && func !== 29 && func !== 34 && func !== 36 && func !== 46 && func !== 47 && func !== 48) {
                     const maxX: number = 104;
                     const maxZ: number = 104;
                     const collisionmap: CollisionMap | null = this.levelCollisionMap[this.currentLevel];
@@ -3059,19 +3066,19 @@ class Client extends GameShell {
 
                         for (let i: number = 0; i < 10; i++) {
                             const rand: number = Math.trunc(Math.random() * 4.0);
-                            if (rand == 0 && stx > 0 && stx > x - 3 && (flags[CollisionMap.index(stx - 1, stz)] & 0x280108) == 0) {
+                            if (rand === 0 && stx > 0 && stx > x - 3 && (flags[CollisionMap.index(stx - 1, stz)] & 0x280108) === 0) {
                                 stx--;
                             }
 
-                            if (rand == 1 && stx < maxX - 1 && stx < x + 3 && (flags[CollisionMap.index(stx + 1, stz)] & 0x280180) == 0) {
+                            if (rand === 1 && stx < maxX - 1 && stx < x + 3 && (flags[CollisionMap.index(stx + 1, stz)] & 0x280180) === 0) {
                                 stx++;
                             }
 
-                            if (rand == 2 && stz > 0 && stz > z - 3 && (flags[CollisionMap.index(stx, stz - 1)] & 0x280102) == 0) {
+                            if (rand === 2 && stz > 0 && stz > z - 3 && (flags[CollisionMap.index(stx, stz - 1)] & 0x280102) === 0) {
                                 stz--;
                             }
 
-                            if (rand == 3 && stz < maxZ - 1 && stz < z + 3 && (flags[CollisionMap.index(stx, stz + 1)] & 0x280120) == 0) {
+                            if (rand === 3 && stz < maxZ - 1 && stz < z + 3 && (flags[CollisionMap.index(stx, stz + 1)] & 0x280120) === 0) {
                                 stz++;
                             }
                         }
@@ -3091,7 +3098,7 @@ class Client extends GameShell {
             return;
         }
         let bitset: number = this.scene.getWallBitset(level, tileX, tileZ);
-        if (bitset != 0) {
+        if (bitset !== 0) {
             const info: number = this.scene.getInfo(level, tileX, tileZ, bitset);
             const angle: number = (info >> 6) & 0x3;
             const shape: number = info & 0x1f;
@@ -3105,24 +3112,24 @@ class Client extends GameShell {
             const locId: number = (bitset >> 14) & 0x7fff;
 
             const loc: LocType = LocType.get(locId);
-            if (loc.mapscene == -1) {
-                if (shape == 0 || shape == 2) {
-                    if (angle == 0) {
+            if (loc.mapscene === -1) {
+                if (shape === LocShape.WALL_STRAIGHT || shape === LocShape.WALL_L) {
+                    if (angle === LocAngle.WEST) {
                         dst[offset] = rgb;
                         dst[offset + 512] = rgb;
                         dst[offset + 1024] = rgb;
                         dst[offset + 1536] = rgb;
-                    } else if (angle == 1) {
+                    } else if (angle === LocAngle.NORTH) {
                         dst[offset] = rgb;
                         dst[offset + 1] = rgb;
                         dst[offset + 2] = rgb;
                         dst[offset + 3] = rgb;
-                    } else if (angle == 2) {
+                    } else if (angle === LocAngle.EAST) {
                         dst[offset + 3] = rgb;
                         dst[offset + 3 + 512] = rgb;
                         dst[offset + 3 + 1024] = rgb;
                         dst[offset + 3 + 1536] = rgb;
-                    } else if (angle == 3) {
+                    } else if (angle === LocAngle.SOUTH) {
                         dst[offset + 1536] = rgb;
                         dst[offset + 1536 + 1] = rgb;
                         dst[offset + 1536 + 2] = rgb;
@@ -3130,35 +3137,35 @@ class Client extends GameShell {
                     }
                 }
 
-                if (shape == 3) {
-                    if (angle == 0) {
+                if (shape === LocShape.WALL_SQUARE_CORNER) {
+                    if (angle === LocAngle.WEST) {
                         dst[offset] = rgb;
-                    } else if (angle == 1) {
+                    } else if (angle === LocAngle.NORTH) {
                         dst[offset + 3] = rgb;
-                    } else if (angle == 2) {
+                    } else if (angle === LocAngle.EAST) {
                         dst[offset + 3 + 1536] = rgb;
-                    } else if (angle == 3) {
+                    } else if (angle === LocAngle.SOUTH) {
                         dst[offset + 1536] = rgb;
                     }
                 }
 
-                if (shape == 2) {
-                    if (angle == 3) {
+                if (shape === LocShape.WALL_L) {
+                    if (angle === LocAngle.SOUTH) {
                         dst[offset] = rgb;
                         dst[offset + 512] = rgb;
                         dst[offset + 1024] = rgb;
                         dst[offset + 1536] = rgb;
-                    } else if (angle == 0) {
+                    } else if (angle === LocAngle.WEST) {
                         dst[offset] = rgb;
                         dst[offset + 1] = rgb;
                         dst[offset + 2] = rgb;
                         dst[offset + 3] = rgb;
-                    } else if (angle == 1) {
+                    } else if (angle === LocAngle.NORTH) {
                         dst[offset + 3] = rgb;
                         dst[offset + 3 + 512] = rgb;
                         dst[offset + 3 + 1024] = rgb;
                         dst[offset + 3 + 1536] = rgb;
-                    } else if (angle == 2) {
+                    } else if (angle === LocAngle.EAST) {
                         dst[offset + 1536] = rgb;
                         dst[offset + 1536 + 1] = rgb;
                         dst[offset + 1536 + 2] = rgb;
@@ -3176,21 +3183,21 @@ class Client extends GameShell {
         }
 
         bitset = this.scene.getLocBitset(level, tileX, tileZ);
-        if (bitset != 0) {
+        if (bitset !== 0) {
             const info: number = this.scene.getInfo(level, tileX, tileZ, bitset);
             const angle: number = (info >> 6) & 0x3;
             const shape: number = info & 0x1f;
             const locId: number = (bitset >> 14) & 0x7fff;
             const loc: LocType = LocType.get(locId);
 
-            if (loc.mapscene != -1) {
+            if (loc.mapscene !== -1) {
                 const scene: Pix8 | null = this.imageMapscene[loc.mapscene];
                 if (scene) {
                     const offsetX: number = Math.trunc((loc.width * 4 - scene.width) / 2);
                     const offsetY: number = Math.trunc((loc.length * 4 - scene.height) / 2);
                     scene.draw(tileX * 4 + 48 + offsetX, (104 - tileZ - loc.length) * 4 + offsetY + 48);
                 }
-            } else if (shape == 9) {
+            } else if (shape === LocShape.WALL_DIAGONAL) {
                 let rgb: number = 0xeeeeee;
                 if (bitset > 0) {
                     rgb = 0xee0000;
@@ -3199,7 +3206,7 @@ class Client extends GameShell {
                 const dst: Int32Array = this.imageMinimap.pixels;
                 const offset: number = tileX * 4 + (103 - tileZ) * 512 * 4 + 24624;
 
-                if (angle == 0 || angle == 2) {
+                if (angle === LocAngle.WEST || angle === LocAngle.EAST) {
                     dst[offset + 1536] = rgb;
                     dst[offset + 1024 + 1] = rgb;
                     dst[offset + 512 + 2] = rgb;
@@ -3214,9 +3221,9 @@ class Client extends GameShell {
         }
 
         bitset = this.scene.getGroundDecorationBitset(level, tileX, tileZ);
-        if (bitset != 0) {
+        if (bitset !== 0) {
             const loc: LocType = LocType.get((bitset >> 14) & 0x7fff);
-            if (loc.mapscene != -1) {
+            if (loc.mapscene !== -1) {
                 const scene: Pix8 | null = this.imageMapscene[loc.mapscene];
                 if (scene) {
                     const offsetX: number = Math.trunc((loc.width * 4 - scene.width) / 2);
@@ -3697,9 +3704,9 @@ class Client extends GameShell {
             }
         } else if (action === 660) {
             if (this.menuVisible) {
-                // this.scene.click(b - 8, c - 11);
+                this.scene?.click(b - 8, c - 11);
             } else {
-                // this.scene.click(this.mouseClickX - 8, this.mouseClickY - 11);
+                this.scene?.click(this.mouseClickX - 8, this.mouseClickY - 11);
             }
         } else if (action === 188) {
             // select obj interface
@@ -4450,7 +4457,7 @@ class Client extends GameShell {
 
                         if ((key === 13 || key === 10) && this.chatTyped.length > 0) {
                             // if (this.rights) {
-                            if (this.chatTyped === '::clientdrop' /* && super.frame !== null*/) {
+                            if (this.chatTyped === '::clientdrop' /* && super.frame*/) {
                                 await this.tryReconnect();
                             } else if (this.chatTyped === '::noclip') {
                                 for (let level: number = 0; level < 4; level++) {
@@ -5116,7 +5123,7 @@ class Client extends GameShell {
             if (this.updateDesignModel) {
                 this.updateDesignModel = false;
 
-                const models: Model[] = [];
+                const models: (Model | null)[] = new Array(7).fill(null);
                 let modelCount: number = 0;
                 for (let part: number = 0; part < 7; part++) {
                     const kit: number = this.designIdentikits[part];
@@ -5384,7 +5391,7 @@ class Client extends GameShell {
                 //         break;
                 //     }
                 // }
-                // if (displayName !== null && this.friendCount < 100) {
+                // if (displayName && this.friendCount < 100) {
                 //     this.friendName37[this.friendCount] = username;
                 //     this.friendName[this.friendCount] = displayName;
                 //     this.friendWorld[this.friendCount] = world;
@@ -5557,18 +5564,18 @@ class Client extends GameShell {
                     }
                 }
                 let startTileX: number = 0;
-                let endTileX: number = 104;
+                let endTileX: number = CollisionMap.SIZE;
                 let dirX: number = 1;
                 if (dx < 0) {
-                    startTileX = 103;
+                    startTileX = CollisionMap.SIZE - 1;
                     endTileX = -1;
                     dirX = -1;
                 }
                 let startTileZ: number = 0;
-                let endTileZ: number = 104;
+                let endTileZ: number = CollisionMap.SIZE;
                 let dirZ: number = 1;
                 if (dz < 0) {
-                    startTileZ = 103;
+                    startTileZ = CollisionMap.SIZE - 1;
                     endTileZ = -1;
                     dirZ = -1;
                 }
@@ -5577,7 +5584,7 @@ class Client extends GameShell {
                         const lastX: number = x + dx;
                         const lastZ: number = z + dz;
                         for (let level: number = 0; level < 4; level++) {
-                            if (lastX >= 0 && lastZ >= 0 && lastX < 104 && lastZ < 104) {
+                            if (lastX >= 0 && lastZ >= 0 && lastX < CollisionMap.SIZE && lastZ < CollisionMap.SIZE) {
                                 this.levelObjStacks[level][x][z] = this.levelObjStacks[level][lastX][lastZ];
                             } else {
                                 this.levelObjStacks[level][x][z] = null;
@@ -6049,13 +6056,13 @@ class Client extends GameShell {
                 this.baseZ = this.in.g1;
                 for (let x: number = this.baseX; x < this.baseX + 8; x++) {
                     for (let z: number = this.baseZ; z < this.baseZ + 8; z++) {
-                        // if (this.levelObjStacks[this.currentLevel][x][z] !== null) {
+                        // if (this.levelObjStacks[this.currentLevel][x][z]) {
                         //     this.levelObjStacks[this.currentLevel][x][z] = null;
                         //     this.sortObjStacks(x, z);
                         // }
                     }
                 }
-                // for (@Pc(2487) LocTemporary loc = (LocTemporary) this.spawnedLocations.peekFront(); loc !== null; loc = (LocTemporary) this.spawnedLocations.prev()) {
+                // for (@Pc(2487) LocTemporary loc = (LocTemporary) this.spawnedLocations.peekFront(); loc; loc = (LocTemporary) this.spawnedLocations.prev()) {
                 //     if (loc.x >= this.baseX && loc.x < this.baseX + 8 && loc.z >= this.baseZ && loc.z < this.baseZ + 8 && loc.plane === this.currentLevel) {
                 //         this.addLoc(loc.plane, loc.x, loc.z, loc.lastLocIndex, loc.lastAngle, loc.lastShape, loc.layer);
                 //         loc.unlink();
@@ -7575,11 +7582,12 @@ class Client extends GameShell {
     private tryMove = (srcX: number, srcZ: number, dx: number, dz: number, type: number, locWidth: number, locLength: number, locRotation: number, locShape: number, forceapproach: number, tryNearest: boolean): boolean => {
         const collisionMap: CollisionMap | null = this.levelCollisionMap[this.currentLevel];
         if (!collisionMap) {
+            console.log('failed 1');
             return false;
         }
 
-        const sceneWidth: number = 104;
-        const sceneLength: number = 104;
+        const sceneWidth: number = CollisionMap.SIZE;
+        const sceneLength: number = CollisionMap.SIZE;
 
         for (let x: number = 0; x < sceneWidth; x++) {
             for (let z: number = 0; z < sceneLength; z++) {
@@ -7744,7 +7752,7 @@ class Client extends GameShell {
                     for (let px: number = dx - padding; px <= dx + padding; px++) {
                         for (let pz: number = dz - padding; pz <= dz + padding; pz++) {
                             const index: number = CollisionMap.index(px, pz);
-                            if (px >= 0 && pz >= 0 && px < 104 && pz < 104 && this.bfsCost[index] < min) {
+                            if (px >= 0 && pz >= 0 && px < CollisionMap.SIZE && pz < CollisionMap.SIZE && this.bfsCost[index] < min) {
                                 min = this.bfsCost[index];
                                 x = px;
                                 z = pz;
@@ -7761,6 +7769,7 @@ class Client extends GameShell {
             }
 
             if (!arrived) {
+                console.log('failed 2');
                 return false;
             }
         }
@@ -8373,6 +8382,419 @@ class Client extends GameShell {
         }
     };
 
+    private updatePlayers = (): void => {
+        for (let i: number = -1; i < this.playerCount; i++) {
+            let index: number;
+            if (i === -1) {
+                index = this.LOCAL_PLAYER_INDEX;
+            } else {
+                index = this.playerIds[i];
+            }
+
+            const player: PlayerEntity | null = this.players[index];
+            if (player) {
+                this.updateEntity(player, 1);
+            }
+        }
+
+        Client.updatePlayersCounter++;
+        if (Client.updatePlayersCounter > 1406) {
+            Client.updatePlayersCounter = 0;
+            // ANTICHEAT_CYCLELOGIC6
+            this.out.p1isaac(219);
+            this.out.p1(0);
+            const start: number = this.out.pos;
+            this.out.p1(162);
+            this.out.p1(22);
+            if (Math.trunc(Math.random() * 2.0) === 0) {
+                this.out.p1(84);
+            }
+            this.out.p2(31824);
+            this.out.p2(13490);
+            if (Math.trunc(Math.random() * 2.0) === 0) {
+                this.out.p1(123);
+            }
+            if (Math.trunc(Math.random() * 2.0) === 0) {
+                this.out.p1(134);
+            }
+            this.out.p1(100);
+            this.out.p1(94);
+            this.out.p2(35521);
+            this.out.psize1(this.out.pos - start);
+        }
+    };
+
+    private updateEntity = (entity: PathingEntity, size: number): void => {
+        if (entity.x < 128 || entity.z < 128 || entity.x >= 13184 || entity.z >= 13184) {
+            entity.primarySeqId = -1;
+            entity.spotanimId = -1;
+            entity.forceMoveEndCycle = 0;
+            entity.forceMoveStartCycle = 0;
+            entity.x = entity.pathTileX[0] * 128 + entity.size * 64;
+            entity.z = entity.pathTileZ[0] * 128 + entity.size * 64;
+            entity.pathLength = 0;
+        }
+
+        if (entity === this.localPlayer && (entity.x < 1536 || entity.z < 1536 || entity.x >= 11776 || entity.z >= 11776)) {
+            entity.primarySeqId = -1;
+            entity.spotanimId = -1;
+            entity.forceMoveEndCycle = 0;
+            entity.forceMoveStartCycle = 0;
+            entity.x = entity.pathTileX[0] * 128 + entity.size * 64;
+            entity.z = entity.pathTileZ[0] * 128 + entity.size * 64;
+            entity.pathLength = 0;
+        }
+
+        if (entity.forceMoveEndCycle > this.loopCycle) {
+            // this.updateForceMovement(entity);
+        } else if (entity.forceMoveStartCycle >= this.loopCycle) {
+            // this.startForceMovement(entity);
+        } else {
+            this.updateMovement(entity);
+        }
+
+        this.updateFacingDirection(entity);
+        this.updateSequences(entity);
+    };
+
+    private pushPlayers = (): void => {
+        if (!this.localPlayer) {
+            return;
+        }
+
+        if (this.localPlayer.x >> 7 === this.flagSceneTileX && this.localPlayer.z >> 7 === this.flagSceneTileZ) {
+            this.flagSceneTileX = 0;
+        }
+
+        for (let i: number = -1; i < this.playerCount; i++) {
+            let player: PlayerEntity | null;
+            let id: number;
+            if (i === -1) {
+                player = this.localPlayer;
+                id = this.LOCAL_PLAYER_INDEX << 14;
+            } else {
+                player = this.players[this.playerIds[i]];
+                id = this.playerIds[i] << 14;
+            }
+
+            if (!player || !player.isVisible()) {
+                continue;
+            }
+
+            player.lowMemory = ((Client.lowMemory && this.playerCount > 50) || this.playerCount > 200) && i !== -1 && player.secondarySeqId === player.seqStandId;
+            const stx: number = player.x >> 7;
+            const stz: number = player.z >> 7;
+
+            if (stx < 0 || stx >= CollisionMap.SIZE || stz < 0 || stz >= CollisionMap.SIZE) {
+                continue;
+            }
+
+            if (!player.locModel || this.loopCycle < player.locStartCycle || this.loopCycle >= player.locStopCycle) {
+                if ((player.x & 0x7f) === 64 && (player.z & 0x7f) === 64) {
+                    if (this.tileLastOccupiedCycle[stx][stz] === this.sceneCycle) {
+                        continue;
+                    }
+
+                    this.tileLastOccupiedCycle[stx][stz] = this.sceneCycle;
+                }
+
+                player.y = this.getHeightmapY(this.currentLevel, player.x, player.z);
+                this.scene?.addTemporary(this.currentLevel, player.x, player.y, player.z, null, player, id, player.yaw, 60, player.seqStretches);
+            } else {
+                player.lowMemory = false;
+                player.y = this.getHeightmapY(this.currentLevel, player.x, player.z);
+                this.scene?.addTemporary2(this.currentLevel, player.x, player.y, player.z, player.minTileX, player.minTileZ, player.maxTileX, player.maxTileZ, null, player, id, player.yaw);
+            }
+        }
+    };
+    private updateNpcs = (): void => {
+        for (let i: number = 0; i < this.npcCount; i++) {
+            const id: number = this.npcIds[i];
+            const npc: NpcEntity | null = this.npcs[id];
+            if (npc && npc.type) {
+                this.updateEntity(npc, npc.type.size);
+            }
+        }
+    };
+
+    private pushNpcs = (): void => {
+        for (let i: number = 0; i < this.npcCount; i++) {
+            const npc: NpcEntity | null = this.npcs[this.npcIds[i]];
+            const bitset: number = (this.npcIds[i] << 14) + 0x20000000;
+
+            if (!npc || !npc.isVisible()) {
+                continue;
+            }
+
+            const x: number = npc.x >> 7;
+            const z: number = npc.z >> 7;
+
+            if (x < 0 || x >= CollisionMap.SIZE || z < 0 || z >= CollisionMap.SIZE) {
+                continue;
+            }
+
+            if (npc.size === 1 && (npc.x & 0x7f) === 64 && (npc.z & 0x7f) === 64) {
+                if (this.tileLastOccupiedCycle[x][z] === this.sceneCycle) {
+                    continue;
+                }
+
+                this.tileLastOccupiedCycle[x][z] = this.sceneCycle;
+            }
+
+            this.scene?.addTemporary(this.currentLevel, npc.x, this.getHeightmapY(this.currentLevel, npc.x, npc.z), npc.z, null, npc, bitset, npc.yaw, (npc.size - 1) * 64 + 60, npc.seqStretches);
+        }
+    };
+
+    private updateFacingDirection = (e: PathingEntity): void => {
+        if (e.targetId !== -1 && e.targetId < 32768) {
+            const npc: NpcEntity | null = this.npcs[e.targetId];
+            if (npc) {
+                const dstX: number = e.x - npc.x;
+                const dstZ: number = e.z - npc.z;
+
+                if (dstX !== 0 || dstZ !== 0) {
+                    e.dstYaw = Math.trunc(Math.atan2(dstX, dstZ) * 325.949) & 0x7ff;
+                }
+            }
+        }
+
+        if (e.targetId >= 32768) {
+            let index: number = e.targetId - 32768;
+            if (index === this.localPid) {
+                index = this.LOCAL_PLAYER_INDEX;
+            }
+
+            const player: PlayerEntity | null = this.players[index];
+            if (player) {
+                const dstX: number = e.x - player.x;
+                const dstZ: number = e.z - player.z;
+
+                if (dstX !== 0 || dstZ !== 0) {
+                    e.dstYaw = Math.trunc(Math.atan2(dstX, dstZ) * 325.949) & 0x7ff;
+                }
+            }
+        }
+
+        if ((e.targetTileX !== 0 || e.targetTileZ !== 0) && (e.pathLength === 0 || e.seqTrigger > 0)) {
+            const dstX: number = e.x - (e.targetTileX - this.sceneBaseTileX - this.sceneBaseTileX) * 64;
+            const dstZ: number = e.z - (e.targetTileZ - this.sceneBaseTileZ - this.sceneBaseTileZ) * 64;
+
+            if (dstX !== 0 || dstZ !== 0) {
+                e.dstYaw = Math.trunc(Math.atan2(dstX, dstZ) * 325.949) & 0x7ff;
+            }
+
+            e.targetTileX = 0;
+            e.targetTileZ = 0;
+        }
+
+        const remainingYaw: number = (e.dstYaw - e.yaw) & 0x7ff;
+
+        if (remainingYaw !== 0) {
+            if (remainingYaw < 32 || remainingYaw > 2016) {
+                e.yaw = e.dstYaw;
+            } else if (remainingYaw > 1024) {
+                e.yaw -= 32;
+            } else {
+                e.yaw += 32;
+            }
+
+            e.yaw &= 0x7ff;
+
+            if (e.secondarySeqId === e.seqStandId && e.yaw !== e.dstYaw) {
+                if (e.seqTurnId !== -1) {
+                    e.secondarySeqId = e.seqTurnId;
+                    return;
+                }
+
+                e.secondarySeqId = e.seqWalkId;
+            }
+        }
+    };
+
+    private updateSequences = (e: PathingEntity): void => {
+        e.seqStretches = false;
+
+        let seq: SeqType | null;
+        if (e.secondarySeqId !== -1) {
+            seq = SeqType.instances[e.secondarySeqId];
+            e.secondarySeqCycle++;
+            if (seq.delay && e.secondarySeqFrame < seq.frameCount && e.secondarySeqCycle > seq.delay[e.secondarySeqFrame]) {
+                e.secondarySeqCycle = 0;
+                e.secondarySeqFrame++;
+            }
+            if (e.secondarySeqFrame >= seq.frameCount) {
+                e.secondarySeqCycle = 0;
+                e.secondarySeqFrame = 0;
+            }
+        }
+
+        if (e.primarySeqId !== -1 && e.primarySeqDelay === 0) {
+            seq = SeqType.instances[e.primarySeqId];
+            e.primarySeqCycle++;
+            while (seq.delay && e.primarySeqFrame < seq.frameCount && e.primarySeqCycle > seq.delay[e.primarySeqFrame]) {
+                e.primarySeqCycle -= seq.delay[e.primarySeqFrame];
+                e.primarySeqFrame++;
+            }
+
+            if (e.primarySeqFrame >= seq.frameCount) {
+                e.primarySeqFrame -= seq.replayoff;
+                e.primarySeqLoop++;
+                if (e.primarySeqLoop >= seq.replaycount) {
+                    e.primarySeqId = -1;
+                }
+                if (e.primarySeqFrame < 0 || e.primarySeqFrame >= seq.frameCount) {
+                    e.primarySeqId = -1;
+                }
+            }
+
+            e.seqStretches = seq.stretches;
+        }
+
+        if (e.primarySeqDelay > 0) {
+            e.primarySeqDelay--;
+        }
+
+        if (e.spotanimId !== -1 && this.loopCycle >= e.spotanimLastCycle) {
+            if (e.spotanimFrame < 0) {
+                e.spotanimFrame = 0;
+            }
+
+            seq = SpotAnimType.instances[e.spotanimId].seq;
+            e.spotanimCycle++;
+            while (seq && seq.delay && e.spotanimFrame < seq.frameCount && e.spotanimCycle > seq.delay[e.spotanimFrame]) {
+                e.spotanimCycle -= seq.delay[e.spotanimFrame];
+                e.spotanimFrame++;
+            }
+
+            if (seq && e.spotanimFrame >= seq.frameCount) {
+                if (e.spotanimFrame < 0 || e.spotanimFrame >= seq.frameCount) {
+                    e.spotanimId = -1;
+                }
+            }
+        }
+    };
+
+    private updateMovement = (entity: PathingEntity): void => {
+        entity.secondarySeqId = entity.seqStandId;
+
+        if (entity.pathLength == 0) {
+            entity.seqTrigger = 0;
+            return;
+        }
+
+        if (entity.primarySeqId != -1 && entity.primarySeqDelay == 0) {
+            const seq: SeqType = SeqType.instances[entity.primarySeqId];
+            if (seq.labelGroups == null) {
+                entity.seqTrigger++;
+                return;
+            }
+        }
+
+        const x: number = entity.x;
+        const z: number = entity.z;
+        const dstX: number = entity.pathTileX[entity.pathLength - 1] * 128 + entity.size * 64;
+        const dstZ: number = entity.pathTileZ[entity.pathLength - 1] * 128 + entity.size * 64;
+
+        if (dstX - x <= 256 && dstX - x >= -256 && dstZ - z <= 256 && dstZ - z >= -256) {
+            if (x < dstX) {
+                if (z < dstZ) {
+                    entity.dstYaw = 1280;
+                } else if (z > dstZ) {
+                    entity.dstYaw = 1792;
+                } else {
+                    entity.dstYaw = 1536;
+                }
+            } else if (x > dstX) {
+                if (z < dstZ) {
+                    entity.dstYaw = 768;
+                } else if (z > dstZ) {
+                    entity.dstYaw = 256;
+                } else {
+                    entity.dstYaw = 512;
+                }
+            } else if (z < dstZ) {
+                entity.dstYaw = 1024;
+            } else {
+                entity.dstYaw = 0;
+            }
+
+            let deltaYaw: number = (entity.dstYaw - entity.yaw) & 0x7ff;
+            if (deltaYaw > 1024) {
+                deltaYaw -= 2048;
+            }
+
+            let seqId: number = entity.seqTurnAroundId;
+            if (deltaYaw >= -256 && deltaYaw <= 256) {
+                seqId = entity.seqWalkId;
+            } else if (deltaYaw >= 256 && deltaYaw < 768) {
+                seqId = entity.seqTurnRightId;
+            } else if (deltaYaw >= -768 && deltaYaw <= -256) {
+                seqId = entity.seqTurnLeftId;
+            }
+
+            if (seqId == -1) {
+                seqId = entity.seqWalkId;
+            }
+
+            entity.secondarySeqId = seqId;
+            let moveSpeed: number = 4;
+            if (entity.yaw != entity.dstYaw && entity.targetId == -1) {
+                moveSpeed = 2;
+            }
+
+            if (entity.pathLength > 2) {
+                moveSpeed = 6;
+            }
+
+            if (entity.pathLength > 3) {
+                moveSpeed = 8;
+            }
+
+            if (entity.seqTrigger > 0 && entity.pathLength > 1) {
+                moveSpeed = 8;
+                entity.seqTrigger--;
+            }
+
+            if (entity.pathRunning[entity.pathLength - 1]) {
+                moveSpeed <<= 0x1;
+            }
+
+            if (moveSpeed >= 8 && entity.secondarySeqId == entity.seqWalkId && entity.seqRunId != -1) {
+                entity.secondarySeqId = entity.seqRunId;
+            }
+
+            if (x < dstX) {
+                entity.x += moveSpeed;
+                if (entity.x > dstX) {
+                    entity.x = dstX;
+                }
+            } else if (x > dstX) {
+                entity.x -= moveSpeed;
+                if (entity.x < dstX) {
+                    entity.x = dstX;
+                }
+            }
+            if (z < dstZ) {
+                entity.z += moveSpeed;
+                if (entity.z > dstZ) {
+                    entity.z = dstZ;
+                }
+            } else if (z > dstZ) {
+                entity.z -= moveSpeed;
+                if (entity.z < dstZ) {
+                    entity.z = dstZ;
+                }
+            }
+
+            if (entity.x == dstX && entity.z == dstZ) {
+                entity.pathLength--;
+            }
+        } else {
+            entity.x = dstX;
+            entity.z = dstZ;
+        }
+    };
+
     private getTopLevel = (): number => {
         let top: number = 3;
         if (this.cameraPitch < 310 && this.localPlayer) {
@@ -8467,7 +8889,7 @@ class Client extends GameShell {
         const tileX: number = Math.min(sceneX >> 7, 103);
         const tileZ: number = Math.min(sceneZ >> 7, 103);
         let realLevel: number = level;
-        if (level < 3 && this.levelTileFlags && (this.levelTileFlags[1][tileX][tileZ] & 0x2) == 2) {
+        if (level < 3 && this.levelTileFlags && (this.levelTileFlags[1][tileX][tileZ] & 0x2) === 2) {
             realLevel = level + 1;
         }
 
@@ -8488,7 +8910,7 @@ class Client extends GameShell {
         let cos: number;
         let tmp: number;
 
-        if (invPitch != 0) {
+        if (invPitch !== 0) {
             sin = Draw3D.sin[invPitch];
             cos = Draw3D.cos[invPitch];
             tmp = (-distance * sin) >> 16;
@@ -8496,7 +8918,7 @@ class Client extends GameShell {
             z = tmp;
         }
 
-        if (invYaw != 0) {
+        if (invYaw !== 0) {
             sin = Draw3D.sin[invYaw];
             cos = Draw3D.cos[invYaw];
             tmp = (y * sin) >> 16;
@@ -8527,16 +8949,16 @@ class Client extends GameShell {
         if (this.orbitCameraZ !== orbitZ) {
             this.orbitCameraZ += Math.trunc((orbitZ - this.orbitCameraZ) / 16);
         }
-        if (this.actionKey[1] == 1) {
+        if (this.actionKey[1] === 1) {
             this.orbitCameraYawVelocity += Math.trunc((-this.orbitCameraYawVelocity - 24) / 2);
-        } else if (this.actionKey[2] == 1) {
+        } else if (this.actionKey[2] === 1) {
             this.orbitCameraYawVelocity += Math.trunc((24 - this.orbitCameraYawVelocity) / 2);
         } else {
             this.orbitCameraYawVelocity /= 2;
         }
-        if (this.actionKey[3] == 1) {
+        if (this.actionKey[3] === 1) {
             this.orbitCameraPitchVelocity += Math.trunc((12 - this.orbitCameraPitchVelocity) / 2);
-        } else if (this.actionKey[4] == 1) {
+        } else if (this.actionKey[4] === 1) {
             this.orbitCameraPitchVelocity += Math.trunc((-this.orbitCameraPitchVelocity - 12) / 2);
         } else {
             this.orbitCameraPitchVelocity = Math.trunc(this.orbitCameraPitchVelocity / 2);

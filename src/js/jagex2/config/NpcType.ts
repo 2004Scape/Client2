@@ -25,7 +25,7 @@ export default class NpcType extends ConfigType {
             offset += idx.g2;
         }
 
-        this.cache = new Array(20);
+        this.cache = new Array(20).fill(null);
         for (let id: number = 0; id < 20; id++) {
             this.cache[id] = new NpcType();
         }
@@ -157,7 +157,7 @@ export default class NpcType extends ConfigType {
             model = NpcType.modelCache.get(BigInt(this.index)) as Model | null;
 
             if (!model && this.models) {
-                const models: Model[] = [];
+                const models: (Model | null)[] = new Array(this.models.length).fill(null);
                 for (let i: number = 0; i < this.models.length; i++) {
                     models[i] = Model.model(this.models[i]);
                 }
@@ -170,18 +170,16 @@ export default class NpcType extends ConfigType {
 
                 if (this.recol_s && this.recol_d) {
                     for (let i: number = 0; i < this.recol_s.length; i++) {
-                        model.recolor(this.recol_s[i], this.recol_d[i]);
+                        model?.recolor(this.recol_s[i], this.recol_d[i]);
                     }
                 }
 
-                model.createLabelReferences();
-                model.calculateNormals(64, 850, -30, -50, -30, true);
-                NpcType.modelCache.put(BigInt(this.index), model);
+                model?.createLabelReferences();
+                model?.calculateNormals(64, 850, -30, -50, -30, true);
+                if (model) {
+                    NpcType.modelCache.put(BigInt(this.index), model);
+                }
             }
-        }
-
-        if (model) {
-            tmp = Model.modelShareAlpha(model, !this.disposeAlpha);
         }
 
         if (model) {
@@ -214,12 +212,12 @@ export default class NpcType extends ConfigType {
             return null;
         }
 
-        const models: Model[] = [];
+        const models: (Model | null)[] = new Array(this.heads.length).fill(null);
         for (let i: number = 0; i < this.heads.length; i++) {
             models[i] = Model.model(this.heads[i]);
         }
 
-        let model: Model;
+        let model: Model | null;
         if (models.length === 1) {
             model = models[0];
         } else {
@@ -228,7 +226,7 @@ export default class NpcType extends ConfigType {
 
         if (this.recol_s && this.recol_d) {
             for (let i: number = 0; i < this.recol_s.length; i++) {
-                model.recolor(this.recol_s[i], this.recol_d[i]);
+                model?.recolor(this.recol_s[i], this.recol_d[i]);
             }
         }
 

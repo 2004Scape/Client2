@@ -91,8 +91,8 @@ export default class Model extends Hashable {
     static vertex2: Packet | null = null;
     static axis: Packet | null = null;
 
-    static faceClippedX: boolean[] | null = new Array(4096);
-    static faceNearClipped: boolean[] | null = new Array(4096);
+    static faceClippedX: boolean[] | null = new Array(4096).fill(false);
+    static faceNearClipped: boolean[] | null = new Array(4096).fill(false);
 
     static vertexScreenX: Int32Array | null = new Int32Array(4096);
     static vertexScreenY: Int32Array | null = new Int32Array(4096);
@@ -149,7 +149,7 @@ export default class Model extends Hashable {
             Model.vertex2.pos = 0;
 
             const count: number = Model.head.g2;
-            Model.metadata = new Array(count + 100);
+            Model.metadata = new Array(count + 100).fill(null);
 
             let vertexTextureDataOffset: number = 0;
             let labelDataOffset: number = 0;
@@ -721,7 +721,7 @@ export default class Model extends Hashable {
         return model;
     };
 
-    static modelFromModels = (models: Model[], count: number): Model => {
+    static modelFromModels = (models: (Model | null)[], count: number): Model => {
         let copyInfo: boolean = false;
         let copyPriorities: boolean = false;
         let copyAlpha: boolean = false;
@@ -733,7 +733,7 @@ export default class Model extends Hashable {
         let priority: number = -1;
 
         for (let i: number = 0; i < count; i++) {
-            const model: Model = models[i];
+            const model: Model | null = models[i];
             if (model) {
                 vertexCount += model.vertexCount;
                 faceCount += model.faceCount;
@@ -837,7 +837,7 @@ export default class Model extends Hashable {
         };
 
         for (let i: number = 0; i < count; i++) {
-            const model: Model = models[i];
+            const model: Model | null = models[i];
 
             if (model) {
                 for (let face: number = 0; face < model.faceCount; face++) {
@@ -1288,7 +1288,7 @@ export default class Model extends Hashable {
                     count = label;
                 }
             }
-            this.labelVertices = new Array(count + 1);
+            this.labelVertices = new Array(count + 1).fill(0);
             for (let label: number = 0; label <= count; label++) {
                 this.labelVertices[label] = new Int32Array(labelVertexCount[label]);
                 labelVertexCount[label] = 0;
@@ -1312,7 +1312,7 @@ export default class Model extends Hashable {
                     count = label;
                 }
             }
-            this.labelFaces = new Array(count + 1);
+            this.labelFaces = new Array(count + 1).fill(0);
             for (let label: number = 0; label <= count; label++) {
                 this.labelFaces[label] = new Int32Array(labelFaceCount[label]);
                 labelFaceCount[label] = 0;
@@ -1474,7 +1474,7 @@ export default class Model extends Hashable {
         }
 
         if (!this.vertexNormal) {
-            this.vertexNormal = new Array(this.vertexCount);
+            this.vertexNormal = new Array(this.vertexCount).fill(null);
 
             for (let v: number = 0; v < this.vertexCount; v++) {
                 this.vertexNormal[v] = new VertexNormal();
@@ -1542,7 +1542,7 @@ export default class Model extends Hashable {
         if (applyLighting) {
             this.applyLighting(lightAmbient, attenuation, lightSrcX, lightSrcY, lightSrcZ);
         } else {
-            this.vertexNormalOriginal = new Array(this.vertexCount);
+            this.vertexNormalOriginal = new Array(this.vertexCount).fill(null);
 
             for (let v: number = 0; v < this.vertexCount; v++) {
                 const normal: VertexNormal = this.vertexNormal[v];

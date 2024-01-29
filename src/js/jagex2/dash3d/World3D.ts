@@ -516,6 +516,39 @@ export default class World3D {
         return this.addLoc2(sceneX, sceneZ, y, level, tileX, tileZ, width, length, model, entity, bitset, info, yaw, false);
     };
 
+    addTemporary = (level: number, x: number, y: number, z: number, model: Model | null, entity: Entity | null, bitset: number, yaw: number, padding: number, forwardPadding: boolean): boolean => {
+        if (!model && !entity) {
+            return true;
+        }
+        let x0: number = x - padding;
+        let z0: number = z - padding;
+        let x1: number = x + padding;
+        let z1: number = z + padding;
+        if (forwardPadding) {
+            if (yaw > 640 && yaw < 1408) {
+                z1 += 128;
+            }
+            if (yaw > 1152 && yaw < 1920) {
+                x1 += 128;
+            }
+            if (yaw > 1664 || yaw < 384) {
+                z0 -= 128;
+            }
+            if (yaw > 128 && yaw < 896) {
+                x0 -= 128;
+            }
+        }
+        x0 = Math.trunc(x0 / 128);
+        z0 = Math.trunc(z0 / 128);
+        x1 = Math.trunc(x1 / 128);
+        z1 = Math.trunc(z1 / 128);
+        return this.addLoc2(x, z, y, level, x0, z0, x1 + 1 - x0, z1 - z0 + 1, model, entity, bitset, 0, yaw, true);
+    };
+
+    addTemporary2 = (level: number, x: number, y: number, z: number, minTileX: number, minTileZ: number, maxTileX: number, maxTileZ: number, model: Model | null, entity: Entity | null, bitset: number, yaw: number): boolean => {
+        return (!model && !entity) || this.addLoc2(x, z, y, level, minTileX, minTileZ, maxTileX + 1 - minTileX, maxTileZ - minTileZ + 1, model, entity, bitset, 0, yaw, true);
+    };
+
     removeLoc = (level: number, x: number, z: number): void => {
         const tile: Tile | null = this.levelTiles[level][x][z];
         if (!tile) {
@@ -857,6 +890,14 @@ export default class World3D {
             }
             offset += step;
         }
+    };
+
+    click = (mouseX: number, mouseY: number): void => {
+        World3D.takingInput = true;
+        World3D.mouseX = mouseX;
+        World3D.mouseY = mouseY;
+        World3D.clickTileX = -1;
+        World3D.clickTileZ = -1;
     };
 
     draw = (eyeX: number, eyeY: number, eyeZ: number, topLevel: number, eyeYaw: number, eyePitch: number, loopCycle: number): void => {

@@ -11,7 +11,7 @@ export default class Draw3D {
     static cos: Int32Array = new Int32Array(2048);
     static palette: Uint32Array = new Uint32Array(65536);
 
-    static textures: Pix8[] = new Array(50);
+    static textures: Pix8[] = new Array(50).fill(null);
     static textureCount: number = 0;
 
     static lineOffset: Int32Array = new Int32Array();
@@ -23,14 +23,14 @@ export default class Draw3D {
     static alpha: number = 0;
 
     static texelPool: (Int32Array | null)[] | null = null;
-    static activeTexels: (Int32Array | null)[] = new Array(50);
+    static activeTexels: (Int32Array | null)[] = new Array(50).fill(null);
     static poolSize: number = 0;
     static cycle: number = 0;
     static textureCycle: Int32Array = new Int32Array(50);
-    static texturePalette: (Int32Array | null)[] = new Array(50);
+    static texturePalette: (Int32Array | null)[] = new Array(50).fill(null);
 
     private static opaque: boolean = false;
-    private static textureTranslucent: boolean[] = new Array(50);
+    private static textureTranslucent: boolean[] = new Array(50).fill(false);
     private static averageTextureRGB: Int32Array = new Int32Array(50);
 
     static {

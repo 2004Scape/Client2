@@ -13,6 +13,19 @@ export default class SeqType extends ConfigType {
         for (let i: number = 0; i < this.count; i++) {
             this.instances[i] = new SeqType();
             this.instances[i].decodeType(i, dat);
+
+            if (this.instances[i].frameCount == 0) {
+                this.instances[i].frameCount = 1;
+
+                this.instances[i].frames = new Int16Array(1);
+                this.instances[i].frames![0] = -1;
+
+                this.instances[i].iframes = new Int16Array(1);
+                this.instances[i].iframes![0] = -1;
+
+                this.instances[i].delay = new Int16Array(1);
+                this.instances[i].delay![0] = -1;
+            }
         }
     };
 

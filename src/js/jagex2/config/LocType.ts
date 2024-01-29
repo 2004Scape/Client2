@@ -28,7 +28,7 @@ export default class LocType extends ConfigType {
             offset += idx.g2;
         }
 
-        this.cache = new Array(10);
+        this.cache = new Array(10).fill(null);
         for (let id: number = 0; id < 10; id++) {
             this.cache[id] = new LocType();
         }

@@ -53,12 +53,12 @@ export default class IdkType extends ConfigType {
             return null;
         }
 
-        const models: Model[] = [];
+        const models: (Model | null)[] = new Array(this.models.length).fill(null);
         for (let i: number = 0; i < this.models.length; i++) {
             models[i] = Model.model(this.models[i]);
         }
 
-        let model: Model;
+        let model: Model | null;
         if (models.length === 1) {
             model = models[0];
         } else {
@@ -66,7 +66,7 @@ export default class IdkType extends ConfigType {
         }
 
         for (let i: number = 0; i < 6 && this.recol_s[i] !== 0; i++) {
-            model.recolor(this.recol_s[i], this.recol_d[i]);
+            model?.recolor(this.recol_s[i], this.recol_d[i]);
         }
         return model;
     };
@@ -74,7 +74,7 @@ export default class IdkType extends ConfigType {
     getHeadModel = (): Model => {
         let count: number = 0;
 
-        const models: Model[] = [];
+        const models: (Model | null)[] = new Array(5).fill(null);
         for (let i: number = 0; i < 5; i++) {
             if (this.heads[i] !== -1) {
                 models[count++] = Model.model(this.heads[i]);

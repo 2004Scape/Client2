@@ -205,7 +205,7 @@ export default class PlayerEntity extends PathingEntity {
             return null;
         }
 
-        const models: Model[] = [];
+        const models: (Model | null)[] = new Array(12).fill(null);
         let modelCount: number = 0;
         for (let part: number = 0; part < 12; part++) {
             const value: number = this.appearances[part];
@@ -274,7 +274,7 @@ export default class PlayerEntity extends PathingEntity {
 
         let model: Model | null = PlayerEntity.modelCache?.get(hashCode) as Model | null;
         if (!model) {
-            const models: Model[] = [];
+            const models: (Model | null)[] = new Array(12).fill(null);
             let modelCount: number = 0;
 
             for (let part: number = 0; part < 12; part++) {

@@ -18,7 +18,7 @@ describe('Model', (): void => {
             npc.recol_s = new Uint16Array([25238, 8741, 43072, 6798, 8741]);
             npc.recol_d = new Uint16Array([5652, 5784, 4550, 5921, 5784]);
 
-            const modelFromModels: jest.SpyInstance<Model, [models: Model[], count: number]> = jest.spyOn(Model, 'modelFromModels');
+            const modelFromModels: jest.SpyInstance<Model, [models: (Model | null)[], count: number]> = jest.spyOn(Model, 'modelFromModels');
             const model: Model | null = npc.getHeadModel();
 
             expect(model).not.toBeNull();
