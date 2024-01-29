@@ -68,7 +68,7 @@ export default class ClientStream {
         }
 
         if (this.remaining < 1) {
-            await sleep(5); // TODO maybe not do this?
+            await sleep(1); // TODO maybe not do this?
             return this.read();
         }
 
@@ -93,20 +93,25 @@ export default class ClientStream {
         return value;
     };
 
-    readBytes = async (dst: Uint8Array, off: number, len: number): Promise<number> => {
+    readBytes = async (dst: Uint8Array, off: number, len: number): Promise<void> => {
         if (this.socket.readyState !== WebSocket.OPEN && this.remaining < 1) {
             throw new Error('Socket is not able to read!');
         }
 
+        if (len < 1) {
+            // check for 0 so it doesnt await for no reason
+            // (i.e close interface packet)
+            return;
+        }
+
         if (this.remaining < 1) {
-            await sleep(5); // TODO maybe not do this?
+            await sleep(1); // TODO maybe not do this?
             return this.readBytes(dst, off, len);
         }
 
         for (let index: number = 0; index < len; index++) {
             dst[off + index] = await this.read();
         }
-        return len;
     };
 
     close = (): void => {
