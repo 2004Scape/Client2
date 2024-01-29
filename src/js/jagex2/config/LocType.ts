@@ -97,7 +97,7 @@ export default class LocType extends ConfigType {
     walloff: number = 16;
     ambient: number = 0;
     contrast: number = 0;
-    ops: (string | null)[] = [];
+    ops: (string | null)[] | null = null;
     mapfunction: number = -1;
     mapscene: number = -1;
     mirror: boolean = false;
@@ -159,9 +159,12 @@ export default class LocType extends ConfigType {
         } else if (code === 39) {
             this.contrast = dat.g1b;
         } else if (code >= 30 && code < 35) {
-            this.ops[code - 30] = dat.gjstr;
+            if (!this.ops) {
+                this.ops = new Array(5).fill(null);
+            }
 
-            if (this.ops[code - 30] === 'hidden') {
+            this.ops[code - 30] = dat.gjstr;
+            if (this.ops[code - 30]?.toLowerCase() === 'hidden') {
                 this.ops[code - 30] = null;
             }
         } else if (code === 40) {

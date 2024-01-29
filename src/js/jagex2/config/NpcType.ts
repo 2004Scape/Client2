@@ -74,7 +74,7 @@ export default class NpcType extends ConfigType {
     hasalpha: boolean = false;
     recol_s: Uint16Array | null = null;
     recol_d: Uint16Array | null = null;
-    ops: (string | null)[] = [];
+    ops: (string | null)[] | null = null;
     code90: number = -1;
     code91: number = -1;
     code92: number = -1;
@@ -109,9 +109,12 @@ export default class NpcType extends ConfigType {
             this.walkanim_r = dat.g2;
             this.walkanim_l = dat.g2;
         } else if (code >= 30 && code < 40) {
-            this.ops[code - 30] = dat.gjstr;
+            if (!this.ops) {
+                this.ops = new Array(5).fill(null);
+            }
 
-            if (this.ops[code - 30] === 'hidden') {
+            this.ops[code - 30] = dat.gjstr;
+            if (this.ops[code - 30]?.toLowerCase() === 'hidden') {
                 this.ops[code - 30] = null;
             }
         } else if (code === 40) {

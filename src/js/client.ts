@@ -6685,59 +6685,62 @@ class Client extends GameShell {
 
             if (entityType === 2 && this.scene && this.scene.getInfo(this.currentLevel, x, z, bitset) >= 0) {
                 const loc: LocType = LocType.get(typeId);
-                if (this.objSelected === 1) {
-                    this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @cya@' + loc.name;
-                    this.menuAction[this.menuSize] = 450;
-                    this.menuParamA[this.menuSize] = bitset;
-                    this.menuParamB[this.menuSize] = x;
-                    this.menuParamC[this.menuSize] = z;
-                    this.menuSize++;
-                } else if (this.spellSelected !== 1) {
-                    if (loc.ops) {
-                        for (let op: number = 4; op >= 0; op--) {
-                            if (loc.ops[op]) {
-                                this.menuOption[this.menuSize] = loc.ops[op] + ' @cya@' + loc.name;
-                                if (op === 0) {
-                                    this.menuAction[this.menuSize] = 285;
-                                }
+                // loc.name check is custom but think we need it
+                if (loc.name) {
+                    if (this.objSelected === 1) {
+                        this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @cya@' + loc.name;
+                        this.menuAction[this.menuSize] = 450;
+                        this.menuParamA[this.menuSize] = bitset;
+                        this.menuParamB[this.menuSize] = x;
+                        this.menuParamC[this.menuSize] = z;
+                        this.menuSize++;
+                    } else if (this.spellSelected !== 1) {
+                        if (loc.ops) {
+                            for (let op: number = 4; op >= 0; op--) {
+                                if (loc.ops[op]) {
+                                    this.menuOption[this.menuSize] = loc.ops[op] + ' @cya@' + loc.name;
+                                    if (op === 0) {
+                                        this.menuAction[this.menuSize] = 285;
+                                    }
 
-                                if (op === 1) {
-                                    this.menuAction[this.menuSize] = 504;
-                                }
+                                    if (op === 1) {
+                                        this.menuAction[this.menuSize] = 504;
+                                    }
 
-                                if (op === 2) {
-                                    this.menuAction[this.menuSize] = 364;
-                                }
+                                    if (op === 2) {
+                                        this.menuAction[this.menuSize] = 364;
+                                    }
 
-                                if (op === 3) {
-                                    this.menuAction[this.menuSize] = 581;
-                                }
+                                    if (op === 3) {
+                                        this.menuAction[this.menuSize] = 581;
+                                    }
 
-                                if (op === 4) {
-                                    this.menuAction[this.menuSize] = 1501;
-                                }
+                                    if (op === 4) {
+                                        this.menuAction[this.menuSize] = 1501;
+                                    }
 
-                                this.menuParamA[this.menuSize] = bitset;
-                                this.menuParamB[this.menuSize] = x;
-                                this.menuParamC[this.menuSize] = z;
-                                this.menuSize++;
+                                    this.menuParamA[this.menuSize] = bitset;
+                                    this.menuParamB[this.menuSize] = x;
+                                    this.menuParamC[this.menuSize] = z;
+                                    this.menuSize++;
+                                }
                             }
                         }
-                    }
 
-                    this.menuOption[this.menuSize] = 'Examine @cya@' + loc.name;
-                    this.menuAction[this.menuSize] = 1175;
-                    this.menuParamA[this.menuSize] = bitset;
-                    this.menuParamB[this.menuSize] = x;
-                    this.menuParamC[this.menuSize] = z;
-                    this.menuSize++;
-                } else if ((this.activeSpellFlags & 0x4) === 4) {
-                    this.menuOption[this.menuSize] = this.spellCaption + ' @cya@' + loc.name;
-                    this.menuAction[this.menuSize] = 55;
-                    this.menuParamA[this.menuSize] = bitset;
-                    this.menuParamB[this.menuSize] = x;
-                    this.menuParamC[this.menuSize] = z;
-                    this.menuSize++;
+                        this.menuOption[this.menuSize] = 'Examine @cya@' + loc.name;
+                        this.menuAction[this.menuSize] = 1175;
+                        this.menuParamA[this.menuSize] = bitset;
+                        this.menuParamB[this.menuSize] = x;
+                        this.menuParamC[this.menuSize] = z;
+                        this.menuSize++;
+                    } else if ((this.activeSpellFlags & 0x4) === 4) {
+                        this.menuOption[this.menuSize] = this.spellCaption + ' @cya@' + loc.name;
+                        this.menuAction[this.menuSize] = 55;
+                        this.menuParamA[this.menuSize] = bitset;
+                        this.menuParamB[this.menuSize] = x;
+                        this.menuParamC[this.menuSize] = z;
+                        this.menuSize++;
+                    }
                 }
             }
 

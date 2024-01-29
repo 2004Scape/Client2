@@ -63,8 +63,8 @@ export default class ObjType extends ConfigType {
         if (!this.membersWorld && obj.members) {
             obj.name = 'Members Object';
             obj.desc = "Login to a members' server to use this object.";
-            obj.ops = [];
-            obj.iops = [];
+            obj.ops = null;
+            obj.iops = null;
         }
 
         return obj;
@@ -205,7 +205,7 @@ export default class ObjType extends ConfigType {
     cost: number = 1;
     members: boolean = false;
     ops: (string | null)[] | null = null;
-    iops: string[] | null = null;
+    iops: (string | null)[] | null = null;
     manwear: number = -1;
     manwear2: number = -1;
     manwearOffsetY: number = 0;
@@ -268,11 +268,11 @@ export default class ObjType extends ConfigType {
             this.womanwear2 = dat.g2;
         } else if (code >= 30 && code < 35) {
             if (!this.ops) {
-                this.ops = new Array(5);
+                this.ops = new Array(5).fill(null);
             }
 
             this.ops[code - 30] = dat.gjstr;
-            if (this.ops[code - 30] === 'hidden') {
+            if (this.ops[code - 30]?.toLowerCase() === 'hidden') {
                 this.ops[code - 30] = null;
             }
         } else if (code >= 35 && code < 40) {
