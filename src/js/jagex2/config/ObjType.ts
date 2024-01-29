@@ -472,8 +472,8 @@ export default class ObjType extends ConfigType {
         this.stackable = false;
         this.cost = 1;
         this.members = false;
-        this.ops = [];
-        this.iops = [];
+        this.ops = null;
+        this.iops = null;
         this.manwear = -1;
         this.manwear2 = -1;
         this.manwearOffsetY = 0;

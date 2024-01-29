@@ -53,7 +53,7 @@ export default class LocType extends ConfigType {
         loc.decodeType(id, this.dat);
 
         if (!loc.shapes) {
-            loc.shapes = new Uint8Array(0);
+            loc.shapes = new Int32Array(1);
         }
 
         if (loc.active2 === -1 && loc.shapes) {
@@ -77,8 +77,8 @@ export default class LocType extends ConfigType {
     // ----
 
     index: number = -1;
-    models: Uint16Array | null = null;
-    shapes: Uint8Array | null = null;
+    models: Int32Array | null = null;
+    shapes: Int32Array | null = null;
     name: string | null = null;
     desc: string | null = null;
     recol_s: Uint16Array | null = null;
@@ -114,8 +114,8 @@ export default class LocType extends ConfigType {
     decode = (_index: number, code: number, dat: Packet): void => {
         if (code === 1) {
             const count: number = dat.g1;
-            this.models = new Uint16Array(count);
-            this.shapes = new Uint8Array(count);
+            this.models = new Int32Array(count);
+            this.shapes = new Int32Array(count);
 
             for (let i: number = 0; i < count; i++) {
                 this.models[i] = dat.g2;
@@ -158,7 +158,7 @@ export default class LocType extends ConfigType {
             this.ambient = dat.g1b;
         } else if (code === 39) {
             this.contrast = dat.g1b;
-        } else if (code >= 30 && code < 35) {
+        } else if (code >= 30 && code < 39) {
             if (!this.ops) {
                 this.ops = new Array(5).fill(null);
             }
@@ -363,7 +363,7 @@ export default class LocType extends ConfigType {
         this.walloff = 16;
         this.ambient = 0;
         this.contrast = 0;
-        this.ops = [];
+        this.ops = null;
         this.disposeAlpha = false;
         this.mapfunction = -1;
         this.mapscene = -1;

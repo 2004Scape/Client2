@@ -65,6 +65,31 @@ export default class World3D {
     static readonly WALL_DECORATION_OUTSET_X: Int32Array = Int32Array.of(-45, 45, 45, -45);
     static readonly WALL_DECORATION_OUTSET_Z: Int32Array = Int32Array.of(45, 45, -45, -45);
 
+    // prettier-ignore
+    static readonly MINIMAP_TILE_MASK: number[][] = [
+        new Array(16).fill(0),
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1],
+        [1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+        [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0],
+        [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1],
+        [1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1]
+    ];
+
+    // prettier-ignore
+    static readonly MINIMAP_TILE_ROTATION_MAP: number[][] = [
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+        [12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3],
+        [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+        [3, 7, 11, 15, 2, 6, 10, 14, 1, 5, 9, 13, 0, 4, 8, 12],
+    ];
+
     static readonly TEXTURE_HSL: Int32Array = Int32Array.of(
         41,
         39248,
@@ -770,6 +795,67 @@ export default class World3D {
                     modelB.faceInfo[i] = -1;
                 }
             }
+        }
+    };
+
+    drawMinimapTile = (level: number, x: number, z: number, dst: Int32Array, offset: number, step: number): void => {
+        const tile: Tile | null = this.levelTiles[level][x][z];
+        if (tile == null) {
+            return;
+        }
+
+        const underlay: TileUnderlay | null = tile.underlay;
+        if (underlay) {
+            const rgb: number = underlay.color;
+            if (rgb != 0) {
+                for (let i: number = 0; i < 4; i++) {
+                    dst[offset] = rgb;
+                    dst[offset + 1] = rgb;
+                    dst[offset + 2] = rgb;
+                    dst[offset + 3] = rgb;
+                    offset += step;
+                }
+            }
+            return;
+        }
+
+        const overlay: TileOverlay | null = tile.overlay;
+        if (overlay == null) {
+            return;
+        }
+
+        const shape: number = overlay.shape;
+        const angle: number = overlay.rotation;
+        const background: number = overlay.backgroundRgb;
+        const foreground: number = overlay.foregroundRgb;
+        const mask: number[] = World3D.MINIMAP_TILE_MASK[shape];
+        const rotation: number[] = World3D.MINIMAP_TILE_ROTATION_MAP[angle];
+        let off: number = 0;
+        if (background != 0) {
+            for (let i: number = 0; i < 4; i++) {
+                dst[offset] = mask[rotation[off++]] == 0 ? background : foreground;
+                dst[offset + 1] = mask[rotation[off++]] == 0 ? background : foreground;
+                dst[offset + 2] = mask[rotation[off++]] == 0 ? background : foreground;
+                dst[offset + 3] = mask[rotation[off++]] == 0 ? background : foreground;
+                offset += step;
+            }
+            return;
+        }
+
+        for (let i: number = 0; i < 4; i++) {
+            if (mask[rotation[off++]] != 0) {
+                dst[offset] = foreground;
+            }
+            if (mask[rotation[off++]] != 0) {
+                dst[offset + 1] = foreground;
+            }
+            if (mask[rotation[off++]] != 0) {
+                dst[offset + 2] = foreground;
+            }
+            if (mask[rotation[off++]] != 0) {
+                dst[offset + 3] = foreground;
+            }
+            offset += step;
         }
     };
 

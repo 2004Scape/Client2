@@ -80,8 +80,7 @@ export default class World {
 
         let bitset: number = x + (z << 7) + (locId << 14) + 0x40000000;
         if (!loc.active) {
-            bitset += 0x80000000; // int.min
-            // TODO possible some overflow magic happen here idk tho
+            bitset += -0x80000000; // int.min
         }
 
         const info: number = (angle << 6) + shape;
@@ -880,8 +879,7 @@ export default class World {
 
         let bitset: number = x + (z << 7) + (locId << 14) + 0x40000000;
         if (!loc.active) {
-            bitset += 0x80000000; // int.min
-            // TODO possible some overflow magic happen here idk tho
+            bitset += -0x80000000; // int.min
         }
 
         const info: number = (angle << 6) + shape;

@@ -6,6 +6,7 @@ import Packet from '../io/Packet';
 import Hashable from '../datastruct/Hashable';
 
 import {decodeJpeg} from './Jpeg';
+import Pix8 from './Pix8';
 
 export default class Pix24 extends Hashable {
     // constructor
@@ -103,6 +104,10 @@ export default class Pix24 extends Hashable {
         }
 
         return image;
+    };
+
+    bind = (): void => {
+        Draw2D.bind(this.pixels, this.width, this.height);
     };
 
     draw = (x: number, y: number): void => {
@@ -392,6 +397,94 @@ export default class Pix24 extends Hashable {
         }
     };
 
+    drawRotatedMasked = (x: number, y: number, w: number, h: number, lineStart: Int32Array, lineWidth: Int32Array, anchorX: number, anchorY: number, theta: number, zoom: number): void => {
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+        w = Math.trunc(w);
+        h = Math.trunc(h);
+
+        try {
+            const centerX: number = Math.trunc(-w / 2);
+            const centerY: number = Math.trunc(-h / 2);
+
+            const sin: number = Math.trunc(Math.sin(theta / 326.11) * 65536.0);
+            const cos: number = Math.trunc(Math.cos(theta / 326.11) * 65536.0);
+            const sinZoom: number = (sin * zoom) >> 8;
+            const cosZoom: number = (cos * zoom) >> 8;
+
+            let leftX: number = (anchorX << 16) + centerY * sinZoom + centerX * cosZoom;
+            let leftY: number = (anchorY << 16) + (centerY * cosZoom - centerX * sinZoom);
+            let leftOff: number = x + y * Draw2D.width;
+
+            for (let i: number = 0; i < h; i++) {
+                const dstOff: number = lineStart[i];
+                let dstX: number = leftOff + dstOff;
+
+                let srcX: number = leftX + cosZoom * dstOff;
+                let srcY: number = leftY - sinZoom * dstOff;
+                for (let j: number = -lineWidth[i]; j < 0; j++) {
+                    Draw2D.pixels[dstX++] = this.pixels[(srcX >> 16) + (srcY >> 16) * this.width];
+                    srcX += cosZoom;
+                    srcY -= sinZoom;
+                }
+
+                leftX += sinZoom;
+                leftY += cosZoom;
+                leftOff += Draw2D.width;
+            }
+        } catch (e) {
+            /* empty */
+        }
+    };
+
+    drawMasked = (x: number, y: number, mask: Pix8): void => {
+        x = Math.trunc(x);
+        y = Math.trunc(y);
+
+        x += this.cropX;
+        y += this.cropY;
+
+        let dstStep: number = x + y * Draw2D.width;
+        let srcStep: number = 0;
+        let h: number = this.height;
+        let w: number = this.width;
+        let dstOff: number = Draw2D.width - w;
+        let srcOff: number = 0;
+
+        if (y < Draw2D.top) {
+            const cutoff: number = Draw2D.top - y;
+            h -= cutoff;
+            y = Draw2D.top;
+            srcStep += cutoff * w;
+            dstStep += cutoff * Draw2D.width;
+        }
+
+        if (y + h > Draw2D.bottom) {
+            h -= y + h - Draw2D.bottom;
+        }
+
+        if (x < Draw2D.left) {
+            const cutoff: number = Draw2D.left - x;
+            w -= cutoff;
+            x = Draw2D.left;
+            srcStep += cutoff;
+            dstStep += cutoff;
+            srcOff += cutoff;
+            dstOff += cutoff;
+        }
+
+        if (x + w > Draw2D.right) {
+            const cutoff: number = x + w - Draw2D.right;
+            w -= cutoff;
+            srcOff += cutoff;
+            dstOff += cutoff;
+        }
+
+        if (w > 0 && h > 0) {
+            this.copyPixelsMasked(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstStep, dstOff, mask.pixels);
+        }
+    };
+
     private scale = (w: number, h: number, src: Int32Array, offW: number, offH: number, dst: Int32Array, dstStep: number, dstOff: number, currentW: number, scaleCropWidth: number, scaleCropHeight: number): void => {
         try {
             const lastOffW: number = offW;
@@ -496,6 +589,55 @@ export default class Pix24 extends Hashable {
                     dstOff++;
                 } else {
                     dst[dstOff++] = rgb;
+                }
+            }
+
+            dstOff += dstStep;
+            srcOff += srcStep;
+        }
+    };
+
+    private copyPixelsMasked = (w: number, h: number, src: Int32Array, srcStep: number, srcOff: number, dst: Int32Array, dstOff: number, dstStep: number, mask: Int8Array): void => {
+        const qw: number = -(w >> 2);
+        w = -(w & 0x3);
+
+        for (let y: number = -h; y < 0; y++) {
+            for (let x: number = qw; x < 0; x++) {
+                let rgb: number = src[srcOff++];
+                if (rgb != 0 && mask[dstOff] == 0) {
+                    dst[dstOff++] = rgb;
+                } else {
+                    dstOff++;
+                }
+
+                rgb = src[srcOff++];
+                if (rgb != 0 && mask[dstOff] == 0) {
+                    dst[dstOff++] = rgb;
+                } else {
+                    dstOff++;
+                }
+
+                rgb = src[srcOff++];
+                if (rgb != 0 && mask[dstOff] == 0) {
+                    dst[dstOff++] = rgb;
+                } else {
+                    dstOff++;
+                }
+
+                rgb = src[srcOff++];
+                if (rgb != 0 && mask[dstOff] == 0) {
+                    dst[dstOff++] = rgb;
+                } else {
+                    dstOff++;
+                }
+            }
+
+            for (let x: number = w; x < 0; x++) {
+                const rgb: number = src[srcOff++];
+                if (rgb != 0 && mask[dstOff] == 0) {
+                    dst[dstOff++] = rgb;
+                } else {
+                    dstOff++;
                 }
             }
 
