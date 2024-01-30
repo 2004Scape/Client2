@@ -406,6 +406,8 @@ class Client extends GameShell {
     private levelHeightmap: Int32Array[][] | null = null;
     private levelTileFlags: Uint8Array[][] | null = null;
     private tileLastOccupiedCycle: Int32Array[] = new Array(CollisionMap.SIZE).fill(null).map((): Int32Array => new Int32Array(CollisionMap.SIZE));
+    private projectX: number = 0;
+    private projectY: number = 0;
 
     // entities
     private players: (PlayerEntity | null)[] = new Array(this.MAX_PLAYER_COUNT).fill(null);
@@ -451,14 +453,15 @@ class Client extends GameShell {
     // friends/chats
     private friendCount: number = 0;
     private chatCount: number = 0;
-    private chatX: Int32Array = new Int32Array(50);
-    private chatY: Int32Array = new Int32Array(50);
-    private chatHeight: Int32Array = new Int32Array(50);
-    private chatWidth: Int32Array = new Int32Array(50);
-    private chatColors: Int32Array = new Int32Array(50);
-    private chatStyles: Int32Array = new Int32Array(50);
-    private chatTimers: Int32Array = new Int32Array(50);
-    private chats: string[] = new Array(50).fill(null);
+    static readonly MAX_CHATS: number = 50;
+    private chatX: Int32Array = new Int32Array(Client.MAX_CHATS);
+    private chatY: Int32Array = new Int32Array(Client.MAX_CHATS);
+    private chatHeight: Int32Array = new Int32Array(Client.MAX_CHATS);
+    private chatWidth: Int32Array = new Int32Array(Client.MAX_CHATS);
+    private chatColors: Int32Array = new Int32Array(Client.MAX_CHATS);
+    private chatStyles: Int32Array = new Int32Array(Client.MAX_CHATS);
+    private chatTimers: Int32Array = new Int32Array(Client.MAX_CHATS);
+    private chats: string[] = new Array(Client.MAX_CHATS).fill(null);
     private friendName: string[] = new Array(100).fill(null);
     private friendName37: BigInt64Array = new BigInt64Array(100);
     private friendWorld: Int32Array = new Int32Array(100);
@@ -2262,6 +2265,8 @@ class Client extends GameShell {
         Draw2D.clear();
         this.scene?.draw(this.cameraX, this.cameraY, this.cameraZ, level, this.cameraYaw, this.cameraPitch, this.loopCycle);
         this.scene?.clearTemporaryLocs();
+        this.draw2DEntityElements();
+        this.drawTileHint();
         this.drawDebug();
         this.updateTextures(jitter);
         this.draw3DEntityElements();
@@ -2271,6 +2276,169 @@ class Client extends GameShell {
         this.cameraZ = cameraZ;
         this.cameraPitch = cameraPitch;
         this.cameraYaw = cameraYaw;
+    };
+
+    private clearCaches = (): void => {
+        LocType.modelCacheStatic?.clear();
+        LocType.modelCacheDynamic?.clear();
+        NpcType.modelCache?.clear();
+        ObjType.modelCache?.clear();
+        ObjType.iconCache?.clear();
+        PlayerEntity.modelCache?.clear();
+        SpotAnimType.modelCache?.clear();
+    };
+
+    private projectFromEntity = (entity: PathingEntity, height: number): void => {
+        this.projectFromGround(entity.x, height, entity.z);
+    };
+
+    private projectFromGround = (x: number, height: number, z: number): void => {
+        if (x < 128 || z < 128 || x > 13056 || z > 13056) {
+            this.projectX = -1;
+            this.projectY = -1;
+            return;
+        }
+
+        const y: number = this.getHeightmapY(this.currentLevel, x, z) - height;
+        this.project(x, y, z);
+    };
+
+    private project = (x: number, y: number, z: number): void => {
+        let dx: number = x - this.cameraX;
+        let dy: number = y - this.cameraY;
+        let dz: number = z - this.cameraZ;
+
+        const sinPitch: number = Draw3D.sin[this.cameraPitch];
+        const cosPitch: number = Draw3D.cos[this.cameraPitch];
+        const sinYaw: number = Draw3D.sin[this.cameraYaw];
+        const cosYaw: number = Draw3D.cos[this.cameraYaw];
+
+        let tmp: number = (dz * sinYaw + dx * cosYaw) >> 16;
+        dz = (dz * cosYaw - dx * sinYaw) >> 16;
+        dx = tmp;
+
+        tmp = (dy * cosPitch - dz * sinPitch) >> 16;
+        dz = (dy * sinPitch + dz * cosPitch) >> 16;
+        dy = tmp;
+
+        if (dz >= 50) {
+            this.projectX = Draw3D.centerX + (dx << 9) / dz;
+            this.projectY = Draw3D.centerY + (dy << 9) / dz;
+        } else {
+            this.projectX = -1;
+            this.projectY = -1;
+        }
+    };
+
+    private draw2DEntityElements = (): void => {
+        this.chatCount = 0;
+
+        for (let index: number = -1; index < this.playerCount + this.npcCount; index++) {
+            let entity: PathingEntity | null = null;
+            if (index == -1) {
+                entity = this.localPlayer;
+            } else if (index < this.playerCount) {
+                entity = this.players[this.playerIds[index]];
+            } else {
+                entity = this.npcs[this.npcIds[index - this.playerCount]];
+            }
+
+            if (entity == null || !entity.isVisible()) {
+                continue;
+            }
+
+            if (index < this.playerCount) {
+                let y: number = 30;
+
+                const player: PlayerEntity = entity as PlayerEntity;
+                if (player.headicons != 0) {
+                    this.projectFromEntity(entity, entity.height + 15);
+
+                    if (this.projectX > -1) {
+                        for (let icon: number = 0; icon < 8; icon++) {
+                            if ((player.headicons & (0x1 << icon)) != 0 && this.imageHeadicons[icon]) {
+                                this.imageHeadicons[icon]!.draw(this.projectX - 12, this.projectY - y);
+                                y -= 25;
+                            }
+                        }
+                    }
+                }
+
+                if (index >= 0 && this.hintType == 10 && this.hintPlayer == this.playerIds[index]) {
+                    this.projectFromEntity(entity, entity.height + 15);
+
+                    if (this.projectX > -1 && this.imageHeadicons[7]) {
+                        this.imageHeadicons[7].draw(this.projectX - 12, this.projectY - y);
+                    }
+                }
+            } else if (this.hintType == 1 && this.hintNpc == this.npcIds[index - this.playerCount] && this.loopCycle % 20 < 10) {
+                this.projectFromEntity(entity, entity.height + 15);
+
+                if (this.projectX > -1 && this.imageHeadicons[2]) {
+                    this.imageHeadicons[2].draw(this.projectX - 12, this.projectY - 28);
+                }
+            }
+
+            if (entity.chat != null && (index >= this.playerCount || this.publicChatSetting == 0 || this.publicChatSetting == 3 || (this.publicChatSetting == 1 && this.isFriend((entity as PlayerEntity).name)))) {
+                this.projectFromEntity(entity, entity.height);
+
+                if (this.projectX > -1 && this.chatCount < Client.MAX_CHATS && this.fontBold12) {
+                    this.chatWidth[this.chatCount] = this.fontBold12.stringWidth(entity.chat) / 2;
+                    this.chatHeight[this.chatCount] = this.fontBold12.fontHeight;
+                    this.chatX[this.chatCount] = this.projectX;
+                    this.chatY[this.chatCount] = this.projectY;
+
+                    this.chatColors[this.chatCount] = entity.chatColor;
+                    this.chatStyles[this.chatCount] = entity.chatStyle;
+                    this.chatTimers[this.chatCount] = entity.chatTimer;
+                    this.chats[this.chatCount++] = entity.chat as string;
+
+                    if (this.chatEffects == 0 && entity.chatStyle == 1) {
+                        this.chatHeight[this.chatCount] += 10;
+                        this.chatY[this.chatCount] += 5;
+                    }
+
+                    if (this.chatEffects == 0 && entity.chatStyle == 2) {
+                        this.chatWidth[this.chatCount] = 60;
+                    }
+                }
+            }
+
+            if (entity.combatCycle > this.loopCycle + 100) {
+                this.projectFromEntity(entity, entity.height + 15);
+
+                if (this.projectX > -1) {
+                    let w: number = (entity.health * 30) / entity.totalHealth;
+                    if (w > 30) {
+                        w = 30;
+                    }
+                    Draw2D.fillRect(this.projectX - 15, this.projectY - 3, 0xff00, w, 5);
+                    Draw2D.fillRect(this.projectX - 15 + w, this.projectY - 3, 0xff0000, 30 - w, 5);
+                }
+            }
+
+            if (entity.combatCycle > this.loopCycle + 330) {
+                this.projectFromEntity(entity, entity.height / 2);
+
+                if (this.projectX > -1 && this.imageHitmarks[entity.damageType]) {
+                    this.imageHitmarks[entity.damageType]!.draw(this.projectX - 12, this.projectY - 12);
+                    this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + 4, entity.damage.toString(), 0);
+                    this.fontPlain11?.drawStringCenter(this.projectX - 1, this.projectY + 3, entity.damage.toString(), 0xffffff);
+                }
+            }
+        }
+    };
+
+    private drawTileHint = (): void => {
+        if (this.hintType != 2 || this.imageHeadicons[2] === null) {
+            return;
+        }
+
+        this.projectFromGround(((this.hintTileX - this.sceneBaseTileX) << 7) + this.hintOffsetX, this.hintHeight * 2, ((this.hintTileZ - this.sceneBaseTileZ) << 7) + this.hintOffsetZ);
+
+        if (this.projectX > -1 && this.loopCycle % 20 < 10) {
+            this.imageHeadicons[2].draw(this.projectX - 12, this.projectY - 28);
+        }
     };
 
     private drawDebug = (): void => {
@@ -2286,16 +2454,6 @@ class Client extends GameShell {
         y += 13;
         this.fontPlain11?.drawRight(x, y, `Occluders: ${World3D.activeOccluderCount}`, Colors.YELLOW, true);
         // this.fontPlain11?.drawRight(x, y, `Rate: ${this.deltime} ms`, Colors.YELLOW, true);
-    };
-
-    private clearCaches = (): void => {
-        LocType.modelCacheStatic?.clear();
-        LocType.modelCacheDynamic?.clear();
-        NpcType.modelCache?.clear();
-        ObjType.modelCache?.clear();
-        ObjType.iconCache?.clear();
-        PlayerEntity.modelCache?.clear();
-        SpotAnimType.modelCache?.clear();
     };
 
     private draw3DEntityElements = (): void => {
