@@ -52,7 +52,13 @@ const config = {
         open: true,
         host: 'localhost',
         static: 'public',
-        liveReload: true
+        liveReload: true,
+        compress: true
+    },
+
+    experiments: {
+        asyncWebAssembly: true,
+        syncWebAssembly: true
     },
 
     module: {
