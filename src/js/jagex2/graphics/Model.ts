@@ -351,17 +351,16 @@ export default class Model extends Hashable {
                 }
             }
 
-            vertexNormal = []; // = new VertexNormal[this.vertexCount];
+            vertexNormal = new Array(vertexCount).fill(null);
             for (let v: number = 0; v < vertexCount; v++) {
-                if (!src.vertexNormal) {
-                    continue;
-                }
                 const copy: VertexNormal = (vertexNormal[v] = new VertexNormal());
-                const original: VertexNormal = src.vertexNormal[v];
-                copy.x = original.x;
-                copy.y = original.y;
-                copy.z = original.z;
-                copy.w = original.w;
+                if (src.vertexNormal) {
+                    const original: VertexNormal = src.vertexNormal[v];
+                    copy.x = original.x;
+                    copy.y = original.y;
+                    copy.z = original.z;
+                    copy.w = original.w;
+                }
             }
 
             vertexNormalOriginal = src.vertexNormalOriginal;

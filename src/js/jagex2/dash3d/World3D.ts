@@ -231,8 +231,7 @@ export default class World3D {
     };
 
     static addOccluder = (level: number, type: number, minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number): void => {
-        const occluder: Occluder = new Occluder(Math.trunc(minX / 128), Math.trunc(maxX / 128), Math.trunc(minZ / 128), Math.trunc(maxZ / 128), type, minX, maxX, minZ, maxZ, minY, maxY);
-        World3D.levelOccluders[level][World3D.levelOccluderCount[level]++] = occluder;
+        World3D.levelOccluders[level][World3D.levelOccluderCount[level]++] = new Occluder(Math.trunc(minX / 128), Math.trunc(maxX / 128), Math.trunc(minZ / 128), Math.trunc(maxZ / 128), type, minX, maxX, minZ, maxZ, minY, maxY);
     };
 
     private static testPoint = (x: number, z: number, y: number): boolean => {
@@ -328,9 +327,11 @@ export default class World3D {
         }
 
         if (!this.levelTiles[0][stx][stz]) {
-            const tile: Tile = new Tile(0, stx, stz);
+            this.levelTiles[0][stx][stz] = new Tile(0, stx, stz);
+        }
+        const tile: Tile | null = this.levelTiles[0][stx][stz];
+        if (tile) {
             tile.bridge = ground;
-            this.levelTiles[0][stx][stz] = tile;
         }
         this.levelTiles[3][stx][stz] = null;
     };
@@ -365,10 +366,10 @@ export default class World3D {
         backgroundRgb: number,
         foregroundRgb: number
     ): void => {
-        if (shape == 0) {
+        if (shape === 0) {
             const underlay: TileUnderlay = new TileUnderlay(southwestColor, southeastColor, northeastColor, northwestColor, -1, backgroundRgb, false);
             for (let l: number = level; l >= 0; l--) {
-                if (this.levelTiles[l][x][z] == null) {
+                if (!this.levelTiles[l][x][z]) {
                     this.levelTiles[l][x][z] = new Tile(l, x, z);
                 }
             }
@@ -376,10 +377,10 @@ export default class World3D {
             if (tile) {
                 tile.underlay = underlay;
             }
-        } else if (shape == 1) {
-            const underlay: TileUnderlay = new TileUnderlay(southwestColor2, southeastColor2, northeastColor2, northwestColor2, textureId, foregroundRgb, southwestY == southeastY && southwestY == northeastY && southwestY == northwestY);
+        } else if (shape === 1) {
+            const underlay: TileUnderlay = new TileUnderlay(southwestColor2, southeastColor2, northeastColor2, northwestColor2, textureId, foregroundRgb, southwestY === southeastY && southwestY === northeastY && southwestY === northwestY);
             for (let l: number = level; l >= 0; l--) {
-                if (this.levelTiles[l][x][z] == null) {
+                if (!this.levelTiles[l][x][z]) {
                     this.levelTiles[l][x][z] = new Tile(l, x, z);
                 }
             }
@@ -410,7 +411,7 @@ export default class World3D {
                 southeastColor
             );
             for (let l: number = level; l >= 0; l--) {
-                if (this.levelTiles[l][x][z] == null) {
+                if (!this.levelTiles[l][x][z]) {
                     this.levelTiles[l][x][z] = new Tile(l, x, z);
                 }
             }
@@ -422,14 +423,13 @@ export default class World3D {
     };
 
     addGroundDecoration = (model: Model | null, tileLevel: number, tileX: number, tileZ: number, y: number, bitset: number, info: number): void => {
-        if (!model) {
-            return;
-        }
         const decor: GroundDecoration = new GroundDecoration(y, tileX * 128 + 64, tileZ * 128 + 64, model, bitset, info);
-        const tile: Tile = this.levelTiles[tileLevel][tileX][tileZ] ?? new Tile(tileLevel, tileX, tileZ);
-        tile.groundDecoration = decor;
         if (!this.levelTiles[tileLevel][tileX][tileZ]) {
-            this.levelTiles[tileLevel][tileX][tileZ] = tile;
+            this.levelTiles[tileLevel][tileX][tileZ] = new Tile(tileLevel, tileX, tileZ);
+        }
+        const tile: Tile | null = this.levelTiles[tileLevel][tileX][tileZ];
+        if (tile) {
+            tile.groundDecoration = decor;
         }
     };
 
@@ -660,7 +660,7 @@ export default class World3D {
                     }
 
                     const decor: GroundDecoration | null = tile.groundDecoration;
-                    if (decor && decor.model.vertexNormal) {
+                    if (decor && decor.model && decor.model.vertexNormal) {
                         this.mergeGroundDecorationNormals(level, tileX, tileZ, decor.model);
                         decor.model.applyLighting(lightAmbient, attenuation, lightSrcX, lightSrcY, lightSrcZ);
                     }
@@ -672,28 +672,28 @@ export default class World3D {
     mergeGroundDecorationNormals = (level: number, tileX: number, tileZ: number, model: Model): void => {
         if (tileX < this.maxTileX) {
             const tile: Tile | null = this.levelTiles[level][tileX + 1][tileZ];
-            if (tile && tile.groundDecoration && tile.groundDecoration.model.vertexNormal) {
+            if (tile && tile.groundDecoration && tile.groundDecoration.model && tile.groundDecoration.model.vertexNormal) {
                 this.mergeNormals(model, tile.groundDecoration.model, 128, 0, 0, true);
             }
         }
 
         if (tileZ < this.maxTileX) {
             const tile: Tile | null = this.levelTiles[level][tileX][tileZ + 1];
-            if (tile && tile.groundDecoration && tile.groundDecoration.model.vertexNormal) {
+            if (tile && tile.groundDecoration && tile.groundDecoration.model && tile.groundDecoration.model.vertexNormal) {
                 this.mergeNormals(model, tile.groundDecoration.model, 0, 0, 128, true);
             }
         }
 
         if (tileX < this.maxTileX && tileZ < this.maxTileZ) {
             const tile: Tile | null = this.levelTiles[level][tileX + 1][tileZ + 1];
-            if (tile && tile.groundDecoration && tile.groundDecoration.model.vertexNormal) {
+            if (tile && tile.groundDecoration && tile.groundDecoration.model && tile.groundDecoration.model.vertexNormal) {
                 this.mergeNormals(model, tile.groundDecoration.model, 128, 0, 128, true);
             }
         }
 
         if (tileX < this.maxTileX && tileZ > 0) {
             const tile: Tile | null = this.levelTiles[level][tileX + 1][tileZ - 1];
-            if (tile && tile.groundDecoration && tile.groundDecoration.model.vertexNormal) {
+            if (tile && tile.groundDecoration && tile.groundDecoration.model && tile.groundDecoration.model.vertexNormal) {
                 this.mergeNormals(model, tile.groundDecoration.model, 128, 0, -128, true);
             }
         }
@@ -718,7 +718,7 @@ export default class World3D {
                 }
 
                 for (let z: number = minTileZ; z <= maxTileZ; z++) {
-                    if (z < 0 || z >= this.maxTileZ || (allowFaceRemoval && x < maxTileX && z < maxTileZ && (z >= tileZ || x == tileX))) {
+                    if (z < 0 || z >= this.maxTileZ || (allowFaceRemoval && x < maxTileX && z < maxTileZ && (z >= tileZ || x === tileX))) {
                         continue;
                     }
 
@@ -769,7 +769,7 @@ export default class World3D {
             for (let vertexA: number = 0; vertexA < modelA.vertexCount; vertexA++) {
                 const normalA: VertexNormal = modelA.vertexNormal[vertexA];
                 const originalNormalA: VertexNormal = modelA.vertexNormalOriginal[vertexA];
-                if (originalNormalA.w != 0) {
+                if (originalNormalA.w !== 0) {
                     const y: number = modelA.vertexY[vertexA] - offsetY;
                     if (y > modelB.minY) {
                         continue;
@@ -789,7 +789,7 @@ export default class World3D {
                         for (let vertexB: number = 0; vertexB < vertexCountB; vertexB++) {
                             const normalB: VertexNormal = modelB.vertexNormal[vertexB];
                             const originalNormalB: VertexNormal = modelB.vertexNormalOriginal[vertexB];
-                            if (x != vertexX[vertexB] || z != modelB.vertexZ[vertexB] || y != modelB.vertexY[vertexB] || originalNormalB.w == 0) {
+                            if (x !== vertexX[vertexB] || z !== modelB.vertexZ[vertexB] || y !== modelB.vertexY[vertexB] || originalNormalB.w === 0) {
                                 continue;
                             }
 
@@ -816,7 +816,7 @@ export default class World3D {
 
         if (modelA.faceInfo) {
             for (let i: number = 0; i < modelA.faceCount; i++) {
-                if (this.mergeIndexA[modelA.faceVertexA[i]] == this.tmpMergeIndex && this.mergeIndexA[modelA.faceVertexB[i]] == this.tmpMergeIndex && this.mergeIndexA[modelA.faceVertexC[i]] == this.tmpMergeIndex) {
+                if (this.mergeIndexA[modelA.faceVertexA[i]] === this.tmpMergeIndex && this.mergeIndexA[modelA.faceVertexB[i]] === this.tmpMergeIndex && this.mergeIndexA[modelA.faceVertexC[i]] === this.tmpMergeIndex) {
                     modelA.faceInfo[i] = -1;
                 }
             }
@@ -824,7 +824,7 @@ export default class World3D {
 
         if (modelB.faceInfo) {
             for (let i: number = 0; i < modelB.faceCount; i++) {
-                if (this.mergeIndexB[modelB.faceVertexA[i]] == this.tmpMergeIndex && this.mergeIndexB[modelB.faceVertexB[i]] == this.tmpMergeIndex && this.mergeIndexB[modelB.faceVertexC[i]] == this.tmpMergeIndex) {
+                if (this.mergeIndexB[modelB.faceVertexA[i]] === this.tmpMergeIndex && this.mergeIndexB[modelB.faceVertexB[i]] === this.tmpMergeIndex && this.mergeIndexB[modelB.faceVertexC[i]] === this.tmpMergeIndex) {
                     modelB.faceInfo[i] = -1;
                 }
             }
@@ -833,14 +833,14 @@ export default class World3D {
 
     drawMinimapTile = (level: number, x: number, z: number, dst: Int32Array, offset: number, step: number): void => {
         const tile: Tile | null = this.levelTiles[level][x][z];
-        if (tile == null) {
+        if (!tile) {
             return;
         }
 
         const underlay: TileUnderlay | null = tile.underlay;
         if (underlay) {
             const rgb: number = underlay.color;
-            if (rgb != 0) {
+            if (rgb !== 0) {
                 for (let i: number = 0; i < 4; i++) {
                     dst[offset] = rgb;
                     dst[offset + 1] = rgb;
@@ -853,7 +853,7 @@ export default class World3D {
         }
 
         const overlay: TileOverlay | null = tile.overlay;
-        if (overlay == null) {
+        if (!overlay) {
             return;
         }
 
@@ -864,28 +864,28 @@ export default class World3D {
         const mask: number[] = World3D.MINIMAP_TILE_MASK[shape];
         const rotation: number[] = World3D.MINIMAP_TILE_ROTATION_MAP[angle];
         let off: number = 0;
-        if (background != 0) {
+        if (background !== 0) {
             for (let i: number = 0; i < 4; i++) {
-                dst[offset] = mask[rotation[off++]] == 0 ? background : foreground;
-                dst[offset + 1] = mask[rotation[off++]] == 0 ? background : foreground;
-                dst[offset + 2] = mask[rotation[off++]] == 0 ? background : foreground;
-                dst[offset + 3] = mask[rotation[off++]] == 0 ? background : foreground;
+                dst[offset] = mask[rotation[off++]] === 0 ? background : foreground;
+                dst[offset + 1] = mask[rotation[off++]] === 0 ? background : foreground;
+                dst[offset + 2] = mask[rotation[off++]] === 0 ? background : foreground;
+                dst[offset + 3] = mask[rotation[off++]] === 0 ? background : foreground;
                 offset += step;
             }
             return;
         }
 
         for (let i: number = 0; i < 4; i++) {
-            if (mask[rotation[off++]] != 0) {
+            if (mask[rotation[off++]] !== 0) {
                 dst[offset] = foreground;
             }
-            if (mask[rotation[off++]] != 0) {
+            if (mask[rotation[off++]] !== 0) {
                 dst[offset + 1] = foreground;
             }
-            if (mask[rotation[off++]] != 0) {
+            if (mask[rotation[off++]] !== 0) {
                 dst[offset + 2] = foreground;
             }
-            if (mask[rotation[off++]] != 0) {
+            if (mask[rotation[off++]] !== 0) {
                 dst[offset + 3] = foreground;
             }
             offset += step;
@@ -1506,7 +1506,7 @@ export default class World3D {
                 if (tileDrawn) {
                     const groundDecor: GroundDecoration | null = tile.groundDecoration;
                     if (groundDecor) {
-                        groundDecor.model.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, groundDecor.x - World3D.eyeX, groundDecor.y - World3D.eyeY, groundDecor.z - World3D.eyeZ, groundDecor.bitset);
+                        groundDecor.model?.draw(0, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, groundDecor.x - World3D.eyeX, groundDecor.y - World3D.eyeY, groundDecor.z - World3D.eyeZ, groundDecor.bitset);
                     }
 
                     const objs: ObjStack | null = tile.objStack;

@@ -5,11 +5,11 @@ export default class GroundDecoration {
     y: number;
     x: number;
     z: number;
-    model: Model;
+    model: Model | null;
     bitset: number;
     info: number; // byte
 
-    constructor(y: number, x: number, z: number, model: Model, bitset: number, info: number) {
+    constructor(y: number, x: number, z: number, model: Model | null, bitset: number, info: number) {
         this.y = y;
         this.x = x;
         this.z = z;
