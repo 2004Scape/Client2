@@ -11,6 +11,7 @@ import SeqType from '../config/SeqType';
 import LocShape from './LocShape';
 import LocAngle from './LocAngle';
 import Colors from '../graphics/Colors';
+import TileOverlayShape from './type/TileOverlayShape';
 
 export default class World {
     static readonly ROTATION_WALL_TYPE: Int32Array = Int32Array.of(1, 2, 4, 8);
@@ -293,11 +294,11 @@ export default class World {
             for (let x: number = 0; x < 104; x++) {
                 for (let z: number = 0; z < 104; z++) {
                     // solid
-                    if ((this.levelTileFlags[level][x][z] & 0x1) == 1) {
+                    if ((this.levelTileFlags[level][x][z] & 0x1) === 1) {
                         let trueLevel: number = level;
 
                         // bridge
-                        if ((this.levelTileFlags[1][x][z] & 0x2) == 2) {
+                        if ((this.levelTileFlags[1][x][z] & 0x2) === 2) {
                             trueLevel--;
                         }
 
@@ -414,7 +415,7 @@ export default class World {
                             magnitudeAccumulator -= this.blendMagnitude[dz2];
                         }
 
-                        if (z0 >= 1 && z0 < this.maxTileZ - 1 && (!World.lowMemory || ((this.levelTileFlags[level][x0][z0] & 0x10) == 0 && this.getDrawLevel(level, x0, z0) == World.levelBuilt))) {
+                        if (z0 >= 1 && z0 < this.maxTileZ - 1 && (!World.lowMemory || ((this.levelTileFlags[level][x0][z0] & 0x10) === 0 && this.getDrawLevel(level, x0, z0) === World.levelBuilt))) {
                             const underlayId: number = this.levelTileUnderlayIds[level][x0][z0] & 0xff;
                             const overlayId: number = this.levelTileOverlayIds[level][x0][z0] & 0xff;
 
@@ -448,30 +449,30 @@ export default class World {
                                 }
 
                                 if (level > 0) {
-                                    let occludes: boolean = underlayId != 0 || this.levelTileOverlayShape[level][x0][z0] == 0;
+                                    let occludes: boolean = underlayId !== 0 || this.levelTileOverlayShape[level][x0][z0] === TileOverlayShape.PLAIN;
 
                                     if (overlayId > 0 && !FloType.instances[overlayId - 1].occlude) {
                                         occludes = false;
                                     }
 
                                     // occludes && flat
-                                    if (occludes && heightSW == heightSE && heightSW == heightNE && heightSW == heightNW) {
+                                    if (occludes && heightSW === heightSE && heightSW === heightNE && heightSW === heightNW) {
                                         this.levelOccludemap[level][x0][z0] |= 0x924;
                                     }
                                 }
 
                                 let shadeColor: number = 0;
-                                if (baseColor != -1) {
+                                if (baseColor !== -1) {
                                     shadeColor = Draw3D.palette[FloType.mulHSL(tintColor, 96)];
                                 }
 
-                                if (overlayId == 0) {
+                                if (overlayId === 0) {
                                     scene?.setTile(
                                         level,
                                         x0,
                                         z0,
-                                        0,
-                                        0,
+                                        TileOverlayShape.PLAIN,
+                                        LocAngle.WEST,
                                         -1,
                                         heightSW,
                                         heightSE,
@@ -481,12 +482,12 @@ export default class World {
                                         FloType.mulHSL(baseColor, lightSE),
                                         FloType.mulHSL(baseColor, lightNE),
                                         FloType.mulHSL(baseColor, lightNW),
-                                        0,
-                                        0,
-                                        0,
-                                        0,
+                                        Colors.BLACK,
+                                        Colors.BLACK,
+                                        Colors.BLACK,
+                                        Colors.BLACK,
                                         shadeColor,
-                                        0
+                                        Colors.BLACK
                                     );
                                 } else {
                                     const shape: number = this.levelTileOverlayShape[level][x0][z0] + 1;
@@ -499,7 +500,7 @@ export default class World {
                                     if (textureId >= 0) {
                                         rgb = Draw3D.getAverageTextureRGB(textureId);
                                         hsl = -1;
-                                    } else if (flo.rgb == Colors.MAGENTA) {
+                                    } else if (flo.rgb === Colors.MAGENTA) {
                                         rgb = 0;
                                         hsl = -2;
                                         textureId = -1;
@@ -550,7 +551,7 @@ export default class World {
 
         for (let x: number = 0; x < this.maxTileX; x++) {
             for (let z: number = 0; z < this.maxTileZ; z++) {
-                if ((this.levelTileFlags[1][x][z] & 0x2) == 2) {
+                if ((this.levelTileFlags[1][x][z] & 0x2) === 2) {
                     scene?.setBridge(x, z);
                 }
             }
@@ -571,23 +572,23 @@ export default class World {
                 for (let level: number = 0; level <= topLevel; level++) {
                     for (let tileZ: number = 0; tileZ <= this.maxTileZ; tileZ++) {
                         for (let tileX: number = 0; tileX <= this.maxTileX; tileX++) {
-                            if ((this.levelOccludemap[level][tileX][tileZ] & wall0) != 0) {
+                            if ((this.levelOccludemap[level][tileX][tileZ] & wall0) !== 0) {
                                 let minTileZ: number = tileZ;
                                 let maxTileZ: number = tileZ;
                                 let minLevel: number = level;
                                 let maxLevel: number = level;
 
-                                while (minTileZ > 0 && (this.levelOccludemap[level][tileX][minTileZ - 1] & wall0) != 0) {
+                                while (minTileZ > 0 && (this.levelOccludemap[level][tileX][minTileZ - 1] & wall0) !== 0) {
                                     minTileZ--;
                                 }
 
-                                while (maxTileZ < this.maxTileZ && (this.levelOccludemap[level][tileX][maxTileZ + 1] & wall0) != 0) {
+                                while (maxTileZ < this.maxTileZ && (this.levelOccludemap[level][tileX][maxTileZ + 1] & wall0) !== 0) {
                                     maxTileZ++;
                                 }
 
                                 find_min_level: while (minLevel > 0) {
                                     for (let z: number = minTileZ; z <= maxTileZ; z++) {
-                                        if ((this.levelOccludemap[minLevel - 1][tileX][z] & wall0) == 0) {
+                                        if ((this.levelOccludemap[minLevel - 1][tileX][z] & wall0) === 0) {
                                             break find_min_level;
                                         }
                                     }
@@ -596,7 +597,7 @@ export default class World {
 
                                 find_max_level: while (maxLevel < topLevel) {
                                     for (let z: number = minTileZ; z <= maxTileZ; z++) {
-                                        if ((this.levelOccludemap[maxLevel + 1][tileX][z] & wall0) == 0) {
+                                        if ((this.levelOccludemap[maxLevel + 1][tileX][z] & wall0) === 0) {
                                             break find_max_level;
                                         }
                                     }
@@ -618,23 +619,23 @@ export default class World {
                                 }
                             }
 
-                            if ((this.levelOccludemap[level][tileX][tileZ] & wall1) != 0) {
+                            if ((this.levelOccludemap[level][tileX][tileZ] & wall1) !== 0) {
                                 let minTileX: number = tileX;
                                 let maxTileX: number = tileX;
                                 let minLevel: number = level;
                                 let maxLevel: number = level;
 
-                                while (minTileX > 0 && (this.levelOccludemap[level][minTileX - 1][tileZ] & wall1) != 0) {
+                                while (minTileX > 0 && (this.levelOccludemap[level][minTileX - 1][tileZ] & wall1) !== 0) {
                                     minTileX--;
                                 }
 
-                                while (maxTileX < this.maxTileX && (this.levelOccludemap[level][maxTileX + 1][tileZ] & wall1) != 0) {
+                                while (maxTileX < this.maxTileX && (this.levelOccludemap[level][maxTileX + 1][tileZ] & wall1) !== 0) {
                                     maxTileX++;
                                 }
 
                                 find_min_level2: while (minLevel > 0) {
                                     for (let x: number = minTileX; x <= maxTileX; x++) {
-                                        if ((this.levelOccludemap[minLevel - 1][x][tileZ] & wall1) == 0) {
+                                        if ((this.levelOccludemap[minLevel - 1][x][tileZ] & wall1) === 0) {
                                             break find_min_level2;
                                         }
                                     }
@@ -643,7 +644,7 @@ export default class World {
 
                                 find_max_level2: while (maxLevel < topLevel) {
                                     for (let x: number = minTileX; x <= maxTileX; x++) {
-                                        if ((this.levelOccludemap[maxLevel + 1][x][tileZ] & wall1) == 0) {
+                                        if ((this.levelOccludemap[maxLevel + 1][x][tileZ] & wall1) === 0) {
                                             break find_max_level2;
                                         }
                                     }
@@ -665,23 +666,23 @@ export default class World {
                                     }
                                 }
                             }
-                            if ((this.levelOccludemap[level][tileX][tileZ] & floor) != 0) {
+                            if ((this.levelOccludemap[level][tileX][tileZ] & floor) !== 0) {
                                 let minTileX: number = tileX;
                                 let maxTileX: number = tileX;
                                 let minTileZ: number = tileZ;
                                 let maxTileZ: number = tileZ;
 
-                                while (minTileZ > 0 && (this.levelOccludemap[level][tileX][minTileZ - 1] & floor) != 0) {
+                                while (minTileZ > 0 && (this.levelOccludemap[level][tileX][minTileZ - 1] & floor) !== 0) {
                                     minTileZ--;
                                 }
 
-                                while (maxTileZ < this.maxTileZ && (this.levelOccludemap[level][tileX][maxTileZ + 1] & floor) != 0) {
+                                while (maxTileZ < this.maxTileZ && (this.levelOccludemap[level][tileX][maxTileZ + 1] & floor) !== 0) {
                                     maxTileZ++;
                                 }
 
                                 find_min_tile_xz: while (minTileX > 0) {
                                     for (let z: number = minTileZ; z <= maxTileZ; z++) {
-                                        if ((this.levelOccludemap[level][minTileX - 1][z] & floor) == 0) {
+                                        if ((this.levelOccludemap[level][minTileX - 1][z] & floor) === 0) {
                                             break find_min_tile_xz;
                                         }
                                     }
@@ -690,7 +691,7 @@ export default class World {
 
                                 find_max_tile_xz: while (maxTileX < this.maxTileX) {
                                     for (let z: number = minTileZ; z <= maxTileZ; z++) {
-                                        if ((this.levelOccludemap[level][maxTileX + 1][z] & floor) == 0) {
+                                        if ((this.levelOccludemap[level][maxTileX + 1][z] & floor) === 0) {
                                             break find_max_tile_xz;
                                         }
                                     }
@@ -1154,8 +1155,8 @@ export default class World {
     };
 
     private getDrawLevel = (level: number, stx: number, stz: number): number => {
-        if ((this.levelTileFlags[level][stx][stz] & 0x8) == 0) {
-            return level <= 0 || (this.levelTileFlags[1][stx][stz] & 0x2) == 0 ? level : level - 1;
+        if ((this.levelTileFlags[level][stx][stz] & 0x8) === 0) {
+            return level <= 0 || (this.levelTileFlags[1][stx][stz] & 0x2) === 0 ? level : level - 1;
         }
         return 0;
     };

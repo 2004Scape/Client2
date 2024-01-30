@@ -6,39 +6,47 @@ export default class TileOverlay {
     static tmpViewspaceZ: Int32Array = new Int32Array(6);
 
     // prettier-ignore
-    private static SHAPE_POINTS: number[][] = [
-        [1, 3, 5, 7],
-        [1, 3, 5, 7],
-        [1, 3, 5, 7],
-        [1, 3, 5, 7, 6],
-        [1, 3, 5, 7, 6],
-        [1, 3, 5, 7, 6],
-        [1, 3, 5, 7, 6],
-        [1, 3, 5, 7, 2, 6],
-        [1, 3, 5, 7, 2, 8],
-        [1, 3, 5, 7, 2, 8],
-        [1, 3, 5, 7, 11, 12],
-        [1, 3, 5, 7, 11, 12],
-        [1, 3, 5, 7, 13, 14]
+    private static readonly SHAPE_POINTS: Int32Array[] = [
+        Int32Array.of(1, 3, 5, 7),
+        Int32Array.of(1, 3, 5, 7),
+        Int32Array.of(1, 3, 5, 7),
+        Int32Array.of(1, 3, 5, 7, 6),
+        Int32Array.of(1, 3, 5, 7, 6),
+        Int32Array.of(1, 3, 5, 7, 6),
+        Int32Array.of(1, 3, 5, 7, 6),
+        Int32Array.of(1, 3, 5, 7, 2, 6),
+        Int32Array.of(1, 3, 5, 7, 2, 8),
+        Int32Array.of(1, 3, 5, 7, 2, 8),
+        Int32Array.of(1, 3, 5, 7, 11, 12),
+        Int32Array.of(1, 3, 5, 7, 11, 12),
+        Int32Array.of(1, 3, 5, 7, 13, 14)
     ];
 
     // prettier-ignore
-    private static SHAPE_PATHS: number[][] = [
-        [0, 1, 2, 3, 0, 0, 1, 3],
-        [1, 1, 2, 3, 1, 0, 1, 3],
-        [0, 1, 2, 3, 1, 0, 1, 3],
-        [0, 0, 1, 2, 0, 0, 2, 4, 1, 0, 4, 3],
-        [0, 0, 1, 4, 0, 0, 4, 3, 1, 1, 2, 4],
-        [0, 0, 4, 3, 1, 0, 1, 2, 1, 0, 2, 4],
-        [0, 1, 2, 4, 1, 0, 1, 4, 1, 0, 4, 3],
-        [0, 4, 1, 2, 0, 4, 2, 5, 1, 0, 4, 5, 1, 0, 5, 3],
-        [0, 4, 1, 2, 0, 4, 2, 3, 0, 4, 3, 5, 1, 0, 4, 5],
-        [0, 0, 4, 5, 1, 4, 1, 2, 1, 4, 2, 3, 1, 4, 3, 5],
-        [0, 0, 1, 5, 0, 1, 4, 5, 0, 1, 2, 4, 1, 0, 5, 3, 1, 5, 4, 3, 1, 4, 2, 3],
-        [1, 0, 1, 5, 1, 1, 4, 5, 1, 1, 2, 4, 0, 0, 5, 3, 0, 5, 4, 3, 0, 4, 2, 3],
-        [1, 0, 5, 4, 1, 0, 1, 5, 0, 0, 4, 3, 0, 4, 5, 3, 0, 5, 2, 3, 0, 1, 2, 5]
+    private static readonly SHAPE_PATHS: Int32Array[] = [
+        Int32Array.of(0, 1, 2, 3, 0, 0, 1, 3),
+        Int32Array.of(1, 1, 2, 3, 1, 0, 1, 3),
+        Int32Array.of(0, 1, 2, 3, 1, 0, 1, 3),
+        Int32Array.of(0, 0, 1, 2, 0, 0, 2, 4, 1, 0, 4, 3),
+        Int32Array.of(0, 0, 1, 4, 0, 0, 4, 3, 1, 1, 2, 4),
+        Int32Array.of(0, 0, 4, 3, 1, 0, 1, 2, 1, 0, 2, 4),
+        Int32Array.of(0, 1, 2, 4, 1, 0, 1, 4, 1, 0, 4, 3),
+        Int32Array.of(0, 4, 1, 2, 0, 4, 2, 5, 1, 0, 4, 5, 1, 0, 5, 3),
+        Int32Array.of(0, 4, 1, 2, 0, 4, 2, 3, 0, 4, 3, 5, 1, 0, 4, 5),
+        Int32Array.of(0, 0, 4, 5, 1, 4, 1, 2, 1, 4, 2, 3, 1, 4, 3, 5),
+        Int32Array.of(0, 0, 1, 5, 0, 1, 4, 5, 0, 1, 2, 4, 1, 0, 5, 3, 1, 5, 4, 3, 1, 4, 2, 3),
+        Int32Array.of(1, 0, 1, 5, 1, 1, 4, 5, 1, 1, 2, 4, 0, 0, 5, 3, 0, 5, 4, 3, 0, 4, 2, 3),
+        Int32Array.of(1, 0, 5, 4, 1, 0, 1, 5, 0, 0, 4, 3, 0, 4, 5, 3, 0, 5, 2, 3, 0, 1, 2, 5)
     ];
 
+    private static readonly FULL_SQUARE: number = 128;
+    private static readonly HALF_SQUARE: number = Math.trunc(this.FULL_SQUARE / 2);
+    private static readonly CORNER_SMALL: number = Math.trunc(this.FULL_SQUARE / 4);
+    private static readonly CORNER_BIG: number = Math.trunc((this.FULL_SQUARE * 3) / 4);
+
+    // ----
+
+    // constructor
     readonly vertexX: Int32Array;
     readonly vertexY: Int32Array;
     readonly vertexZ: Int32Array;
@@ -61,7 +69,7 @@ export default class TileOverlay {
         southeastColor2: number,
         southeastY: number,
         northeastColor1: number,
-        rotation: number,
+        angle: number,
         southwestColor1: number,
         northwestY: number,
         foregroundRgb: number,
@@ -78,16 +86,11 @@ export default class TileOverlay {
     ) {
         this.flat = !(southwestY !== southeastY || southwestY !== northeastY || southwestY !== northwestY);
         this.shape = shape;
-        this.rotation = rotation;
+        this.rotation = angle;
         this.backgroundRgb = backgroundRgb;
         this.foregroundRgb = foregroundRgb;
 
-        const ONE: number = 128; // short
-        const HALF: number = Math.trunc(ONE / 2);
-        const QUARTER: number = Math.trunc(ONE / 4);
-        const THREE_QUARTER: number = Math.trunc((ONE * 3) / 4);
-
-        const points: number[] = TileOverlay.SHAPE_POINTS[shape];
+        const points: Int32Array = TileOverlay.SHAPE_POINTS[shape];
         const vertexCount: number = points.length;
         this.vertexX = new Int32Array(vertexCount);
         this.vertexY = new Int32Array(vertexCount);
@@ -95,22 +98,22 @@ export default class TileOverlay {
         const primaryColors: Int32Array = new Int32Array(vertexCount);
         const secondaryColors: Int32Array = new Int32Array(vertexCount);
 
-        const sceneX: number = tileX * ONE;
-        const sceneZ: number = tileZ * ONE;
+        const sceneX: number = tileX * TileOverlay.FULL_SQUARE;
+        const sceneZ: number = tileZ * TileOverlay.FULL_SQUARE;
 
         for (let v: number = 0; v < vertexCount; v++) {
             let type: number = points[v];
 
             if ((type & 0x1) === 0 && type <= 8) {
-                type = ((type - rotation - rotation - 1) & 0x7) + 1;
+                type = ((type - angle - angle - 1) & 0x7) + 1;
             }
 
             if (type > 8 && type <= 12) {
-                type = ((type - rotation - 9) & 0x3) + 9;
+                type = ((type - angle - 9) & 0x3) + 9;
             }
 
             if (type > 12 && type <= 16) {
-                type = ((type - rotation - 13) & 0x3) + 13;
+                type = ((type - angle - 13) & 0x3) + 13;
             }
 
             let x: number;
@@ -126,92 +129,92 @@ export default class TileOverlay {
                 color1 = southwestColor1;
                 color2 = southwestColor2;
             } else if (type === 2) {
-                x = sceneX + HALF;
+                x = sceneX + TileOverlay.HALF_SQUARE;
                 z = sceneZ;
                 y = (southwestY + southeastY) >> 1;
                 color1 = (southwestColor1 + southeastColor1) >> 1;
                 color2 = (southwestColor2 + southeastColor2) >> 1;
             } else if (type === 3) {
-                x = sceneX + ONE;
+                x = sceneX + TileOverlay.FULL_SQUARE;
                 z = sceneZ;
                 y = southeastY;
                 color1 = southeastColor1;
                 color2 = southeastColor2;
             } else if (type === 4) {
-                x = sceneX + ONE;
-                z = sceneZ + HALF;
+                x = sceneX + TileOverlay.FULL_SQUARE;
+                z = sceneZ + TileOverlay.HALF_SQUARE;
                 y = (southeastY + northeastY) >> 1;
                 color1 = (southeastColor1 + northeastColor1) >> 1;
                 color2 = (southeastColor2 + northeastColor2) >> 1;
             } else if (type === 5) {
-                x = sceneX + ONE;
-                z = sceneZ + ONE;
+                x = sceneX + TileOverlay.FULL_SQUARE;
+                z = sceneZ + TileOverlay.FULL_SQUARE;
                 y = northeastY;
                 color1 = northeastColor1;
                 color2 = northeastColor2;
             } else if (type === 6) {
-                x = sceneX + HALF;
-                z = sceneZ + ONE;
+                x = sceneX + TileOverlay.HALF_SQUARE;
+                z = sceneZ + TileOverlay.FULL_SQUARE;
                 y = (northeastY + northwestY) >> 1;
                 color1 = (northeastColor1 + northwestColor1) >> 1;
                 color2 = (northeastColor2 + northwestColor2) >> 1;
             } else if (type === 7) {
                 x = sceneX;
-                z = sceneZ + ONE;
+                z = sceneZ + TileOverlay.FULL_SQUARE;
                 y = northwestY;
                 color1 = northwestColor1;
                 color2 = northwestColor2;
             } else if (type === 8) {
                 x = sceneX;
-                z = sceneZ + HALF;
+                z = sceneZ + TileOverlay.HALF_SQUARE;
                 y = (northwestY + southwestY) >> 1;
                 color1 = (northwestColor1 + southwestColor1) >> 1;
                 color2 = (northwestColor2 + southwestColor2) >> 1;
             } else if (type === 9) {
-                x = sceneX + HALF;
-                z = sceneZ + QUARTER;
+                x = sceneX + TileOverlay.HALF_SQUARE;
+                z = sceneZ + TileOverlay.CORNER_SMALL;
                 y = (southwestY + southeastY) >> 1;
                 color1 = (southwestColor1 + southeastColor1) >> 1;
                 color2 = (southwestColor2 + southeastColor2) >> 1;
             } else if (type === 10) {
-                x = sceneX + THREE_QUARTER;
-                z = sceneZ + HALF;
+                x = sceneX + TileOverlay.CORNER_BIG;
+                z = sceneZ + TileOverlay.HALF_SQUARE;
                 y = (southeastY + northeastY) >> 1;
                 color1 = (southeastColor1 + northeastColor1) >> 1;
                 color2 = (southeastColor2 + northeastColor2) >> 1;
             } else if (type === 11) {
-                x = sceneX + HALF;
-                z = sceneZ + THREE_QUARTER;
+                x = sceneX + TileOverlay.HALF_SQUARE;
+                z = sceneZ + TileOverlay.CORNER_BIG;
                 y = (northeastY + northwestY) >> 1;
                 color1 = (northeastColor1 + northwestColor1) >> 1;
                 color2 = (northeastColor2 + northwestColor2) >> 1;
             } else if (type === 12) {
-                x = sceneX + QUARTER;
-                z = sceneZ + HALF;
+                x = sceneX + TileOverlay.CORNER_SMALL;
+                z = sceneZ + TileOverlay.HALF_SQUARE;
                 y = (northwestY + southwestY) >> 1;
                 color1 = (northwestColor1 + southwestColor1) >> 1;
                 color2 = (northwestColor2 + southwestColor2) >> 1;
             } else if (type === 13) {
-                x = sceneX + QUARTER;
-                z = sceneZ + QUARTER;
+                x = sceneX + TileOverlay.CORNER_SMALL;
+                z = sceneZ + TileOverlay.CORNER_SMALL;
                 y = southwestY;
                 color1 = southwestColor1;
                 color2 = southwestColor2;
             } else if (type === 14) {
-                x = sceneX + THREE_QUARTER;
-                z = sceneZ + QUARTER;
+                x = sceneX + TileOverlay.CORNER_BIG;
+                z = sceneZ + TileOverlay.CORNER_SMALL;
                 y = southeastY;
                 color1 = southeastColor1;
                 color2 = southeastColor2;
             } else if (type === 15) {
-                x = sceneX + THREE_QUARTER;
-                z = sceneZ + THREE_QUARTER;
+                x = sceneX + TileOverlay.CORNER_BIG;
+                z = sceneZ + TileOverlay.CORNER_BIG;
                 y = northeastY;
                 color1 = northeastColor1;
                 color2 = northeastColor2;
             } else {
-                x = sceneX + QUARTER;
-                z = sceneZ + THREE_QUARTER;
+                x = sceneX + TileOverlay.CORNER_SMALL;
+                z = sceneZ + TileOverlay.CORNER_BIG;
                 y = northwestY;
                 color1 = northwestColor1;
                 color2 = northwestColor2;
@@ -224,7 +227,7 @@ export default class TileOverlay {
             secondaryColors[v] = color2;
         }
 
-        const paths: number[] = TileOverlay.SHAPE_PATHS[shape];
+        const paths: Int32Array = TileOverlay.SHAPE_PATHS[shape];
         const triangleCount: number = Math.trunc(paths.length / 4);
         this.triangleVertexA = new Int32Array(triangleCount);
         this.triangleVertexB = new Int32Array(triangleCount);
@@ -248,15 +251,15 @@ export default class TileOverlay {
             index += 4;
 
             if (a < 4) {
-                a = (a - rotation) & 0x3;
+                a = (a - angle) & 0x3;
             }
 
             if (b < 4) {
-                b = (b - rotation) & 0x3;
+                b = (b - angle) & 0x3;
             }
 
             if (c < 4) {
-                c = (c - rotation) & 0x3;
+                c = (c - angle) & 0x3;
             }
 
             this.triangleVertexA[t] = a;

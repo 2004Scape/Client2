@@ -13,6 +13,8 @@ import ObjStack from './type/ObjStack';
 import TileUnderlay from './type/TileUnderlay';
 import Draw2D from '../graphics/Draw2D';
 import TileOverlay from './type/TileOverlay';
+import TileOverlayShape from './type/TileOverlayShape';
+import LocAngle from './LocAngle';
 
 export default class World3D {
     private static readonly visibilityMatrix: boolean[][][][] = new Array(8).fill(false).map((): boolean[][][] => new Array(32).fill(false).map((): boolean[][] => new Array(51).fill(false).map((): boolean[] => new Array(51).fill(false))));
@@ -366,7 +368,7 @@ export default class World3D {
         backgroundRgb: number,
         foregroundRgb: number
     ): void => {
-        if (shape === 0) {
+        if (shape === TileOverlayShape.PLAIN) {
             const underlay: TileUnderlay = new TileUnderlay(southwestColor, southeastColor, northeastColor, northwestColor, -1, backgroundRgb, false);
             for (let l: number = level; l >= 0; l--) {
                 if (!this.levelTiles[l][x][z]) {
@@ -377,7 +379,7 @@ export default class World3D {
             if (tile) {
                 tile.underlay = underlay;
             }
-        } else if (shape === 1) {
+        } else if (shape === TileOverlayShape.DIAGONAL) {
             const underlay: TileUnderlay = new TileUnderlay(southwestColor2, southeastColor2, northeastColor2, northwestColor2, textureId, foregroundRgb, southwestY === southeastY && southwestY === northeastY && southwestY === northwestY);
             for (let l: number = level; l >= 0; l--) {
                 if (!this.levelTiles[l][x][z]) {
@@ -1473,32 +1475,32 @@ export default class World3D {
                         const x: number = decor.x - World3D.eyeX;
                         const y: number = decor.y - World3D.eyeY;
                         const z: number = decor.z - World3D.eyeZ;
-                        const rotation: number = decor.angle;
+                        const angle: number = decor.angle;
 
                         let nearestX: number;
-                        if (rotation === 1 || rotation === 2) {
+                        if (angle === LocAngle.NORTH || angle === LocAngle.EAST) {
                             nearestX = -x;
                         } else {
                             nearestX = x;
                         }
 
                         let nearestZ: number;
-                        if (rotation === 2 || rotation === 3) {
+                        if (angle === LocAngle.EAST || angle === LocAngle.SOUTH) {
                             nearestZ = -z;
                         } else {
                             nearestZ = z;
                         }
 
                         if ((decor.type & 0x100) !== 0 && nearestZ < nearestX) {
-                            const drawX: number = x + World3D.WALL_DECORATION_INSET_X[rotation];
-                            const drawZ: number = z + World3D.WALL_DECORATION_INSET_Z[rotation];
-                            decor.model.draw(rotation * 512 + 256, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, drawX, y, drawZ, decor.bitset);
+                            const drawX: number = x + World3D.WALL_DECORATION_INSET_X[angle];
+                            const drawZ: number = z + World3D.WALL_DECORATION_INSET_Z[angle];
+                            decor.model.draw(angle * 512 + 256, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, drawX, y, drawZ, decor.bitset);
                         }
 
                         if ((decor.type & 0x200) !== 0 && nearestZ > nearestX) {
-                            const drawX: number = x + World3D.WALL_DECORATION_OUTSET_X[rotation];
-                            const drawZ: number = z + World3D.WALL_DECORATION_OUTSET_Z[rotation];
-                            decor.model.draw((rotation * 512 + 1280) & 0x7ff, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, drawX, y, drawZ, decor.bitset);
+                            const drawX: number = x + World3D.WALL_DECORATION_OUTSET_X[angle];
+                            const drawZ: number = z + World3D.WALL_DECORATION_OUTSET_Z[angle];
+                            decor.model.draw((angle * 512 + 1280) & 0x7ff, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, drawX, y, drawZ, decor.bitset);
                         }
                     }
                 }
@@ -1772,32 +1774,32 @@ export default class World3D {
                         const x: number = decor.x - World3D.eyeX;
                         const y: number = decor.y - World3D.eyeY;
                         const z: number = decor.z - World3D.eyeZ;
-                        const rotation: number = decor.angle;
+                        const angle: number = decor.angle;
 
                         let nearestX: number;
-                        if (rotation === 1 || rotation === 2) {
+                        if (angle === LocAngle.NORTH || angle === LocAngle.EAST) {
                             nearestX = -x;
                         } else {
                             nearestX = x;
                         }
 
                         let nearestZ: number;
-                        if (rotation === 2 || rotation === 3) {
+                        if (angle === LocAngle.EAST || angle === LocAngle.SOUTH) {
                             nearestZ = -z;
                         } else {
                             nearestZ = z;
                         }
 
                         if ((decor.type & 0x100) !== 0 && nearestZ >= nearestX) {
-                            const drawX: number = x + World3D.WALL_DECORATION_INSET_X[rotation];
-                            const drawZ: number = z + World3D.WALL_DECORATION_INSET_Z[rotation];
-                            decor.model.draw(rotation * 512 + 256, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, drawX, y, drawZ, decor.bitset);
+                            const drawX: number = x + World3D.WALL_DECORATION_INSET_X[angle];
+                            const drawZ: number = z + World3D.WALL_DECORATION_INSET_Z[angle];
+                            decor.model.draw(angle * 512 + 256, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, drawX, y, drawZ, decor.bitset);
                         }
 
                         if ((decor.type & 0x200) !== 0 && nearestZ <= nearestX) {
-                            const drawX: number = x + World3D.WALL_DECORATION_OUTSET_X[rotation];
-                            const drawZ: number = z + World3D.WALL_DECORATION_OUTSET_Z[rotation];
-                            decor.model.draw((rotation * 512 + 1280) & 0x7ff, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, drawX, y, drawZ, decor.bitset);
+                            const drawX: number = x + World3D.WALL_DECORATION_OUTSET_X[angle];
+                            const drawZ: number = z + World3D.WALL_DECORATION_OUTSET_Z[angle];
+                            decor.model.draw((angle * 512 + 1280) & 0x7ff, World3D.sinEyePitch, World3D.cosEyePitch, World3D.sinEyeYaw, World3D.cosEyeYaw, drawX, y, drawZ, decor.bitset);
                         }
                     }
                 }

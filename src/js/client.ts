@@ -7579,10 +7579,9 @@ class Client extends GameShell {
         }
     };
 
-    private tryMove = (srcX: number, srcZ: number, dx: number, dz: number, type: number, locWidth: number, locLength: number, locRotation: number, locShape: number, forceapproach: number, tryNearest: boolean): boolean => {
+    private tryMove = (srcX: number, srcZ: number, dx: number, dz: number, type: number, locWidth: number, locLength: number, locAngle: number, locShape: number, forceapproach: number, tryNearest: boolean): boolean => {
         const collisionMap: CollisionMap | null = this.levelCollisionMap[this.currentLevel];
         if (!collisionMap) {
-            console.log('failed 1');
             return false;
         }
 
@@ -7624,13 +7623,13 @@ class Client extends GameShell {
                 break;
             }
 
-            if (locShape !== 0) {
-                if ((locShape < 5 || locShape === 10) && collisionMap.reachedWall(x, z, dx, dz, locShape - 1, locRotation)) {
+            if (locShape !== LocShape.WALL_STRAIGHT) {
+                if ((locShape < LocShape.WALLDECOR_STRAIGHT_OFFSET || locShape === LocShape.CENTREPIECE_STRAIGHT) && collisionMap.reachedWall(x, z, dx, dz, locShape - 1, locAngle)) {
                     arrived = true;
                     break;
                 }
 
-                if (locShape < 10 && collisionMap.reachedWallDecoration(x, z, dx, dz, locShape - 1, locRotation)) {
+                if (locShape < LocShape.CENTREPIECE_STRAIGHT && collisionMap.reachedWallDecoration(x, z, dx, dz, locShape - 1, locAngle)) {
                     arrived = true;
                     break;
                 }
@@ -7643,7 +7642,7 @@ class Client extends GameShell {
 
             const nextCost: number = this.bfsCost[CollisionMap.index(x, z)] + 1;
             let index: number = CollisionMap.index(x - 1, z);
-            if (x > 0 && this.bfsDirection[index] === 0 && (flags[index] & CollisionFlag.BLOCK_WEST) === 0) {
+            if (x > 0 && this.bfsDirection[index] === 0 && (flags[index] & CollisionFlag.BLOCK_WEST) === CollisionFlag.OPEN) {
                 this.bfsStepX[steps] = x - 1;
                 this.bfsStepZ[steps] = z;
                 steps = (steps + 1) % bufferSize;
@@ -7652,7 +7651,7 @@ class Client extends GameShell {
             }
 
             index = CollisionMap.index(x + 1, z);
-            if (x < sceneWidth - 1 && this.bfsDirection[index] === 0 && (flags[index] & CollisionFlag.BLOCK_EAST) === 0) {
+            if (x < sceneWidth - 1 && this.bfsDirection[index] === 0 && (flags[index] & CollisionFlag.BLOCK_EAST) === CollisionFlag.OPEN) {
                 this.bfsStepX[steps] = x + 1;
                 this.bfsStepZ[steps] = z;
                 steps = (steps + 1) % bufferSize;
@@ -7661,7 +7660,7 @@ class Client extends GameShell {
             }
 
             index = CollisionMap.index(x, z - 1);
-            if (z > 0 && this.bfsDirection[index] === 0 && (flags[index] & CollisionFlag.BLOCK_SOUTH) === 0) {
+            if (z > 0 && this.bfsDirection[index] === 0 && (flags[index] & CollisionFlag.BLOCK_SOUTH) === CollisionFlag.OPEN) {
                 this.bfsStepX[steps] = x;
                 this.bfsStepZ[steps] = z - 1;
                 steps = (steps + 1) % bufferSize;
@@ -7670,7 +7669,7 @@ class Client extends GameShell {
             }
 
             index = CollisionMap.index(x, z + 1);
-            if (z < sceneLength - 1 && this.bfsDirection[index] === 0 && (flags[index] & CollisionFlag.BLOCK_NORTH) === 0) {
+            if (z < sceneLength - 1 && this.bfsDirection[index] === 0 && (flags[index] & CollisionFlag.BLOCK_NORTH) === CollisionFlag.OPEN) {
                 this.bfsStepX[steps] = x;
                 this.bfsStepZ[steps] = z + 1;
                 steps = (steps + 1) % bufferSize;
@@ -7684,8 +7683,8 @@ class Client extends GameShell {
                 z > 0 &&
                 this.bfsDirection[index] === 0 &&
                 (flags[index] & CollisionFlag.BLOCK_SOUTH_WEST) === 0 &&
-                (flags[CollisionMap.index(x - 1, z)] & CollisionFlag.BLOCK_WEST) === 0 &&
-                (flags[CollisionMap.index(x, z - 1)] & CollisionFlag.BLOCK_SOUTH) === 0
+                (flags[CollisionMap.index(x - 1, z)] & CollisionFlag.BLOCK_WEST) === CollisionFlag.OPEN &&
+                (flags[CollisionMap.index(x, z - 1)] & CollisionFlag.BLOCK_SOUTH) === CollisionFlag.OPEN
             ) {
                 this.bfsStepX[steps] = x - 1;
                 this.bfsStepZ[steps] = z - 1;
@@ -7700,8 +7699,8 @@ class Client extends GameShell {
                 z > 0 &&
                 this.bfsDirection[index] === 0 &&
                 (flags[index] & CollisionFlag.BLOCK_SOUTH_EAST) === 0 &&
-                (flags[CollisionMap.index(x + 1, z)] & CollisionFlag.BLOCK_EAST) === 0 &&
-                (flags[CollisionMap.index(x, z - 1)] & CollisionFlag.BLOCK_SOUTH) === 0
+                (flags[CollisionMap.index(x + 1, z)] & CollisionFlag.BLOCK_EAST) === CollisionFlag.OPEN &&
+                (flags[CollisionMap.index(x, z - 1)] & CollisionFlag.BLOCK_SOUTH) === CollisionFlag.OPEN
             ) {
                 this.bfsStepX[steps] = x + 1;
                 this.bfsStepZ[steps] = z - 1;
@@ -7716,8 +7715,8 @@ class Client extends GameShell {
                 z < sceneLength - 1 &&
                 this.bfsDirection[index] === 0 &&
                 (flags[index] & CollisionFlag.BLOCK_NORTH_WEST) === 0 &&
-                (flags[CollisionMap.index(x - 1, z)] & CollisionFlag.BLOCK_WEST) === 0 &&
-                (flags[CollisionMap.index(x, z + 1)] & CollisionFlag.BLOCK_NORTH) === 0
+                (flags[CollisionMap.index(x - 1, z)] & CollisionFlag.BLOCK_WEST) === CollisionFlag.OPEN &&
+                (flags[CollisionMap.index(x, z + 1)] & CollisionFlag.BLOCK_NORTH) === CollisionFlag.OPEN
             ) {
                 this.bfsStepX[steps] = x - 1;
                 this.bfsStepZ[steps] = z + 1;
@@ -7732,8 +7731,8 @@ class Client extends GameShell {
                 z < sceneLength - 1 &&
                 this.bfsDirection[index] === 0 &&
                 (flags[index] & CollisionFlag.BLOCK_NORTH_EAST) === 0 &&
-                (flags[CollisionMap.index(x + 1, z)] & CollisionFlag.BLOCK_EAST) === 0 &&
-                (flags[CollisionMap.index(x, z + 1)] & CollisionFlag.BLOCK_NORTH) === 0
+                (flags[CollisionMap.index(x + 1, z)] & CollisionFlag.BLOCK_EAST) === CollisionFlag.OPEN &&
+                (flags[CollisionMap.index(x, z + 1)] & CollisionFlag.BLOCK_NORTH) === CollisionFlag.OPEN
             ) {
                 this.bfsStepX[steps] = x + 1;
                 this.bfsStepZ[steps] = z + 1;
@@ -7769,7 +7768,6 @@ class Client extends GameShell {
             }
 
             if (!arrived) {
-                console.log('failed 2');
                 return false;
             }
         }
