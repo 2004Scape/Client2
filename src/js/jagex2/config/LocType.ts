@@ -268,7 +268,7 @@ export default class LocType extends ConfigType {
             return null;
         }
 
-        const flipped: boolean = (this.mirror ? 1 : 0 ^ angle) > 3;
+        const flipped: boolean = this.mirror !== angle > 3;
         if (flipped) {
             modelId += 65536;
         }
