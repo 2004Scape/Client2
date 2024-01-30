@@ -8,7 +8,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const isProduction = process.env.NODE_ENV == 'production';
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
 
-const pages = ['index', 'playground', 'viewer', 'mesanim'];
+const pages = ['index', 'playground', 'viewer', 'mesanim', 'items'];
 const htmlPlugins = pages.map(name => {
     return new HtmlWebpackPlugin({
         template: `src/html/${name}.html`,
@@ -22,7 +22,8 @@ const config = {
         index: './src/js/client.ts',
         playground: './src/js/playground.js',
         viewer: './src/js/viewer.ts',
-        mesanim: './src/js/mesanim.ts'
+        mesanim: './src/js/mesanim.ts',
+        items: './src/js/items.ts'
     },
 
     plugins: [
