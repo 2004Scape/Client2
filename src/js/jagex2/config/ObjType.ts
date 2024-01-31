@@ -78,7 +78,7 @@ export default class ObjType extends ConfigType {
         this.dat = null;
     };
 
-    static getIcon = (id: number, count: number, magenta: boolean = false): Pix24 => {
+    static getIcon = (id: number, count: number): Pix24 => {
         if (ObjType.iconCache) {
             let icon: Pix24 | null = ObjType.iconCache.get(BigInt(id)) as Pix24 | null;
             if (icon && icon.cropH !== count && icon.cropH !== -1) {
@@ -124,11 +124,7 @@ export default class ObjType extends ConfigType {
 
         Draw3D.jagged = false;
         Draw2D.bind(icon.pixels, 32, 32);
-        if (magenta) {
-            Draw2D.fillRect(0, 0, 32, 32, Colors.MAGENTA);
-        } else {
-            Draw2D.fillRect(0, 0, 32, 32, Colors.BLACK);
-        }
+        Draw2D.fillRect(0, 0, 32, 32, Colors.BLACK);
         Draw3D.init2D();
 
         const iModel: Model = obj.getInterfaceModel(1);
@@ -136,32 +132,30 @@ export default class ObjType extends ConfigType {
         const cosPitch: number = (Draw3D.cos[obj.xan2d] * obj.zoom2d) >> 16;
         iModel.drawSimple(0, obj.yan2d, obj.zan2d, obj.xan2d, obj.xof2d, sinPitch + Math.trunc(iModel.maxY / 2) + obj.yof2d, cosPitch + obj.yof2d);
 
-        if (!magenta) {
-            // draw outline
-            for (let x: number = 31; x >= 0; x--) {
-                for (let y: number = 31; y >= 0; y--) {
-                    if (icon.pixels[x + y * 32] !== 0) {
-                        continue;
-                    }
+        // draw outline
+        for (let x: number = 31; x >= 0; x--) {
+            for (let y: number = 31; y >= 0; y--) {
+                if (icon.pixels[x + y * 32] !== 0) {
+                    continue;
+                }
 
-                    if (x > 0 && icon.pixels[x + y * 32 - 1] > 1) {
-                        icon.pixels[x + y * 32] = 1;
-                    } else if (y > 0 && icon.pixels[x + (y - 1) * 32] > 1) {
-                        icon.pixels[x + y * 32] = 1;
-                    } else if (x < 31 && icon.pixels[x + y * 32 + 1] > 1) {
-                        icon.pixels[x + y * 32] = 1;
-                    } else if (y < 31 && icon.pixels[x + (y + 1) * 32] > 1) {
-                        icon.pixels[x + y * 32] = 1;
-                    }
+                if (x > 0 && icon.pixels[x + y * 32 - 1] > 1) {
+                    icon.pixels[x + y * 32] = 1;
+                } else if (y > 0 && icon.pixels[x + (y - 1) * 32] > 1) {
+                    icon.pixels[x + y * 32] = 1;
+                } else if (x < 31 && icon.pixels[x + y * 32 + 1] > 1) {
+                    icon.pixels[x + y * 32] = 1;
+                } else if (y < 31 && icon.pixels[x + (y + 1) * 32] > 1) {
+                    icon.pixels[x + y * 32] = 1;
                 }
             }
+        }
 
-            // draw shadow
-            for (let x: number = 31; x >= 0; x--) {
-                for (let y: number = 31; y >= 0; y--) {
-                    if (icon.pixels[x + y * 32] === 0 && x > 0 && y > 0 && icon.pixels[x + (y - 1) * 32 - 1] > 0) {
-                        icon.pixels[x + y * 32] = 3153952;
-                    }
+        // draw shadow
+        for (let x: number = 31; x >= 0; x--) {
+            for (let y: number = 31; y >= 0; y--) {
+                if (icon.pixels[x + y * 32] === 0 && x > 0 && y > 0 && icon.pixels[x + (y - 1) * 32 - 1] > 0) {
+                    icon.pixels[x + y * 32] = 3153952;
                 }
             }
         }

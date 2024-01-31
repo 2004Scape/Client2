@@ -261,12 +261,6 @@ class Viewer extends GameShell {
                 li.className += ' active';
                 command.value = `::give ${name} 1`;
             }
-            if (type.name === null) {
-                li.innerText = name + ' (' + id + ')';
-            } else {
-                li.innerText = type.name + ' - ' + name + ' (' + id + ')';
-            }
-            li.innerText += ' ';
             li.onclick = (): void => {
                 const last: Element | null = ul.querySelector('.active');
                 if (last) {
@@ -274,7 +268,6 @@ class Viewer extends GameShell {
                 }
 
                 li.className = 'list-group-item list-group-item-center active';
-
                 command.value = `::give ${name} 1`;
             };
 
@@ -282,16 +275,23 @@ class Viewer extends GameShell {
             canvas.className = 'icon';
             canvas.width = 32;
             canvas.height = 32;
+            li.appendChild(canvas);
+
+            const p: HTMLParagraphElement = document.createElement('p');
+            if (type.name === null) {
+                p.innerText = name;
+            } else {
+                p.innerText = type.name + ' - ' + name;
+            }
+            li.appendChild(p);
 
             const temp: PixMap = new PixMap(32, 32, canvas.getContext('2d', {willReadFrequently: true}) ?? canvas2d);
-            const icon: Pix24 = ObjType.getIcon(id, 1, true);
+            const icon: Pix24 = ObjType.getIcon(id, 10000);
 
             temp.bind();
             Draw3D.init2D();
             icon.draw(0, 0);
-            temp.draw(0, 0, true);
-
-            li.appendChild(canvas);
+            temp.draw(0, 0);
 
             ul.appendChild(li);
         }

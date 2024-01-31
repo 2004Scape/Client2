@@ -27,41 +27,21 @@ export default class PixMap {
         Draw2D.bind(this.pixels, this.width, this.height);
     };
 
-    draw = (width: number, height: number, magenta: boolean = false): void => {
-        this.#setPixels(magenta);
+    draw = (width: number, height: number): void => {
+        this.#setPixels();
         this.ctx.putImageData(this.image, width, height);
     };
 
-    #setPixels = (magenta: boolean = false): void => {
+    #setPixels = (): void => {
         // copy pixels (uint32) to imageData (uint8)
         const data: Uint8ClampedArray = this.image.data;
-
-        if (magenta) {
-            for (let i: number = 0; i < this.pixels.length; i++) {
-                const pixel: number = this.pixels[i];
-                const index: number = i * 4;
-
-                if (pixel === Colors.MAGENTA) {
-                    data[index] = 0;
-                    data[index + 1] = 0;
-                    data[index + 2] = 0;
-                    data[index + 3] = 0;
-                } else {
-                    data[index] = (pixel >> 16) & 0xff;
-                    data[index + 1] = (pixel >> 8) & 0xff;
-                    data[index + 2] = (pixel >> 0) & 0xff;
-                    data[index + 3] = 255;
-                }
-            }
-        } else {
-            for (let i: number = 0; i < this.pixels.length; i++) {
-                const pixel: number = this.pixels[i];
-                const index: number = i * 4;
-                data[index] = (pixel >> 16) & 0xff;
-                data[index + 1] = (pixel >> 8) & 0xff;
-                data[index + 2] = (pixel >> 0) & 0xff;
-                data[index + 3] = 255;
-            }
+        for (let i: number = 0; i < this.pixels.length; i++) {
+            const pixel: number = this.pixels[i];
+            const index: number = i * 4;
+            data[index] = (pixel >> 16) & 0xff;
+            data[index + 1] = (pixel >> 8) & 0xff;
+            data[index + 2] = (pixel >> 0) & 0xff;
+            data[index + 3] = 255;
         }
     };
 }
