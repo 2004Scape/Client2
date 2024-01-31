@@ -5072,9 +5072,9 @@ class Client extends GameShell {
         if (amount < 100000) {
             return String(amount);
         } else if (amount < 10000000) {
-            return Math.floor(amount / 1000) + 'K';
+            return Math.trunc(amount / 1000) + 'K';
         } else {
-            return Math.floor(amount / 1000000) + 'M';
+            return Math.trunc(amount / 1000000) + 'M';
         }
     };
 
@@ -9193,7 +9193,7 @@ class Client extends GameShell {
         } else if (this.actionKey[2] === 1) {
             this.orbitCameraYawVelocity += Math.trunc((24 - this.orbitCameraYawVelocity) / 2);
         } else {
-            this.orbitCameraYawVelocity /= 2;
+            this.orbitCameraYawVelocity = Math.trunc(this.orbitCameraYawVelocity / 2);
         }
         if (this.actionKey[3] === 1) {
             this.orbitCameraPitchVelocity += Math.trunc((12 - this.orbitCameraPitchVelocity) / 2);

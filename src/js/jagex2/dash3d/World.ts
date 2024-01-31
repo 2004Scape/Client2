@@ -273,10 +273,10 @@ export default class World {
         this.levelHeightmap = levelHeightmap;
         this.levelTileFlags = levelTileFlags;
 
-        this.levelTileUnderlayIds = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX + 1).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ + 1)));
-        this.levelTileOverlayIds = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX + 1).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ + 1)));
-        this.levelTileOverlayShape = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX + 1).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ + 1)));
-        this.levelTileOverlayRotation = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX + 1).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ + 1)));
+        this.levelTileUnderlayIds = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ)));
+        this.levelTileOverlayIds = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ)));
+        this.levelTileOverlayShape = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ)));
+        this.levelTileOverlayRotation = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ)));
 
         this.levelOccludemap = new Array(CollisionMap.LEVELS).fill(null).map((): Int32Array[] => new Array(maxTileX + 1).fill(null).map((): Int32Array => new Int32Array(maxTileZ + 1)));
         this.levelShademap = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX + 1).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ + 1)));

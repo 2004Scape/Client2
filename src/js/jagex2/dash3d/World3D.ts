@@ -229,7 +229,7 @@ export default class World3D {
         this.maxLevel = maxLevel;
         this.maxTileX = maxTileX;
         this.maxTileZ = maxTileZ;
-        this.levelTiles = new Array(maxLevel).fill(null).map((): Tile[][] => new Array(maxTileX + 1).fill(null).map((): Tile[] => new Array(maxTileZ + 1).fill(null)));
+        this.levelTiles = new Array(maxLevel).fill(null).map((): Tile[][] => new Array(maxTileX).fill(null).map((): Tile[] => new Array(maxTileZ).fill(null)));
         this.levelTileOcclusionCycles = new Array(maxLevel).fill(null).map((): Int32Array[] => new Array(maxTileX + 1).fill(null).map((): Int32Array => new Int32Array(maxTileZ + 1)));
         this.levelHeightmaps = levelHeightmaps;
         this.temporaryLocs = new Array(5000).fill(null);
