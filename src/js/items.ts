@@ -1,4 +1,4 @@
-import 'style/mesanim.scss';
+import 'style/items.scss';
 
 import SeqType from './jagex2/config/SeqType';
 import LocType from './jagex2/config/LocType';
@@ -30,6 +30,7 @@ import {canvas, canvas2d} from './jagex2/graphics/Canvas';
 import Pix8 from './jagex2/graphics/Pix8';
 import Bzip from './vendor/bzip';
 import Pix24 from './jagex2/graphics/Pix24';
+import PixMap from './jagex2/graphics/PixMap';
 
 class Viewer extends GameShell {
     static HOST: string = 'https://w2.225.2004scape.org';
@@ -118,28 +119,18 @@ class Viewer extends GameShell {
             SeqType.unpack(config);
             ObjType.unpack(config, true);
 
-            await this.showProgress(95, 'Generating item sprites');
-            await this.populateItems();
-
             await this.showProgress(100, 'Getting ready to start...');
+
+            await this.populateItems();
         } catch (err) {
             this.errorLoading = true;
             console.error(err);
         }
     };
 
-    update = async (): Promise<void> => {
-        if (this.errorStarted || this.errorLoading || this.errorHost) {
-            return;
-        }
-    };
+    update = async (): Promise<void> => {};
 
-    draw = async (): Promise<void> => {
-        if (this.errorStarted || this.errorLoading || this.errorHost) {
-            this.drawErrorScreen();
-            return;
-        }
-    };
+    draw = async (): Promise<void> => {};
 
     //
 
@@ -183,72 +174,6 @@ class Viewer extends GameShell {
         return new Jagfile(data);
     }
 
-    drawErrorScreen(): void {
-        canvas2d.fillStyle = 'black';
-        canvas2d.fillRect(0, 0, this.width, this.height);
-
-        this.setFramerate(1);
-
-        if (this.errorLoading) {
-            canvas2d.font = 'bold 16px helvetica, sans-serif';
-            canvas2d.textAlign = 'left';
-            canvas2d.fillStyle = 'yellow';
-
-            let y: number = 35;
-            canvas2d.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
-
-            y += 50;
-            canvas2d.fillStyle = 'white';
-            canvas2d.fillText('To fix this try the following (in order):', 30, y);
-
-            y += 50;
-            canvas2d.font = 'bold 12px helvetica, sans-serif';
-            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
-
-            y += 30;
-            canvas2d.fillText('2: Try clearing your web-browsers cache from tools->internet options', 30, y);
-
-            y += 30;
-            canvas2d.fillText('3: Try using a different game-world', 30, y);
-
-            y += 30;
-            canvas2d.fillText('4: Try rebooting your computer', 30, y);
-
-            y += 30;
-            canvas2d.fillText('5: Try selecting a different version of Java from the play-game menu', 30, y);
-        }
-
-        if (this.errorHost) {
-            canvas2d.font = 'bold 20px helvetica, sans-serif';
-            canvas2d.textAlign = 'left';
-            canvas2d.fillStyle = 'white';
-
-            canvas2d.fillText('Error - unable to load game!', 50, 50);
-            canvas2d.fillText('To play RuneScape make sure you play from', 50, 100);
-            canvas2d.fillText('https://2004scape.org', 50, 150);
-        }
-
-        if (this.errorStarted) {
-            canvas2d.font = 'bold 13px helvetica, sans-serif';
-            canvas2d.textAlign = 'left';
-            canvas2d.fillStyle = 'yellow';
-
-            let y: number = 35;
-            canvas2d.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
-
-            y += 50;
-            canvas2d.fillStyle = 'white';
-            canvas2d.fillText('To fix this try the following (in order):', 30, y);
-
-            y += 50;
-            canvas2d.font = 'bold 12px helvetica, sans-serif';
-            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
-
-            y += 30;
-            canvas2d.fillText('2: Try rebooting your computer, and reloading', 30, y);
-        }
-    }
-
     //
 
     async populateItems(): Promise<void> {
@@ -257,7 +182,17 @@ class Viewer extends GameShell {
             return;
         }
 
+        items.innerHTML = '';
+
         this.packfiles[1] = await this.loadPack(`${Viewer.REPO}/data/pack/obj.pack`);
+
+        const command: HTMLInputElement = document.createElement('input');
+        command.type = 'text';
+        command.placeholder = '::give';
+        command.tabIndex = -1;
+        items.appendChild(command);
+
+        // todo: toggle cert_
 
         const search: HTMLInputElement = document.createElement('input');
         search.type = 'search';
@@ -292,53 +227,71 @@ class Viewer extends GameShell {
         ul.className = 'list-group';
         items.appendChild(ul);
 
+        const stackobj: Set<number> = new Set();
         for (const [id, name] of this.packfiles[1]) {
             const type: ObjType = ObjType.get(id);
+
+            if (type.countobj === null || type.countco === null) {
+                continue;
+            }
+
+            for (let i: number = 0; i < type.countobj.length; i++) {
+                if (type.countco[i] === 0) {
+                    break;
+                }
+
+                stackobj.add(type.countobj[i]);
+            }
+        }
+
+        for (const [id, name] of this.packfiles[1]) {
+            const type: ObjType = ObjType.get(id);
+
+            if (type.certtemplate !== -1 || type.model === 0 || stackobj.has(id)) {
+                continue;
+            }
 
             const li: HTMLLIElement = document.createElement('li');
             li.id = name;
             li.setAttribute('rs-id', id.toString());
             li.setAttribute('rs-debugname', name);
             li.setAttribute('rs-name', type.name?.toLowerCase().replaceAll(' ', '_') ?? name);
-            li.className = 'list-group-item';
+            li.className = 'list-group-item list-group-item-center';
             if (id === 0) {
                 li.className += ' active';
+                command.value = `::give ${name} 1`;
             }
             if (type.name === null) {
                 li.innerText = name + ' (' + id + ')';
             } else {
                 li.innerText = type.name + ' - ' + name + ' (' + id + ')';
             }
+            li.innerText += ' ';
             li.onclick = (): void => {
                 const last: Element | null = ul.querySelector('.active');
                 if (last) {
-                    last.className = 'list-group-item';
+                    last.className = 'list-group-item list-group-item-center';
                 }
 
-                li.className = 'list-group-item active';
+                li.className = 'list-group-item list-group-item-center active';
+
+                command.value = `::give ${name} 1`;
             };
 
-            // const icon = ObjType.getIcon(id, 1);
-            // icon.draw(0, 0);
+            const canvas: HTMLCanvasElement = document.createElement('canvas');
+            canvas.className = 'icon';
+            canvas.width = 32;
+            canvas.height = 32;
 
-            // const canvas: HTMLCanvasElement = document.createElement('canvas');
-            // canvas.width = icon.width;
-            // canvas.height = icon.height;
-            // const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d', { willReadFrequently: true });
-            // if (ctx) {
-            //     const image = ctx.getImageData(0, 0, icon.width, icon.height);
-            //     const data: Uint8ClampedArray = image.data;
-            //     for (let i: number = 0; i < icon.pixels.length; i++) {
-            //         const pixel: number = icon.pixels[i];
-            //         const index: number = i * 4;
-            //         data[index] = 255; // (pixel >> 16) & 0xff;
-            //         data[index + 1] = 0; // (pixel >> 8) & 0xff;
-            //         data[index + 2] = 0; // (pixel >> 0) & 0xff;
-            //         data[index + 3] = 255;
-            //     }
-            //     ctx.putImageData(image, icon.width, icon.height);
-            // }
-            // li.appendChild(canvas);
+            const temp: PixMap = new PixMap(32, 32, canvas.getContext('2d', {willReadFrequently: true}) ?? canvas2d);
+            const icon: Pix24 = ObjType.getIcon(id, 1, true);
+
+            temp.bind();
+            Draw3D.init2D();
+            icon.draw(0, 0);
+            temp.draw(0, 0, true);
+
+            li.appendChild(canvas);
 
             ul.appendChild(li);
         }

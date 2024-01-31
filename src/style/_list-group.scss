@@ -1,12 +1,12 @@
 .list-group {
     margin-left: 0;
     margin-bottom: 1rem;
-    border: 1px solid #e6e6e6;
+    border: $input-border;
     border-radius: 0;
-    background: #fefefe;
+    background: $white;
     box-shadow: none;
     overflow: hidden;
-    color: #0a0a0a;
+    color: $black;
 }
 
 .list-group> :last-child {
@@ -15,7 +15,7 @@
 
 .list-group-item {
     padding: 1rem;
-    border-bottom: 1px solid #e6e6e6;
+    border-bottom: $input-border;
 }
 
 .list-group-item> :last-child {
@@ -24,15 +24,19 @@
 }
 
 .list-group-item.active {
-    color: #fefefe;
+    color: $white;
     background-color: #1779ba;
     border-color: 1px solid #1779ba;
+}
+
+.list-group-item-center {
+    text-align: center;
 }
 
 .list-group-item:hover,
 .list-group-item:focus {
     cursor: pointer;
-    background-color: #e6e6e6;
+    background-color: #666666;
 }
 
 .list-group-item:hover.active,
@@ -46,7 +50,7 @@
 .list-group-item[disabled],
 .list-group-item[disabled]:hover,
 .list-group-item[disabled]:focus {
-    color: #8a8a8a;
+    color: $black;
     cursor: not-allowed;
-    background-color: #fefefe;
+    background-color: $white;
 }

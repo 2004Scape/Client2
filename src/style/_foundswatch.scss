@@ -1,0 +1,104 @@
+// ----------------------------------------------------------------------------
+// Foundswatch v1.0.0 - Dark
+// @see https://foundswatch.com
+// (c) 2020 Vino Rodrigues
+// Licensed under MIT
+// Based on ZURB Foundation for Sites, https://get.foundation
+// ----------------------------------------------------------------------------
+
+// 0. borrowed from bootstrap
+// --------------------------
+
+:root {
+	@each $color, $value in $foundation-palette {
+		--#{$color}: #{$value};
+	}
+	--light-gray: #{$light-gray};
+	--medium-gray: #{$medium-gray};
+	--dark-gray: #{$dark-gray};
+	--black: #{$black};
+	--white: #{$white};
+	@each $bp, $value in $breakpoints {
+		--breakpoint-#{$bp}: #{$value};
+	}
+	--top-bar-bg: #{$topbar-background};
+	--title-bar-bg: #{$titlebar-background};
+	--font-family-sans-serif: #{inspect($body-font-family)};
+	--font-family-monospace: #{inspect($font-family-monospace)};
+}
+
+img {
+	opacity: .75;
+	transition: opacity .5s ease-in-out;
+	&:hover {
+		opacity: 1;
+	}
+}
+
+// 5. Typo
+// -------
+
+.code-inline,
+code {
+	a {
+		color: scale-color($primary-color, $lightness: 10%);
+	}
+}
+
+// 11. Buttons
+// -----------
+
+.button.dropdown {
+	&::after {
+		border-color: $body-font-color transparent transparent;
+	}
+
+	@each $bname, $__dmp in $button-palette {
+		&.#{$bname}::after {
+			@if (success != $bname) and (warning != $bname) {
+				border-color: $body-font-color transparent transparent;
+			} @else {
+				border-color: $white transparent transparent;
+			}
+		}
+	}
+}
+
+
+// 55. Top Bar
+// -----------
+
+$topbar-text-color: $black;
+$topbar-link-color: scale-color($primary-color, $lightness: +25%);
+$topbar-link-active-color: scale-color($primary-color, $lightness: +50%);
+
+.top-bar {
+	.dropdown.menu {
+		> li > a {
+			color: $topbar-link-color;
+			&:hover, &:active {
+				color: $topbar-link-active-color;
+			}
+		}
+		> li.is-dropdown-submenu-parent > a::after {
+			@include css-triangle($dropdownmenu-arrow-size, $topbar-link-color, down);
+		}
+		> li.menu-text {
+			&,
+			& > a {
+				color: $topbar-text-color;
+			}
+		}
+		> li.is-active > a {
+			color: $topbar-link-active-color;
+		}
+		.is-dropdown-submenu {
+			> li > a {
+				color: $topbar-link-color;
+				&:hover, &:active {
+					color: $topbar-link-active-color;
+				}
+			}
+		}
+	}
+}
