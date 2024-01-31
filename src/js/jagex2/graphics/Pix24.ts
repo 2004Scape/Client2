@@ -264,7 +264,7 @@ export default class Pix24 extends Hashable {
         const height: number = this.height;
 
         for (let y: number = 0; y < height; y++) {
-            const div: number = width / 2;
+            const div: number = Math.trunc(width / 2);
             for (let x: number = 0; x < div; x++) {
                 const off1: number = x + y * width;
                 const off2: number = width - x - 1 + y * width;
@@ -281,7 +281,7 @@ export default class Pix24 extends Hashable {
         const width: number = this.width;
         const height: number = this.height;
 
-        for (let y: number = 0; y < height / 2; y++) {
+        for (let y: number = 0; y < Math.trunc(height / 2); y++) {
             for (let x: number = 0; x < width; x++) {
                 const off1: number = x + y * width;
                 const off2: number = x + (height - y - 1) * width;

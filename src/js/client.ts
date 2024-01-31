@@ -1791,7 +1791,7 @@ class Client extends GameShell {
             }
 
             this.handleMouseInput();
-            // this.handleMinimapInput();
+            this.handleMinimapInput();
             this.handleTabInput();
             this.handleChatSettingsInput();
 
@@ -2335,7 +2335,7 @@ class Client extends GameShell {
 
         for (let index: number = -1; index < this.playerCount + this.npcCount; index++) {
             let entity: PathingEntity | null = null;
-            if (index == -1) {
+            if (index === -1) {
                 entity = this.localPlayer;
             } else if (index < this.playerCount) {
                 entity = this.players[this.playerIds[index]];
@@ -2343,7 +2343,7 @@ class Client extends GameShell {
                 entity = this.npcs[this.npcIds[index - this.playerCount]];
             }
 
-            if (entity == null || !entity.isVisible()) {
+            if (!entity || !entity.isVisible()) {
                 continue;
             }
 
@@ -2351,12 +2351,12 @@ class Client extends GameShell {
                 let y: number = 30;
 
                 const player: PlayerEntity = entity as PlayerEntity;
-                if (player.headicons != 0) {
+                if (player.headicons !== 0) {
                     this.projectFromEntity(entity, entity.height + 15);
 
                     if (this.projectX > -1) {
                         for (let icon: number = 0; icon < 8; icon++) {
-                            if ((player.headicons & (0x1 << icon)) != 0 && this.imageHeadicons[icon]) {
+                            if ((player.headicons & (0x1 << icon)) !== 0 && this.imageHeadicons[icon]) {
                                 this.imageHeadicons[icon]!.draw(this.projectX - 12, this.projectY - y);
                                 y -= 25;
                             }
@@ -2364,14 +2364,14 @@ class Client extends GameShell {
                     }
                 }
 
-                if (index >= 0 && this.hintType == 10 && this.hintPlayer == this.playerIds[index]) {
+                if (index >= 0 && this.hintType === 10 && this.hintPlayer === this.playerIds[index]) {
                     this.projectFromEntity(entity, entity.height + 15);
 
                     if (this.projectX > -1 && this.imageHeadicons[7]) {
                         this.imageHeadicons[7].draw(this.projectX - 12, this.projectY - y);
                     }
                 }
-            } else if (this.hintType == 1 && this.hintNpc == this.npcIds[index - this.playerCount] && this.loopCycle % 20 < 10) {
+            } else if (this.hintType === 1 && this.hintNpc === this.npcIds[index - this.playerCount] && this.loopCycle % 20 < 10) {
                 this.projectFromEntity(entity, entity.height + 15);
 
                 if (this.projectX > -1 && this.imageHeadicons[2]) {
@@ -2379,7 +2379,7 @@ class Client extends GameShell {
                 }
             }
 
-            if (entity.chat != null && (index >= this.playerCount || this.publicChatSetting == 0 || this.publicChatSetting == 3 || (this.publicChatSetting == 1 && this.isFriend((entity as PlayerEntity).name)))) {
+            if (entity.chat && (index >= this.playerCount || this.publicChatSetting === 0 || this.publicChatSetting === 3 || (this.publicChatSetting === 1 && this.isFriend((entity as PlayerEntity).name)))) {
                 this.projectFromEntity(entity, entity.height);
 
                 if (this.projectX > -1 && this.chatCount < Client.MAX_CHATS && this.fontBold12) {
@@ -2393,12 +2393,12 @@ class Client extends GameShell {
                     this.chatTimers[this.chatCount] = entity.chatTimer;
                     this.chats[this.chatCount++] = entity.chat as string;
 
-                    if (this.chatEffects == 0 && entity.chatStyle == 1) {
+                    if (this.chatEffects === 0 && entity.chatStyle === 1) {
                         this.chatHeight[this.chatCount] += 10;
                         this.chatY[this.chatCount] += 5;
                     }
 
-                    if (this.chatEffects == 0 && entity.chatStyle == 2) {
+                    if (this.chatEffects === 0 && entity.chatStyle === 2) {
                         this.chatWidth[this.chatCount] = 60;
                     }
                 }
@@ -2430,7 +2430,7 @@ class Client extends GameShell {
     };
 
     private drawTileHint = (): void => {
-        if (this.hintType != 2 || this.imageHeadicons[2] === null) {
+        if (this.hintType !== 2 || this.imageHeadicons[2] === null) {
             return;
         }
 
@@ -3198,8 +3198,8 @@ class Client extends GameShell {
         this.areaViewport?.bind();
         this.activeMapFunctionCount = 0;
 
-        for (let x: number = 0; x < 104; x++) {
-            for (let z: number = 0; z < 104; z++) {
+        for (let x: number = 0; x < CollisionMap.SIZE; x++) {
+            for (let z: number = 0; z < CollisionMap.SIZE; z++) {
                 let bitset: number = this.scene?.getGroundDecorationBitset(this.currentLevel, x, z) ?? 0;
                 if (bitset === 0) {
                     continue;
@@ -3216,27 +3216,27 @@ class Client extends GameShell {
                 let stz: number = z;
 
                 if (func !== 22 && func !== 29 && func !== 34 && func !== 36 && func !== 46 && func !== 47 && func !== 48) {
-                    const maxX: number = 104;
-                    const maxZ: number = 104;
+                    const maxX: number = CollisionMap.SIZE;
+                    const maxZ: number = CollisionMap.SIZE;
                     const collisionmap: CollisionMap | null = this.levelCollisionMap[this.currentLevel];
                     if (collisionmap) {
                         const flags: Int32Array = collisionmap.flags;
 
                         for (let i: number = 0; i < 10; i++) {
                             const rand: number = Math.trunc(Math.random() * 4.0);
-                            if (rand === 0 && stx > 0 && stx > x - 3 && (flags[CollisionMap.index(stx - 1, stz)] & 0x280108) === 0) {
+                            if (rand === 0 && stx > 0 && stx > x - 3 && (flags[CollisionMap.index(stx - 1, stz)] & CollisionFlag.BLOCK_WEST) === CollisionFlag.OPEN) {
                                 stx--;
                             }
 
-                            if (rand === 1 && stx < maxX - 1 && stx < x + 3 && (flags[CollisionMap.index(stx + 1, stz)] & 0x280180) === 0) {
+                            if (rand === 1 && stx < maxX - 1 && stx < x + 3 && (flags[CollisionMap.index(stx + 1, stz)] & CollisionFlag.BLOCK_EAST) === CollisionFlag.OPEN) {
                                 stx++;
                             }
 
-                            if (rand === 2 && stz > 0 && stz > z - 3 && (flags[CollisionMap.index(stx, stz - 1)] & 0x280102) === 0) {
+                            if (rand === 2 && stz > 0 && stz > z - 3 && (flags[CollisionMap.index(stx, stz - 1)] & CollisionFlag.BLOCK_SOUTH) === CollisionFlag.OPEN) {
                                 stz--;
                             }
 
-                            if (rand === 3 && stz < maxZ - 1 && stz < z + 3 && (flags[CollisionMap.index(stx, stz + 1)] & 0x280120) === 0) {
+                            if (rand === 3 && stz < maxZ - 1 && stz < z + 3 && (flags[CollisionMap.index(stx, stz + 1)] & CollisionFlag.BLOCK_NORTH) === CollisionFlag.OPEN) {
                                 stz++;
                             }
                         }
@@ -3612,6 +3612,46 @@ class Client extends GameShell {
             }
 
             this.showContextMenu();
+        }
+    };
+
+    handleMinimapInput = (): void => {
+        if (this.mouseClickButton === 1 && this.localPlayer) {
+            let x: number = this.mouseClickX - 21 - 561;
+            let y: number = this.mouseClickY - 9 - 5;
+
+            if (x >= 0 && y >= 0 && x < 146 && y < 151) {
+                x -= 73;
+                y -= 75;
+
+                const yaw: number = (this.orbitCameraYaw + this.minimapAnticheatAngle) & 0x7ff;
+                let sinYaw: number = Draw3D.sin[yaw];
+                let cosYaw: number = Draw3D.cos[yaw];
+
+                sinYaw = (sinYaw * (this.minimapZoom + 256)) >> 8;
+                cosYaw = (cosYaw * (this.minimapZoom + 256)) >> 8;
+
+                const relX: number = (y * sinYaw + x * cosYaw) >> 11;
+                const relY: number = (y * cosYaw - x * sinYaw) >> 11;
+
+                const tileX: number = (this.localPlayer.x + relX) >> 7;
+                const tileZ: number = (this.localPlayer.z - relY) >> 7;
+
+                if (this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], tileX, tileZ, 1, 0, 0, 0, 0, 0, true)) {
+                    // the additional 14-bytes in MOVE_MINIMAPCLICK
+                    this.out.p1(x);
+                    this.out.p1(y);
+                    this.out.p2(this.orbitCameraYaw);
+                    this.out.p1(57);
+                    this.out.p1(this.minimapAnticheatAngle);
+                    this.out.p1(this.minimapZoom);
+                    this.out.p1(89);
+                    this.out.p2(this.localPlayer.x);
+                    this.out.p2(this.localPlayer.z);
+                    this.out.p1(this.tryMoveNearest);
+                    this.out.p1(63);
+                }
+            }
         }
     };
 
@@ -4426,8 +4466,51 @@ class Client extends GameShell {
     };
 
     private interactWithLoc = (opcode: number, x: number, z: number, bitset: number): boolean => {
-        // TODO
-        return false;
+        if (!this.localPlayer || !this.scene) {
+            return false;
+        }
+
+        const locId: number = (bitset >> 14) & 0x7fff;
+        const info: number = this.scene.getInfo(this.currentLevel, x, z, bitset);
+        if (info === -1) {
+            return false;
+        }
+
+        const type: number = info & 0x1f;
+        const angle: number = (info >> 6) & 0x3;
+        if (type === LocShape.CENTREPIECE_STRAIGHT || type === LocShape.CENTREPIECE_DIAGONAL || type === LocShape.GROUND_DECOR) {
+            const loc: LocType = LocType.get(locId);
+            let width: number;
+            let height: number;
+
+            if (angle === LocAngle.WEST || angle === LocAngle.EAST) {
+                width = loc.width;
+                height = loc.length;
+            } else {
+                width = loc.length;
+                height = loc.width;
+            }
+
+            let forceapproach: number = loc.forceapproach;
+            if (angle !== 0) {
+                forceapproach = ((forceapproach << angle) & 0xf) + (forceapproach >> (4 - angle));
+            }
+
+            this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], x, z, 2, width, height, 0, 0, forceapproach, false);
+        } else {
+            this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], x, z, 2, 0, 0, angle, type + 1, 0, false);
+        }
+
+        this.crossX = this.mouseClickX;
+        this.crossY = this.mouseClickY;
+        this.crossMode = 2;
+        this.crossCycle = 0;
+
+        this.out.p1isaac(opcode);
+        this.out.p2(x + this.sceneBaseTileX);
+        this.out.p2(z + this.sceneBaseTileZ);
+        this.out.p2(locId);
+        return true;
     };
 
     private handleTabInput = (): void => {
@@ -8833,14 +8916,14 @@ class Client extends GameShell {
     private updateMovement = (entity: PathingEntity): void => {
         entity.secondarySeqId = entity.seqStandId;
 
-        if (entity.pathLength == 0) {
+        if (entity.pathLength === 0) {
             entity.seqTrigger = 0;
             return;
         }
 
-        if (entity.primarySeqId != -1 && entity.primarySeqDelay == 0) {
+        if (entity.primarySeqId !== -1 && entity.primarySeqDelay === 0) {
             const seq: SeqType = SeqType.instances[entity.primarySeqId];
-            if (seq.labelGroups == null) {
+            if (seq.labelGroups === null) {
                 entity.seqTrigger++;
                 return;
             }
@@ -8888,13 +8971,13 @@ class Client extends GameShell {
                 seqId = entity.seqTurnLeftId;
             }
 
-            if (seqId == -1) {
+            if (seqId === -1) {
                 seqId = entity.seqWalkId;
             }
 
             entity.secondarySeqId = seqId;
             let moveSpeed: number = 4;
-            if (entity.yaw != entity.dstYaw && entity.targetId == -1) {
+            if (entity.yaw !== entity.dstYaw && entity.targetId === -1) {
                 moveSpeed = 2;
             }
 
@@ -8915,7 +8998,7 @@ class Client extends GameShell {
                 moveSpeed <<= 0x1;
             }
 
-            if (moveSpeed >= 8 && entity.secondarySeqId == entity.seqWalkId && entity.seqRunId != -1) {
+            if (moveSpeed >= 8 && entity.secondarySeqId === entity.seqWalkId && entity.seqRunId !== -1) {
                 entity.secondarySeqId = entity.seqRunId;
             }
 
@@ -8942,7 +9025,7 @@ class Client extends GameShell {
                 }
             }
 
-            if (entity.x == dstX && entity.z == dstZ) {
+            if (entity.x === dstX && entity.z === dstZ) {
                 entity.pathLength--;
             }
         } else {

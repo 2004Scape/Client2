@@ -68,81 +68,39 @@ export default class World3D {
     static readonly WALL_DECORATION_OUTSET_Z: Int32Array = Int32Array.of(45, 45, -45, -45);
 
     // prettier-ignore
-    static readonly MINIMAP_TILE_MASK: number[][] = [
-        new Array(16).fill(0),
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1],
-        [1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1],
-        [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0],
-        [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1],
-        [1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1]
+    static readonly MINIMAP_TILE_MASK: Int8Array[] = [
+        new Int8Array(16),
+        Int8Array.of(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), // PLAIN_SHAPE
+        Int8Array.of(1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1), // DIAGONAL_SHAPE
+        Int8Array.of(1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), // LEFT_SEMI_DIAGONAL_SMALL_SHAPE
+        Int8Array.of(0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1), // RIGHT_SEMI_DIAGONAL_SMALL_SHAPE
+        Int8Array.of(0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), // LEFT_SEMI_DIAGONAL_BIG_SHAPE
+        Int8Array.of(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1), // RIGHT_SEMI_DIAGONAL_BIG_SHAPE
+        Int8Array.of(1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0), // HALF_SQUARE_SHAPE
+        Int8Array.of(0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0), // CORNER_SMALL_SHAPE
+        Int8Array.of(1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1), // CORNER_BIG_SHAPE
+        Int8Array.of(1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), // FAN_SMALL_SHAPE
+        Int8Array.of(0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1), // FAN_BIG_SHAPE
+        Int8Array.of(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1)  // TRAPEZIUM_SHAPE
     ];
 
     // prettier-ignore
-    static readonly MINIMAP_TILE_ROTATION_MAP: number[][] = [
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-        [12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3],
-        [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-        [3, 7, 11, 15, 2, 6, 10, 14, 1, 5, 9, 13, 0, 4, 8, 12],
+    static readonly MINIMAP_TILE_ROTATION_MAP: Int8Array[] = [
+        Int8Array.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15),
+        Int8Array.of(12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3),
+        Int8Array.of(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0),
+        Int8Array.of(3, 7, 11, 15, 2, 6, 10, 14, 1, 5, 9, 13, 0, 4, 8, 12),
     ];
 
-    static readonly TEXTURE_HSL: Int32Array = Int32Array.of(
-        41,
-        39248,
-        41,
-        4643,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        43086,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        8602,
-        41,
-        28992,
-        41,
-        41,
-        41,
-        41,
-        41,
-        5056,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        41,
-        3131,
-        41,
-        41,
-        41
+    // prettier-ignore
+    static readonly TEXTURE_HSL: Uint16Array = Uint16Array.of(
+        41, 39248, 41, 4643, 41, 41, 41, 41,
+        41, 41, 41, 41, 41, 41, 41, 43086,
+        41, 41, 41, 41, 41, 41, 41, 8602,
+        41, 28992, 41, 41, 41, 41, 41, 5056,
+        41, 41, 41, 41, 41, 41, 41, 41,
+        41, 41, 41, 41, 41, 41, 3131, 41,
+        41, 41
     );
 
     static activeOccluderCount: number = 0;
@@ -863,8 +821,8 @@ export default class World3D {
         const angle: number = overlay.rotation;
         const background: number = overlay.backgroundRgb;
         const foreground: number = overlay.foregroundRgb;
-        const mask: number[] = World3D.MINIMAP_TILE_MASK[shape];
-        const rotation: number[] = World3D.MINIMAP_TILE_ROTATION_MAP[angle];
+        const mask: Int8Array = World3D.MINIMAP_TILE_MASK[shape];
+        const rotation: Int8Array = World3D.MINIMAP_TILE_ROTATION_MAP[angle];
         let off: number = 0;
         if (background !== 0) {
             for (let i: number = 0; i < 4; i++) {
