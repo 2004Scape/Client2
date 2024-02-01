@@ -13,14 +13,15 @@ import LocAngle from './LocAngle';
 import Colors from '../graphics/Colors';
 import TileOverlayShape from './type/TileOverlayShape';
 
+// noinspection JSSuspiciousNameCombination,DuplicatedCode
 export default class World {
     static readonly ROTATION_WALL_TYPE: Int32Array = Int32Array.of(1, 2, 4, 8);
     static readonly ROTATION_WALL_CORNER_TYPE: Int32Array = Int32Array.of(16, 32, 64, 128);
     static readonly WALL_DECORATION_ROTATION_FORWARD_X: Int32Array = Int32Array.of(1, 0, -1, 0);
     static readonly WALL_DECORATION_ROTATION_FORWARD_Z: Int32Array = Int32Array.of(0, -1, 0, 1);
 
-    static randomHueOffset: number = Math.trunc(Math.random() * 17.0) - 8;
-    static randomLightnessOffset: number = Math.trunc(Math.random() * 33.0) - 16;
+    static randomHueOffset: number = ((Math.random() * 17.0) | 0) - 8;
+    static randomLightnessOffset: number = ((Math.random() * 33.0) | 0) - 16;
 
     static lowMemory: boolean = true;
     static levelBuilt: number = 0;
@@ -28,7 +29,7 @@ export default class World {
 
     static perlin = (x: number, z: number): number => {
         let value: number = this.perlinScale(x + 45365, z + 91923, 4) + ((this.perlinScale(x + 10294, z + 37821, 2) - 128) >> 1) + ((this.perlinScale(x, z, 1) - 128) >> 2) - 128;
-        value = Math.trunc(value * 0.3) + 35;
+        value = ((value * 0.3) | 0) + 35;
         if (value < 10) {
             value = 10;
         } else if (value > 60) {
@@ -38,9 +39,9 @@ export default class World {
     };
 
     static perlinScale = (x: number, z: number, scale: number): number => {
-        const intX: number = Math.trunc(x / scale);
+        const intX: number = (x / scale) | 0;
         const fracX: number = x & (scale - 1);
-        const intZ: number = Math.trunc(z / scale);
+        const intZ: number = (z / scale) | 0;
         const fracZ: number = z & (scale - 1);
         const v1: number = this.smoothNoise(intX, intZ);
         const v2: number = this.smoothNoise(intX + 1, intZ);
@@ -52,7 +53,7 @@ export default class World {
     };
 
     static interpolate = (a: number, b: number, x: number, scale: number): number => {
-        const f: number = (65536 - Draw3D.cos[Math.trunc((x * 1024) / scale)]) >> 1;
+        const f: number = (65536 - Draw3D.cos[((x * 1024) / scale) | 0]) >> 1;
         return ((a * (65536 - f)) >> 16) + ((b * f) >> 16);
     };
 
@@ -60,7 +61,7 @@ export default class World {
         const corners: number = this.noise(x - 1, y - 1) + this.noise(x + 1, y - 1) + this.noise(x - 1, y + 1) + this.noise(x + 1, y + 1);
         const sides: number = this.noise(x - 1, y) + this.noise(x + 1, y) + this.noise(x, y - 1) + this.noise(x, y + 1);
         const center: number = this.noise(x, y);
-        return Math.trunc(corners / 16) + Math.trunc(sides / 8) + Math.trunc(center / 4);
+        return ((corners / 16) | 0) + ((sides / 8) | 0) + ((center / 4) | 0);
     };
 
     static noise = (x: number, y: number): number => {
@@ -79,12 +80,13 @@ export default class World {
 
         const loc: LocType = LocType.get(locId);
 
-        let bitset: number = x + (z << 7) + (locId << 14) + 0x40000000;
+        let bitset: number = (x + (z << 7) + (locId << 14) + 0x40000000) | 0;
         if (!loc.active) {
             bitset += -0x80000000; // int.min
         }
+        bitset |= 0;
 
-        const info: number = (angle << 6) + shape;
+        const info: number = ((angle << 6) + shape) & 0xff;
 
         if (shape === LocShape.GROUND_DECOR) {
             scene?.addGroundDecoration(loc.getModel(LocShape.GROUND_DECOR, angle, heightSW, heightSE, heightNW, heightNE, -1), level, x, z, y, bitset, info);
@@ -310,14 +312,14 @@ export default class World {
             }
         }
 
-        World.randomHueOffset += Math.trunc(Math.random() * 5.0) - 2;
+        World.randomHueOffset += ((Math.random() * 5.0) | 0) - 2;
         if (World.randomHueOffset < -8) {
             World.randomHueOffset = -8;
         } else if (World.randomHueOffset > 8) {
             World.randomHueOffset = 8;
         }
 
-        World.randomLightnessOffset += Math.trunc(Math.random() * 5.0) - 2;
+        World.randomLightnessOffset += ((Math.random() * 5.0) | 0) - 2;
         if (World.randomLightnessOffset < -16) {
             World.randomLightnessOffset = -16;
         } else if (World.randomLightnessOffset > 16) {
@@ -331,18 +333,18 @@ export default class World {
             const lightX: number = -50;
             const lightY: number = -10;
             const lightZ: number = -50;
-            const lightMag: number = Math.trunc(Math.sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ));
+            const lightMag: number = Math.sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ) | 0;
             const lightMagnitude: number = (lightAttenuation * lightMag) >> 8;
 
             for (let z: number = 1; z < this.maxTileZ - 1; z++) {
                 for (let x: number = 1; x < this.maxTileX - 1; x++) {
                     const dx: number = this.levelHeightmap[level][x + 1][z] - this.levelHeightmap[level][x - 1][z];
                     const dz: number = this.levelHeightmap[level][x][z + 1] - this.levelHeightmap[level][x][z - 1];
-                    const len: number = Math.trunc(Math.sqrt(dx * dx + dz * dz + 65536));
-                    const normalX: number = Math.trunc((dx << 8) / len);
-                    const normalY: number = Math.trunc(65536 / len);
-                    const normalZ: number = Math.trunc((dz << 8) / len);
-                    const light: number = lightAmbient + Math.trunc((lightX * normalX + lightY * normalY + lightZ * normalZ) / lightMagnitude);
+                    const len: number = Math.sqrt(dx * dx + dz * dz + 65536) | 0;
+                    const normalX: number = ((dx << 8) / len) | 0;
+                    const normalY: number = (65536 / len) | 0;
+                    const normalZ: number = ((dz << 8) / len) | 0;
+                    const light: number = lightAmbient + (((lightX * normalX + lightY * normalY + lightZ * normalZ) / lightMagnitude) | 0);
                     const shade: number = (shademap[x - 1][z] >> 2) + (shademap[x + 1][z] >> 3) + (shademap[x][z - 1] >> 2) + (shademap[x][z + 1] >> 3) + (shademap[x][z] >> 1);
                     this.levelLightmap[x][z] = light - shade;
                 }
@@ -434,9 +436,9 @@ export default class World {
                                 let tintColor: number = -1;
 
                                 if (underlayId > 0) {
-                                    const hue: number = Math.trunc((hueAccumulator * 256) / luminanceAccumulator);
-                                    const saturation: number = Math.trunc(saturationAccumulator / magnitudeAccumulator);
-                                    let lightness: number = Math.trunc(lightnessAccumulator / magnitudeAccumulator);
+                                    const hue: number = ((hueAccumulator * 256) / luminanceAccumulator) | 0;
+                                    const saturation: number = (saturationAccumulator / magnitudeAccumulator) | 0;
+                                    let lightness: number = (lightnessAccumulator / magnitudeAccumulator) | 0;
                                     baseColor = FloType.hsl24to16(hue, saturation, lightness);
                                     const randomHue: number = (hue + World.randomHueOffset) & 0xff;
                                     lightness += World.randomLightnessOffset;
@@ -721,7 +723,7 @@ export default class World {
         let waterOverlay: number = 0;
         for (let i: number = 0; i < FloType.count; i++) {
             if (FloType.instances[i].name?.toLowerCase() === 'water') {
-                waterOverlay = i + 1;
+                waterOverlay = (i + 1) & 0xff;
                 break;
             }
         }
@@ -779,12 +781,12 @@ export default class World {
 
                             if (opcode <= 49) {
                                 this.levelTileOverlayIds[level][stx][stz] = buf.g1b;
-                                this.levelTileOverlayShape[level][stx][stz] = Math.trunc((opcode - 2) / 4);
-                                this.levelTileOverlayRotation[level][stx][stz] = (opcode - 2) & 0x3;
+                                this.levelTileOverlayShape[level][stx][stz] = (((opcode - 2) / 4) | 0) & 0xff;
+                                this.levelTileOverlayRotation[level][stx][stz] = (opcode - 2) & 0x3 & 0xff;
                             } else if (opcode <= 81) {
-                                this.levelTileFlags[level][stx][stz] = opcode - 49;
+                                this.levelTileFlags[level][stx][stz] = (opcode - 49) & 0xff;
                             } else {
-                                this.levelTileUnderlayIds[level][stx][stz] = opcode - 81;
+                                this.levelTileUnderlayIds[level][stx][stz] = (opcode - 81) & 0xff;
                             }
                         }
                     } else {
@@ -878,12 +880,13 @@ export default class World {
 
         const loc: LocType = LocType.get(locId);
 
-        let bitset: number = x + (z << 7) + (locId << 14) + 0x40000000;
+        let bitset: number = (x + (z << 7) + (locId << 14) + 0x40000000) | 0;
         if (!loc.active) {
             bitset += -0x80000000; // int.min
         }
+        bitset |= 0;
 
-        const info: number = (angle << 6) + shape;
+        const info: number = ((angle << 6) + shape) & 0xff;
 
         if (shape === LocShape.GROUND_DECOR) {
             if (!World.lowMemory || loc.active || loc.forcedecor) {
@@ -918,13 +921,13 @@ export default class World {
                 if (scene?.addLoc(level, x, z, y, model, null, bitset, info, width, height, yaw) && loc.shadow) {
                     for (let dx: number = 0; dx <= width; dx++) {
                         for (let dz: number = 0; dz <= height; dz++) {
-                            let shade: number = Math.trunc(model.radius / 4);
+                            let shade: number = (model.radius / 4) | 0;
                             if (shade > 30) {
                                 shade = 30;
                             }
 
                             if (shade > this.levelShademap[level][x + dx][z + dz]) {
-                                this.levelShademap[level][x + dx][z + dz] = shade;
+                                this.levelShademap[level][x + dx][z + dz] = shade & 0xff;
                             }
                         }
                     }

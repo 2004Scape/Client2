@@ -40,9 +40,9 @@ export default class TileOverlay {
     ];
 
     private static readonly FULL_SQUARE: number = 128;
-    private static readonly HALF_SQUARE: number = Math.trunc(this.FULL_SQUARE / 2);
-    private static readonly CORNER_SMALL: number = Math.trunc(this.FULL_SQUARE / 4);
-    private static readonly CORNER_BIG: number = Math.trunc((this.FULL_SQUARE * 3) / 4);
+    private static readonly HALF_SQUARE: number = (this.FULL_SQUARE / 2) | 0;
+    private static readonly CORNER_SMALL: number = (this.FULL_SQUARE / 4) | 0;
+    private static readonly CORNER_BIG: number = ((this.FULL_SQUARE * 3) / 4) | 0;
 
     // ----
 
@@ -228,7 +228,7 @@ export default class TileOverlay {
         }
 
         const paths: Int32Array = TileOverlay.SHAPE_PATHS[shape];
-        const triangleCount: number = Math.trunc(paths.length / 4);
+        const triangleCount: number = (paths.length / 4) | 0;
         this.triangleVertexA = new Int32Array(triangleCount);
         this.triangleVertexB = new Int32Array(triangleCount);
         this.triangleVertexC = new Int32Array(triangleCount);

@@ -236,15 +236,15 @@ export default class LocType extends ConfigType {
             }
 
             if (this.hillskew) {
-                const groundY: number = Math.trunc((heightmapSW + heightmapSE + heightmapNE + heightmapNW) / 4);
+                const groundY: number = ((heightmapSW + heightmapSE + heightmapNE + heightmapNW) / 4) | 0;
 
                 for (let i: number = 0; i < cached.vertexCount; i++) {
                     const x: number = cached.vertexX[i];
                     const z: number = cached.vertexZ[i];
 
-                    const heightS: number = heightmapSW + Math.trunc(((heightmapSE - heightmapSW) * (x + 64)) / 128);
-                    const heightN: number = heightmapNW + Math.trunc(((heightmapNE - heightmapNW) * (x + 64)) / 128);
-                    const y: number = heightS + Math.trunc(((heightN - heightS) * (z + 64)) / 128);
+                    const heightS: number = heightmapSW + ((((heightmapSE - heightmapSW) * (x + 64)) / 128) | 0);
+                    const heightN: number = heightmapNW + ((((heightmapNE - heightmapNW) * (x + 64)) / 128) | 0);
+                    const y: number = heightS + ((((heightN - heightS) * (z + 64)) / 128) | 0);
 
                     cached.vertexY[i] += y - groundY;
                 }
@@ -311,7 +311,7 @@ export default class LocType extends ConfigType {
             modified.translate(this.yoff, this.xoff, this.zoff);
         }
 
-        modified.calculateNormals(this.ambient + 64, this.contrast * 5 + 768, -50, -10, -50, !this.sharelight);
+        modified.calculateNormals((this.ambient & 0xff) + 64, (this.contrast & 0xff) * 5 + 768, -50, -10, -50, !this.sharelight);
 
         if (this.blockwalk) {
             modified.objRaise = modified.maxY;
@@ -324,15 +324,15 @@ export default class LocType extends ConfigType {
         }
 
         if (this.hillskew) {
-            const groundY: number = Math.trunc((heightmapSW + heightmapSE + heightmapNE + heightmapNW) / 4);
+            const groundY: number = ((heightmapSW + heightmapSE + heightmapNE + heightmapNW) / 4) | 0;
 
             for (let i: number = 0; i < modified.vertexCount; i++) {
                 const x: number = modified.vertexX[i];
                 const z: number = modified.vertexZ[i];
 
-                const heightS: number = heightmapSW + Math.trunc(((heightmapSE - heightmapSW) * (x + 64)) / 128);
-                const heightN: number = heightmapNW + Math.trunc(((heightmapNE - heightmapNW) * (x + 64)) / 128);
-                const y: number = heightS + Math.trunc(((heightN - heightS) * (z + 64)) / 128);
+                const heightS: number = heightmapSW + ((((heightmapSE - heightmapSW) * (x + 64)) / 128) | 0);
+                const heightN: number = heightmapNW + ((((heightmapNE - heightmapNW) * (x + 64)) / 128) | 0);
+                const y: number = heightS + ((((heightN - heightS) * (z + 64)) / 128) | 0);
 
                 modified.vertexY[i] += y - groundY;
             }

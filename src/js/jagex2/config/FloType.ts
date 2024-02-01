@@ -17,25 +17,25 @@ export default class FloType extends ConfigType {
 
     static hsl24to16 = (hue: number, saturation: number, lightness: number): number => {
         if (lightness > 179) {
-            saturation = Math.trunc(saturation / 2);
+            saturation = (saturation / 2) | 0;
         }
         if (lightness > 192) {
-            saturation = Math.trunc(saturation / 2);
+            saturation = (saturation / 2) | 0;
         }
         if (lightness > 217) {
-            saturation = Math.trunc(saturation / 2);
+            saturation = (saturation / 2) | 0;
         }
         if (lightness > 243) {
-            saturation = Math.trunc(saturation / 2);
+            saturation = (saturation / 2) | 0;
         }
-        return (Math.trunc(hue / 4) << 10) + (Math.trunc(saturation / 32) << 7) + Math.trunc(lightness / 2);
+        return (((hue / 4) | 0) << 10) + (((saturation / 32) | 0) << 7) + ((lightness / 2) | 0);
     };
 
     static mulHSL = (hsl: number, lightness: number): number => {
         if (hsl === -1) {
             return 12345678;
         }
-        lightness = Math.trunc((lightness * (hsl & 0x7f)) / 128);
+        lightness = ((lightness * (hsl & 0x7f)) / 128) | 0;
         if (lightness < 2) {
             lightness = 2;
         } else if (lightness > 126) {
@@ -57,7 +57,7 @@ export default class FloType extends ConfigType {
             }
             return 127 - scalar;
         } else {
-            scalar = Math.trunc((scalar * (hsl & 0x7f)) / 128);
+            scalar = ((scalar * (hsl & 0x7f)) / 128) | 0;
             if (scalar < 2) {
                 scalar = 2;
             } else if (scalar > 126) {
@@ -144,9 +144,9 @@ export default class FloType extends ConfigType {
 
         h /= 6.0;
 
-        this.hue = Math.trunc(h * 256.0);
-        this.saturation = Math.trunc(s * 256.0);
-        this.lightness = Math.trunc(l * 256.0);
+        this.hue = (h * 256.0) | 0;
+        this.saturation = (s * 256.0) | 0;
+        this.lightness = (l * 256.0) | 0;
 
         if (this.saturation < 0) {
             this.saturation = 0;
@@ -161,32 +161,32 @@ export default class FloType extends ConfigType {
         }
 
         if (l > 0.5) {
-            this.luminance = Math.trunc((1.0 - l) * s * 512.0);
+            this.luminance = ((1.0 - l) * s * 512.0) | 0;
         } else {
-            this.luminance = Math.trunc(l * s * 512.0);
+            this.luminance = (l * s * 512.0) | 0;
         }
 
         if (this.luminance < 1) {
             this.luminance = 1;
         }
 
-        this.chroma = Math.trunc(h * this.luminance);
+        this.chroma = (h * this.luminance) | 0;
 
-        let hue: number = this.hue + Math.trunc(Math.random() * 16.0) - 8;
+        let hue: number = this.hue + ((Math.random() * 16.0) | 0) - 8;
         if (hue < 0) {
             hue = 0;
         } else if (hue > 255) {
             hue = 255;
         }
 
-        let saturation: number = this.saturation + Math.trunc(Math.random() * 48.0) - 24;
+        let saturation: number = this.saturation + ((Math.random() * 48.0) | 0) - 24;
         if (saturation < 0) {
             saturation = 0;
         } else if (saturation > 255) {
             saturation = 255;
         }
 
-        let lightness: number = this.lightness + Math.trunc(Math.random() * 48.0) - 24;
+        let lightness: number = this.lightness + ((Math.random() * 48.0) | 0) - 24;
         if (lightness < 0) {
             lightness = 0;
         } else if (lightness > 255) {

@@ -645,10 +645,10 @@ class Client extends GameShell {
             this.areaBackhmid2 = new PixMap(backhmid2.width, backhmid2.height);
             backhmid2.blitOpaque(0, 0);
 
-            const randR: number = Math.trunc(Math.random() * 21.0) - 10;
-            const randG: number = Math.trunc(Math.random() * 21.0) - 10;
-            const randB: number = Math.trunc(Math.random() * 21.0) - 10;
-            const rand: number = Math.trunc(Math.random() * 41.0) - 20;
+            const randR: number = ((Math.random() * 21.0) | 0) - 10;
+            const randG: number = ((Math.random() * 21.0) | 0) - 10;
+            const randB: number = ((Math.random() * 21.0) | 0) - 10;
+            const rand: number = ((Math.random() * 41.0) | 0) - 20;
             for (let i: number = 0; i < 50; i++) {
                 if (this.imageMapfunction[i]) {
                     this.imageMapfunction[i]?.translate(randR + rand, randG + rand, randB + rand);
@@ -790,15 +790,15 @@ class Client extends GameShell {
         const y: number = 200;
 
         const offsetY: number = 20;
-        this.fontBold12?.drawStringCenter(x / 2, Math.trunc(y / 2) - offsetY - 26, 'RuneScape is loading - please wait...', Colors.WHITE);
-        const midY: number = Math.trunc(y / 2) - 18 - offsetY;
+        this.fontBold12?.drawStringCenter((x / 2) | 0, ((y / 2) | 0) - offsetY - 26, 'RuneScape is loading - please wait...', Colors.WHITE);
+        const midY: number = ((y / 2) | 0) - 18 - offsetY;
 
-        Draw2D.drawRect(Math.trunc(x / 2) - 152, midY, 304, 34, Colors.PROGRESS_RED);
-        Draw2D.drawRect(Math.trunc(x / 2) - 151, midY + 1, 302, 32, Colors.BLACK);
-        Draw2D.fillRect(Math.trunc(x / 2) - 150, midY + 2, progress * 3, 30, Colors.PROGRESS_RED);
-        Draw2D.fillRect(Math.trunc(x / 2) - 150 + progress * 3, midY + 2, 300 - progress * 3, 30, Colors.BLACK);
+        Draw2D.drawRect(((x / 2) | 0) - 152, midY, 304, 34, Colors.PROGRESS_RED);
+        Draw2D.drawRect(((x / 2) | 0) - 151, midY + 1, 302, 32, Colors.BLACK);
+        Draw2D.fillRect(((x / 2) | 0) - 150, midY + 2, progress * 3, 30, Colors.PROGRESS_RED);
+        Draw2D.fillRect(((x / 2) | 0) - 150 + progress * 3, midY + 2, 300 - progress * 3, 30, Colors.BLACK);
 
-        this.fontBold12?.drawStringCenter(x / 2, Math.trunc(y / 2) + 5 - offsetY, str, Colors.WHITE);
+        this.fontBold12?.drawStringCenter((x / 2) | 0, ((y / 2) | 0) + 5 - offsetY, str, Colors.WHITE);
         this.imageTitle4?.draw(214, 186);
 
         if (this.redrawTitleBackground) {
@@ -1066,7 +1066,7 @@ class Client extends GameShell {
 
         const logo: Pix24 = Pix24.fromArchive(this.titleArchive, 'logo');
         this.imageTitle2?.bind();
-        logo.draw(Math.trunc(this.width / 2) - Math.trunc(logo.width / 2) - 128, 18);
+        logo.draw(((this.width / 2) | 0) - ((logo.width / 2) | 0) - 128, 18);
     };
 
     private updateFlameBuffer = (image: Pix8 | null): void => {
@@ -1074,17 +1074,15 @@ class Client extends GameShell {
             return;
         }
 
-        const flameHeight: number = 256.0;
+        const flameHeight: number = 256;
 
         // Clears the initial flame buffer
-        for (let i: number = 0; i < this.flameBuffer0.length; i++) {
-            this.flameBuffer0[i] = 0;
-        }
+        this.flameBuffer0.fill(0);
 
         // Blends the fire at random
         for (let i: number = 0; i < 5000; i++) {
-            const rand: number = Math.trunc(Math.random() * 128.0 * flameHeight);
-            this.flameBuffer0[rand] = Math.random() * 256.0;
+            const rand: number = (Math.random() * 128.0 * flameHeight) | 0;
+            this.flameBuffer0[rand] = (Math.random() * 256.0) | 0;
         }
 
         // changes color between last few flames
@@ -1092,7 +1090,7 @@ class Client extends GameShell {
             for (let y: number = 1; y < flameHeight - 1; y++) {
                 for (let x: number = 1; x < 127; x++) {
                     const index: number = x + (y << 7);
-                    this.flameBuffer1[index] = Math.trunc((this.flameBuffer0[index - 1] + this.flameBuffer0[index + 1] + this.flameBuffer0[index - 128] + this.flameBuffer0[index + 128]) / 4);
+                    this.flameBuffer1[index] = ((this.flameBuffer0[index - 1] + this.flameBuffer0[index + 1] + this.flameBuffer0[index - 128] + this.flameBuffer0[index + 128]) / 4) | 0;
                 }
             }
 
@@ -1190,8 +1188,8 @@ class Client extends GameShell {
 
     private updateTitleScreen = async (): Promise<void> => {
         if (this.titleScreenState === 0) {
-            let x: number = Math.trunc(this.width / 2) - 80;
-            let y: number = Math.trunc(this.height / 2) + 20;
+            let x: number = ((this.width / 2) | 0) - 80;
+            let y: number = ((this.height / 2) | 0) + 20;
 
             y += 20;
             if (this.mouseClickButton === 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
@@ -1199,7 +1197,7 @@ class Client extends GameShell {
                 this.titleLoginField = 0;
             }
 
-            x = Math.trunc(this.width / 2) + 80;
+            x = ((this.width / 2) | 0) + 80;
             if (this.mouseClickButton === 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
                 this.loginMessage0 = '';
                 this.loginMessage1 = 'Enter your username & password.';
@@ -1207,7 +1205,7 @@ class Client extends GameShell {
                 this.titleLoginField = 0;
             }
         } else if (this.titleScreenState === 2) {
-            let y: number = Math.trunc(this.height / 2) - 40;
+            let y: number = ((this.height / 2) | 0) - 40;
             y += 30;
             y += 25;
 
@@ -1221,15 +1219,15 @@ class Client extends GameShell {
             }
             // y += 15; dead code
 
-            let buttonX: number = Math.trunc(this.width / 2) - 80;
-            let buttonY: number = Math.trunc(this.height / 2) + 50;
+            let buttonX: number = ((this.width / 2) | 0) - 80;
+            let buttonY: number = ((this.height / 2) | 0) + 50;
             buttonY += 20;
 
             if (this.mouseClickButton === 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
                 await this.login(this.username, this.password, false);
             }
 
-            buttonX = Math.trunc(this.width / 2) + 80;
+            buttonX = ((this.width / 2) | 0) + 80;
             if (this.mouseClickButton === 1 && this.mouseClickX >= buttonX - 75 && this.mouseClickX <= buttonX + 75 && this.mouseClickY >= buttonY - 20 && this.mouseClickY <= buttonY + 20) {
                 this.titleScreenState = 0;
                 this.username = '';
@@ -1286,8 +1284,8 @@ class Client extends GameShell {
                 }
             }
         } else if (this.titleScreenState === 3) {
-            const x: number = Math.trunc(this.width / 2);
-            let y: number = Math.trunc(this.height / 2) + 50;
+            const x: number = (this.width / 2) | 0;
+            let y: number = ((this.height / 2) | 0) + 50;
             y += 20;
 
             if (this.mouseClickButton === 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
@@ -1305,21 +1303,21 @@ class Client extends GameShell {
         const h: number = 200;
 
         if (this.titleScreenState === 0) {
-            let x: number = Math.trunc(w / 2);
-            let y: number = Math.trunc(h / 2) - 20;
+            let x: number = (w / 2) | 0;
+            let y: number = ((h / 2) | 0) - 20;
             this.fontBold12?.drawStringTaggableCenter(x, y, 'Welcome to RuneScape', Colors.YELLOW, true);
 
-            x = Math.trunc(w / 2) - 80;
-            y = Math.trunc(h / 2) + 20;
+            x = ((w / 2) | 0) - 80;
+            y = ((h / 2) | 0) + 20;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'New user', Colors.WHITE, true);
 
-            x = Math.trunc(w / 2) + 80;
+            x = ((w / 2) | 0) + 80;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Existing User', Colors.WHITE, true);
         } else if (this.titleScreenState === 2) {
-            let x: number = Math.trunc(w / 2) - 80;
-            let y: number = Math.trunc(h / 2) - 40;
+            let x: number = ((w / 2) | 0) - 80;
+            let y: number = ((h / 2) | 0) - 40;
             if (this.loginMessage0.length > 0) {
                 this.fontBold12?.drawStringTaggableCenter(w / 2, y - 15, this.loginMessage0, Colors.YELLOW, true);
                 this.fontBold12?.drawStringTaggableCenter(w / 2, y, this.loginMessage1, Colors.YELLOW, true);
@@ -1335,32 +1333,32 @@ class Client extends GameShell {
             this.fontBold12?.drawStringTaggable(w / 2 - 88, y, `Password: ${JString.toAsterisks(this.password)}${this.titleLoginField === 1 && this.loopCycle % 40 < 20 ? '@yel@|' : ''}`, Colors.WHITE, true);
 
             // x = w / 2 - 80; dead code
-            y = Math.trunc(h / 2) + 50;
+            y = ((h / 2) | 0) + 50;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Login', Colors.WHITE, true);
 
-            x = Math.trunc(w / 2) + 80;
+            x = ((w / 2) | 0) + 80;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', Colors.WHITE, true);
         } else if (this.titleScreenState === 3) {
             this.fontBold12?.drawStringTaggableCenter(w / 2, h / 2 - 60, 'Create a free account', Colors.YELLOW, true);
 
-            const x: number = Math.trunc(w / 2);
-            let y: number = Math.trunc(h / 2) - 35;
+            const x: number = (w / 2) | 0;
+            let y: number = ((h / 2) | 0) - 35;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'To create a new account you need to', Colors.WHITE, true);
+            this.fontBold12?.drawStringTaggableCenter((w / 2) | 0, y, 'To create a new account you need to', Colors.WHITE, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'go back to the main RuneScape webpage', Colors.WHITE, true);
+            this.fontBold12?.drawStringTaggableCenter((w / 2) | 0, y, 'go back to the main RuneScape webpage', Colors.WHITE, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, "and choose the red 'create account'", Colors.WHITE, true);
+            this.fontBold12?.drawStringTaggableCenter((w / 2) | 0, y, "and choose the red 'create account'", Colors.WHITE, true);
             y += 15;
 
-            this.fontBold12?.drawStringTaggableCenter(w / 2, y, 'button at the top right of that page.', Colors.WHITE, true);
+            this.fontBold12?.drawStringTaggableCenter((w / 2) | 0, y, 'button at the top right of that page.', Colors.WHITE, true);
             // y += 15; dead code
 
-            y = Math.trunc(h / 2) + 50;
+            y = ((h / 2) | 0) + 50;
             this.imageTitlebutton?.draw(x - 73, y - 20);
             this.fontBold12?.drawStringTaggableCenter(x, y + 5, 'Cancel', Colors.WHITE, true);
         }
@@ -1451,12 +1449,12 @@ class Client extends GameShell {
                 this.spellSelected = 0;
                 this.sceneState = 0;
                 this.waveCount = 0;
-                this.cameraAnticheatOffsetX = Math.trunc(Math.random() * 100.0) - 50;
-                this.cameraAnticheatOffsetZ = Math.trunc(Math.random() * 110.0) - 55;
-                this.cameraAnticheatAngle = Math.trunc(Math.random() * 80.0) - 40;
-                this.minimapAnticheatAngle = Math.trunc(Math.random() * 120.0) - 60;
-                this.minimapZoom = Math.trunc(Math.random() * 30.0) - 20;
-                this.orbitCameraYaw = (Math.trunc(Math.random() * 20.0) - 10) & 0x7ff;
+                this.cameraAnticheatOffsetX = ((Math.random() * 100.0) | 0) - 50;
+                this.cameraAnticheatOffsetZ = ((Math.random() * 110.0) | 0) - 55;
+                this.cameraAnticheatAngle = ((Math.random() * 80.0) | 0) - 40;
+                this.minimapAnticheatAngle = ((Math.random() * 120.0) | 0) - 60;
+                this.minimapZoom = ((Math.random() * 30.0) | 0) - 20;
+                this.orbitCameraYaw = (((Math.random() * 20.0) | 0) - 10) & 0x7ff;
                 this.minimapLevel = -1;
                 this.flagSceneTileX = 0;
                 this.flagSceneTileZ = 0;
@@ -1821,7 +1819,7 @@ class Client extends GameShell {
             this.cameraOffsetCycle++;
             if (this.cameraOffsetCycle > 500) {
                 this.cameraOffsetCycle = 0;
-                const rand: number = Math.trunc(Math.random() * 8.0);
+                const rand: number = (Math.random() * 8.0) | 0;
                 if ((rand & 0x1) === 1) {
                     this.cameraAnticheatOffsetX += this.cameraOffsetXModifier;
                 }
@@ -1855,7 +1853,7 @@ class Client extends GameShell {
             this.minimapOffsetCycle++;
             if (this.minimapOffsetCycle > 500) {
                 this.minimapOffsetCycle = 0;
-                const rand: number = Math.trunc(Math.random() * 8.0);
+                const rand: number = (Math.random() * 8.0) | 0;
                 if ((rand & 0x1) === 1) {
                     this.minimapAnticheatAngle += this.minimapAngleModifier;
                 }
@@ -2178,8 +2176,8 @@ class Client extends GameShell {
         if (!this.cutscene) {
             let pitch: number = this.orbitCameraPitch;
 
-            if (Math.trunc(this.cameraPitchClamp / 256) > pitch) {
-                pitch = Math.trunc(this.cameraPitchClamp / 256);
+            if (((this.cameraPitchClamp / 256) | 0) > pitch) {
+                pitch = (this.cameraPitchClamp / 256) | 0;
             }
 
             if (this.cameraModifierEnabled[4] && this.cameraModifierWobbleScale[4] + 128 > pitch) {
@@ -2199,18 +2197,18 @@ class Client extends GameShell {
                 const start: number = this.out.pos;
                 this.out.p2(29711);
                 this.out.p1(70);
-                this.out.p1(Math.trunc(Math.random() * 256.0));
+                this.out.p1((Math.random() * 256.0) | 0);
                 this.out.p1(242);
                 this.out.p1(186);
                 this.out.p1(39);
                 this.out.p1(61);
-                if (Math.trunc(Math.random() * 2.0) === 0) {
+                if (((Math.random() * 2.0) | 0) === 0) {
                     this.out.p1(13);
                 }
-                if (Math.trunc(Math.random() * 2.0) === 0) {
+                if (((Math.random() * 2.0) | 0) === 0) {
                     this.out.p2(57856);
                 }
-                this.out.p2(Math.trunc(Math.random() * 65536.0));
+                this.out.p2((Math.random() * 65536.0) | 0);
                 this.out.psize1(this.out.pos - start);
             }
         }
@@ -2230,9 +2228,8 @@ class Client extends GameShell {
         let jitter: number;
         for (let type: number = 0; type < 5; type++) {
             if (this.cameraModifierEnabled[type]) {
-                jitter = Math.trunc(
-                    Math.random() * (this.cameraModifierJitter[type] * 2 + 1) - this.cameraModifierJitter[type] + Math.sin(this.cameraModifierCycle[type] * (this.cameraModifierWobbleSpeed[type] / 100.0)) * this.cameraModifierWobbleScale[type]
-                );
+                jitter =
+                    (Math.random() * (this.cameraModifierJitter[type] * 2 + 1) - this.cameraModifierJitter[type] + Math.sin(this.cameraModifierCycle[type] * (this.cameraModifierWobbleSpeed[type] / 100.0)) * this.cameraModifierWobbleScale[type]) | 0;
 
                 if (type === 0) {
                     this.cameraX += jitter;
@@ -2459,11 +2456,11 @@ class Client extends GameShell {
     private draw3DEntityElements = (): void => {
         this.drawPrivateMessages();
         if (this.crossMode === 1) {
-            this.imageCrosses[Math.trunc(this.crossCycle / 100)]?.draw(this.crossX - 8 - 8, this.crossY - 8 - 11);
+            this.imageCrosses[(this.crossCycle / 100) | 0]?.draw(this.crossX - 8 - 8, this.crossY - 8 - 11);
         }
 
         if (this.crossMode === 2) {
-            this.imageCrosses[Math.trunc(this.crossCycle / 100) + 4]?.draw(this.crossX - 8 - 8, this.crossY - 8 - 11);
+            this.imageCrosses[((this.crossCycle / 100) | 0) + 4]?.draw(this.crossX - 8 - 8, this.crossY - 8 - 11);
         }
 
         if (this.viewportInterfaceId !== -1) {
@@ -2499,8 +2496,8 @@ class Client extends GameShell {
         }
 
         if (this.systemUpdateTimer !== 0) {
-            let seconds: number = Math.trunc(this.systemUpdateTimer / 50);
-            const minutes: number = Math.trunc(seconds / 60);
+            let seconds: number = (this.systemUpdateTimer / 50) | 0;
+            const minutes: number = (seconds / 60) | 0;
             seconds %= 60;
 
             if (seconds < 10) {
@@ -2573,9 +2570,9 @@ class Client extends GameShell {
         const z: number = (this.localPlayer.z >> 7) + this.sceneBaseTileZ;
 
         if (x >= 2944 && x < 3392 && z >= 3520 && z < 6400) {
-            this.wildernessLevel = Math.trunc((z - 3520) / 8) + 1;
+            this.wildernessLevel = (((z - 3520) / 8) | 0) + 1;
         } else if (x >= 2944 && x < 3392 && z >= 9920 && z < 12800) {
-            this.wildernessLevel = Math.trunc((z - 9920) / 8) + 1;
+            this.wildernessLevel = (((z - 9920) / 8) | 0) + 1;
         } else {
             this.wildernessLevel = 0;
         }
@@ -2745,12 +2742,12 @@ class Client extends GameShell {
         this.imageScrollbar1?.draw(x, y + height - 16);
         Draw2D.fillRect(x, y + 16, 16, height - 32, Colors.SCROLLBAR_TRACK);
 
-        let gripSize: number = Math.trunc(((height - 32) * height) / scrollHeight);
+        let gripSize: number = (((height - 32) * height) / scrollHeight) | 0;
         if (gripSize < 8) {
             gripSize = 8;
         }
 
-        const gripY: number = Math.trunc(((height - gripSize - 32) * scrollY) / (scrollHeight - height));
+        const gripY: number = (((height - gripSize - 32) * scrollY) / (scrollHeight - height)) | 0;
         Draw2D.fillRect(x, y + gripY + 16, 16, gripSize, Colors.SCROLLBAR_GRIP_FOREGROUND);
 
         Draw2D.drawVerticalLine(x, y + gripY + 16, Colors.SCROLLBAR_GRIP_HIGHLIGHT, gripSize);
@@ -2795,7 +2792,7 @@ class Client extends GameShell {
                 this.updateInterfaceContent(child);
             }
 
-            if (child.type === 0) {
+            if (child.type === ComType.TYPE_LAYER) {
                 if (child.scrollPosition > child.scroll - child.height) {
                     child.scrollPosition = child.scroll - child.height;
                 }
@@ -2808,7 +2805,7 @@ class Client extends GameShell {
                 if (child.scroll > child.height) {
                     this.drawScrollbar(childX + child.width, childY, child.scrollPosition, child.scroll, child.height);
                 }
-            } else if (child.type === 2) {
+            } else if (child.type === ComType.TYPE_INV) {
                 let slot: number = 0;
 
                 for (let row: number = 0; row < child.height; row++) {
@@ -2870,13 +2867,13 @@ class Client extends GameShell {
                         slot++;
                     }
                 }
-            } else if (child.type === 3) {
+            } else if (child.type === ComType.TYPE_RECT) {
                 if (child.fill) {
                     Draw2D.fillRect(childX, childY, child.width, child.height, child.colour);
                 } else {
                     Draw2D.drawRect(childX, childY, child.width, child.height, child.colour);
                 }
-            } else if (child.type === 4) {
+            } else if (child.type === ComType.TYPE_TEXT) {
                 const font: PixFont | null = child.font;
                 let color: number = child.colour;
                 let text: string | null = child.text;
@@ -2966,12 +2963,12 @@ class Client extends GameShell {
                     }
 
                     if (child.center) {
-                        font.drawStringTaggableCenter(childX + Math.trunc(child.width / 2), lineY, split, color, child.shadowed);
+                        font.drawStringTaggableCenter(childX + ((child.width / 2) | 0), lineY, split, color, child.shadowed);
                     } else {
                         font.drawStringTaggable(childX, lineY, split, color, child.shadowed);
                     }
                 }
-            } else if (child.type === 5) {
+            } else if (child.type === ComType.TYPE_GRAPHIC) {
                 let image: Pix24 | null;
                 if (this.executeInterfaceScript(child)) {
                     image = child.activeGraphic;
@@ -2980,12 +2977,12 @@ class Client extends GameShell {
                 }
 
                 image?.draw(childX, childY);
-            } else if (child.type === 6) {
+            } else if (child.type === ComType.TYPE_MODEL) {
                 const tmpX: number = Draw3D.centerX;
                 const tmpY: number = Draw3D.centerY;
 
-                Draw3D.centerX = childX + Math.trunc(child.width / 2);
-                Draw3D.centerY = childY + Math.trunc(child.height / 2);
+                Draw3D.centerX = childX + ((child.width / 2) | 0);
+                Draw3D.centerY = childY + ((child.height / 2) | 0);
 
                 const eyeY: number = (Draw3D.sin[child.xan] * child.zoom) >> 16;
                 const eyeZ: number = (Draw3D.cos[child.xan] * child.zoom) >> 16;
@@ -3014,7 +3011,7 @@ class Client extends GameShell {
 
                 Draw3D.centerX = tmpX;
                 Draw3D.centerY = tmpY;
-            } else if (child.type === 7) {
+            } else if (child.type === ComType.TYPE_INV_TEXT) {
                 const font: PixFont | null = child.font;
                 if (!font || !child.invSlotObjId || !child.invSlotObjCount) {
                     continue;
@@ -3038,7 +3035,7 @@ class Client extends GameShell {
                             const textY: number = childY + row * (child.marginY + 12);
 
                             if (child.center) {
-                                font.drawStringTaggableCenter(textX + Math.trunc(child.width / 2), textY, text, child.colour, child.shadowed);
+                                font.drawStringTaggableCenter(textX + ((child.width / 2) | 0), textY, text, child.colour, child.shadowed);
                             } else {
                                 font.drawStringTaggable(textX, textY, text, child.colour, child.shadowed);
                             }
@@ -3060,14 +3057,14 @@ class Client extends GameShell {
         }
 
         const angle: number = (this.orbitCameraYaw + this.minimapAnticheatAngle) & 0x7ff;
-        let anchorX: number = Math.trunc(this.localPlayer.x / 32) + 48;
-        let anchorY: number = 464 - Math.trunc(this.localPlayer.z / 32);
+        let anchorX: number = ((this.localPlayer.x / 32) | 0) + 48;
+        let anchorY: number = 464 - ((this.localPlayer.z / 32) | 0);
 
         this.imageMinimap?.drawRotatedMasked(21, 9, 146, 151, this.minimapMaskLineOffsets, this.minimapMaskLineLengths, anchorX, anchorY, angle, this.minimapZoom + 256);
         this.imageCompass?.drawRotatedMasked(0, 0, 33, 33, this.compassMaskLineOffsets, this.compassMaskLineLengths, 25, 25, this.orbitCameraYaw, 256);
         for (let i: number = 0; i < this.activeMapFunctionCount; i++) {
-            anchorX = this.activeMapFunctionX[i] * 4 + 2 - Math.trunc(this.localPlayer.x / 32);
-            anchorY = this.activeMapFunctionZ[i] * 4 + 2 - Math.trunc(this.localPlayer.z / 32);
+            anchorX = this.activeMapFunctionX[i] * 4 + 2 - ((this.localPlayer.x / 32) | 0);
+            anchorY = this.activeMapFunctionZ[i] * 4 + 2 - ((this.localPlayer.z / 32) | 0);
             this.drawOnMinimap(anchorY, this.activeMapFunctions[i], anchorX);
         }
 
@@ -3075,8 +3072,8 @@ class Client extends GameShell {
             for (let ltz: number = 0; ltz < 104; ltz++) {
                 const stack: LinkList | null = this.levelObjStacks[this.currentLevel][ltx][ltz];
                 if (stack) {
-                    anchorX = ltx * 4 + 2 - Math.trunc(this.localPlayer.x / 32);
-                    anchorY = ltz * 4 + 2 - Math.trunc(this.localPlayer.z / 32);
+                    anchorX = ltx * 4 + 2 - ((this.localPlayer.x / 32) | 0);
+                    anchorY = ltz * 4 + 2 - ((this.localPlayer.z / 32) | 0);
                     this.drawOnMinimap(anchorY, this.imageMapdot0, anchorX);
                 }
             }
@@ -3085,8 +3082,8 @@ class Client extends GameShell {
         for (let i: number = 0; i < this.npcCount; i++) {
             const npc: NpcEntity | null = this.npcs[this.npcIds[i]];
             if (npc && npc.isVisible() && npc.type && npc.type.visonmap) {
-                anchorX = Math.trunc(npc.x / 32) - Math.trunc(this.localPlayer.x / 32);
-                anchorY = Math.trunc(npc.z / 32) - Math.trunc(this.localPlayer.z / 32);
+                anchorX = ((npc.x / 32) | 0) - ((this.localPlayer.x / 32) | 0);
+                anchorY = ((npc.z / 32) | 0) - ((this.localPlayer.z / 32) | 0);
                 this.drawOnMinimap(anchorY, this.imageMapdot1, anchorX);
             }
         }
@@ -3094,8 +3091,8 @@ class Client extends GameShell {
         for (let i: number = 0; i < this.playerCount; i++) {
             const player: PlayerEntity | null = this.players[this.playerIds[i]];
             if (player && player.isVisible() && player.name) {
-                anchorX = Math.trunc(player.x / 32) - Math.trunc(this.localPlayer.x / 32);
-                anchorY = Math.trunc(player.z / 32) - Math.trunc(this.localPlayer.z / 32);
+                anchorX = ((player.x / 32) | 0) - ((this.localPlayer.x / 32) | 0);
+                anchorY = ((player.z / 32) | 0) - ((this.localPlayer.z / 32) | 0);
 
                 let friend: boolean = false;
                 const name37: bigint = JString.toBase37(player.name);
@@ -3115,8 +3112,8 @@ class Client extends GameShell {
         }
 
         if (this.flagSceneTileX !== 0) {
-            anchorX = this.flagSceneTileX * 4 + 2 - Math.trunc(this.localPlayer.x / 32);
-            anchorY = this.flagSceneTileZ * 4 + 2 - Math.trunc(this.localPlayer.z / 32);
+            anchorX = this.flagSceneTileX * 4 + 2 - ((this.localPlayer.x / 32) | 0);
+            anchorY = this.flagSceneTileZ * 4 + 2 - ((this.localPlayer.z / 32) | 0);
             this.drawOnMinimap(anchorY, this.imageMapflag, anchorX);
         }
         // the white square local player position in the center of the minimap.
@@ -3138,16 +3135,16 @@ class Client extends GameShell {
         let sinAngle: number = Draw3D.sin[angle];
         let cosAngle: number = Draw3D.cos[angle];
 
-        sinAngle = Math.trunc((sinAngle * 256) / (this.minimapZoom + 256));
-        cosAngle = Math.trunc((cosAngle * 256) / (this.minimapZoom + 256));
+        sinAngle = ((sinAngle * 256) / (this.minimapZoom + 256)) | 0;
+        cosAngle = ((cosAngle * 256) / (this.minimapZoom + 256)) | 0;
 
         const x: number = (dy * sinAngle + dx * cosAngle) >> 16;
         const y: number = (dy * cosAngle - dx * sinAngle) >> 16;
 
         if (distance > 2500 && this.imageMapback) {
-            image.drawMasked(x + 94 - Math.trunc(image.cropW / 2), 83 - y - Math.trunc(image.cropH / 2), this.imageMapback);
+            image.drawMasked(x + 94 - ((image.cropW / 2) | 0), 83 - y - ((image.cropH / 2) | 0), this.imageMapback);
         } else {
-            image.draw(x + 94 - Math.trunc(image.cropW / 2), 83 - y - Math.trunc(image.cropH / 2));
+            image.draw(x + 94 - ((image.cropW / 2) | 0), 83 - y - ((image.cropH / 2) | 0));
         }
     };
 
@@ -3178,8 +3175,8 @@ class Client extends GameShell {
             }
         }
 
-        const wallRgb: number = (Math.trunc(Math.random() * 20.0 + 238 - 10) << 16) + (Math.trunc(Math.random() * 20.0 + 238 - 10) << 8) + Math.trunc(Math.random() * 20.0 + 238 - 10);
-        const doorRgb: number = Math.trunc(Math.random() * 20.0 + 238 - 10) << 16;
+        const wallRgb: number = ((((Math.random() * 20.0) | 0) + 238 - 10) << 16) + ((((Math.random() * 20.0) | 0) + 238 - 10) << 8) + ((Math.random() * 20.0) | 0) + 238 - 10;
+        const doorRgb: number = (((Math.random() * 20.0) | 0) + 238 - 10) << 16;
 
         this.imageMinimap.bind();
 
@@ -3223,7 +3220,7 @@ class Client extends GameShell {
                         const flags: Int32Array = collisionmap.flags;
 
                         for (let i: number = 0; i < 10; i++) {
-                            const rand: number = Math.trunc(Math.random() * 4.0);
+                            const rand: number = (Math.random() * 4.0) | 0;
                             if (rand === 0 && stx > 0 && stx > x - 3 && (flags[CollisionMap.index(stx - 1, stz)] & CollisionFlag.BLOCK_WEST) === CollisionFlag.OPEN) {
                                 stx--;
                             }
@@ -3333,9 +3330,9 @@ class Client extends GameShell {
             } else {
                 const scene: Pix8 | null = this.imageMapscene[loc.mapscene];
                 if (scene) {
-                    const offsetX: number = Math.trunc((loc.width * 4 - scene.width) / 2);
-                    const offsetY: number = Math.trunc((loc.length * 4 - scene.height) / 2);
-                    scene.draw(tileX * 4 + 48 + offsetX, (104 - tileZ - loc.length) * 4 + offsetY + 48);
+                    const offsetX: number = ((loc.width * 4 - scene.width) / 2) | 0;
+                    const offsetY: number = ((loc.length * 4 - scene.height) / 2) | 0;
+                    scene.draw(tileX * 4 + 48 + offsetX, (CollisionMap.SIZE - tileZ - loc.length) * 4 + offsetY + 48);
                 }
             }
         }
@@ -3351,9 +3348,9 @@ class Client extends GameShell {
             if (loc.mapscene !== -1) {
                 const scene: Pix8 | null = this.imageMapscene[loc.mapscene];
                 if (scene) {
-                    const offsetX: number = Math.trunc((loc.width * 4 - scene.width) / 2);
-                    const offsetY: number = Math.trunc((loc.length * 4 - scene.height) / 2);
-                    scene.draw(tileX * 4 + 48 + offsetX, (104 - tileZ - loc.length) * 4 + offsetY + 48);
+                    const offsetX: number = ((loc.width * 4 - scene.width) / 2) | 0;
+                    const offsetY: number = ((loc.length * 4 - scene.height) / 2) | 0;
+                    scene.draw(tileX * 4 + 48 + offsetX, (CollisionMap.SIZE - tileZ - loc.length) * 4 + offsetY + 48);
                 }
             } else if (shape === LocShape.WALL_DIAGONAL) {
                 let rgb: number = 0xeeeeee;
@@ -3362,7 +3359,7 @@ class Client extends GameShell {
                 }
 
                 const dst: Int32Array = this.imageMinimap.pixels;
-                const offset: number = tileX * 4 + (103 - tileZ) * 512 * 4 + 24624;
+                const offset: number = tileX * 4 + (CollisionMap.SIZE - 1 - tileZ) * 512 * 4 + 24624;
 
                 if (angle === LocAngle.WEST || angle === LocAngle.EAST) {
                     dst[offset + 1536] = rgb;
@@ -3384,9 +3381,9 @@ class Client extends GameShell {
             if (loc.mapscene !== -1) {
                 const scene: Pix8 | null = this.imageMapscene[loc.mapscene];
                 if (scene) {
-                    const offsetX: number = Math.trunc((loc.width * 4 - scene.width) / 2);
-                    const offsetY: number = Math.trunc((loc.length * 4 - scene.height) / 2);
-                    scene.draw(tileX * 4 + 48 + offsetX, (104 - tileZ - loc.length) * 4 + offsetY + 48);
+                    const offsetX: number = ((loc.width * 4 - scene.width) / 2) | 0;
+                    const offsetY: number = ((loc.length * 4 - scene.height) / 2) | 0;
+                    scene.draw(tileX * 4 + 48 + offsetX, (CollisionMap.SIZE - tileZ - loc.length) * 4 + offsetY + 48);
                 }
             }
         }
@@ -3410,7 +3407,7 @@ class Client extends GameShell {
             tooltip = tooltip + '@whi@ / ' + (this.menuSize - 2) + ' more options';
         }
 
-        this.fontBold12?.drawStringTooltip(4, 15, tooltip, Colors.WHITE, true, Math.trunc(this.loopCycle / 1000));
+        this.fontBold12?.drawStringTooltip(4, 15, tooltip, Colors.WHITE, true, (this.loopCycle / 1000) | 0);
     };
 
     private drawMenu = (): void => {
@@ -4877,13 +4874,13 @@ class Client extends GameShell {
                 this.redrawSidebar = true;
             }
         } else if (mouseX >= left - this.scrollInputPadding && mouseX < left + this.scrollInputPadding + 16 && mouseY >= top + 16 && mouseY < top + height - 16 && this.dragCycles > 0) {
-            let gripSize: number = Math.trunc(((height - 32) * height) / scrollableHeight);
+            let gripSize: number = (((height - 32) * height) / scrollableHeight) | 0;
             if (gripSize < 8) {
                 gripSize = 8;
             }
-            const gripY: number = mouseY - top - Math.trunc(gripSize / 2) - 16;
+            const gripY: number = mouseY - top - ((gripSize / 2) | 0) - 16;
             const maxY: number = height - gripSize - 32;
-            component.scrollPosition = Math.trunc(((scrollableHeight - height) * gripY) / maxY);
+            component.scrollPosition = (((scrollableHeight - height) * gripY) / maxY) | 0;
             if (redraw) {
                 this.redrawSidebar = true;
             }
@@ -5072,9 +5069,9 @@ class Client extends GameShell {
         if (amount < 100000) {
             return String(amount);
         } else if (amount < 10000000) {
-            return Math.trunc(amount / 1000) + 'K';
+            return ((amount / 1000) | 0) + 'K';
         } else {
-            return Math.trunc(amount / 1000000) + 'M';
+            return ((amount / 1000000) | 0) + 'M';
         }
     };
 
@@ -5236,7 +5233,7 @@ class Client extends GameShell {
                     // load_next_level_xp {skill}
                     register += this.levelExperience[this.skillBaseLevel[script[pc++]] - 1];
                 } else if (opcode === 7) {
-                    register += Math.trunc((this.varps[script[pc++]] * 100) / 46875);
+                    register += ((this.varps[script[pc++]] * 100) / 46875) | 0;
                 } else if (opcode === 8) {
                     // load_combat_level
                     register += this.localPlayer?.combatLevel || 0;
@@ -5360,7 +5357,7 @@ class Client extends GameShell {
             }
         } else if (clientCode === ComType.CC_DESIGN_PREVIEW) {
             component.xan = 150;
-            component.yan = Math.trunc(Math.sin(this.loopCycle / 40.0) * 256.0) & 0x7ff;
+            component.yan = ((Math.sin(this.loopCycle / 40.0) * 256.0) | 0) & 0x7ff;
             if (this.updateDesignModel) {
                 this.updateDesignModel = false;
 
@@ -5720,10 +5717,10 @@ class Client extends GameShell {
                 this.areaViewport?.draw(8, 11);
                 // signlink.looprate(5);
 
-                const regions: number = Math.trunc((this.packetSize - 2) / 10);
+                const regions: number = ((this.packetSize - 2) / 10) | 0;
 
-                this.sceneMapLandData = new Array(regions);
-                this.sceneMapLocData = new Array(regions);
+                this.sceneMapLandData = new Array(regions).fill(null);
+                this.sceneMapLocData = new Array(regions).fill(null);
                 this.sceneMapIndex = new Int32Array(regions);
 
                 this.out.p1isaac(150);
@@ -6493,7 +6490,7 @@ class Client extends GameShell {
                 ComType.instances[com].model = obj.getInterfaceModel(50);
                 ComType.instances[com].xan = obj.xan2d;
                 ComType.instances[com].yan = obj.yan2d;
-                ComType.instances[com].zoom = Math.trunc((obj.zoom2d * 100) / zoom);
+                ComType.instances[com].zoom = ((obj.zoom2d * 100) / zoom) | 0;
                 this.packetType = -1;
                 return true;
             }
@@ -6558,7 +6555,7 @@ class Client extends GameShell {
             }
             if (this.packetType === 21) {
                 // UPDATE_IGNORELIST
-                this.ignoreCount = Math.trunc(this.packetSize / 8);
+                this.ignoreCount = (this.packetSize / 8) | 0;
                 for (let i: number = 0; i < this.ignoreCount; i++) {
                     this.ignoreName37[i] = this.in.g8;
                 }
@@ -6828,9 +6825,9 @@ class Client extends GameShell {
         let acc: number = 0;
         for (let i: number = 0; i < 99; i++) {
             const level: number = i + 1;
-            const delta: number = Math.trunc(level + Math.pow(2.0, level / 7.0) * 300.0);
+            const delta: number = (level + Math.pow(2.0, level / 7.0) * 300.0) | 0;
             acc += delta;
-            this.levelExperience[i] = Math.trunc(acc / 4);
+            this.levelExperience[i] = (acc / 4) | 0;
         }
     };
 
@@ -7749,7 +7746,7 @@ class Client extends GameShell {
 
         // the main viewport area
         if (this.mouseClickX > 8 && this.mouseClickY > 11 && this.mouseClickX < 520 && this.mouseClickY < 345) {
-            x = this.mouseClickX - Math.trunc(width / 2) - 8;
+            x = this.mouseClickX - ((width / 2) | 0) - 8;
             if (x + width > 512) {
                 x = 512 - width;
             } else if (x < 0) {
@@ -7773,7 +7770,7 @@ class Client extends GameShell {
 
         // the sidebar/tabs area
         if (this.mouseClickX > 562 && this.mouseClickY > 231 && this.mouseClickX < 752 && this.mouseClickY < 492) {
-            x = this.mouseClickX - Math.trunc(width / 2) - 562;
+            x = this.mouseClickX - ((width / 2) | 0) - 562;
             if (x < 0) {
                 x = 0;
             } else if (x + width > 190) {
@@ -7797,7 +7794,7 @@ class Client extends GameShell {
 
         // the chatbox area
         if (this.mouseClickX > 22 && this.mouseClickY > 375 && this.mouseClickX < 501 && this.mouseClickY < 471) {
-            x = this.mouseClickX - Math.trunc(width / 2) - 22;
+            x = this.mouseClickX - ((width / 2) | 0) - 22;
             if (x < 0) {
                 x = 0;
             } else if (x + width > 479) {
@@ -8645,15 +8642,15 @@ class Client extends GameShell {
             const start: number = this.out.pos;
             this.out.p1(162);
             this.out.p1(22);
-            if (Math.trunc(Math.random() * 2.0) === 0) {
+            if (((Math.random() * 2.0) | 0) === 0) {
                 this.out.p1(84);
             }
             this.out.p2(31824);
             this.out.p2(13490);
-            if (Math.trunc(Math.random() * 2.0) === 0) {
+            if (((Math.random() * 2.0) | 0) === 0) {
                 this.out.p1(123);
             }
-            if (Math.trunc(Math.random() * 2.0) === 0) {
+            if (((Math.random() * 2.0) | 0) === 0) {
                 this.out.p1(134);
             }
             this.out.p1(100);
@@ -8759,7 +8756,7 @@ class Client extends GameShell {
     private pushNpcs = (): void => {
         for (let i: number = 0; i < this.npcCount; i++) {
             const npc: NpcEntity | null = this.npcs[this.npcIds[i]];
-            const bitset: number = (this.npcIds[i] << 14) + 0x20000000;
+            const bitset: number = ((this.npcIds[i] << 14) + 0x20000000) | 0;
 
             if (!npc || !npc.isVisible()) {
                 continue;
@@ -8792,7 +8789,7 @@ class Client extends GameShell {
                 const dstZ: number = e.z - npc.z;
 
                 if (dstX !== 0 || dstZ !== 0) {
-                    e.dstYaw = Math.trunc(Math.atan2(dstX, dstZ) * 325.949) & 0x7ff;
+                    e.dstYaw = ((Math.atan2(dstX, dstZ) * 325.949) | 0) & 0x7ff;
                 }
             }
         }
@@ -8809,7 +8806,7 @@ class Client extends GameShell {
                 const dstZ: number = e.z - player.z;
 
                 if (dstX !== 0 || dstZ !== 0) {
-                    e.dstYaw = Math.trunc(Math.atan2(dstX, dstZ) * 325.949) & 0x7ff;
+                    e.dstYaw = ((Math.atan2(dstX, dstZ) * 325.949) | 0) & 0x7ff;
                 }
             }
         }
@@ -8819,7 +8816,7 @@ class Client extends GameShell {
             const dstZ: number = e.z - (e.targetTileZ - this.sceneBaseTileZ - this.sceneBaseTileZ) * 64;
 
             if (dstX !== 0 || dstZ !== 0) {
-                e.dstYaw = Math.trunc(Math.atan2(dstX, dstZ) * 325.949) & 0x7ff;
+                e.dstYaw = ((Math.atan2(dstX, dstZ) * 325.949) | 0) & 0x7ff;
             }
 
             e.targetTileX = 0;
@@ -9059,7 +9056,7 @@ class Client extends GameShell {
             let delta: number;
             let accumulator: number;
             if (tileDeltaX > tileDeltaZ) {
-                delta = Math.trunc((tileDeltaZ * 65536) / tileDeltaX);
+                delta = ((tileDeltaZ * 65536) / tileDeltaX) | 0;
                 accumulator = 32768;
                 while (cameraLocalTileX !== playerLocalTileX) {
                     if (cameraLocalTileX < playerLocalTileX) {
@@ -9084,7 +9081,7 @@ class Client extends GameShell {
                     }
                 }
             } else {
-                delta = Math.trunc((tileDeltaX * 65536) / tileDeltaZ);
+                delta = ((tileDeltaX * 65536) / tileDeltaZ) | 0;
                 accumulator = 32768;
                 while (cameraLocalTileZ !== playerLocalTileZ) {
                     if (cameraLocalTileZ < playerLocalTileZ) {
@@ -9125,8 +9122,8 @@ class Client extends GameShell {
         if (!this.levelHeightmap) {
             return 0; // custom
         }
-        const tileX: number = Math.min(sceneX >> 7, 103);
-        const tileZ: number = Math.min(sceneZ >> 7, 103);
+        const tileX: number = Math.min(sceneX >> 7, CollisionMap.SIZE - 1);
+        const tileZ: number = Math.min(sceneZ >> 7, CollisionMap.SIZE - 1);
         let realLevel: number = level;
         if (level < 3 && this.levelTileFlags && (this.levelTileFlags[1][tileX][tileZ] & 0x2) === 2) {
             realLevel = level + 1;
@@ -9149,19 +9146,19 @@ class Client extends GameShell {
         let cos: number;
         let tmp: number;
 
-        if (invPitch !== 0) {
+        if (invPitch != 0) {
             sin = Draw3D.sin[invPitch];
             cos = Draw3D.cos[invPitch];
-            tmp = (-distance * sin) >> 16;
-            y = (distance * cos) >> 16;
+            tmp = (z * cos - distance * sin) >> 16;
+            y = (z * sin + distance * cos) >> 16;
             z = tmp;
         }
 
-        if (invYaw !== 0) {
+        if (invYaw != 0) {
             sin = Draw3D.sin[invYaw];
             cos = Draw3D.cos[invYaw];
-            tmp = (y * sin) >> 16;
-            y = (y * cos) >> 16;
+            tmp = (y * sin + x * cos) >> 16;
+            y = (y * cos - x * sin) >> 16;
             x = tmp;
         }
 
@@ -9183,27 +9180,27 @@ class Client extends GameShell {
             this.orbitCameraZ = orbitZ;
         }
         if (this.orbitCameraX !== orbitX) {
-            this.orbitCameraX += Math.trunc((orbitX - this.orbitCameraX) / 16);
+            this.orbitCameraX += ((orbitX - this.orbitCameraX) / 16) | 0;
         }
         if (this.orbitCameraZ !== orbitZ) {
-            this.orbitCameraZ += Math.trunc((orbitZ - this.orbitCameraZ) / 16);
+            this.orbitCameraZ += ((orbitZ - this.orbitCameraZ) / 16) | 0;
         }
         if (this.actionKey[1] === 1) {
-            this.orbitCameraYawVelocity += Math.trunc((-this.orbitCameraYawVelocity - 24) / 2);
+            this.orbitCameraYawVelocity += ((-this.orbitCameraYawVelocity - 24) / 2) | 0;
         } else if (this.actionKey[2] === 1) {
-            this.orbitCameraYawVelocity += Math.trunc((24 - this.orbitCameraYawVelocity) / 2);
+            this.orbitCameraYawVelocity += ((24 - this.orbitCameraYawVelocity) / 2) | 0;
         } else {
-            this.orbitCameraYawVelocity = Math.trunc(this.orbitCameraYawVelocity / 2);
+            this.orbitCameraYawVelocity = (this.orbitCameraYawVelocity / 2) | 0;
         }
         if (this.actionKey[3] === 1) {
-            this.orbitCameraPitchVelocity += Math.trunc((12 - this.orbitCameraPitchVelocity) / 2);
+            this.orbitCameraPitchVelocity += ((12 - this.orbitCameraPitchVelocity) / 2) | 0;
         } else if (this.actionKey[4] === 1) {
-            this.orbitCameraPitchVelocity += Math.trunc((-this.orbitCameraPitchVelocity - 12) / 2);
+            this.orbitCameraPitchVelocity += ((-this.orbitCameraPitchVelocity - 12) / 2) | 0;
         } else {
-            this.orbitCameraPitchVelocity = Math.trunc(this.orbitCameraPitchVelocity / 2);
+            this.orbitCameraPitchVelocity = (this.orbitCameraPitchVelocity / 2) | 0;
         }
-        this.orbitCameraYaw = (this.orbitCameraYaw + Math.trunc(this.orbitCameraYawVelocity / 2)) & 0x7ff;
-        this.orbitCameraPitch += Math.trunc(this.orbitCameraPitchVelocity / 2);
+        this.orbitCameraYaw = ((this.orbitCameraYaw + this.orbitCameraYawVelocity / 2) | 0) & 0x7ff;
+        this.orbitCameraPitch += (this.orbitCameraPitchVelocity / 2) | 0;
         if (this.orbitCameraPitch < 128) {
             this.orbitCameraPitch = 128;
         }
@@ -9244,9 +9241,9 @@ class Client extends GameShell {
         }
 
         if (clamp > this.cameraPitchClamp) {
-            this.cameraPitchClamp += Math.trunc((clamp - this.cameraPitchClamp) / 24);
+            this.cameraPitchClamp += ((clamp - this.cameraPitchClamp) / 24) | 0;
         } else if (clamp < this.cameraPitchClamp) {
-            this.cameraPitchClamp += Math.trunc((clamp - this.cameraPitchClamp) / 80);
+            this.cameraPitchClamp += ((clamp - this.cameraPitchClamp) / 80) | 0;
         }
     };
 
@@ -9424,13 +9421,13 @@ class Client extends GameShell {
         const height: number = 256;
 
         for (let x: number = 10; x < 117; x++) {
-            const rand: number = Math.trunc(Math.random() * 100.0);
+            const rand: number = (Math.random() * 100.0) | 0;
             if (rand < 50) this.flameBuffer3[x + ((height - 2) << 7)] = 255;
         }
 
         for (let l: number = 0; l < 100; l++) {
-            const x: number = Math.trunc(Math.random() * 124.0) + 2;
-            const y: number = Math.trunc(Math.random() * 128.0) + 128;
+            const x: number = ((Math.random() * 124.0) | 0) + 2;
+            const y: number = ((Math.random() * 128.0) | 0) + 128;
             const index: number = x + (y << 7);
             this.flameBuffer3[index] = 192;
         }
@@ -9438,20 +9435,20 @@ class Client extends GameShell {
         for (let y: number = 1; y < height - 1; y++) {
             for (let x: number = 1; x < 127; x++) {
                 const index: number = x + (y << 7);
-                this.flameBuffer2[index] = Math.trunc((this.flameBuffer3[index - 1] + this.flameBuffer3[index + 1] + this.flameBuffer3[index - 128] + this.flameBuffer3[index + 128]) / 4);
+                this.flameBuffer2[index] = ((this.flameBuffer3[index - 1] + this.flameBuffer3[index + 1] + this.flameBuffer3[index - 128] + this.flameBuffer3[index + 128]) / 4) | 0;
             }
         }
 
         this.flameCycle0 += 128;
         if (this.flameCycle0 > this.flameBuffer0.length) {
             this.flameCycle0 -= this.flameBuffer0.length;
-            this.updateFlameBuffer(this.imageRunes[Math.trunc(Math.random() * 12.0)]);
+            this.updateFlameBuffer(this.imageRunes[(Math.random() * 12.0) | 0]);
         }
 
         for (let y: number = 1; y < height - 1; y++) {
             for (let x: number = 1; x < 127; x++) {
                 const index: number = x + (y << 7);
-                let intensity: number = this.flameBuffer2[index + 128] - Math.trunc(this.flameBuffer0[(index + this.flameCycle0) & (this.flameBuffer0.length - 1)] / 5);
+                let intensity: number = this.flameBuffer2[index + 128] - ((this.flameBuffer0[(index + this.flameCycle0) & (this.flameBuffer0.length - 1)] / 5) | 0);
                 if (intensity < 0) {
                     intensity = 0;
                 }
@@ -9463,7 +9460,7 @@ class Client extends GameShell {
             this.flameLineOffset[y] = this.flameLineOffset[y + 1];
         }
 
-        this.flameLineOffset[height - 1] = Math.trunc(Math.sin(this.loopCycle / 14.0) * 16.0 + Math.sin(this.loopCycle / 15.0) * 14.0 + Math.sin(this.loopCycle / 16.0) * 12.0);
+        this.flameLineOffset[height - 1] = (Math.sin(this.loopCycle / 14.0) * 16.0 + Math.sin(this.loopCycle / 15.0) * 14.0 + Math.sin(this.loopCycle / 16.0) * 12.0) | 0;
 
         if (this.flameGradientCycle0 > 0) {
             this.flameGradientCycle0 -= 4;
@@ -9474,7 +9471,7 @@ class Client extends GameShell {
         }
 
         if (this.flameGradientCycle0 === 0 && this.flameGradientCycle1 === 0) {
-            const rand: number = Math.trunc(Math.random() * 2000.0);
+            const rand: number = (Math.random() * 2000.0) | 0;
 
             if (rand === 0) {
                 this.flameGradientCycle0 = 1024;
@@ -9530,7 +9527,7 @@ class Client extends GameShell {
         let dstOffset: number = 1152;
 
         for (let y: number = 1; y < height - 1; y++) {
-            const offset: number = Math.trunc((this.flameLineOffset[y] * (height - y)) / height);
+            const offset: number = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
             let step: number = offset + 22;
             if (step < 0) {
                 step = 0;
@@ -9564,7 +9561,7 @@ class Client extends GameShell {
         srcOffset = 0;
         dstOffset = 1176;
         for (let y: number = 1; y < height - 1; y++) {
-            const offset: number = Math.trunc((this.flameLineOffset[y] * (height - y)) / height);
+            const offset: number = ((this.flameLineOffset[y] * (height - y)) / height) | 0;
             const step: number = 103 - offset;
             dstOffset += offset;
             for (let x: number = 0; x < step; x++) {

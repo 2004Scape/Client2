@@ -111,19 +111,19 @@ export default class Pix24 extends Hashable {
     };
 
     draw = (x: number, y: number): void => {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
+        x |= 0;
+        y |= 0;
 
         x += this.cropX;
         y += this.cropY;
 
-        let dstOff: number = x + y * Draw2D.width;
+        let dstOff: number = x + y * Draw2D.width2d;
         let srcOff: number = 0;
 
         let h: number = this.height;
         let w: number = this.width;
 
-        let dstStep: number = Draw2D.width - w;
+        let dstStep: number = Draw2D.width2d - w;
         let srcStep: number = 0;
 
         if (y < Draw2D.top) {
@@ -131,7 +131,7 @@ export default class Pix24 extends Hashable {
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
-            dstOff += cutoff * Draw2D.width;
+            dstOff += cutoff * Draw2D.width2d;
         }
 
         if (y + h > Draw2D.bottom) {
@@ -161,17 +161,17 @@ export default class Pix24 extends Hashable {
     };
 
     drawAlpha = (alpha: number, x: number, y: number): void => {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
+        x |= 0;
+        y |= 0;
 
         x += this.cropX;
         y += this.cropY;
 
-        let dstStep: number = x + y * Draw2D.width;
+        let dstStep: number = x + y * Draw2D.width2d;
         let srcStep: number = 0;
         let h: number = this.height;
         let w: number = this.width;
-        let dstOff: number = Draw2D.width - w;
+        let dstOff: number = Draw2D.width2d - w;
         let srcOff: number = 0;
 
         if (y < Draw2D.top) {
@@ -179,7 +179,7 @@ export default class Pix24 extends Hashable {
             h -= cutoff;
             y = Draw2D.top;
             srcStep += cutoff * w;
-            dstStep += cutoff * Draw2D.width;
+            dstStep += cutoff * Draw2D.width2d;
         }
 
         if (y + h > Draw2D.bottom) {
@@ -209,19 +209,19 @@ export default class Pix24 extends Hashable {
     };
 
     blitOpaque = (x: number, y: number): void => {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
+        x |= 0;
+        y |= 0;
 
         x += this.cropX;
         y += this.cropY;
 
-        let dstOff: number = x + y * Draw2D.width;
+        let dstOff: number = x + y * Draw2D.width2d;
         let srcOff: number = 0;
 
         let h: number = this.height;
         let w: number = this.width;
 
-        let dstStep: number = Draw2D.width - w;
+        let dstStep: number = Draw2D.width2d - w;
         let srcStep: number = 0;
 
         if (y < Draw2D.top) {
@@ -229,7 +229,7 @@ export default class Pix24 extends Hashable {
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
-            dstOff += cutoff * Draw2D.width;
+            dstOff += cutoff * Draw2D.width2d;
         }
 
         if (y + h > Draw2D.bottom) {
@@ -264,7 +264,7 @@ export default class Pix24 extends Hashable {
         const height: number = this.height;
 
         for (let y: number = 0; y < height; y++) {
-            const div: number = Math.trunc(width / 2);
+            const div: number = (width / 2) | 0;
             for (let x: number = 0; x < div; x++) {
                 const off1: number = x + y * width;
                 const off2: number = width - x - 1 + y * width;
@@ -281,7 +281,7 @@ export default class Pix24 extends Hashable {
         const width: number = this.width;
         const height: number = this.height;
 
-        for (let y: number = 0; y < Math.trunc(height / 2); y++) {
+        for (let y: number = 0; y < ((height / 2) | 0); y++) {
             for (let x: number = 0; x < width; x++) {
                 const off1: number = x + y * width;
                 const off2: number = x + (height - y - 1) * width;
@@ -328,10 +328,10 @@ export default class Pix24 extends Hashable {
     };
 
     crop = (x: number, y: number, w: number, h: number): void => {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
-        w = Math.trunc(w);
-        h = Math.trunc(h);
+        x |= 0;
+        y |= 0;
+        w |= 0;
+        h |= 0;
 
         try {
             const currentW: number = this.width;
@@ -344,31 +344,31 @@ export default class Pix24 extends Hashable {
 
             const cw: number = this.cropW;
             const ch: number = this.cropH;
-            const scaleCropWidth: number = Math.trunc((cw << 16) / w);
-            const scaleCropHeight: number = Math.trunc((ch << 16) / h);
+            const scaleCropWidth: number = ((cw << 16) / w) | 0;
+            const scaleCropHeight: number = ((ch << 16) / h) | 0;
 
-            x += Math.trunc((this.cropX * w + cw - 1) / cw);
-            y += Math.trunc((this.cropY * h + ch - 1) / ch);
+            x += ((this.cropX * w + cw - 1) / cw) | 0;
+            y += ((this.cropY * h + ch - 1) / ch) | 0;
 
             if ((this.cropX * w) % cw !== 0) {
-                offW = Math.trunc(((cw - ((this.cropX * w) % cw)) << 16) / w);
+                offW = (((cw - ((this.cropX * w) % cw)) << 16) / w) | 0;
             }
 
             if ((this.cropY * h) % ch !== 0) {
-                offH = Math.trunc(((ch - ((this.cropY * h) % ch)) << 16) / h);
+                offH = (((ch - ((this.cropY * h) % ch)) << 16) / h) | 0;
             }
 
-            w = Math.trunc((w * (this.width - (offW >> 16))) / cw);
-            h = Math.trunc((h * (this.height - (offH >> 16))) / ch);
+            w = ((w * (this.width - (offW >> 16))) / cw) | 0;
+            h = ((h * (this.height - (offH >> 16))) / ch) | 0;
 
-            let dstStep: number = x + y * Draw2D.width;
-            let dstOff: number = Draw2D.width - w;
+            let dstStep: number = x + y * Draw2D.width2d;
+            let dstOff: number = Draw2D.width2d - w;
 
             if (y < Draw2D.top) {
                 const cutoff: number = Draw2D.top - y;
                 h -= cutoff;
                 y = 0;
-                dstStep += cutoff * Draw2D.width;
+                dstStep += cutoff * Draw2D.width2d;
                 offH += scaleCropHeight * cutoff;
             }
 
@@ -398,23 +398,23 @@ export default class Pix24 extends Hashable {
     };
 
     drawRotatedMasked = (x: number, y: number, w: number, h: number, lineStart: Int32Array, lineWidth: Int32Array, anchorX: number, anchorY: number, theta: number, zoom: number): void => {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
-        w = Math.trunc(w);
-        h = Math.trunc(h);
+        x |= 0;
+        y |= 0;
+        w |= 0;
+        h |= 0;
 
         try {
-            const centerX: number = Math.trunc(-w / 2);
-            const centerY: number = Math.trunc(-h / 2);
+            const centerX: number = (-w / 2) | 0;
+            const centerY: number = (-h / 2) | 0;
 
-            const sin: number = Math.trunc(Math.sin(theta / 326.11) * 65536.0);
-            const cos: number = Math.trunc(Math.cos(theta / 326.11) * 65536.0);
+            const sin: number = (Math.sin(theta / 326.11) * 65536.0) | 0;
+            const cos: number = (Math.cos(theta / 326.11) * 65536.0) | 0;
             const sinZoom: number = (sin * zoom) >> 8;
             const cosZoom: number = (cos * zoom) >> 8;
 
             let leftX: number = (anchorX << 16) + centerY * sinZoom + centerX * cosZoom;
             let leftY: number = (anchorY << 16) + (centerY * cosZoom - centerX * sinZoom);
-            let leftOff: number = x + y * Draw2D.width;
+            let leftOff: number = x + y * Draw2D.width2d;
 
             for (let i: number = 0; i < h; i++) {
                 const dstOff: number = lineStart[i];
@@ -430,7 +430,7 @@ export default class Pix24 extends Hashable {
 
                 leftX += sinZoom;
                 leftY += cosZoom;
-                leftOff += Draw2D.width;
+                leftOff += Draw2D.width2d;
             }
         } catch (e) {
             /* empty */
@@ -438,17 +438,17 @@ export default class Pix24 extends Hashable {
     };
 
     drawMasked = (x: number, y: number, mask: Pix8): void => {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
+        x |= 0;
+        y |= 0;
 
         x += this.cropX;
         y += this.cropY;
 
-        let dstStep: number = x + y * Draw2D.width;
+        let dstStep: number = x + y * Draw2D.width2d;
         let srcStep: number = 0;
         let h: number = this.height;
         let w: number = this.width;
-        let dstOff: number = Draw2D.width - w;
+        let dstOff: number = Draw2D.width2d - w;
         let srcOff: number = 0;
 
         if (y < Draw2D.top) {
@@ -456,7 +456,7 @@ export default class Pix24 extends Hashable {
             h -= cutoff;
             y = Draw2D.top;
             srcStep += cutoff * w;
-            dstStep += cutoff * Draw2D.width;
+            dstStep += cutoff * Draw2D.width2d;
         }
 
         if (y + h > Draw2D.bottom) {

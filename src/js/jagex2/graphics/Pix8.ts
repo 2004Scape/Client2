@@ -85,30 +85,18 @@ export default class Pix8 extends Hashable {
         return image;
     };
 
-    draw = (x: number, y: number, newW: number = -1, newH: number = -1): void => {
-        x = Math.trunc(x);
-        y = Math.trunc(y);
-        newW = Math.trunc(newW);
-        newH = Math.trunc(newH);
+    draw = (x: number, y: number): void => {
+        x |= 0;
+        y |= 0;
 
         x += this.cropX;
         y += this.cropY;
 
-        let dstOff: number = x + y * Draw2D.width;
+        let dstOff: number = x + y * Draw2D.width2d;
         let srcOff: number = 0;
-
         let h: number = this.height;
         let w: number = this.width;
-
-        if (newW !== -1) {
-            w = newW;
-        }
-
-        if (newH !== -1) {
-            h = newH;
-        }
-
-        let dstStep: number = Draw2D.width - w;
+        let dstStep: number = Draw2D.width2d - w;
         let srcStep: number = 0;
 
         if (y < Draw2D.top) {
@@ -116,7 +104,7 @@ export default class Pix8 extends Hashable {
             h -= cutoff;
             y = Draw2D.top;
             srcOff += cutoff * w;
-            dstOff += cutoff * Draw2D.width;
+            dstOff += cutoff * Draw2D.width2d;
         }
 
         if (y + h > Draw2D.bottom) {
@@ -151,7 +139,7 @@ export default class Pix8 extends Hashable {
         const height: number = this.height;
 
         for (let y: number = 0; y < height; y++) {
-            const div: number = Math.trunc(width / 2);
+            const div: number = (width / 2) | 0;
             for (let x: number = 0; x < div; x++) {
                 const off1: number = x + y * width;
                 const off2: number = width - x - 1 + y * width;
@@ -168,7 +156,7 @@ export default class Pix8 extends Hashable {
         const width: number = this.width;
         const height: number = this.height;
 
-        for (let y: number = 0; y < Math.trunc(height / 2); y++) {
+        for (let y: number = 0; y < ((height / 2) | 0); y++) {
             for (let x: number = 0; x < width; x++) {
                 const off1: number = x + y * width;
                 const off2: number = x + (height - y - 1) * width;
@@ -211,10 +199,12 @@ export default class Pix8 extends Hashable {
     };
 
     shrink = (): void => {
+        this.cropW |= 0;
+        this.cropH |= 0;
         this.cropW /= 2;
         this.cropH /= 2;
-        this.cropW = Math.trunc(this.cropW);
-        this.cropH = Math.trunc(this.cropH);
+        this.cropW |= 0;
+        this.cropH |= 0;
 
         const pixels: Int8Array = new Int8Array(this.cropW * this.cropH);
         let off: number = 0;
@@ -250,18 +240,51 @@ export default class Pix8 extends Hashable {
     };
 
     private copyImage = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
-        for (let y: number = 0; y < h; y++) {
-            for (let x: number = 0; x < w; x++) {
-                const off: number = x + y * w;
+        const qw: number = -(w >> 2);
+        w = -(w & 0x3);
 
-                const p: number = src[srcOff + off];
-                if (p !== 0) {
-                    dst[dstOff + off] = this.palette[p];
+        for (let y: number = -h; y < 0; y++) {
+            for (let x: number = qw; x < 0; x++) {
+                let palIndex: number = src[srcOff++];
+                if (palIndex == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = this.palette[palIndex & 0xff];
+                }
+
+                palIndex = src[srcOff++];
+                if (palIndex == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = this.palette[palIndex & 0xff];
+                }
+
+                palIndex = src[srcOff++];
+                if (palIndex == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = this.palette[palIndex & 0xff];
+                }
+
+                palIndex = src[srcOff++];
+                if (palIndex == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = this.palette[palIndex & 0xff];
                 }
             }
 
-            srcOff += srcStep;
+            for (let x: number = w; x < 0; x++) {
+                const palIndex: number = src[srcOff++];
+                if (palIndex == 0) {
+                    dstOff++;
+                } else {
+                    dst[dstOff++] = this.palette[palIndex & 0xff];
+                }
+            }
+
             dstOff += dstStep;
+            srcOff += srcStep;
         }
     };
 }

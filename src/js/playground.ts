@@ -173,7 +173,7 @@ class Playground extends GameShell {
         // draw a model
         const model: Model = Model.model(this.model.id);
         model.calculateNormals(64, 850, -30, -50, -30, true);
-        model.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
+        model.drawSimple(this.model.pitch | 0, this.model.yaw | 0, this.model.roll | 0, this.camera.pitch | 0, this.camera.x | 0, this.camera.y | 0, this.camera.z | 0);
 
         // debug
         if (this.fontBold12) {

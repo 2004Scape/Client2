@@ -1,8 +1,10 @@
-export default class Draw2D {
+import Hashable from '../datastruct/Hashable';
+
+export default class Draw2D extends Hashable {
     static pixels: Int32Array = new Int32Array();
 
-    static width: number = 0;
-    static height: number = 0;
+    static width2d: number = 0;
+    static height2d: number = 0;
 
     static top: number = 0;
     static bottom: number = 0;
@@ -10,23 +12,23 @@ export default class Draw2D {
     static right: number = 0;
     static boundX: number = 0;
 
-    static centerX: number = 0;
-    static centerY: number = 0;
+    static centerX2d: number = 0;
+    static centerY2d: number = 0;
 
     static bind = (pixels: Int32Array, width: number, height: number): void => {
         this.pixels = pixels;
-        this.width = width;
-        this.height = height;
+        this.width2d = width;
+        this.height2d = height;
         this.setBounds(0, 0, width, height);
     };
 
     static resetBounds = (): void => {
         this.left = 0;
         this.top = 0;
-        this.right = this.width;
-        this.bottom = this.height;
+        this.right = this.width2d;
+        this.bottom = this.height2d;
         this.boundX = this.right - 1;
-        this.centerX = Math.trunc(this.right / 2);
+        this.centerX2d = (this.right / 2) | 0;
     };
 
     static setBounds = (left: number, top: number, right: number, bottom: number): void => {
@@ -38,12 +40,12 @@ export default class Draw2D {
             top = 0;
         }
 
-        if (right > this.width) {
-            right = this.width;
+        if (right > this.width2d) {
+            right = this.width2d;
         }
 
-        if (bottom > this.height) {
-            bottom = this.height;
+        if (bottom > this.height2d) {
+            bottom = this.height2d;
         }
 
         this.top = top;
@@ -51,12 +53,15 @@ export default class Draw2D {
         this.left = left;
         this.right = right;
         this.boundX = this.right - 1;
-        this.centerX = Math.trunc(this.right / 2);
-        this.centerY = Math.trunc(this.bottom / 2);
+        this.centerX2d = (this.right / 2) | 0;
+        this.centerY2d = (this.bottom / 2) | 0;
     };
 
     static clear = (): void => {
-        this.pixels.fill(0);
+        const len: number = this.width2d * this.height2d;
+        for (let i: number = 0; i < len; i++) {
+            this.pixels[i] = 0;
+        }
     };
 
     // draw a 1px border rectangle
@@ -81,7 +86,7 @@ export default class Draw2D {
             width = this.right - x;
         }
 
-        const off: number = x + y * this.width;
+        const off: number = x + y * this.width2d;
         for (let i: number = 0; i < width; i++) {
             this.pixels[off + i] = color;
         }
@@ -101,9 +106,9 @@ export default class Draw2D {
             width = this.bottom - y;
         }
 
-        const off: number = x + y * this.width;
+        const off: number = x + y * this.width2d;
         for (let i: number = 0; i < width; i++) {
-            this.pixels[off + i * this.width] = color;
+            this.pixels[off + i * this.width2d] = color;
         }
     };
 
@@ -119,7 +124,7 @@ export default class Draw2D {
         // eslint-disable-next-line no-constant-condition
         while (true) {
             if (x1 >= this.left && x1 < this.right && y1 >= this.top && y1 < this.bottom) {
-                this.pixels[x1 + y1 * this.width] = color;
+                this.pixels[x1 + y1 * this.width2d] = color;
             }
 
             if (x1 === x2 && y1 === y2) {
@@ -160,8 +165,8 @@ export default class Draw2D {
             height = this.bottom - y;
         }
 
-        const step: number = this.width - width;
-        let offset: number = x + y * this.width;
+        const step: number = this.width2d - width;
+        let offset: number = x + y * this.width2d;
         for (let i: number = -height; i < 0; i++) {
             for (let j: number = -width; j < 0; j++) {
                 this.pixels[offset++] = color;

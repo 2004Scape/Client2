@@ -68,32 +68,32 @@ export default class World3D {
     static readonly WALL_DECORATION_OUTSET_Z: Int32Array = Int32Array.of(45, 45, -45, -45);
 
     // prettier-ignore
-    static readonly MINIMAP_TILE_MASK: Int8Array[] = [
-        new Int8Array(16),
-        Int8Array.of(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), // PLAIN_SHAPE
-        Int8Array.of(1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1), // DIAGONAL_SHAPE
-        Int8Array.of(1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), // LEFT_SEMI_DIAGONAL_SMALL_SHAPE
-        Int8Array.of(0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1), // RIGHT_SEMI_DIAGONAL_SMALL_SHAPE
-        Int8Array.of(0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), // LEFT_SEMI_DIAGONAL_BIG_SHAPE
-        Int8Array.of(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1), // RIGHT_SEMI_DIAGONAL_BIG_SHAPE
-        Int8Array.of(1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0), // HALF_SQUARE_SHAPE
-        Int8Array.of(0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0), // CORNER_SMALL_SHAPE
-        Int8Array.of(1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1), // CORNER_BIG_SHAPE
-        Int8Array.of(1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), // FAN_SMALL_SHAPE
-        Int8Array.of(0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1), // FAN_BIG_SHAPE
-        Int8Array.of(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1)  // TRAPEZIUM_SHAPE
+    static readonly MINIMAP_TILE_MASK: Int32Array[] = [
+        new Int32Array(16),
+        Int32Array.of(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), // PLAIN_SHAPE
+        Int32Array.of(1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1), // DIAGONAL_SHAPE
+        Int32Array.of(1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), // LEFT_SEMI_DIAGONAL_SMALL_SHAPE
+        Int32Array.of(0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1), // RIGHT_SEMI_DIAGONAL_SMALL_SHAPE
+        Int32Array.of(0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), // LEFT_SEMI_DIAGONAL_BIG_SHAPE
+        Int32Array.of(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1), // RIGHT_SEMI_DIAGONAL_BIG_SHAPE
+        Int32Array.of(1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0), // HALF_SQUARE_SHAPE
+        Int32Array.of(0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0), // CORNER_SMALL_SHAPE
+        Int32Array.of(1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1), // CORNER_BIG_SHAPE
+        Int32Array.of(1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0), // FAN_SMALL_SHAPE
+        Int32Array.of(0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1), // FAN_BIG_SHAPE
+        Int32Array.of(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1)  // TRAPEZIUM_SHAPE
     ];
 
     // prettier-ignore
-    static readonly MINIMAP_TILE_ROTATION_MAP: Int8Array[] = [
-        Int8Array.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15),
-        Int8Array.of(12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3),
-        Int8Array.of(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0),
-        Int8Array.of(3, 7, 11, 15, 2, 6, 10, 14, 1, 5, 9, 13, 0, 4, 8, 12),
+    static readonly MINIMAP_TILE_ROTATION_MAP: Int32Array[] = [
+        Int32Array.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15),
+        Int32Array.of(12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3),
+        Int32Array.of(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0),
+        Int32Array.of(3, 7, 11, 15, 2, 6, 10, 14, 1, 5, 9, 13, 0, 4, 8, 12),
     ];
 
     // prettier-ignore
-    static readonly TEXTURE_HSL: Uint16Array = Uint16Array.of(
+    static readonly TEXTURE_HSL: Int32Array = Int32Array.of(
         41, 39248, 41, 4643, 41, 41, 41, 41,
         41, 41, 41, 41, 41, 41, 41, 43086,
         41, 41, 41, 41, 41, 41, 41, 8602,
@@ -115,8 +115,8 @@ export default class World3D {
         this.viewportTop = 0;
         this.viewportRight = viewportWidth;
         this.viewportBottom = viewportHeight;
-        this.viewportCenterX = Math.trunc(viewportWidth / 2);
-        this.viewportCenterY = Math.trunc(viewportHeight / 2);
+        this.viewportCenterX = (viewportWidth / 2) | 0;
+        this.viewportCenterY = (viewportHeight / 2) | 0;
 
         const matrix: boolean[][][][] = new Array(9).fill(false).map((): boolean[][][] => new Array(32).fill(false).map((): boolean[][] => new Array(53).fill(false).map((): boolean[] => new Array(53).fill(false))));
         for (let pitch: number = 128; pitch <= 384; pitch += 32) {
@@ -126,8 +126,8 @@ export default class World3D {
                 this.sinEyeYaw = Draw3D.sin[yaw];
                 this.cosEyeYaw = Draw3D.cos[yaw];
 
-                const pitchLevel: number = Math.trunc((pitch - 128) / 32);
-                const yawLevel: number = Math.trunc(yaw / 64);
+                const pitchLevel: number = ((pitch - 128) / 32) | 0;
+                const yawLevel: number = (yaw / 64) | 0;
                 for (let dx: number = -26; dx <= 26; dx++) {
                     for (let dz: number = -26; dz <= 26; dz++) {
                         const x: number = dx * 128;
@@ -191,7 +191,7 @@ export default class World3D {
     };
 
     static addOccluder = (level: number, type: number, minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number): void => {
-        World3D.levelOccluders[level][World3D.levelOccluderCount[level]++] = new Occluder(Math.trunc(minX / 128), Math.trunc(maxX / 128), Math.trunc(minZ / 128), Math.trunc(maxZ / 128), type, minX, maxX, minZ, maxZ, minY, maxY);
+        World3D.levelOccluders[level][World3D.levelOccluderCount[level]++] = new Occluder((minX / 128) | 0, (maxX / 128) | 0, (minZ / 128) | 0, (maxZ / 128) | 0, type, minX, maxX, minZ, maxZ, minY, maxY);
     };
 
     private static testPoint = (x: number, z: number, y: number): boolean => {
@@ -202,8 +202,8 @@ export default class World3D {
         if (pz < 50 || pz > 3500) {
             return false;
         }
-        const viewportX: number = this.viewportCenterX + Math.trunc((px << 9) / pz);
-        const viewportY: number = this.viewportCenterY + Math.trunc((py << 9) / pz);
+        const viewportX: number = this.viewportCenterX + (((px << 9) / pz) | 0);
+        const viewportY: number = this.viewportCenterY + (((py << 9) / pz) | 0);
         return viewportX >= this.viewportLeft && viewportX <= this.viewportRight && viewportY >= this.viewportTop && viewportY <= this.viewportBottom;
     };
 
@@ -260,10 +260,7 @@ export default class World3D {
         }
 
         this.temporaryLocCount = 0;
-
-        for (let i: number = 0; i < World3D.locBuffer.length; i++) {
-            World3D.locBuffer[i] = null;
-        }
+        World3D.locBuffer.fill(null);
     };
 
     setMinLevel = (level: number): void => {
@@ -463,8 +460,8 @@ export default class World3D {
 
         const sx: number = x * 128 + 64;
         const sz: number = z * 128 + 64;
-        decor.x = sx + Math.trunc(((decor.x - sx) * offset) / 16);
-        decor.z = sz + Math.trunc(((decor.z - sz) * offset) / 16);
+        decor.x = sx + ((((decor.x - sx) * offset) / 16) | 0);
+        decor.z = sz + ((((decor.z - sz) * offset) / 16) | 0);
     };
 
     addLoc = (level: number, tileX: number, tileZ: number, y: number, model: Model | null, entity: Entity | null, bitset: number, info: number, width: number, length: number, yaw: number): boolean => {
@@ -498,10 +495,10 @@ export default class World3D {
                 x0 -= 128;
             }
         }
-        x0 = Math.trunc(x0 / 128);
-        z0 = Math.trunc(z0 / 128);
-        x1 = Math.trunc(x1 / 128);
-        z1 = Math.trunc(z1 / 128);
+        x0 = (x0 / 128) | 0;
+        z0 = (z0 / 128) | 0;
+        x1 = (x1 / 128) | 0;
+        z1 = (z1 / 128) | 0;
         return this.addLoc2(x, z, y, level, x0, z0, x1 + 1 - x0, z1 - z0 + 1, model, entity, bitset, 0, yaw, true);
     };
 
@@ -589,7 +586,7 @@ export default class World3D {
     };
 
     buildModels = (lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number): void => {
-        const lightMagnitude: number = Math.trunc(Math.sqrt(lightSrcX * lightSrcX + lightSrcY * lightSrcY + lightSrcZ * lightSrcZ));
+        const lightMagnitude: number = Math.sqrt(lightSrcX * lightSrcX + lightSrcY * lightSrcY + lightSrcZ * lightSrcZ) | 0;
         const attenuation: number = (lightAttenuation * lightMagnitude) >> 8;
 
         for (let level: number = 0; level < this.maxLevel; level++) {
@@ -688,8 +685,8 @@ export default class World3D {
                     }
 
                     const offsetY: number =
-                        Math.trunc((this.levelHeightmaps[l][x][z] + this.levelHeightmaps[l][x + 1][z] + this.levelHeightmaps[l][x][z + 1] + this.levelHeightmaps[l][x + 1][z + 1]) / 4) -
-                        Math.trunc((this.levelHeightmaps[level][tileX][tileZ] + this.levelHeightmaps[level][tileX + 1][tileZ] + this.levelHeightmaps[level][tileX][tileZ + 1] + this.levelHeightmaps[level][tileX + 1][tileZ + 1]) / 4);
+                        (((this.levelHeightmaps[l][x][z] + this.levelHeightmaps[l][x + 1][z] + this.levelHeightmaps[l][x][z + 1] + this.levelHeightmaps[l][x + 1][z + 1]) / 4) | 0) -
+                        (((this.levelHeightmaps[level][tileX][tileZ] + this.levelHeightmaps[level][tileX + 1][tileZ] + this.levelHeightmaps[level][tileX][tileZ + 1] + this.levelHeightmaps[level][tileX + 1][tileZ + 1]) / 4) | 0);
 
                     const wall: Wall | null = tile.wall;
                     if (wall && wall.modelA && wall.modelA.vertexNormal) {
@@ -821,8 +818,8 @@ export default class World3D {
         const angle: number = overlay.rotation;
         const background: number = overlay.backgroundRgb;
         const foreground: number = overlay.foregroundRgb;
-        const mask: Int8Array = World3D.MINIMAP_TILE_MASK[shape];
-        const rotation: Int8Array = World3D.MINIMAP_TILE_ROTATION_MAP[angle];
+        const mask: Int32Array = World3D.MINIMAP_TILE_MASK[shape];
+        const rotation: Int32Array = World3D.MINIMAP_TILE_ROTATION_MAP[angle];
         let off: number = 0;
         if (background !== 0) {
             for (let i: number = 0; i < 4; i++) {
@@ -879,12 +876,12 @@ export default class World3D {
         World3D.sinEyeYaw = Draw3D.sin[eyeYaw];
         World3D.cosEyeYaw = Draw3D.cos[eyeYaw];
 
-        World3D.visibilityMap = World3D.visibilityMatrix[Math.trunc((eyePitch - 128) / 32)][Math.trunc(eyeYaw / 64)];
+        World3D.visibilityMap = World3D.visibilityMatrix[((eyePitch - 128) / 32) | 0][(eyeYaw / 64) | 0];
         World3D.eyeX = eyeX;
         World3D.eyeY = eyeY;
         World3D.eyeZ = eyeZ;
-        World3D.eyeTileX = Math.trunc(eyeX / 128);
-        World3D.eyeTileZ = Math.trunc(eyeZ / 128);
+        World3D.eyeTileX = (eyeX / 128) | 0;
+        World3D.eyeTileZ = (eyeZ / 128) | 0;
         World3D.topLevel = topLevel;
 
         World3D.minDrawTileX = World3D.eyeTileX - 25;
@@ -1179,10 +1176,10 @@ export default class World3D {
                             occluder.mode = 2;
                             deltaMaxTileX = -deltaMaxTileX;
                         }
-                        occluder.minDeltaZ = Math.trunc(((occluder.minZ - World3D.eyeZ) << 8) / deltaMaxTileX);
-                        occluder.maxDeltaZ = Math.trunc(((occluder.maxZ - World3D.eyeZ) << 8) / deltaMaxTileX);
-                        occluder.minDeltaY = Math.trunc(((occluder.minY - World3D.eyeY) << 8) / deltaMaxTileX);
-                        occluder.maxDeltaY = Math.trunc(((occluder.maxY - World3D.eyeY) << 8) / deltaMaxTileX);
+                        occluder.minDeltaZ = (((occluder.minZ - World3D.eyeZ) << 8) / deltaMaxTileX) | 0;
+                        occluder.maxDeltaZ = (((occluder.maxZ - World3D.eyeZ) << 8) / deltaMaxTileX) | 0;
+                        occluder.minDeltaY = (((occluder.minY - World3D.eyeY) << 8) / deltaMaxTileX) | 0;
+                        occluder.maxDeltaY = (((occluder.maxY - World3D.eyeY) << 8) / deltaMaxTileX) | 0;
                         World3D.activeOccluders[World3D.activeOccluderCount++] = occluder;
                     }
                 }
@@ -1215,10 +1212,10 @@ export default class World3D {
                             occluder.mode = 4;
                             deltaMaxTileX = -deltaMaxTileX;
                         }
-                        occluder.minDeltaX = Math.trunc(((occluder.minX - World3D.eyeX) << 8) / deltaMaxTileX);
-                        occluder.maxDeltaX = Math.trunc(((occluder.maxX - World3D.eyeX) << 8) / deltaMaxTileX);
-                        occluder.minDeltaY = Math.trunc(((occluder.minY - World3D.eyeY) << 8) / deltaMaxTileX);
-                        occluder.maxDeltaY = Math.trunc(((occluder.maxY - World3D.eyeY) << 8) / deltaMaxTileX);
+                        occluder.minDeltaX = (((occluder.minX - World3D.eyeX) << 8) / deltaMaxTileX) | 0;
+                        occluder.maxDeltaX = (((occluder.maxX - World3D.eyeX) << 8) / deltaMaxTileX) | 0;
+                        occluder.minDeltaY = (((occluder.minY - World3D.eyeY) << 8) / deltaMaxTileX) | 0;
+                        occluder.maxDeltaY = (((occluder.maxY - World3D.eyeY) << 8) / deltaMaxTileX) | 0;
                         World3D.activeOccluders[World3D.activeOccluderCount++] = occluder;
                     }
                 }
@@ -1253,10 +1250,10 @@ export default class World3D {
                         }
                         if (ok) {
                             occluder.mode = 5;
-                            occluder.minDeltaX = Math.trunc(((occluder.minX - World3D.eyeX) << 8) / deltaMaxY);
-                            occluder.maxDeltaX = Math.trunc(((occluder.maxX - World3D.eyeX) << 8) / deltaMaxY);
-                            occluder.minDeltaZ = Math.trunc(((occluder.minZ - World3D.eyeZ) << 8) / deltaMaxY);
-                            occluder.maxDeltaZ = Math.trunc(((occluder.maxZ - World3D.eyeZ) << 8) / deltaMaxY);
+                            occluder.minDeltaX = (((occluder.minX - World3D.eyeX) << 8) / deltaMaxY) | 0;
+                            occluder.maxDeltaX = (((occluder.maxX - World3D.eyeX) << 8) / deltaMaxY) | 0;
+                            occluder.minDeltaZ = (((occluder.minZ - World3D.eyeZ) << 8) / deltaMaxY) | 0;
+                            occluder.maxDeltaZ = (((occluder.maxZ - World3D.eyeZ) << 8) / deltaMaxY) | 0;
                             World3D.activeOccluders[World3D.activeOccluderCount++] = occluder;
                         }
                     }
@@ -1874,14 +1871,14 @@ export default class World3D {
             return;
         }
 
-        const px0: number = Draw3D.centerX + Math.trunc((x0 << 9) / z0);
-        const py0: number = Draw3D.centerY + Math.trunc((y0 << 9) / z0);
-        const pz0: number = Draw3D.centerX + Math.trunc((x1 << 9) / z1);
-        const px1: number = Draw3D.centerY + Math.trunc((y1 << 9) / z1);
-        const py1: number = Draw3D.centerX + Math.trunc((x2 << 9) / z2);
-        const pz1: number = Draw3D.centerY + Math.trunc((y2 << 9) / z2);
-        const px3: number = Draw3D.centerX + Math.trunc((x3 << 9) / z3);
-        const py3: number = Draw3D.centerY + Math.trunc((y3 << 9) / z3);
+        const px0: number = Draw3D.centerX + (((x0 << 9) / z0) | 0);
+        const py0: number = Draw3D.centerY + (((y0 << 9) / z0) | 0);
+        const pz0: number = Draw3D.centerX + (((x1 << 9) / z1) | 0);
+        const px1: number = Draw3D.centerY + (((y1 << 9) / z1) | 0);
+        const py1: number = Draw3D.centerX + (((x2 << 9) / z2) | 0);
+        const pz1: number = Draw3D.centerY + (((y2 << 9) / z2) | 0);
+        const px3: number = Draw3D.centerX + (((x3 << 9) / z3) | 0);
+        const py3: number = Draw3D.centerY + (((y3 << 9) / z3) | 0);
 
         Draw3D.alpha = 0;
 
@@ -1949,8 +1946,8 @@ export default class World3D {
                 TileOverlay.tmpViewspaceY[i] = y;
                 TileOverlay.tmpViewspaceZ[i] = z;
             }
-            TileOverlay.tmpScreenX[i] = Draw3D.centerX + Math.trunc((x << 9) / z);
-            TileOverlay.tmpScreenY[i] = Draw3D.centerY + Math.trunc((y << 9) / z);
+            TileOverlay.tmpScreenX[i] = Draw3D.centerX + (((x << 9) / z) | 0);
+            TileOverlay.tmpScreenY[i] = Draw3D.centerY + (((y << 9) / z) | 0);
         }
 
         Draw3D.alpha = 0;
@@ -2316,7 +2313,7 @@ export default class World3D {
 
     private mulLightness = (hsl: number, lightness: number): number => {
         const invLightness: number = 127 - lightness;
-        lightness = Math.trunc((invLightness * (hsl & 0x7f)) / 160);
+        lightness = ((invLightness * (hsl & 0x7f)) / 160) | 0;
         if (lightness < 2) {
             lightness = 2;
         } else if (lightness > 126) {

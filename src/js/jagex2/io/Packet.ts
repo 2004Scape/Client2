@@ -226,7 +226,7 @@ export default class Packet extends Hashable {
     };
 
     bytes = (): void => {
-        this.pos = Math.trunc((this.bitPos + 7) / 8);
+        this.pos = ((this.bitPos + 7) / 8) | 0;
     };
 
     gBit = (n: number): number => {

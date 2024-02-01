@@ -115,8 +115,8 @@ export default class ObjType extends ConfigType {
         const _cy: number = Draw3D.centerY;
         const _loff: Int32Array = Draw3D.lineOffset;
         const _data: Int32Array = Draw2D.pixels;
-        const _w: number = Draw2D.width;
-        const _h: number = Draw2D.height;
+        const _w: number = Draw2D.width2d;
+        const _h: number = Draw2D.height2d;
         const _l: number = Draw2D.left;
         const _r: number = Draw2D.right;
         const _t: number = Draw2D.top;
@@ -130,7 +130,7 @@ export default class ObjType extends ConfigType {
         const iModel: Model = obj.getInterfaceModel(1);
         const sinPitch: number = (Draw3D.sin[obj.xan2d] * obj.zoom2d) >> 16;
         const cosPitch: number = (Draw3D.cos[obj.xan2d] * obj.zoom2d) >> 16;
-        iModel.drawSimple(0, obj.yan2d, obj.zan2d, obj.xan2d, obj.xof2d, sinPitch + Math.trunc(iModel.maxY / 2) + obj.yof2d, cosPitch + obj.yof2d);
+        iModel.drawSimple(0, obj.yan2d, obj.zan2d, obj.xan2d, obj.xof2d, sinPitch + ((iModel.maxY / 2) | 0) + obj.yof2d, cosPitch + obj.yof2d);
 
         // draw outline
         for (let x: number = 31; x >= 0; x--) {
