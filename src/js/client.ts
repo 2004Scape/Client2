@@ -8,6 +8,7 @@ import SpotAnimType from './jagex2/config/SpotAnimType';
 import VarpType from './jagex2/config/VarpType';
 import ComType from './jagex2/config/ComType';
 
+import {canvas2d} from './jagex2/graphics/Canvas';
 import PixMap from './jagex2/graphics/PixMap';
 import Draw2D from './jagex2/graphics/Draw2D';
 import Draw3D from './jagex2/graphics/Draw3D';
@@ -17,43 +18,49 @@ import PixFont from './jagex2/graphics/PixFont';
 import Model from './jagex2/graphics/Model';
 import SeqBase from './jagex2/graphics/SeqBase';
 import SeqFrame from './jagex2/graphics/SeqFrame';
+import Colors from './jagex2/graphics/Colors';
 
 import Jagfile from './jagex2/io/Jagfile';
-
-import WordFilter from './jagex2/wordenc/WordFilter';
-import {arraycopy, downloadUrl, sleep} from './jagex2/util/JsUtil';
-import {playMidi} from './jagex2/util/AudioUtil.js';
-import GameShell from './jagex2/client/GameShell';
-
-import './vendor/midi.js';
 import Packet from './jagex2/io/Packet';
-import Wave from './jagex2/sound/Wave';
-import JString from './jagex2/datastruct/JString';
-import World3D from './jagex2/dash3d/World3D';
 import ClientStream from './jagex2/io/ClientStream';
 import Protocol from './jagex2/io/Protocol';
 import Isaac from './jagex2/io/Isaac';
 import Database from './jagex2/io/Database';
-import InputTracking from './jagex2/client/InputTracking';
-import {canvas2d} from './jagex2/graphics/Canvas';
+
+import WordFilter from './jagex2/wordenc/WordFilter';
+import WordPack from './jagex2/wordenc/WordPack';
+
+import GameShell from './jagex2/client/GameShell';
+import Wave from './jagex2/sound/Wave';
+
+import './vendor/midi.js';
 import Bzip from './vendor/bzip';
+
+import LinkList from './jagex2/datastruct/LinkList';
+import JString from './jagex2/datastruct/JString';
+import InputTracking from './jagex2/client/InputTracking';
+
+import World3D from './jagex2/dash3d/World3D';
+import World from './jagex2/dash3d/World';
+import LocLayer from './jagex2/dash3d/LocLayer';
+import LocShape, {LocShapes} from './jagex2/dash3d/LocShape';
+import LocAngle from './jagex2/dash3d/LocAngle';
+import LocTemporary from './jagex2/dash3d/type/LocTemporary';
+import LocSpawned from './jagex2/dash3d/type/LocSpawned';
 import CollisionMap from './jagex2/dash3d/CollisionMap';
 import CollisionFlag from './jagex2/dash3d/CollisionFlag';
 import PlayerEntity from './jagex2/dash3d/entity/PlayerEntity';
 import NpcEntity from './jagex2/dash3d/entity/NpcEntity';
-import LinkList from './jagex2/datastruct/LinkList';
-import LocTemporary from './jagex2/dash3d/type/LocTemporary';
-import WordPack from './jagex2/wordenc/WordPack';
-import World from './jagex2/dash3d/World';
-import Colors from './jagex2/graphics/Colors';
 import ObjStackEntity from './jagex2/dash3d/entity/ObjStackEntity';
 import LocEntity from './jagex2/dash3d/entity/LocEntity';
-import LocLayer from './jagex2/dash3d/LocLayer';
-import LocShape from './jagex2/dash3d/LocShape';
-import LocAngle from './jagex2/dash3d/LocAngle';
-import Loc from './jagex2/dash3d/type/Loc';
 import PathingEntity from './jagex2/dash3d/entity/PathingEntity';
+import ProjectileEntity from './jagex2/dash3d/entity/ProjectileEntity';
+import SpotAnimEntity from './jagex2/dash3d/entity/SpotAnimEntity';
 
+import {playMidi} from './jagex2/util/AudioUtil.js';
+import {arraycopy, downloadUrl, sleep} from './jagex2/util/JsUtil';
+
+// noinspection JSSuspiciousNameCombination
 class Client extends GameShell {
     // static readonly HOST: string = 'http://localhost';
     // static readonly PORT: number = 43595;
@@ -431,8 +438,8 @@ class Client extends GameShell {
     // bfs pathfinder
     private bfsStepX: Int32Array = new Int32Array(4000);
     private bfsStepZ: Int32Array = new Int32Array(4000);
-    private bfsDirection: Int32Array = new Int32Array(104 * 104);
-    private bfsCost: Int32Array = new Int32Array(104 * 104);
+    private bfsDirection: Int32Array = new Int32Array(CollisionMap.SIZE * CollisionMap.SIZE);
+    private bfsCost: Int32Array = new Int32Array(CollisionMap.SIZE * CollisionMap.SIZE);
     private tryMoveNearest: number = 0;
 
     // player
@@ -3068,8 +3075,8 @@ class Client extends GameShell {
             this.drawOnMinimap(anchorY, this.activeMapFunctions[i], anchorX);
         }
 
-        for (let ltx: number = 0; ltx < 104; ltx++) {
-            for (let ltz: number = 0; ltz < 104; ltz++) {
+        for (let ltx: number = 0; ltx < CollisionMap.SIZE; ltx++) {
+            for (let ltz: number = 0; ltz < CollisionMap.SIZE; ltz++) {
                 const stack: LinkList | null = this.levelObjStacks[this.currentLevel][ltx][ltz];
                 if (stack) {
                     anchorX = ltx * 4 + 2 - ((this.localPlayer.x / 32) | 0);
@@ -5076,7 +5083,64 @@ class Client extends GameShell {
     };
 
     private sortObjStacks = (x: number, z: number): void => {
-        // TODO
+        const objStacks: LinkList | null = this.levelObjStacks[this.currentLevel][x][z];
+        if (objStacks == null) {
+            this.scene?.removeObjStack(this.currentLevel, x, z);
+            return;
+        }
+
+        let topCost: number = -99999999;
+        let topObj: ObjStackEntity | null = null;
+
+        for (let obj: ObjStackEntity | null = objStacks.peekFront() as ObjStackEntity | null; obj; obj = objStacks.prev() as ObjStackEntity | null) {
+            const type: ObjType = ObjType.get(obj.index);
+            let cost: number = type.cost;
+
+            if (type.stackable) {
+                cost *= obj.count + 1;
+            }
+
+            if (cost > topCost) {
+                topCost = cost;
+                topObj = obj;
+            }
+        }
+
+        if (!topObj) {
+            return; // custom
+        }
+
+        objStacks.pushFront(topObj);
+
+        let bottomObjId: number = -1;
+        let middleObjId: number = -1;
+        let bottomObjCount: number = 0;
+        let middleObjCount: number = 0;
+        for (let obj: ObjStackEntity | null = objStacks.peekFront() as ObjStackEntity | null; obj; obj = objStacks.prev() as ObjStackEntity | null) {
+            if (obj.index != topObj.index && bottomObjId == -1) {
+                bottomObjId = obj.index;
+                bottomObjCount = obj.count;
+            }
+
+            if (obj.index != topObj.index && obj.index != bottomObjId && middleObjId == -1) {
+                middleObjId = obj.index;
+                middleObjCount = obj.count;
+            }
+        }
+
+        let bottomObj: Model | null = null;
+        if (bottomObjId != -1) {
+            bottomObj = ObjType.get(bottomObjId).getInterfaceModel(bottomObjCount);
+        }
+
+        let middleObj: Model | null = null;
+        if (middleObjId != -1) {
+            middleObj = ObjType.get(middleObjId).getInterfaceModel(middleObjCount);
+        }
+
+        const bitset: number = x + (z << 7) + 1610612736;
+        const type: ObjType = ObjType.get(topObj.index);
+        this.scene?.addObjStack(x, z, this.getHeightmapY(this.currentLevel, x * 128 + 64, z * 128 + 64), this.currentLevel, bitset, type.getInterfaceModel(topObj.count), middleObj, bottomObj);
     };
 
     private addLoc = (level: number, x: number, z: number, id: number, angle: number, shape: number, layer: number): void => {
@@ -5133,7 +5197,7 @@ class Client extends GameShell {
                 this.scene.removeLoc(level, x, z);
                 const type: LocType = LocType.get(otherId);
 
-                if (x + type.width > 103 || z + type.width > 103 || x + type.length > 103 || z + type.length > 103) {
+                if (x + type.width > CollisionMap.SIZE - 1 || z + type.width > CollisionMap.SIZE - 1 || x + type.length > CollisionMap.SIZE - 1 || z + type.length > CollisionMap.SIZE - 1) {
                     return;
                 }
 
@@ -5833,7 +5897,7 @@ class Client extends GameShell {
                 for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
                     loc.x -= dx;
                     loc.z -= dz;
-                    if (loc.x < 0 || loc.z < 0 || loc.x >= 104 || loc.z >= 104) {
+                    if (loc.x < 0 || loc.z < 0 || loc.x >= CollisionMap.SIZE || loc.z >= CollisionMap.SIZE) {
                         loc.unlink();
                     }
                 }
@@ -5960,7 +6024,7 @@ class Client extends GameShell {
                 this.packetType === 59
             ) {
                 // Zone Protocol
-                // this.readZonePacket(this.in, this.packetType);
+                this.readZonePacket(this.in, this.packetType);
                 this.packetType = -1;
                 return true;
             }
@@ -6624,7 +6688,7 @@ class Client extends GameShell {
                 this.baseZ = this.in.g1;
                 while (this.in.pos < this.packetSize) {
                     const opcode: number = this.in.g1;
-                    // this.readZonePacket(this.in, opcode);
+                    this.readZonePacket(this.in, opcode);
                 }
                 this.packetType = -1;
                 return true;
@@ -6936,7 +7000,7 @@ class Client extends GameShell {
         }
     };
 
-    private handleChatMouseInput = (mouseX: number, mouseY: number): void => {
+    private handleChatMouseInput = (_mouseX: number, mouseY: number): void => {
         let line: number = 0;
         for (let i: number = 0; i < 100; i++) {
             if (!this.messageText[i]) {
@@ -8083,10 +8147,10 @@ class Client extends GameShell {
         this.entityRemovalCount = 0;
         this.entityUpdateCount = 0;
 
-        this.readLocalPlayer(buf, size);
-        this.readPlayers(buf, size);
+        this.readLocalPlayer(buf);
+        this.readPlayers(buf);
         this.readNewPlayers(buf, size);
-        this.readPlayerUpdates(buf, size);
+        this.readPlayerUpdates(buf);
 
         for (let i: number = 0; i < this.entityRemovalCount; i++) {
             const index: number = this.entityRemovalIds[i];
@@ -8109,7 +8173,7 @@ class Client extends GameShell {
         }
     };
 
-    private readLocalPlayer = (buf: Packet, size: number): void => {
+    private readLocalPlayer = (buf: Packet): void => {
         buf.bits();
 
         const hasUpdate: number = buf.gBit(1);
@@ -8151,7 +8215,7 @@ class Client extends GameShell {
         }
     };
 
-    private readPlayers = (buf: Packet, size: number): void => {
+    private readPlayers = (buf: Packet): void => {
         const count: number = buf.gBit(8);
 
         if (count < this.playerCount) {
@@ -8262,7 +8326,7 @@ class Client extends GameShell {
         buf.bytes();
     };
 
-    private readPlayerUpdates = (buf: Packet, size: number): void => {
+    private readPlayerUpdates = (buf: Packet): void => {
         for (let i: number = 0; i < this.entityUpdateCount; i++) {
             const index: number = this.entityUpdateIds[i];
             const player: PlayerEntity | null = this.players[index];
@@ -8403,9 +8467,9 @@ class Client extends GameShell {
         this.entityRemovalCount = 0;
         this.entityUpdateCount = 0;
 
-        this.readNpcs(buf, size);
+        this.readNpcs(buf);
         this.readNewNpcs(buf, size);
-        this.readNpcUpdates(buf, size);
+        this.readNpcUpdates(buf);
 
         for (let i: number = 0; i < this.entityRemovalCount; i++) {
             const index: number = this.entityRemovalIds[i];
@@ -8430,7 +8494,7 @@ class Client extends GameShell {
         }
     };
 
-    private readNpcs = (buf: Packet, size: number): void => {
+    private readNpcs = (buf: Packet): void => {
         buf.bits();
 
         const count: number = buf.gBit(8);
@@ -8541,7 +8605,7 @@ class Client extends GameShell {
         buf.bytes();
     };
 
-    private readNpcUpdates = (buf: Packet, size: number): void => {
+    private readNpcUpdates = (buf: Packet): void => {
         for (let i: number = 0; i < this.entityUpdateCount; i++) {
             const id: number = this.entityUpdateIds[i];
             const npc: NpcEntity | null = this.npcs[id];
@@ -8629,7 +8693,7 @@ class Client extends GameShell {
 
             const player: PlayerEntity | null = this.players[index];
             if (player) {
-                this.updateEntity(player, 1);
+                this.updateEntity(player);
             }
         }
 
@@ -8660,7 +8724,7 @@ class Client extends GameShell {
         }
     };
 
-    private updateEntity = (entity: PathingEntity, size: number): void => {
+    private updateEntity = (entity: PathingEntity): void => {
         if (entity.x < 128 || entity.z < 128 || entity.x >= 13184 || entity.z >= 13184) {
             entity.primarySeqId = -1;
             entity.spotanimId = -1;
@@ -8748,7 +8812,7 @@ class Client extends GameShell {
             const id: number = this.npcIds[i];
             const npc: NpcEntity | null = this.npcs[id];
             if (npc && npc.type) {
-                this.updateEntity(npc, npc.type.size);
+                this.updateEntity(npc);
             }
         }
     };
@@ -9244,6 +9308,252 @@ class Client extends GameShell {
             this.cameraPitchClamp += ((clamp - this.cameraPitchClamp) / 24) | 0;
         } else if (clamp < this.cameraPitchClamp) {
             this.cameraPitchClamp += ((clamp - this.cameraPitchClamp) / 80) | 0;
+        }
+    };
+
+    private readZonePacket = (buf: Packet, opcode: number): void => {
+        const pos: number = buf.g1;
+        let x: number = this.baseX + ((pos >> 4) & 0x7);
+        let z: number = this.baseZ + (pos & 0x7);
+
+        if (opcode == 59 || opcode == 76) {
+            // LOC_ADD_CHANGE || LOC_DEL
+            const info: number = buf.g1;
+            const shape: number = info >> 2;
+            const angle: number = info & 0x3;
+            const layer: number = LocShapes.layer(shape);
+            let id: number;
+            if (opcode == 76) {
+                id = -1;
+            } else {
+                id = buf.g2;
+            }
+            if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
+                let loc: LocTemporary | null = null;
+                for (let next: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; next; next = this.spawnedLocations.prev() as LocTemporary | null) {
+                    if (next.plane == this.currentLevel && next.x == x && next.z == z && next.layer == layer) {
+                        loc = next;
+                        break;
+                    }
+                }
+                if (!loc && this.scene) {
+                    let bitset: number = 0;
+                    let otherId: number = -1;
+                    let otherShape: number = 0;
+                    let otherAngle: number = 0;
+                    if (layer == LocLayer.WALL) {
+                        bitset = this.scene.getWallBitset(this.currentLevel, x, z);
+                    }
+                    if (layer == LocLayer.WALL_DECOR) {
+                        bitset = this.scene.getWallDecorationBitset(this.currentLevel, z, x);
+                    }
+                    if (layer == LocLayer.GROUND) {
+                        bitset = this.scene.getLocBitset(this.currentLevel, x, z);
+                    }
+                    if (layer == LocLayer.GROUND_DECOR) {
+                        bitset = this.scene.getGroundDecorationBitset(this.currentLevel, x, z);
+                    }
+                    if (bitset != 0) {
+                        const otherInfo: number = this.scene.getInfo(this.currentLevel, x, z, bitset);
+                        otherId = (bitset >> 14) & 0x7fff;
+                        otherShape = otherInfo & 0x1f;
+                        otherAngle = otherInfo >> 6;
+                    }
+                    loc = new LocTemporary(this.currentLevel, layer, x, z, 0, 0, 0, otherId, otherAngle, otherShape);
+                    this.spawnedLocations.pushBack(loc);
+                }
+                if (loc) {
+                    loc.locIndex = id;
+                    loc.shape = shape;
+                    loc.angle = angle;
+                }
+                this.addLoc(this.currentLevel, x, z, id, angle, shape, layer);
+            }
+        } else if (opcode == 42) {
+            // LOC_ANIM
+            const info: number = buf.g1;
+            const shape: number = info >> 2;
+            const layer: number = LocShapes.layer(shape);
+            const id: number = buf.g2;
+            if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE && this.scene) {
+                let bitset: number = 0;
+                if (layer == LocLayer.WALL) {
+                    bitset = this.scene.getWallBitset(this.currentLevel, x, z);
+                }
+                if (layer == LocLayer.WALL_DECOR) {
+                    bitset = this.scene.getWallDecorationBitset(this.currentLevel, z, x);
+                }
+                if (layer == LocLayer.GROUND) {
+                    bitset = this.scene.getLocBitset(this.currentLevel, x, z);
+                }
+                if (layer == LocLayer.GROUND_DECOR) {
+                    bitset = this.scene.getGroundDecorationBitset(this.currentLevel, x, z);
+                }
+                if (bitset != 0) {
+                    const loc: LocEntity = new LocEntity((bitset >> 14) & 0x7fff, this.currentLevel, layer, x, z, SeqType.instances[id], false);
+                    this.locList.pushBack(loc);
+                }
+            }
+        } else if (opcode == 223) {
+            // OBJ_ADD
+            const id: number = buf.g2;
+            const count: number = buf.g2;
+            if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
+                const obj: ObjStackEntity = new ObjStackEntity(id, count);
+                if (this.levelObjStacks[this.currentLevel][x][z] == null) {
+                    this.levelObjStacks[this.currentLevel][x][z] = new LinkList();
+                }
+                this.levelObjStacks[this.currentLevel][x][z]?.pushBack(obj);
+                this.sortObjStacks(x, z);
+            }
+        } else if (opcode == 49) {
+            // OBJ_DEL
+            const id: number = buf.g2;
+            if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
+                const list: LinkList | null = this.levelObjStacks[this.currentLevel][x][z];
+                if (list != null) {
+                    for (let next: ObjStackEntity | null = list.peekFront() as ObjStackEntity | null; next; next = list.prev() as ObjStackEntity | null) {
+                        if (next.index == (id & 0x7fff)) {
+                            next.unlink();
+                            break;
+                        }
+                    }
+                    if (list.peekFront() == null) {
+                        this.levelObjStacks[this.currentLevel][x][z] = null;
+                    }
+                    this.sortObjStacks(x, z);
+                }
+            }
+        } else if (opcode == 69) {
+            // MAP_PROJANIM
+            let dx: number = x + buf.g1b;
+            let dz: number = z + buf.g1b;
+            const target: number = buf.g2b;
+            const spotanim: number = buf.g2;
+            const srcHeight: number = buf.g1;
+            const dstHeight: number = buf.g1;
+            const startDelay: number = buf.g2;
+            const endDelay: number = buf.g2;
+            const peak: number = buf.g1;
+            const arc: number = buf.g1;
+            if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE && dx >= 0 && dz >= 0 && dx < CollisionMap.SIZE && dz < CollisionMap.SIZE) {
+                x = x * 128 + 64;
+                z = z * 128 + 64;
+                dx = dx * 128 + 64;
+                dz = dz * 128 + 64;
+                const proj: ProjectileEntity = new ProjectileEntity(spotanim, this.currentLevel, x, this.getHeightmapY(this.currentLevel, x, z) - srcHeight, z, startDelay + this.loopCycle, endDelay + this.loopCycle, peak, arc, target, dstHeight);
+                proj.updateVelocity(dx, this.getHeightmapY(this.currentLevel, dx, dz) - dstHeight, dz, startDelay + this.loopCycle);
+                this.projectiles.pushBack(proj);
+            }
+        } else if (opcode == 191) {
+            // MAP_ANIM
+            const id: number = buf.g2;
+            const height: number = buf.g1;
+            const delay: number = buf.g2;
+            if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
+                x = x * 128 + 64;
+                z = z * 128 + 64;
+                const spotanim: SpotAnimEntity = new SpotAnimEntity(id, this.currentLevel, x, z, this.getHeightmapY(this.currentLevel, x, z) - height, this.loopCycle, delay);
+                this.spotanims.pushBack(spotanim);
+            }
+        } else if (opcode == 50) {
+            // OBJ_REVEAL
+            const id: number = buf.g2;
+            const count: number = buf.g2;
+            const receiver: number = buf.g2;
+            if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE && receiver != this.localPid) {
+                const obj: ObjStackEntity = new ObjStackEntity(id, count);
+                if (this.levelObjStacks[this.currentLevel][x][z] == null) {
+                    this.levelObjStacks[this.currentLevel][x][z] = new LinkList();
+                }
+                this.levelObjStacks[this.currentLevel][x][z]?.pushBack(obj);
+                this.sortObjStacks(x, z);
+            }
+        } else if (opcode == 23) {
+            // LOC_MERGE
+            const info: number = buf.g1;
+            const shape: number = info >> 2;
+            const angle: number = info & 0x3;
+            const layer: number = LocShapes.layer(shape);
+            const id: number = buf.g2;
+            const start: number = buf.g2;
+            const end: number = buf.g2;
+            const pid: number = buf.g2;
+            let east: number = buf.g1b;
+            let south: number = buf.g1b;
+            let west: number = buf.g1b;
+            let north: number = buf.g1b;
+
+            let player: PlayerEntity | null;
+            if (pid == this.localPid) {
+                player = this.localPlayer;
+            } else {
+                player = this.players[pid];
+            }
+
+            if (player && this.levelHeightmap) {
+                const loc1: LocSpawned = new LocSpawned(this.currentLevel, layer, x, z, -1, angle, shape, start + this.loopCycle);
+                this.temporaryLocs.pushBack(loc1);
+
+                const loc2: LocSpawned = new LocSpawned(this.currentLevel, layer, x, z, id, angle, shape, end + this.loopCycle);
+                this.temporaryLocs.pushBack(loc2);
+
+                const y0: number = this.levelHeightmap[this.currentLevel][x][z];
+                const y1: number = this.levelHeightmap[this.currentLevel][x + 1][z];
+                const y2: number = this.levelHeightmap[this.currentLevel][x + 1][z + 1];
+                const y3: number = this.levelHeightmap[this.currentLevel][x][z + 1];
+                const loc: LocType = LocType.get(id);
+
+                player.locStartCycle = start + this.loopCycle;
+                player.locStopCycle = end + this.loopCycle;
+                player.locModel = loc.getModel(shape, angle, y0, y1, y2, y3, -1);
+
+                let width: number = loc.width;
+                let height: number = loc.length;
+                if (angle == 1 || angle == 3) {
+                    width = loc.length;
+                    height = loc.width;
+                }
+
+                player.locOffsetX = x * 128 + width * 64;
+                player.locOffsetZ = z * 128 + height * 64;
+                player.locOffsetY = this.getHeightmapY(this.currentLevel, player.locOffsetX, player.locOffsetZ);
+
+                let tmp: number;
+                if (east > west) {
+                    tmp = east;
+                    east = west;
+                    west = tmp;
+                }
+
+                if (south > north) {
+                    tmp = south;
+                    south = north;
+                    north = tmp;
+                }
+
+                player.minTileX = x + east;
+                player.maxTileX = x + west;
+                player.minTileZ = z + south;
+                player.maxTileZ = z + north;
+            }
+        } else if (opcode == 151) {
+            // OBJ_COUNT
+            const id: number = buf.g2;
+            const oldCount: number = buf.g2;
+            const newCount: number = buf.g2;
+            if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
+                const list: LinkList | null = this.levelObjStacks[this.currentLevel][x][z];
+                if (list != null) {
+                    for (let next: ObjStackEntity | null = list.peekFront() as ObjStackEntity | null; next; next = list.prev() as ObjStackEntity | null) {
+                        if (next.index == (id & 0x7fff) && next.count == oldCount) {
+                            next.count = newCount;
+                            break;
+                        }
+                    }
+                    this.sortObjStacks(x, z);
+                }
+            }
         }
     };
 

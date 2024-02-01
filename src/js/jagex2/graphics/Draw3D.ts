@@ -528,10 +528,10 @@ export default class Draw3D extends Draw2D {
                         colorA -= colorStepAC * yA;
                         yA = 0;
                     }
+                    yC -= yA;
+                    yA -= yB;
+                    yB = Draw3D.lineOffset[yB];
                     if (xStepAB < xStepBC) {
-                        yC -= yA;
-                        yA -= yB;
-                        yB = Draw3D.lineOffset[yB];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yA--;
@@ -558,9 +558,6 @@ export default class Draw3D extends Draw2D {
                             yB += Draw2D.width2d;
                         }
                     } else {
-                        yC -= yA;
-                        yA -= yB;
-                        yB = Draw3D.lineOffset[yB];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yA--;
@@ -613,10 +610,10 @@ export default class Draw3D extends Draw2D {
                     colorA -= colorStepAB * yA;
                     yA = 0;
                 }
+                yB -= yA;
+                yA -= yC;
+                yC = Draw3D.lineOffset[yC];
                 if (xStepBC < xStepAC) {
-                    yB -= yA;
-                    yA -= yC;
-                    yC = Draw3D.lineOffset[yC];
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
                         yA--;
@@ -643,9 +640,6 @@ export default class Draw3D extends Draw2D {
                         yC += Draw2D.width2d;
                     }
                 } else {
-                    yB -= yA;
-                    yA -= yC;
-                    yC = Draw3D.lineOffset[yC];
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
                         yA--;
@@ -689,10 +683,10 @@ export default class Draw3D extends Draw2D {
                     colorB -= colorStepAB * yB;
                     yB = 0;
                 }
+                yA -= yB;
+                yB -= yC;
+                yC = Draw3D.lineOffset[yC];
                 if (xStepBC < xStepAC) {
-                    yA -= yB;
-                    yB -= yC;
-                    yC = Draw3D.lineOffset[yC];
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
                         yB--;
@@ -719,9 +713,6 @@ export default class Draw3D extends Draw2D {
                         yC += Draw2D.width2d;
                     }
                 } else {
-                    yA -= yB;
-                    yB -= yC;
-                    yC = Draw3D.lineOffset[yC];
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
                         yB--;
@@ -1727,10 +1718,10 @@ export default class Draw3D extends Draw2D {
                     u |= 0;
                     v |= 0;
                     w |= 0;
+                    yC -= yA;
+                    yA -= yB;
+                    yB = this.lineOffset[yB];
                     if (xStepAB < xStepBC) {
-                        yC -= yA;
-                        yA -= yB;
-                        yB = this.lineOffset[yB];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yA--;
@@ -1769,9 +1760,6 @@ export default class Draw3D extends Draw2D {
                             w |= 0;
                         }
                     } else {
-                        yC -= yA;
-                        yA -= yB;
-                        yB = this.lineOffset[yB];
                         // eslint-disable-next-line no-constant-condition
                         while (true) {
                             yA--;
@@ -1843,10 +1831,10 @@ export default class Draw3D extends Draw2D {
                 u |= 0;
                 v |= 0;
                 w |= 0;
+                yB -= yA;
+                yA -= yC;
+                yC = this.lineOffset[yC];
                 if (xStepBC < xStepAC) {
-                    yB -= yA;
-                    yA -= yC;
-                    yC = this.lineOffset[yC];
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
                         yA--;
@@ -1885,9 +1873,6 @@ export default class Draw3D extends Draw2D {
                         w |= 0;
                     }
                 } else {
-                    yB -= yA;
-                    yA -= yC;
-                    yC = this.lineOffset[yC];
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
                         yA--;
@@ -1950,10 +1935,10 @@ export default class Draw3D extends Draw2D {
                 u |= 0;
                 v |= 0;
                 w |= 0;
+                yA -= yB;
+                yB -= yC;
+                yC = this.lineOffset[yC];
                 if (xStepBC < xStepAC) {
-                    yA -= yB;
-                    yB -= yC;
-                    yC = this.lineOffset[yC];
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
                         yB--;
@@ -1992,9 +1977,6 @@ export default class Draw3D extends Draw2D {
                         w |= 0;
                     }
                 } else {
-                    yA -= yB;
-                    yB -= yC;
-                    yC = this.lineOffset[yC];
                     // eslint-disable-next-line no-constant-condition
                     while (true) {
                         yB--;
@@ -2078,7 +2060,6 @@ export default class Draw3D extends Draw2D {
 
             strides = (xB - xA) >> 3;
             shadeStrides <<= 0xc;
-            shadeA <<= 0x9;
         } else {
             if (xB - xA > 7) {
                 strides = (xB - xA) >> 3;
@@ -2087,10 +2068,9 @@ export default class Draw3D extends Draw2D {
                 strides = 0;
                 shadeStrides = 0;
             }
-
-            shadeA <<= 0x9;
         }
 
+        shadeA <<= 0x9;
         offset += xA;
 
         let nextU: number;

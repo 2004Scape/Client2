@@ -324,7 +324,6 @@ export default class World3D {
         foregroundRgb: number
     ): void => {
         if (shape === TileOverlayShape.PLAIN) {
-            const underlay: TileUnderlay = new TileUnderlay(southwestColor, southeastColor, northeastColor, northwestColor, -1, backgroundRgb, false);
             for (let l: number = level; l >= 0; l--) {
                 if (!this.levelTiles[l][x][z]) {
                     this.levelTiles[l][x][z] = new Tile(l, x, z);
@@ -332,10 +331,9 @@ export default class World3D {
             }
             const tile: Tile | null = this.levelTiles[level][x][z];
             if (tile) {
-                tile.underlay = underlay;
+                tile.underlay = new TileUnderlay(southwestColor, southeastColor, northeastColor, northwestColor, -1, backgroundRgb, false);
             }
         } else if (shape === TileOverlayShape.DIAGONAL) {
-            const underlay: TileUnderlay = new TileUnderlay(southwestColor2, southeastColor2, northeastColor2, northwestColor2, textureId, foregroundRgb, southwestY === southeastY && southwestY === northeastY && southwestY === northwestY);
             for (let l: number = level; l >= 0; l--) {
                 if (!this.levelTiles[l][x][z]) {
                     this.levelTiles[l][x][z] = new Tile(l, x, z);
@@ -343,30 +341,9 @@ export default class World3D {
             }
             const tile: Tile | null = this.levelTiles[level][x][z];
             if (tile) {
-                tile.underlay = underlay;
+                tile.underlay = new TileUnderlay(southwestColor2, southeastColor2, northeastColor2, northwestColor2, textureId, foregroundRgb, southwestY === southeastY && southwestY === northeastY && southwestY === northwestY);
             }
         } else {
-            const overlay: TileOverlay = new TileOverlay(
-                x,
-                shape,
-                southeastColor2,
-                southeastY,
-                northeastColor,
-                angle,
-                southwestColor,
-                northwestY,
-                foregroundRgb,
-                southwestColor2,
-                textureId,
-                northwestColor2,
-                backgroundRgb,
-                northeastY,
-                northeastColor2,
-                northwestColor,
-                southwestY,
-                z,
-                southeastColor
-            );
             for (let l: number = level; l >= 0; l--) {
                 if (!this.levelTiles[l][x][z]) {
                     this.levelTiles[l][x][z] = new Tile(l, x, z);
@@ -374,19 +351,38 @@ export default class World3D {
             }
             const tile: Tile | null = this.levelTiles[level][x][z];
             if (tile) {
-                tile.overlay = overlay;
+                tile.overlay = new TileOverlay(
+                    x,
+                    shape,
+                    southeastColor2,
+                    southeastY,
+                    northeastColor,
+                    angle,
+                    southwestColor,
+                    northwestY,
+                    foregroundRgb,
+                    southwestColor2,
+                    textureId,
+                    northwestColor2,
+                    backgroundRgb,
+                    northeastY,
+                    northeastColor2,
+                    northwestColor,
+                    southwestY,
+                    z,
+                    southeastColor
+                );
             }
         }
     };
 
     addGroundDecoration = (model: Model | null, tileLevel: number, tileX: number, tileZ: number, y: number, bitset: number, info: number): void => {
-        const decor: GroundDecoration = new GroundDecoration(y, tileX * 128 + 64, tileZ * 128 + 64, model, bitset, info);
         if (!this.levelTiles[tileLevel][tileX][tileZ]) {
             this.levelTiles[tileLevel][tileX][tileZ] = new Tile(tileLevel, tileX, tileZ);
         }
         const tile: Tile | null = this.levelTiles[tileLevel][tileX][tileZ];
         if (tile) {
-            tile.groundDecoration = decor;
+            tile.groundDecoration = new GroundDecoration(y, tileX * 128 + 64, tileZ * 128 + 64, model, bitset, info);
         }
     };
 
@@ -399,11 +395,42 @@ export default class World3D {
         tile.groundDecoration = null;
     };
 
+    addObjStack = (stx: number, stz: number, y: number, level: number, bitset: number, topObj: Model | null, middleObj: Model | null, bottomObj: Model | null): void => {
+        let stackOffset: number = 0;
+        const tile: Tile | null = this.levelTiles[level][stx][stz];
+        if (tile) {
+            for (let l: number = 0; l < tile.locCount; l++) {
+                const loc: Loc | null = tile.locs[l];
+                if (!loc || !loc.model) {
+                    continue;
+                }
+                const height: number = loc.model.objRaise;
+                if (height > stackOffset) {
+                    stackOffset = height;
+                }
+            }
+        } else {
+            this.levelTiles[level][stx][stz] = new Tile(level, stx, stz);
+        }
+        const tile2: Tile | null = this.levelTiles[level][stx][stz];
+        if (tile2) {
+            tile2.objStack = new ObjStack(y, stx * 128 + 64, stz * 128 + 64, topObj, middleObj, bottomObj, bitset, stackOffset);
+        }
+    };
+
+    removeObjStack = (level: number, x: number, z: number): void => {
+        const tile: Tile | null = this.levelTiles[level][x][z];
+        if (!tile) {
+            return;
+        }
+
+        tile.objStack = null;
+    };
+
     addWall = (level: number, tileX: number, tileZ: number, y: number, typeA: number, typeB: number, modelA: Model | null, modelB: Model | null, bitset: number, info: number): void => {
         if (!modelA && !modelB) {
             return;
         }
-        const wall: Wall = new Wall(y, tileX * 128 + 64, tileZ * 128 + 64, typeA, typeB, modelA, modelB, bitset, info);
         for (let l: number = level; l >= 0; l--) {
             if (!this.levelTiles[l][tileX][tileZ]) {
                 this.levelTiles[l][tileX][tileZ] = new Tile(l, tileX, tileZ);
@@ -411,7 +438,7 @@ export default class World3D {
         }
         const tile: Tile | null = this.levelTiles[level][tileX][tileZ];
         if (tile) {
-            tile.wall = wall;
+            tile.wall = new Wall(y, tileX * 128 + 64, tileZ * 128 + 64, typeA, typeB, modelA, modelB, bitset, info);
         }
     };
 
@@ -426,7 +453,6 @@ export default class World3D {
         if (!model) {
             return;
         }
-        const decor: WallDecoration = new WallDecoration(y, tileX * 128 + offsetX + 64, tileZ * 128 + offsetZ + 64, type, angle, model, bitset, info);
         for (let l: number = level; l >= 0; l--) {
             if (!this.levelTiles[l][tileX][tileZ]) {
                 this.levelTiles[l][tileX][tileZ] = new Tile(l, tileX, tileZ);
@@ -434,7 +460,7 @@ export default class World3D {
         }
         const tile: Tile | null = this.levelTiles[level][tileX][tileZ];
         if (tile) {
-            tile.wallDecoration = decor;
+            tile.wallDecoration = new WallDecoration(y, tileX * 128 + offsetX + 64, tileZ * 128 + offsetZ + 64, type, angle, model, bitset, info);
         }
     };
 
@@ -684,17 +710,19 @@ export default class World3D {
                         continue;
                     }
 
+                    const offsetX: number = (x - tileX) * 128 + (1 - tileSizeX) * 64;
+                    const offsetZ: number = (z - tileZ) * 128 + (1 - tileSizeZ) * 64;
                     const offsetY: number =
                         (((this.levelHeightmaps[l][x][z] + this.levelHeightmaps[l][x + 1][z] + this.levelHeightmaps[l][x][z + 1] + this.levelHeightmaps[l][x + 1][z + 1]) / 4) | 0) -
                         (((this.levelHeightmaps[level][tileX][tileZ] + this.levelHeightmaps[level][tileX + 1][tileZ] + this.levelHeightmaps[level][tileX][tileZ + 1] + this.levelHeightmaps[level][tileX + 1][tileZ + 1]) / 4) | 0);
 
                     const wall: Wall | null = tile.wall;
                     if (wall && wall.modelA && wall.modelA.vertexNormal) {
-                        this.mergeNormals(model, wall.modelA, (x - tileX) * 128 + (1 - tileSizeX) * 64, offsetY, (z - tileZ) * 128 + (1 - tileSizeZ) * 64, allowFaceRemoval);
+                        this.mergeNormals(model, wall.modelA, offsetX, offsetY, offsetZ, allowFaceRemoval);
                     }
 
                     if (wall && wall.modelB && wall.modelB.vertexNormal) {
-                        this.mergeNormals(model, wall.modelB, (x - tileX) * 128 + (1 - tileSizeX) * 64, offsetY, (z - tileZ) * 128 + (1 - tileSizeZ) * 64, allowFaceRemoval);
+                        this.mergeNormals(model, wall.modelB, offsetX, offsetY, offsetZ, allowFaceRemoval);
                     }
 
                     for (let i: number = 0; i < tile.locCount; i++) {
