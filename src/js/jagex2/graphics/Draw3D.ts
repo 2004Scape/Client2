@@ -1393,6 +1393,9 @@ export default class Draw3D extends Draw2D {
                     u += uStepVertical * dy;
                     v += vStepVertical * dy;
                     w += wStepVertical * dy;
+                    u |= 0;
+                    v |= 0;
+                    w |= 0;
                     if ((yA !== yB && xStepAC < xStepAB) || (yA === yB && xStepAC > xStepBC)) {
                         yC -= yB;
                         yB -= yA;
@@ -1416,6 +1419,9 @@ export default class Draw3D extends Draw2D {
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
+                                    u |= 0;
+                                    v |= 0;
+                                    w |= 0;
                                 }
                             }
                             this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
@@ -1427,6 +1433,9 @@ export default class Draw3D extends Draw2D {
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
+                            u |= 0;
+                            v |= 0;
+                            w |= 0;
                         }
                     } else {
                         yC -= yB;
@@ -1451,6 +1460,9 @@ export default class Draw3D extends Draw2D {
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
+                                    u |= 0;
+                                    v |= 0;
+                                    w |= 0;
                                 }
                             }
                             this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
@@ -1462,6 +1474,9 @@ export default class Draw3D extends Draw2D {
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
+                            u |= 0;
+                            v |= 0;
+                            w |= 0;
                         }
                     }
                 } else {
@@ -1485,6 +1500,9 @@ export default class Draw3D extends Draw2D {
                     u += uStepVertical * dy;
                     v += vStepVertical * dy;
                     w += wStepVertical * dy;
+                    u |= 0;
+                    v |= 0;
+                    w |= 0;
                     if ((yA === yC || xStepAC >= xStepAB) && (yA !== yC || xStepBC <= xStepAB)) {
                         yB -= yC;
                         yC -= yA;
@@ -1508,6 +1526,9 @@ export default class Draw3D extends Draw2D {
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
+                                    u |= 0;
+                                    v |= 0;
+                                    w |= 0;
                                 }
                             }
                             this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
@@ -1519,6 +1540,9 @@ export default class Draw3D extends Draw2D {
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
+                            u |= 0;
+                            v |= 0;
+                            w |= 0;
                         }
                     } else {
                         yB -= yC;
@@ -1543,6 +1567,9 @@ export default class Draw3D extends Draw2D {
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
+                                    u |= 0;
+                                    v |= 0;
+                                    w |= 0;
                                 }
                             }
                             this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yA, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
@@ -1554,6 +1581,9 @@ export default class Draw3D extends Draw2D {
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
+                            u |= 0;
+                            v |= 0;
+                            w |= 0;
                         }
                     }
                 }
@@ -1587,6 +1617,9 @@ export default class Draw3D extends Draw2D {
                     u += uStepVertical * dy;
                     v += vStepVertical * dy;
                     w += wStepVertical * dy;
+                    u |= 0;
+                    v |= 0;
+                    w |= 0;
                     if ((yB !== yC && xStepAB < xStepBC) || (yB === yC && xStepAB > xStepAC)) {
                         yA -= yC;
                         yC -= yB;
@@ -1610,6 +1643,9 @@ export default class Draw3D extends Draw2D {
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
+                                    u |= 0;
+                                    v |= 0;
+                                    w |= 0;
                                 }
                             }
                             this.drawTexturedScanline(xA >> 16, xB >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeB >> 8);
@@ -1621,6 +1657,9 @@ export default class Draw3D extends Draw2D {
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
+                            u |= 0;
+                            v |= 0;
+                            w |= 0;
                         }
                     } else {
                         yA -= yC;
@@ -1645,6 +1684,9 @@ export default class Draw3D extends Draw2D {
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
+                                    u |= 0;
+                                    v |= 0;
+                                    w |= 0;
                                 }
                             }
                             this.drawTexturedScanline(xB >> 16, xA >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeA >> 8);
@@ -1656,6 +1698,9 @@ export default class Draw3D extends Draw2D {
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
+                            u |= 0;
+                            v |= 0;
+                            w |= 0;
                         }
                     }
                 } else {
@@ -1679,6 +1724,9 @@ export default class Draw3D extends Draw2D {
                     u += uStepVertical * dy;
                     v += vStepVertical * dy;
                     w += wStepVertical * dy;
+                    u |= 0;
+                    v |= 0;
+                    w |= 0;
                     if (xStepAB < xStepBC) {
                         yC -= yA;
                         yA -= yB;
@@ -1702,6 +1750,9 @@ export default class Draw3D extends Draw2D {
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
+                                    u |= 0;
+                                    v |= 0;
+                                    w |= 0;
                                 }
                             }
                             this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
@@ -1713,6 +1764,9 @@ export default class Draw3D extends Draw2D {
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
+                            u |= 0;
+                            v |= 0;
+                            w |= 0;
                         }
                     } else {
                         yC -= yA;
@@ -1737,6 +1791,9 @@ export default class Draw3D extends Draw2D {
                                     u += uStepVertical;
                                     v += vStepVertical;
                                     w += wStepVertical;
+                                    u |= 0;
+                                    v |= 0;
+                                    w |= 0;
                                 }
                             }
                             this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yB, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
@@ -1748,6 +1805,9 @@ export default class Draw3D extends Draw2D {
                             u += uStepVertical;
                             v += vStepVertical;
                             w += wStepVertical;
+                            u |= 0;
+                            v |= 0;
+                            w |= 0;
                         }
                     }
                 }
@@ -1780,6 +1840,9 @@ export default class Draw3D extends Draw2D {
                 u += uStepVertical * dy;
                 v += vStepVertical * dy;
                 w += wStepVertical * dy;
+                u |= 0;
+                v |= 0;
+                w |= 0;
                 if (xStepBC < xStepAC) {
                     yB -= yA;
                     yA -= yC;
@@ -1803,6 +1866,9 @@ export default class Draw3D extends Draw2D {
                                 u += uStepVertical;
                                 v += vStepVertical;
                                 w += wStepVertical;
+                                u |= 0;
+                                v |= 0;
+                                w |= 0;
                             }
                         }
                         this.drawTexturedScanline(xB >> 16, xC >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeB >> 8, shadeC >> 8);
@@ -1814,6 +1880,9 @@ export default class Draw3D extends Draw2D {
                         u += uStepVertical;
                         v += vStepVertical;
                         w += wStepVertical;
+                        u |= 0;
+                        v |= 0;
+                        w |= 0;
                     }
                 } else {
                     yB -= yA;
@@ -1838,6 +1907,9 @@ export default class Draw3D extends Draw2D {
                                 u += uStepVertical;
                                 v += vStepVertical;
                                 w += wStepVertical;
+                                u |= 0;
+                                v |= 0;
+                                w |= 0;
                             }
                         }
                         this.drawTexturedScanline(xC >> 16, xB >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeB >> 8);
@@ -1849,6 +1921,9 @@ export default class Draw3D extends Draw2D {
                         u += uStepVertical;
                         v += vStepVertical;
                         w += wStepVertical;
+                        u |= 0;
+                        v |= 0;
+                        w |= 0;
                     }
                 }
             } else {
@@ -1872,6 +1947,9 @@ export default class Draw3D extends Draw2D {
                 u += uStepVertical * dy;
                 v += vStepVertical * dy;
                 w += wStepVertical * dy;
+                u |= 0;
+                v |= 0;
+                w |= 0;
                 if (xStepBC < xStepAC) {
                     yA -= yB;
                     yB -= yC;
@@ -1895,6 +1973,9 @@ export default class Draw3D extends Draw2D {
                                 u += uStepVertical;
                                 v += vStepVertical;
                                 w += wStepVertical;
+                                u |= 0;
+                                v |= 0;
+                                w |= 0;
                             }
                         }
                         this.drawTexturedScanline(xA >> 16, xC >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeA >> 8, shadeC >> 8);
@@ -1906,6 +1987,9 @@ export default class Draw3D extends Draw2D {
                         u += uStepVertical;
                         v += vStepVertical;
                         w += wStepVertical;
+                        u |= 0;
+                        v |= 0;
+                        w |= 0;
                     }
                 } else {
                     yA -= yB;
@@ -1930,6 +2014,9 @@ export default class Draw3D extends Draw2D {
                                 u += uStepVertical;
                                 v += vStepVertical;
                                 w += wStepVertical;
+                                u |= 0;
+                                v |= 0;
+                                w |= 0;
                             }
                         }
                         this.drawTexturedScanline(xC >> 16, xA >> 16, Draw2D.pixels, yC, texels, 0, 0, u, v, w, uStride, vStride, wStride, shadeC >> 8, shadeA >> 8);
@@ -1941,6 +2028,9 @@ export default class Draw3D extends Draw2D {
                         u += uStepVertical;
                         v += vStepVertical;
                         w += wStepVertical;
+                        u |= 0;
+                        v |= 0;
+                        w |= 0;
                     }
                 }
             }
@@ -2017,6 +2107,9 @@ export default class Draw3D extends Draw2D {
             u = u + (uStride >> 3) * dx;
             v = v + (vStride >> 3) * dx;
             w = w + (wStride >> 3) * dx;
+            u |= 0;
+            v |= 0;
+            w |= 0;
             curW = w >> 12;
             if (curW !== 0) {
                 curU = (u / curW) | 0;
@@ -2030,6 +2123,9 @@ export default class Draw3D extends Draw2D {
             u = u + uStride;
             v = v + vStride;
             w = w + wStride;
+            u |= 0;
+            v |= 0;
+            w |= 0;
             curW = w >> 12;
             if (curW !== 0) {
                 nextU = (u / curW) | 0;
@@ -2149,6 +2245,9 @@ export default class Draw3D extends Draw2D {
                     u += uStride;
                     v += vStride;
                     w += wStride;
+                    u |= 0;
+                    v |= 0;
+                    w |= 0;
                     curW = w >> 12;
                     if (curW !== 0) {
                         nextU = (u / curW) | 0;
@@ -2184,6 +2283,9 @@ export default class Draw3D extends Draw2D {
         u = u + (uStride >> 3) * dx;
         v = v + (vStride >> 3) * dx;
         w = w + (wStride >> 3) * dx;
+        u |= 0;
+        v |= 0;
+        w |= 0;
         curW = w >> 14;
         if (curW !== 0) {
             curU = (u / curW) | 0;
@@ -2197,6 +2299,9 @@ export default class Draw3D extends Draw2D {
         u = u + uStride;
         v = v + vStride;
         w = w + wStride;
+        u |= 0;
+        v |= 0;
+        w |= 0;
         curW = w >> 14;
         if (curW !== 0) {
             nextU = (u / curW) | 0;
@@ -2240,6 +2345,9 @@ export default class Draw3D extends Draw2D {
                 u += uStride;
                 v += vStride;
                 w += wStride;
+                u |= 0;
+                v |= 0;
+                w |= 0;
                 curW = w >> 14;
                 if (curW !== 0) {
                     nextU = (u / curW) | 0;
@@ -2318,6 +2426,9 @@ export default class Draw3D extends Draw2D {
             u += uStride;
             v += vStride;
             w += wStride;
+            u |= 0;
+            v |= 0;
+            w |= 0;
             curW = w >> 14;
             if (curW !== 0) {
                 nextU = (u / curW) | 0;
@@ -2445,42 +2556,40 @@ export default class Draw3D extends Draw2D {
         const texture: Pix8 = this.textures[id];
         const palette: Int32Array | null = this.texturePalette[id];
 
-        if (texels && palette) {
-            if (this.lowMemory) {
-                this.textureTranslucent[id] = false;
-                for (let i: number = 0; i < 4096; i++) {
-                    const rgb: number = (texels[i] = palette[texture.pixels[i]] & 0xf8f8ff);
-                    if (rgb === 0) {
-                        this.textureTranslucent[id] = true;
+        if (this.lowMemory) {
+            this.textureTranslucent[id] = false;
+            for (let i: number = 0; i < 4096; i++) {
+                const rgb: number = (texels![i] = palette![texture.pixels[i]] & 0xf8f8ff);
+                if (rgb === 0) {
+                    this.textureTranslucent[id] = true;
+                }
+                texels![i + 4096] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
+                texels![i + 8192] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
+                texels![i + 12288] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
+            }
+        } else {
+            if (texture.width === 64) {
+                for (let y: number = 0; y < 128; y++) {
+                    for (let x: number = 0; x < 128; x++) {
+                        texels![x + ((y << 7) | 0)] = palette![texture.pixels[(x >> 1) + (((y >> 1) << 6) | 0)]];
                     }
-                    texels[i + 4096] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
-                    texels[i + 8192] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
-                    texels[i + 12288] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
                 }
             } else {
-                if (texture.width === 64) {
-                    for (let y: number = 0; y < 128; y++) {
-                        for (let x: number = 0; x < 128; x++) {
-                            texels[x + (y << 7)] = palette[texture.pixels[(x >> 1) + ((y >> 1) << 6)]];
-                        }
-                    }
-                } else {
-                    for (let i: number = 0; i < 16384; i++) {
-                        texels[i] = palette[texture.pixels[i]];
-                    }
-                }
-
-                this.textureTranslucent[id] = false;
                 for (let i: number = 0; i < 16384; i++) {
-                    texels[i] &= 0xf8f8ff;
-                    const rgb: number = texels[i];
-                    if (rgb === 0) {
-                        this.textureTranslucent[id] = true;
-                    }
-                    texels[i + 16384] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
-                    texels[i + 32768] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
-                    texels[i + 49152] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
+                    texels![i] = palette![texture.pixels[i]];
                 }
+            }
+
+            this.textureTranslucent[id] = false;
+            for (let i: number = 0; i < 16384; i++) {
+                texels![i] &= 0xf8f8ff;
+                const rgb: number = texels![i];
+                if (rgb === 0) {
+                    this.textureTranslucent[id] = true;
+                }
+                texels![i + 16384] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
+                texels![i + 32768] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
+                texels![i + 49152] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
             }
         }
 
