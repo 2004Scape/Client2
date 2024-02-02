@@ -73,7 +73,7 @@ import TinyMidiPCM from './tinymidipcm/index.js';
 
     await tinyMidiPCM.init();
 
-    const soundfontRes = await fetch('/SCC1_Florestan.sf2');
+    const soundfontRes = await fetch('./SCC1_Florestan.sf2');
     const soundfontBuffer = new Uint8Array(await soundfontRes.arrayBuffer());
     tinyMidiPCM.setSoundfont(soundfontBuffer);
 
