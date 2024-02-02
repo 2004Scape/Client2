@@ -189,8 +189,8 @@ class Viewer extends GameShell {
         this.model.built.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
 
         // debug
-        this.fontBold12?.drawStringRight(this.width - 1, this.fontBold12.fontHeight, `FPS: ${this.fps}`, Colors.YELLOW);
-        this.fontBold12?.drawString(1, this.fontBold12.fontHeight, `ID: ${this.model.id}`, Colors.YELLOW);
+        this.fontBold12?.drawStringRight(this.width - 1, this.fontBold12.height, `FPS: ${this.fps}`, Colors.YELLOW);
+        this.fontBold12?.drawString(1, this.fontBold12.height, `ID: ${this.model.id}`, Colors.YELLOW);
 
         this.drawArea?.draw(0, 0);
     };
