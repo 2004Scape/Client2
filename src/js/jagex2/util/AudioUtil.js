@@ -1,7 +1,7 @@
 let waveGain;
 
 export async function playWave(data, vol) {
-    this.setWaveVolume(vol);
+    setWaveVolume(vol);
 
     try {
         const audioBuffer = await window.audioContext.decodeAudioData(Uint8Array.from(data).buffer);
