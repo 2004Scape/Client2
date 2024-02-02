@@ -400,7 +400,7 @@ class Viewer extends GameShell {
                     continue;
                 }
 
-                for (let lineY: number = childY + font.fontHeight; text.length > 0; lineY += font.fontHeight) {
+                for (let lineY: number = childY + font.height; text.length > 0; lineY += font.height) {
                     const newline: number = text.indexOf('\\n');
                     let split: string;
                     if (newline !== -1) {

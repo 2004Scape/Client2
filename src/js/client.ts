@@ -2435,7 +2435,7 @@ class Client extends GameShell {
 
                 if (this.projectX > -1 && this.chatCount < Client.MAX_CHATS && this.fontBold12) {
                     this.chatWidth[this.chatCount] = (this.fontBold12.stringWidth(entity.chat) / 2) | 0;
-                    this.chatHeight[this.chatCount] = this.fontBold12.fontHeight;
+                    this.chatHeight[this.chatCount] = this.fontBold12.height;
                     this.chatX[this.chatCount] = this.projectX;
                     this.chatY[this.chatCount] = this.projectY;
 
@@ -3037,7 +3037,7 @@ class Client extends GameShell {
                     continue;
                 }
 
-                for (let lineY: number = childY + font.fontHeight; text.length > 0; lineY += font.fontHeight) {
+                for (let lineY: number = childY + font.height; text.length > 0; lineY += font.height) {
                     if (text.indexOf('%') !== -1) {
                         do {
                             const index: number = text.indexOf('%1');
