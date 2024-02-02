@@ -1825,7 +1825,7 @@ class Client extends GameShell {
                 this.updateOrbitCamera();
             }
             if (this.sceneState === 2 && this.cutscene) {
-                // this.applyCutscene();
+                this.applyCutscene();
             }
 
             for (let i: number = 0; i < 5; i++) {
@@ -9618,6 +9618,120 @@ class Client extends GameShell {
             this.cameraPitchClamp += ((clamp - this.cameraPitchClamp) / 24) | 0;
         } else if (clamp < this.cameraPitchClamp) {
             this.cameraPitchClamp += ((clamp - this.cameraPitchClamp) / 80) | 0;
+        }
+    };
+
+    private applyCutscene = (): void => {
+        let x: number = this.cutsceneSrcLocalTileX * 128 + 64;
+        let z: number = this.cutsceneSrcLocalTileZ * 128 + 64;
+        let y: number = this.getHeightmapY(this.currentLevel, this.cutsceneSrcLocalTileX, this.cutsceneSrcLocalTileZ) - this.cutsceneSrcHeight;
+
+        if (this.cameraX < x) {
+            this.cameraX += this.cutsceneMoveSpeed + ((((x - this.cameraX) * this.cutsceneMoveAcceleration) / 1000) | 0);
+            if (this.cameraX > x) {
+                this.cameraX = x;
+            }
+        }
+
+        if (this.cameraX > x) {
+            this.cameraX -= this.cutsceneMoveSpeed + ((((this.cameraX - x) * this.cutsceneMoveAcceleration) / 1000) | 0);
+            if (this.cameraX < x) {
+                this.cameraX = x;
+            }
+        }
+
+        if (this.cameraY < y) {
+            this.cameraY += this.cutsceneMoveSpeed + ((((y - this.cameraY) * this.cutsceneMoveAcceleration) / 1000) | 0);
+            if (this.cameraY > y) {
+                this.cameraY = y;
+            }
+        }
+
+        if (this.cameraY > y) {
+            this.cameraY -= this.cutsceneMoveSpeed + ((((this.cameraY - y) * this.cutsceneMoveAcceleration) / 1000) | 0);
+            if (this.cameraY < y) {
+                this.cameraY = y;
+            }
+        }
+
+        if (this.cameraZ < z) {
+            this.cameraZ += this.cutsceneMoveSpeed + ((((z - this.cameraZ) * this.cutsceneMoveAcceleration) / 1000) | 0);
+            if (this.cameraZ > z) {
+                this.cameraZ = z;
+            }
+        }
+
+        if (this.cameraZ > z) {
+            this.cameraZ -= this.cutsceneMoveSpeed + ((((this.cameraZ - z) * this.cutsceneMoveAcceleration) / 1000) | 0);
+            if (this.cameraZ < z) {
+                this.cameraZ = z;
+            }
+        }
+
+        x = this.cutsceneDstLocalTileX * 128 + 64;
+        z = this.cutsceneDstLocalTileZ * 128 + 64;
+        y = this.getHeightmapY(this.currentLevel, this.cutsceneDstLocalTileX, this.cutsceneDstLocalTileZ) - this.cutsceneDstHeight;
+
+        const deltaX: number = x - this.cameraX;
+        const deltaY: number = y - this.cameraY;
+        const deltaZ: number = z - this.cameraZ;
+
+        const distance: number = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ) | 0;
+        let pitch: number = ((Math.atan2(deltaY, distance) * 325.949) | 0) & 0x7ff;
+        const yaw: number = ((Math.atan2(deltaX, deltaZ) * -325.949) | 0) & 0x7ff;
+
+        if (pitch < 128) {
+            pitch = 128;
+        }
+
+        if (pitch > 383) {
+            pitch = 383;
+        }
+
+        if (this.cameraPitch < pitch) {
+            this.cameraPitch += this.cutsceneRotateSpeed + ((((pitch - this.cameraPitch) * this.cutsceneRotateAcceleration) / 1000) | 0);
+            if (this.cameraPitch > pitch) {
+                this.cameraPitch = pitch;
+            }
+        }
+
+        if (this.cameraPitch > pitch) {
+            this.cameraPitch -= this.cutsceneRotateSpeed + ((((this.cameraPitch - pitch) * this.cutsceneRotateAcceleration) / 1000) | 0);
+            if (this.cameraPitch < pitch) {
+                this.cameraPitch = pitch;
+            }
+        }
+
+        let deltaYaw: number = yaw - this.cameraYaw;
+        if (deltaYaw > 1024) {
+            deltaYaw -= 2048;
+        }
+
+        if (deltaYaw < -1024) {
+            deltaYaw += 2048;
+        }
+
+        if (deltaYaw > 0) {
+            this.cameraYaw += this.cutsceneRotateSpeed + (((deltaYaw * this.cutsceneRotateAcceleration) / 1000) | 0);
+            this.cameraYaw &= 0x7ff;
+        }
+
+        if (deltaYaw < 0) {
+            this.cameraYaw -= this.cutsceneRotateSpeed + (((-deltaYaw * this.cutsceneRotateAcceleration) / 1000) | 0);
+            this.cameraYaw &= 0x7ff;
+        }
+
+        let tmp: number = yaw - this.cameraYaw;
+        if (tmp > 1024) {
+            tmp -= 2048;
+        }
+
+        if (tmp < -1024) {
+            tmp += 2048;
+        }
+
+        if ((tmp < 0 && deltaYaw > 0) || (tmp > 0 && deltaYaw < 0)) {
+            this.cameraYaw = yaw;
         }
     };
 
