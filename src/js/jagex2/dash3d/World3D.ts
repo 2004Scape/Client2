@@ -18,12 +18,12 @@ import LocAngle from './LocAngle';
 import LocEntity from './entity/LocEntity';
 
 export default class World3D {
-    private static readonly visibilityMatrix: boolean[][][][] = new Array(8).fill(false).map((): boolean[][][] => new Array(32).fill(false).map((): boolean[][] => new Array(51).fill(false).map((): boolean[] => new Array(51).fill(false))));
-    private static readonly locBuffer: (Loc | null)[] = new Array(100).fill(null);
-    private static readonly levelOccluderCount: Int32Array = new Int32Array(CollisionMap.LEVELS);
-    private static readonly levelOccluders: (Occluder | null)[][] = new Array(CollisionMap.LEVELS).fill(null).map((): Occluder[] => new Array(500).fill(null));
-    private static readonly activeOccluders: (Occluder | null)[] = new Array(500).fill(null);
-    private static readonly drawTileQueue: LinkList = new LinkList();
+    private static visibilityMatrix: boolean[][][][] = new Array(8).fill(false).map((): boolean[][][] => new Array(32).fill(false).map((): boolean[][] => new Array(51).fill(false).map((): boolean[] => new Array(51).fill(false))));
+    private static locBuffer: (Loc | null)[] = new Array(100).fill(null);
+    private static levelOccluderCount: Int32Array = new Int32Array(CollisionMap.LEVELS);
+    private static levelOccluders: (Occluder | null)[][] = new Array(CollisionMap.LEVELS).fill(null).map((): Occluder[] => new Array(500).fill(null));
+    private static activeOccluders: (Occluder | null)[] = new Array(500).fill(null);
+    private static drawTileQueue: LinkList = new LinkList();
 
     private static cycle: number = 0;
 
@@ -183,12 +183,20 @@ export default class World3D {
     };
 
     static unload = (): void => {
-        // this.locBuffer = null;
-        // this.levelOccluderCount = null;
-        // this.levelOccluders = null;
-        // this.drawTileQueue = null;
-        // this.visibilityMatrix = null;
-        // this.visibilityMap = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.locBuffer = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.levelOccluderCount = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.levelOccluders = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.drawTileQueue = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.visibilityMatrix = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.activeOccluders = null;
+        this.visibilityMap = null;
+        console.log('World3D unloaded!');
     };
 
     static addOccluder = (level: number, type: number, minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number): void => {

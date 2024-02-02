@@ -52,19 +52,32 @@ export default class Draw3D extends Draw2D {
     }
 
     static unload = (): void => {
-        // this.reciprocal15 = null;
-        // this.reciprocal15 = null;
-        // this.sin = null;
-        // this.cos = null;
-        // this.lineOffset = null;
-        // this.textures = null;
-        // this.textureTranslucent = null;
-        // this.averageTextureRGB = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.reciprocal15 = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.reciprocal15 = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.sin = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.cos = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.lineOffset = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.textures = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.textureTranslucent = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.averageTextureRGB = null;
         this.texelPool = null;
-        // this.activeTexels = null;
-        // this.textureCycle = null;
-        // this.palette = null;
-        // this.texturePalette = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.activeTexels = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.textureCycle = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.palette = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.texturePalette = null;
+        console.log('Draw3D unloaded!');
     };
 
     static init2D = (): void => {

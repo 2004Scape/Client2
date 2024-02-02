@@ -137,13 +137,6 @@ class Client extends GameShell {
 
     // archives
     private titleArchive: Jagfile | null = null;
-    private configArchive: Jagfile | null = null;
-    private interfaceArchive: Jagfile | null = null;
-    private modelsArchive: Jagfile | null = null;
-    private texturesArchive: Jagfile | null = null;
-    private wordencArchive: Jagfile | null = null;
-    private soundsArchive: Jagfile | null = null;
-    private mediaArchive: Jagfile | null = null;
 
     // login screen properties
     private redrawTitleBackground: boolean = true;
@@ -335,7 +328,6 @@ class Client extends GameShell {
     private selectedInterface: number = 0;
     private selectedCycle: number = 0;
     private pressedContinueOption: boolean = false;
-    private awaitingLogin: boolean = false;
     private varps: number[] = [];
     private varCache: number[] = [];
     private spellSelected: number = 0;
@@ -545,14 +537,6 @@ class Client extends GameShell {
             const textures: Jagfile = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
             const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
             const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
-
-            this.configArchive = config;
-            this.interfaceArchive = interfaces;
-            this.mediaArchive = media;
-            this.modelsArchive = models;
-            this.texturesArchive = textures;
-            this.wordencArchive = wordenc;
-            this.soundsArchive = sounds;
 
             this.levelTileFlags = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(CollisionMap.SIZE).fill(null).map((): Uint8Array => new Uint8Array(CollisionMap.SIZE)));
             this.levelHeightmap = new Array(CollisionMap.LEVELS).fill(null).map((): Int32Array[] => new Array(CollisionMap.SIZE + 1).fill(null).map((): Int32Array => new Int32Array(CollisionMap.SIZE + 1)));
@@ -849,23 +833,32 @@ class Client extends GameShell {
             /* empty */
         }
         this.stream = null;
-        // this.stopMidi();
+        stopMidi();
         // this.midiThreadActive = false;
-        // this.out = null;
-        // this.login = null;
-        // this.in = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.out = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.loginout = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.in = null;
         this.sceneMapIndex = null;
         this.sceneMapLandData = null;
         this.sceneMapLocData = null;
         this.levelHeightmap = null;
         this.levelTileFlags = null;
         this.scene = null;
-        // this.levelCollisionMap = null;
-        // this.bfsDirection = null;
-        // this.bfsCost = null;
-        // this.bfsStepX = null;
-        // this.bfsStepZ = null;
-        // this.textureBuffer = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.levelCollisionMap = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.bfsDirection = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.bfsCost = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.bfsStepX = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.bfsStepZ = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.textureBuffer = null;
         this.areaSidebar = null;
         this.areaMapback = null;
         this.areaViewport = null;
@@ -889,7 +882,8 @@ class Client extends GameShell {
         this.imageBackbase1 = null;
         this.imageBackbase2 = null;
         this.imageBackhmid1 = null;
-        // this.imageSideicons = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.imageSideicons = null;
         this.imageRedstone1 = null;
         this.imageRedstone2 = null;
         this.imageRedstone3 = null;
@@ -901,42 +895,73 @@ class Client extends GameShell {
         this.imageRedstone1hv = null;
         this.imageRedstone2hv = null;
         this.imageCompass = null;
-        // this.imageHitmarks = null;
-        // this.imageHeadicons = null;
-        // this.imageCrosses = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.imageHitmarks = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.imageHeadicons = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.imageCrosses = null;
         this.imageMapdot0 = null;
         this.imageMapdot1 = null;
         this.imageMapdot2 = null;
         this.imageMapdot3 = null;
-        // this.imageMapscene = null;
-        // this.imageMapfunction = null;
-        // this.tileLastOccupiedCycle = null;
-        // this.players = null;
-        // this.playerIds = null;
-        // this.entityUpdateIds = null;
-        // this.playerAppearanceBuffer = null;
-        // this.entityRemovalIds = null;
-        // this.npcs = null;
-        // this.npcIds = null;
-        // this.levelObjStacks = null;
-        // this.spawnedLocations = null;
-        // this.temporaryLocs = null;
-        // this.projectiles = null;
-        // this.spotanims = null;
-        // this.locList = null;
-        // this.menuParamB = null;
-        // this.menuParamC = null;
-        // this.menuAction = null;
-        // this.menuParamA = null;
-        // this.menuOption = null;
-        // this.varps = null;
-        // this.activeMapFunctionX = null;
-        // this.activeMapFunctionZ = null;
-        // this.activeMapFunctions = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.imageMapscene = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.imageMapfunction = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.tileLastOccupiedCycle = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.players = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.playerIds = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.entityUpdateIds = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.playerAppearanceBuffer = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.entityRemovalIds = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.npcs = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.npcIds = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.levelObjStacks = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.spawnedLocations = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.temporaryLocs = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.projectiles = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.spotanims = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.locList = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.menuParamB = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.menuParamC = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.menuAction = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.menuParamA = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.menuOption = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.varps = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.activeMapFunctionX = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.activeMapFunctionZ = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.activeMapFunctions = null;
         this.imageMinimap = null;
-        // this.friendName = null;
-        // this.friendName37 = null;
-        // this.friendWorld = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.friendName = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.friendName37 = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        this.friendWorld = null;
         this.imageTitle0 = null;
         this.imageTitle1 = null;
         this.imageTitle2 = null;
@@ -950,13 +975,19 @@ class Client extends GameShell {
         LocType.unload();
         NpcType.unload();
         ObjType.unload();
-        FloType.instances = [];
-        IdkType.instances = [];
-        ComType.instances = [];
-        SeqType.instances = [];
-        SpotAnimType.instances = [];
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        FloType.instances = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        IdkType.instances = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        ComType.instances = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        SeqType.instances = null;
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        SpotAnimType.instances = null;
         SpotAnimType.modelCache = null;
-        VarpType.instances = [];
+        // @ts-expect-error Force unload. This happens when the browser reloads entirely.
+        VarpType.instances = null;
         this.drawArea = null;
         PlayerEntity.modelCache = null;
         Draw3D.unload();
@@ -1515,7 +1546,7 @@ class Client extends GameShell {
                 this.inMultizone = 0;
                 this.flashingTab = -1;
                 this.designGenderMale = true;
-                // this.validateCharacterDesign();
+                this.validateCharacterDesign();
                 for (let i: number = 0; i < 5; i++) {
                     this.designColors[i] = 0;
                 }
@@ -5546,10 +5577,7 @@ class Client extends GameShell {
                 for (let part: number = 0; part < 7; part++) {
                     const kit: number = this.designIdentikits[part];
                     if (kit >= 0) {
-                        const model: Model | null = IdkType.instances[kit].getModel();
-                        if (model) {
-                            models[modelCount++] = model;
-                        }
+                        models[modelCount++] = IdkType.instances[kit].getModel();
                     }
                 }
 
@@ -7194,6 +7222,51 @@ class Client extends GameShell {
         }
     };
 
+    private handlePrivateChatInput = (mouseY: number): void => {
+        if (this.splitPrivateChat == 0) {
+            return;
+        }
+
+        let lineOffset: number = 0;
+        if (this.systemUpdateTimer != 0) {
+            lineOffset = 1;
+        }
+
+        for (let i: number = 0; i < 100; i++) {
+            if (this.messageText[i] != null) {
+                const type: number = this.messageType[i];
+                if ((type == 3 || type == 7) && (type == 7 || this.privateChatSetting == 0 || (this.privateChatSetting == 1 && this.isFriend(this.messageSender[i])))) {
+                    const y: number = 329 - lineOffset * 13;
+                    if (this.mouseX > 8 && this.mouseX < 520 && mouseY - 11 > y - 10 && mouseY - 11 <= y + 3) {
+                        if (this.rights) {
+                            this.menuOption[this.menuSize] = 'Report abuse @whi@' + this.messageSender[i];
+                            this.menuAction[this.menuSize] = 2034;
+                            this.menuSize++;
+                        }
+                        this.menuOption[this.menuSize] = 'Add ignore @whi@' + this.messageSender[i];
+                        this.menuAction[this.menuSize] = 2436;
+                        this.menuSize++;
+                        this.menuOption[this.menuSize] = 'Add friend @whi@' + this.messageSender[i];
+                        this.menuAction[this.menuSize] = 2406;
+                        this.menuSize++;
+                    }
+
+                    lineOffset++;
+                    if (lineOffset >= 5) {
+                        return;
+                    }
+                }
+
+                if ((type == 5 || type == 6) && this.privateChatSetting < 2) {
+                    lineOffset++;
+                    if (lineOffset >= 5) {
+                        return;
+                    }
+                }
+            }
+        }
+    };
+
     private handleInterfaceInput = (com: ComType, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): void => {
         if (com.type !== 0 || !com.childId || com.hide || mouseX < x || mouseY < y || mouseX > x + com.width || mouseY > y + com.height || !com.childX || !com.childY) {
             return;
@@ -7821,7 +7894,7 @@ class Client extends GameShell {
             this.menuOption[0] = 'Cancel';
             this.menuAction[0] = 1252;
             this.menuSize = 1;
-            // this.handlePrivateChatInput(this.mouseX, this.mouseY);
+            this.handlePrivateChatInput(this.mouseY);
             this.lastHoveredInterfaceId = 0;
 
             // the main viewport area
@@ -8859,9 +8932,9 @@ class Client extends GameShell {
         }
 
         if (entity.forceMoveEndCycle > this.loopCycle) {
-            // this.updateForceMovement(entity);
+            this.updateForceMovement(entity);
         } else if (entity.forceMoveStartCycle >= this.loopCycle) {
-            // this.startForceMovement(entity);
+            this.startForceMovement(entity);
         } else {
             this.updateMovement(entity);
         }
@@ -9150,6 +9223,66 @@ class Client extends GameShell {
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC5);
             }
         }
+    };
+
+    private updateForceMovement = (entity: PathingEntity): void => {
+        const delta: number = entity.forceMoveEndCycle - this.loopCycle;
+        const dstX: number = entity.forceMoveStartSceneTileX * 128 + entity.size * 64;
+        const dstZ: number = entity.forceMoveStartSceneTileZ * 128 + entity.size * 64;
+
+        entity.x += (dstX - entity.x) / delta;
+        entity.z += (dstZ - entity.z) / delta;
+
+        entity.seqTrigger = 0;
+
+        if (entity.forceMoveFaceDirection == 0) {
+            entity.dstYaw = 1024;
+        }
+
+        if (entity.forceMoveFaceDirection == 1) {
+            entity.dstYaw = 1536;
+        }
+
+        if (entity.forceMoveFaceDirection == 2) {
+            entity.dstYaw = 0;
+        }
+
+        if (entity.forceMoveFaceDirection == 3) {
+            entity.dstYaw = 512;
+        }
+    };
+
+    private startForceMovement = (entity: PathingEntity): void => {
+        if (entity.forceMoveStartCycle == this.loopCycle || entity.primarySeqId == -1 || entity.primarySeqDelay != 0 || entity.primarySeqCycle + 1 > SeqType.instances[entity.primarySeqId].delay![entity.primarySeqFrame]) {
+            const duration: number = entity.forceMoveStartCycle - entity.forceMoveEndCycle;
+            const delta: number = this.loopCycle - entity.forceMoveEndCycle;
+            const dx0: number = entity.forceMoveStartSceneTileX * 128 + entity.size * 64;
+            const dz0: number = entity.forceMoveStartSceneTileZ * 128 + entity.size * 64;
+            const dx1: number = entity.forceMoveEndSceneTileX * 128 + entity.size * 64;
+            const dz1: number = entity.forceMoveEndSceneTileZ * 128 + entity.size * 64;
+            entity.x = (dx0 * (duration - delta) + dx1 * delta) / duration;
+            entity.z = (dz0 * (duration - delta) + dz1 * delta) / duration;
+        }
+
+        entity.seqTrigger = 0;
+
+        if (entity.forceMoveFaceDirection == 0) {
+            entity.dstYaw = 1024;
+        }
+
+        if (entity.forceMoveFaceDirection == 1) {
+            entity.dstYaw = 1536;
+        }
+
+        if (entity.forceMoveFaceDirection == 2) {
+            entity.dstYaw = 0;
+        }
+
+        if (entity.forceMoveFaceDirection == 3) {
+            entity.dstYaw = 512;
+        }
+
+        entity.yaw = entity.dstYaw;
     };
 
     private updateFacingDirection = (e: PathingEntity): void => {
@@ -10066,13 +10199,11 @@ class Client extends GameShell {
         if (length > 2000000) {
             return false;
         }
-        if (length !== data.length) {
-            data = data.slice(0, length);
-        }
-        console.log(length);
-        console.log(data);
+        // if (length !== data.length) {
+        //     data = data.slice(0, length);
+        // }
         // await this.db?.cachesave('wave-' + ((this.loopCycle + 1) % 5) + '.wav', data);
-        await playWave(data, 192);
+        // await playWave(data, 192); // TODO this crashes
         return true;
     };
 

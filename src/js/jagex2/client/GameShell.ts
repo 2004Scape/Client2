@@ -91,7 +91,7 @@ export default abstract class GameShell {
         window.addEventListener('mousemove', this.mouseMoved);
         window.addEventListener('focusin', this.focusGained);
         window.addEventListener('focusout', this.focusLost);
-        window.addEventListener('unload', this.unload);
+        window.addEventListener('beforeunload', this.unload);
 
         // Preventing mouse events from bubbling up to the context menu in the browser for our canvas.
         // This may need to be hooked up to our own context menu in the future.
