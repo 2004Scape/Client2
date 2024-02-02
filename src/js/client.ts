@@ -480,12 +480,13 @@ class Client extends GameShell {
     private friendWorld: Int32Array = new Int32Array(100);
     private socialName37: bigint | null = null;
 
-    // midi
+    // audio
     private waveCount: number = 0;
     private waveEnabled: boolean = true;
     private waveIds: Int32Array = new Int32Array(50);
     private waveLoops: Int32Array = new Int32Array(50);
     private waveDelay: Int32Array = new Int32Array(50);
+    private waveVolume: number = 192;
     private lastWaveId: number = -1;
     private lastWaveLoops: number = -1;
     private lastWaveLength: number = 0;
@@ -495,6 +496,7 @@ class Client extends GameShell {
     private currentMidi: string | null = null;
     private midiCrc: number = 0;
     private midiSize: number = 0;
+    private midiVolume: number = 192;
 
     // ---- function overrides
 
@@ -1654,6 +1656,11 @@ class Client extends GameShell {
     };
 
     private updateGame = async (): Promise<void> => {
+        if (this.players === null) {
+            // client is unloading asynchronously
+            return;
+        }
+
         if (this.systemUpdateTimer > 1) {
             this.systemUpdateTimer--;
         }
@@ -1669,40 +1676,35 @@ class Client extends GameShell {
         if (this.ingame) {
             for (let wave: number = 0; wave < this.waveCount; wave++) {
                 if (this.waveDelay[wave] <= 0) {
-                    let failed: boolean = false;
                     try {
-                        if (this.waveIds[wave] !== this.lastWaveId || this.waveLoops[wave] !== this.lastWaveLoops) {
-                            const buf: Packet | null = Wave.generate(this.waveIds[wave], this.waveLoops[wave]);
+                        // if (this.waveIds[wave] !== this.lastWaveId || this.waveLoops[wave] !== this.lastWaveLoops) {
+                        // todo: reuse buffer?
+                        const buf: Packet | null = Wave.generate(this.waveIds[wave], this.waveLoops[wave]);
+                        if (!buf) {
+                            throw new Error();
+                        }
 
-                            if (Date.now() + ((buf!.pos / 22) | 0) > this.lastWaveStartTime + ((this.lastWaveLength / 22) | 0)) {
-                                this.lastWaveLength = buf!.pos;
-                                this.lastWaveStartTime = Date.now();
-                                if (await this.saveWave(Int8Array.from(buf!.data), buf!.pos)) {
-                                    this.lastWaveId = this.waveIds[wave];
-                                    this.lastWaveLoops = this.waveLoops[wave];
-                                } else {
-                                    failed = true;
-                                }
-                            }
-                        } /* else if (!this.replayWave()) {
-                            failed = true; // TODO
-                        }*/
+                        if (Date.now() + ((buf.pos / 22) | 0) > this.lastWaveStartTime + ((this.lastWaveLength / 22) | 0)) {
+                            this.lastWaveLength = buf.pos;
+                            this.lastWaveStartTime = Date.now();
+                            this.lastWaveId = this.waveIds[wave];
+                            this.lastWaveLoops = this.waveLoops[wave];
+                            await playWave(buf.data.slice(0, buf.pos), this.waveVolume);
+                        }
+                        // else if (!this.waveReplay()) { // this logic just re-plays the old buffer
                     } catch (e) {
                         console.error(e);
                         /* empty */
                     }
 
-                    if (failed && this.waveDelay[wave] !== -5) {
-                        this.waveDelay[wave] = -5;
-                    } else {
-                        this.waveCount--;
-                        for (let i: number = wave; i < this.waveCount; i++) {
-                            this.waveIds[i] = this.waveIds[i + 1];
-                            this.waveLoops[i] = this.waveLoops[i + 1];
-                            this.waveDelay[i] = this.waveDelay[i + 1];
-                        }
-                        wave--;
+                    // remove current wave
+                    this.waveCount--;
+                    for (let i: number = wave; i < this.waveCount; i++) {
+                        this.waveIds[i] = this.waveIds[i + 1];
+                        this.waveLoops[i] = this.waveLoops[i + 1];
+                        this.waveDelay[i] = this.waveDelay[i + 1];
                     }
+                    wave--;
                 } else {
                     this.waveDelay[wave]--;
                 }
@@ -1710,9 +1712,11 @@ class Client extends GameShell {
 
             if (this.nextMusicDelay > 0) {
                 this.nextMusicDelay -= 20;
+
                 if (this.nextMusicDelay < 0) {
                     this.nextMusicDelay = 0;
                 }
+
                 if (this.nextMusicDelay === 0 && this.midiActive && !Client.lowMemory && this.currentMidi) {
                     await this.setMidi(this.currentMidi, this.midiCrc, this.midiSize);
                 }
@@ -1958,6 +1962,11 @@ class Client extends GameShell {
     };
 
     private drawGame = (): void => {
+        if (this.players === null) {
+            // client is unloading asynchronously
+            return;
+        }
+
         if (this.redrawTitleBackground) {
             this.redrawTitleBackground = false;
             this.areaBackleft1?.draw(0, 11);
@@ -6368,8 +6377,8 @@ class Client extends GameShell {
                     const delay: number = this.in.g2;
                     const length: number = this.in.g4;
                     const remaining: number = this.packetSize - 6;
-                    const src: Int8Array = Bzip.read(length, Int8Array.from(this.in.data), remaining, this.in.pos);
-                    await this.saveMidi(src, length);
+                    const uncompressed: Int8Array = Bzip.read(length, Int8Array.from(this.in.data), remaining, this.in.pos);
+                    playMidi(uncompressed, this.midiVolume);
                     this.nextMusicDelay = delay;
                 }
                 this.packetType = -1;
@@ -7080,19 +7089,23 @@ class Client extends GameShell {
             if (clientcode === 3) {
                 const lastMidiActive: boolean = this.midiActive;
                 if (value === 0) {
-                    setMidiVolume(0);
+                    this.midiVolume = 256;
+                    setMidiVolume(256);
                     this.midiActive = true;
                 }
                 if (value === 1) {
-                    setMidiVolume(-400);
+                    this.midiVolume = 192;
+                    setMidiVolume(192);
                     this.midiActive = true;
                 }
                 if (value === 2) {
-                    setMidiVolume(-800);
+                    this.midiVolume = 128;
+                    setMidiVolume(128);
                     this.midiActive = true;
                 }
                 if (value === 3) {
-                    setMidiVolume(-1200);
+                    this.midiVolume = 64;
+                    setMidiVolume(64);
                     this.midiActive = true;
                 }
                 if (value === 4) {
@@ -7109,20 +7122,24 @@ class Client extends GameShell {
             }
             if (clientcode === 4) {
                 if (value === 0) {
+                    this.waveVolume = 256;
+                    setWaveVolume(256);
                     this.waveEnabled = true;
-                    setWaveVolume(0);
                 }
                 if (value === 1) {
+                    this.waveVolume = 192;
+                    setWaveVolume(192);
                     this.waveEnabled = true;
-                    setWaveVolume(-400);
                 }
                 if (value === 2) {
+                    this.waveVolume = 128;
+                    setWaveVolume(128);
                     this.waveEnabled = true;
-                    setWaveVolume(-800);
                 }
                 if (value === 3) {
+                    this.waveVolume = 64;
+                    setWaveVolume(64);
                     this.waveEnabled = true;
-                    setWaveVolume(-1200);
                 }
                 if (value === 4) {
                     this.waveEnabled = false;
@@ -10184,27 +10201,7 @@ class Client extends GameShell {
         await this.db?.cachesave(name + '.mid', data);
         const uncompressedLength: number = new Packet(Uint8Array.from(data)).g4;
         const uncompressed: Int8Array = Bzip.read(uncompressedLength, data, length, 4);
-        await this.saveMidi(uncompressed, uncompressedLength);
-    };
-
-    private saveMidi = async (data: Int8Array, length: number): Promise<void> => {
-        if (length !== data.length) {
-            data = data.slice(0, length);
-        }
-        await this.db?.cachesave('jingle-' + ((this.loopCycle + 1) % 5) + '.mid', data);
-        playMidi(data, 192);
-    };
-
-    private saveWave = async (data: Int8Array, length: number): Promise<boolean> => {
-        if (length > 2000000) {
-            return false;
-        }
-        // if (length !== data.length) {
-        //     data = data.slice(0, length);
-        // }
-        // await this.db?.cachesave('wave-' + ((this.loopCycle + 1) % 5) + '.wav', data);
-        // await playWave(data, 192); // TODO this crashes
-        return true;
+        playMidi(uncompressed, this.midiVolume);
     };
 
     private drawError = (): void => {
