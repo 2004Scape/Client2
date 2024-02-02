@@ -137,7 +137,7 @@ export default class Wave {
 
                 for (let sample: number = 0; sample < toneSampleCount; sample++) {
                     if (Wave.waveBytes) {
-                        Wave.waveBytes[sample + start + 44] += (samples[sample] >> 8) & 0xff; // TODO might be wrong here
+                        Wave.waveBytes[sample + start + 44] += ((samples[sample] >> 8) << 24) >> 24;
                     }
                 }
             }

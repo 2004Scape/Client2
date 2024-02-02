@@ -86,7 +86,7 @@ export default class World {
         }
         bitset |= 0;
 
-        const info: number = ((angle << 6) + shape) & 0xff;
+        const info: number = ((((angle << 6) + shape) | 0) << 24) >> 24;
 
         if (shape === LocShape.GROUND_DECOR) {
             scene?.addGroundDecoration(loc.getModel(LocShape.GROUND_DECOR, angle, heightSW, heightSE, heightNW, heightNE, -1), level, x, z, y, bitset, info);
@@ -723,7 +723,7 @@ export default class World {
         let waterOverlay: number = 0;
         for (let i: number = 0; i < FloType.count; i++) {
             if (FloType.instances[i].name?.toLowerCase() === 'water') {
-                waterOverlay = (i + 1) & 0xff;
+                waterOverlay = ((i + 1) << 24) >> 24;
                 break;
             }
         }
@@ -781,12 +781,12 @@ export default class World {
 
                             if (opcode <= 49) {
                                 this.levelTileOverlayIds[level][stx][stz] = buf.g1b;
-                                this.levelTileOverlayShape[level][stx][stz] = (((opcode - 2) / 4) | 0) & 0xff;
-                                this.levelTileOverlayRotation[level][stx][stz] = (opcode - 2) & 0x3 & 0xff;
+                                this.levelTileOverlayShape[level][stx][stz] = ((((opcode - 2) / 4) | 0) << 24) >> 24;
+                                this.levelTileOverlayRotation[level][stx][stz] = (((opcode - 2) & 0x3) << 24) >> 24;
                             } else if (opcode <= 81) {
-                                this.levelTileFlags[level][stx][stz] = (opcode - 49) & 0xff;
+                                this.levelTileFlags[level][stx][stz] = ((opcode - 49) << 24) >> 24;
                             } else {
-                                this.levelTileUnderlayIds[level][stx][stz] = (opcode - 81) & 0xff;
+                                this.levelTileUnderlayIds[level][stx][stz] = ((opcode - 81) << 24) >> 24;
                             }
                         }
                     } else {
@@ -886,7 +886,7 @@ export default class World {
         }
         bitset |= 0;
 
-        const info: number = ((angle << 6) + shape) & 0xff;
+        const info: number = ((((angle << 6) + shape) | 0) << 24) >> 24;
 
         if (shape === LocShape.GROUND_DECOR) {
             if (!World.lowMemory || loc.active || loc.forcedecor) {
@@ -927,7 +927,7 @@ export default class World {
                             }
 
                             if (shade > this.levelShademap[level][x + dx][z + dz]) {
-                                this.levelShademap[level][x + dx][z + dz] = shade & 0xff;
+                                this.levelShademap[level][x + dx][z + dz] = (shade << 24) >> 24;
                             }
                         }
                     }

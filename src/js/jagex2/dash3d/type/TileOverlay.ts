@@ -1,9 +1,9 @@
 export default class TileOverlay {
-    static tmpScreenX: Int32Array = new Int32Array(6);
-    static tmpScreenY: Int32Array = new Int32Array(6);
-    static tmpViewspaceX: Int32Array = new Int32Array(6);
-    static tmpViewspaceY: Int32Array = new Int32Array(6);
-    static tmpViewspaceZ: Int32Array = new Int32Array(6);
+    static readonly tmpScreenX: Int32Array = new Int32Array(6);
+    static readonly tmpScreenY: Int32Array = new Int32Array(6);
+    static readonly tmpViewspaceX: Int32Array = new Int32Array(6);
+    static readonly tmpViewspaceY: Int32Array = new Int32Array(6);
+    static readonly tmpViewspaceZ: Int32Array = new Int32Array(6);
 
     // prettier-ignore
     private static readonly SHAPE_POINTS: Int32Array[] = [
