@@ -109,7 +109,11 @@ export default class PixFont extends Hashable {
         return font;
     };
 
-    draw = (x: number, y: number, str: string, color: number): void => {
+    drawString = (x: number, y: number, str: string | null, color: number): void => {
+        if (!str) {
+            return;
+        }
+
         x |= 0;
         y |= 0;
 
@@ -169,26 +173,6 @@ export default class PixFont extends Hashable {
         return w;
     };
 
-    drawString = (x: number, y: number, str: string | null, color: number): void => {
-        if (!str) {
-            return;
-        }
-
-        x |= 0;
-        y |= 0;
-
-        const offY: number = y - this.fontHeight;
-
-        for (let i: number = 0; i < str.length; i++) {
-            const c: number = PixFont.CHARSET[str.charCodeAt(i)];
-            if (c !== 94) {
-                this.drawChar(this.pixels[c], x + this.clipX[c], offY + this.clipY[c], this.charWidth[c], this.charHeight[c], color);
-            }
-
-            x += this.charSpace[c];
-        }
-    };
-
     drawStringTaggableCenter = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
         x |= 0;
         y |= 0;
@@ -200,7 +184,7 @@ export default class PixFont extends Hashable {
         x |= 0;
         y |= 0;
 
-        this.draw(x - this.stringWidth(str) / 2, y, str, color);
+        this.drawString(x - this.stringWidth(str) / 2, y, str, color);
     };
 
     drawStringTooltip = (x: number, y: number, str: string, color: number, shadowed: boolean, seed: number): void => {
@@ -233,14 +217,32 @@ export default class PixFont extends Hashable {
         }
     };
 
-    drawRight = (x: number, y: number, str: string, color: number, shadowed: boolean = true): void => {
+    drawStringRight = (x: number, y: number, str: string, color: number, shadowed: boolean = true): void => {
         x |= 0;
         y |= 0;
 
         if (shadowed) {
-            this.draw(x - this.stringWidth(str) + 1, y + 1, str, Colors.BLACK);
+            this.drawString(x - this.stringWidth(str) + 1, y + 1, str, Colors.BLACK);
         }
-        this.draw(x - this.stringWidth(str), y, str, color);
+        this.drawString(x - this.stringWidth(str), y, str, color);
+    };
+
+    drawCenteredWave = (x: number, y: number, str: string, color: number, phase: number): void => {
+        x |= 0;
+        y |= 0;
+
+        x -= (this.stringWidth(str) / 2) | 0;
+        const offY: number = y - this.fontHeight;
+
+        for (let i: number = 0; i < str.length; i++) {
+            const c: number = PixFont.CHARSET[str.charCodeAt(i)];
+
+            if (c != 94) {
+                this.drawChar(this.pixels[c], x + this.clipX[c], offY + this.clipY[c] + ((Math.sin(i / 2.0 + phase / 5.0) * 5.0) | 0), this.charWidth[c], this.charHeight[c], color);
+            }
+
+            x += this.charSpace[c];
+        }
     };
 
     drawChar = (data: Int8Array, x: number, y: number, w: number, h: number, color: number): void => {

@@ -132,7 +132,7 @@ export default class ClientStream {
     };
 
     private onmessage = (event: MessageEvent): void => {
-        console.log('connection message!');
+        // console.log('connection message!');
         const data: Int8Array = new Int8Array(event.data);
         this.remaining += data.length;
         this.queue.push(data);

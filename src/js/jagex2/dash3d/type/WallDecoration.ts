@@ -7,7 +7,7 @@ export default class WallDecoration {
     z: number;
     readonly type: number;
     readonly angle: number;
-    readonly model: Model;
+    model: Model;
     readonly bitset: number;
     readonly info: number; // byte
 

@@ -246,28 +246,28 @@ export default class Pix8 extends Hashable {
         for (let y: number = -h; y < 0; y++) {
             for (let x: number = qw; x < 0; x++) {
                 let palIndex: number = src[srcOff++];
-                if (palIndex == 0) {
+                if (palIndex === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = this.palette[palIndex & 0xff];
                 }
 
                 palIndex = src[srcOff++];
-                if (palIndex == 0) {
+                if (palIndex === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = this.palette[palIndex & 0xff];
                 }
 
                 palIndex = src[srcOff++];
-                if (palIndex == 0) {
+                if (palIndex === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = this.palette[palIndex & 0xff];
                 }
 
                 palIndex = src[srcOff++];
-                if (palIndex == 0) {
+                if (palIndex === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = this.palette[palIndex & 0xff];
@@ -276,7 +276,7 @@ export default class Pix8 extends Hashable {
 
             for (let x: number = w; x < 0; x++) {
                 const palIndex: number = src[srcOff++];
-                if (palIndex == 0) {
+                if (palIndex === 0) {
                     dstOff++;
                 } else {
                     dst[dstOff++] = this.palette[palIndex & 0xff];

@@ -52,19 +52,19 @@ export default class ProjectileEntity extends Entity {
             const dz: number = dstZ - this.srcZ;
             const d: number = Math.sqrt(dx * dx + dz * dz);
 
-            this.x = this.srcX + Math.trunc((dx * this.arc) / d);
-            this.z = this.srcZ + Math.trunc((dz * this.arc) / d);
+            this.x = this.srcX + (dx * this.arc) / d;
+            this.z = this.srcZ + (dz * this.arc) / d;
             this.y = this.srcY;
         }
 
         const dt: number = this.lastCycle + 1 - cycle;
-        this.velocityX = Math.trunc((dstX - this.x) / dt);
-        this.velocityZ = Math.trunc((dstZ - this.z) / dt);
+        this.velocityX = (dstX - this.x) / dt;
+        this.velocityZ = (dstZ - this.z) / dt;
         this.velocity = Math.sqrt(this.velocityX * this.velocityX + this.velocityZ * this.velocityZ);
         if (!this.mobile) {
             this.velocityY = -this.velocity * Math.tan(this.peakPitch * 0.02454369);
         }
-        this.accelerationY = Math.trunc(((dstY - this.y - this.velocityY * dt) * 2.0) / (dt * dt));
+        this.accelerationY = ((dstY - this.y - this.velocityY * dt) * 2.0) / (dt * dt);
     };
 
     update = (delta: number): void => {
@@ -73,8 +73,8 @@ export default class ProjectileEntity extends Entity {
         this.z += this.velocityZ * delta;
         this.y += this.velocityY * delta + this.accelerationY * 0.5 * delta * delta;
         this.velocityY += this.accelerationY * delta;
-        this.yaw = Math.trunc((Math.atan2(this.velocityX, this.velocityZ) * 325.949 + 1024) & 0x7ff);
-        this.pitch = Math.trunc((Math.atan2(this.velocityY, this.velocity) * 325.949) & 0x7ff);
+        this.yaw = ((Math.atan2(this.velocityX, this.velocityZ) * 325.949 + 1024) | 0) & 0x7ff;
+        this.pitch = ((Math.atan2(this.velocityY, this.velocity) * 325.949) | 0) & 0x7ff;
 
         if (!this.spotanim.seq || !this.spotanim.seq.delay) {
             return;

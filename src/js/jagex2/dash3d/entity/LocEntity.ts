@@ -9,8 +9,8 @@ export default class LocEntity extends Linkable {
     readonly heightmapNW: number;
     readonly index: number;
     readonly seq: SeqType;
-    readonly seqFrame: number;
-    readonly seqCycle: number;
+    seqFrame: number;
+    seqCycle: number;
 
     constructor(index: number, heightmapSW: number, heightmapSE: number, heightmapNE: number, heightmapNW: number, seq: SeqType, randomFrame: boolean) {
         super();

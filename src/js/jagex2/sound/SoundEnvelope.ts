@@ -6,8 +6,8 @@ export default class SoundEnvelope {
     form: number = 0;
 
     private length: number = 0;
-    private shapeDelta: Uint16Array | null = null;
-    private shapePeak: Uint16Array | null = null;
+    private shapeDelta: Int32Array | null = null;
+    private shapePeak: Int32Array | null = null;
     private threshold: number = 0;
     private position: number = 0;
     private delta: number = 0;
@@ -19,8 +19,8 @@ export default class SoundEnvelope {
         this.start = dat.g4;
         this.end = dat.g4;
         this.length = dat.g1;
-        this.shapeDelta = new Uint16Array(this.length);
-        this.shapePeak = new Uint16Array(this.length);
+        this.shapeDelta = new Int32Array(this.length);
+        this.shapePeak = new Int32Array(this.length);
 
         for (let i: number = 0; i < this.length; i++) {
             this.shapeDelta[i] = dat.g2;
@@ -44,9 +44,9 @@ export default class SoundEnvelope {
                 this.position = this.length - 1;
             }
 
-            this.threshold = Math.trunc(this.shapeDelta[this.position] / 65536.0) * delta;
+            this.threshold = ((this.shapeDelta[this.position] / 65536.0) | 0) * delta;
             if (this.threshold > this.ticks) {
-                this.delta = Math.trunc(((this.shapePeak[this.position] << 15) - this.amplitude) / (this.threshold - this.ticks));
+                this.delta = (((this.shapePeak[this.position] << 15) - this.amplitude) / (this.threshold - this.ticks)) | 0;
             }
         }
 

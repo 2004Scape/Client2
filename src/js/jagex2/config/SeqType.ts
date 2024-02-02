@@ -14,7 +14,7 @@ export default class SeqType extends ConfigType {
             this.instances[i] = new SeqType();
             this.instances[i].decodeType(i, dat);
 
-            if (this.instances[i].frameCount == 0) {
+            if (this.instances[i].frameCount === 0) {
                 this.instances[i].frameCount = 1;
 
                 this.instances[i].frames = new Int16Array(1);

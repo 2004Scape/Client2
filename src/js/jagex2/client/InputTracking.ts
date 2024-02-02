@@ -46,7 +46,7 @@ export default class InputTracking {
         }
         this.trackedCount++;
         const now: number = Date.now();
-        let delta: number = Math.trunc((now - this.lastTime) / 10);
+        let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
         }
@@ -67,7 +67,7 @@ export default class InputTracking {
         }
         this.trackedCount++;
         const now: number = Date.now();
-        let delta: number = Math.trunc((now - this.lastTime) / 10);
+        let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
         }
@@ -90,7 +90,7 @@ export default class InputTracking {
             this.lastMoveTime = now;
             this.trackedCount++;
 
-            let delta: number = Math.trunc((now - this.lastTime) / 10);
+            let delta: number = ((now - this.lastTime) / 10) | 0;
             if (delta > 250) {
                 delta = 250;
             }
@@ -125,7 +125,7 @@ export default class InputTracking {
         }
         this.trackedCount++;
         const now: number = Date.now();
-        let delta: number = Math.trunc((now - this.lastTime) / 10);
+        let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
         }
@@ -153,7 +153,7 @@ export default class InputTracking {
         }
         this.trackedCount++;
         const now: number = Date.now();
-        let delta: number = Math.trunc((now - this.lastTime) / 10);
+        let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
         }
@@ -181,7 +181,7 @@ export default class InputTracking {
         }
         this.trackedCount++;
         const now: number = Date.now();
-        let delta: number = Math.trunc((now - this.lastTime) / 10);
+        let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
         }
@@ -197,7 +197,7 @@ export default class InputTracking {
         }
         this.trackedCount++;
         const now: number = Date.now();
-        let delta: number = Math.trunc((now - this.lastTime) / 10);
+        let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
         }
@@ -213,7 +213,7 @@ export default class InputTracking {
         }
         this.trackedCount++;
         const now: number = Date.now();
-        let delta: number = Math.trunc((now - this.lastTime) / 10);
+        let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
         }
@@ -229,7 +229,7 @@ export default class InputTracking {
         }
         this.trackedCount++;
         const now: number = Date.now();
-        let delta: number = Math.trunc((now - this.lastTime) / 10);
+        let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
         }

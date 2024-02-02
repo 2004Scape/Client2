@@ -319,17 +319,17 @@ export default class ComType {
                 com.actionTarget = dat.g2;
             }
 
-            if (com.buttonType == ComType.BUTTON_OK || com.buttonType == ComType.BUTTON_TOGGLE || com.buttonType == ComType.BUTTON_SELECT || com.buttonType == ComType.BUTTON_CONTINUE) {
+            if (com.buttonType === ComType.BUTTON_OK || com.buttonType === ComType.BUTTON_TOGGLE || com.buttonType === ComType.BUTTON_SELECT || com.buttonType === ComType.BUTTON_CONTINUE) {
                 com.option = dat.gjstr;
 
-                if (com.option.length == 0) {
-                    if (com.buttonType == ComType.BUTTON_OK) {
+                if (com.option.length === 0) {
+                    if (com.buttonType === ComType.BUTTON_OK) {
                         com.option = 'Ok';
-                    } else if (com.buttonType == ComType.BUTTON_TOGGLE) {
+                    } else if (com.buttonType === ComType.BUTTON_TOGGLE) {
                         com.option = 'Select';
-                    } else if (com.buttonType == ComType.BUTTON_SELECT) {
+                    } else if (com.buttonType === ComType.BUTTON_SELECT) {
                         com.option = 'Select';
-                    } else if (com.buttonType == ComType.BUTTON_CONTINUE) {
+                    } else if (com.buttonType === ComType.BUTTON_CONTINUE) {
                         com.option = 'Continue';
                     }
                 }

@@ -133,11 +133,11 @@ export default class FloType extends ConfigType {
                 s = (max - min) / (2.0 - max - min);
             }
 
-            if (red == max) {
+            if (red === max) {
                 h = (green - blue) / (max - min);
-            } else if (green == max) {
+            } else if (green === max) {
                 h = (blue - red) / (max - min) + 2.0;
-            } else if (blue == max) {
+            } else if (blue === max) {
                 h = (red - green) / (max - min) + 4.0;
             }
         }

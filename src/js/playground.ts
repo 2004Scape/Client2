@@ -177,32 +177,32 @@ class Playground extends GameShell {
 
         // debug
         if (this.fontBold12) {
-            this.fontBold12.drawRight(this.width, this.fontBold12.fontHeight, `FPS: ${this.fps}`, Colors.YELLOW);
-            this.fontBold12.drawRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, Colors.YELLOW);
+            this.fontBold12.drawStringRight(this.width, this.fontBold12.fontHeight, `FPS: ${this.fps}`, Colors.YELLOW);
+            this.fontBold12.drawStringRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, Colors.YELLOW);
 
             // controls
             let leftY: number = this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, `Model: ${this.model.id}`, Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, `Model: ${this.model.id}`, Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'Controls:', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, 'Controls:', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'r - reset camera and model rotation + movement speed', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, 'r - reset camera and model rotation + movement speed', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, '1 and 2 - change model', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, '1 and 2 - change model', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, '[ and ] - adjust movement speed', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, '[ and ] - adjust movement speed', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'left and right - adjust model yaw', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, 'left and right - adjust model yaw', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'up and down - adjust model pitch', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, 'up and down - adjust model pitch', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, '. and / - adjust model roll', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, '. and / - adjust model roll', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'w and s - move camera along z axis', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, 'w and s - move camera along z axis', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'a and d - move camera along x axis', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, 'a and d - move camera along x axis', Colors.YELLOW);
             leftY += this.fontBold12.fontHeight;
-            this.fontBold12.draw(0, leftY, 'q and e - move camera along y axis', Colors.YELLOW);
+            this.fontBold12.drawString(0, leftY, 'q and e - move camera along y axis', Colors.YELLOW);
         }
 
         this.drawArea?.draw(0, 0);

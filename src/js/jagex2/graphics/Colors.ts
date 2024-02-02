@@ -26,4 +26,6 @@ export default class Colors {
     static readonly SCROLLBAR_GRIP_LOWLIGHT: number = 0x332d25; // 3353893
     static readonly TRADE_MESSAGE: number = 0x800080; // 8388736
     static readonly DUEL_MESSAGE: number = 0xcbb789; // 13350793
+
+    static readonly CHAT_COLORS: Int32Array = Int32Array.of(Colors.YELLOW, Colors.RED, Colors.GREEN, Colors.CYAN, Colors.MAGENTA, Colors.WHITE);
 }

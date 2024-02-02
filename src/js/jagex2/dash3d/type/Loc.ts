@@ -7,7 +7,7 @@ export default class Loc {
     readonly y: number;
     readonly x: number;
     readonly z: number;
-    readonly model: Model | null;
+    model: Model | null;
     readonly entity: Entity | null;
     readonly yaw: number;
     readonly minSceneTileX: number;

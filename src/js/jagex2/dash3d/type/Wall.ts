@@ -7,8 +7,8 @@ export default class Wall {
     readonly z: number;
     readonly typeA: number;
     readonly typeB: number;
-    readonly modelA: Model | null;
-    readonly modelB: Model | null;
+    modelA: Model | null;
+    modelB: Model | null;
     readonly bitset: number;
     readonly info: number; // byte
 

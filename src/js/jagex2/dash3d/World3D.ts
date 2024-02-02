@@ -15,6 +15,7 @@ import Draw2D from '../graphics/Draw2D';
 import TileOverlay from './type/TileOverlay';
 import TileOverlayShape from './type/TileOverlayShape';
 import LocAngle from './LocAngle';
+import LocEntity from './entity/LocEntity';
 
 export default class World3D {
     private static readonly visibilityMatrix: boolean[][][][] = new Array(8).fill(false).map((): boolean[][][] => new Array(32).fill(false).map((): boolean[][] => new Array(51).fill(false).map((): boolean[] => new Array(51).fill(false))));
@@ -490,6 +491,79 @@ export default class World3D {
         decor.z = sz + ((((decor.z - sz) * offset) / 16) | 0);
     };
 
+    setWallDecorationModel = (level: number, x: number, z: number, model: Model | null): void => {
+        if (!model) {
+            return;
+        }
+
+        const tile: Tile | null = this.levelTiles[level][x][z];
+        if (!tile) {
+            return;
+        }
+
+        const decor: WallDecoration | null = tile.wallDecoration;
+        if (!decor) {
+            return;
+        }
+
+        decor.model = model;
+    };
+
+    setGroundDecorationModel = (level: number, x: number, z: number, model: Model | null): void => {
+        if (!model) {
+            return;
+        }
+
+        const tile: Tile | null = this.levelTiles[level][x][z];
+        if (!tile) {
+            return;
+        }
+
+        const decor: GroundDecoration | null = tile.groundDecoration;
+        if (!decor) {
+            return;
+        }
+
+        decor.model = model;
+    };
+
+    setWallModel = (level: number, x: number, z: number, model: Model | null): void => {
+        if (!model) {
+            return;
+        }
+
+        const tile: Tile | null = this.levelTiles[level][x][z];
+        if (!tile) {
+            return;
+        }
+
+        const wall: Wall | null = tile.wall;
+        if (!wall) {
+            return;
+        }
+
+        wall.modelA = model;
+    };
+
+    setWallModels = (x: number, z: number, level: number, modelA: Model | null, modelB: Model | null): void => {
+        if (!modelA) {
+            return;
+        }
+
+        const tile: Tile | null = this.levelTiles[level][x][z];
+        if (!tile) {
+            return;
+        }
+
+        const wall: Wall | null = tile.wall;
+        if (!wall) {
+            return;
+        }
+
+        wall.modelA = modelA;
+        wall.modelB = modelB;
+    };
+
     addLoc = (level: number, tileX: number, tileZ: number, y: number, model: Model | null, entity: Entity | null, bitset: number, info: number, width: number, length: number, yaw: number): boolean => {
         if (!model && !entity) {
             return true;
@@ -542,6 +616,25 @@ export default class World3D {
             const loc: Loc | null = tile.locs[l];
             if (loc && ((loc.bitset >> 29) & 0x3) === 2 && loc.minSceneTileX === x && loc.minSceneTileZ === z) {
                 this.removeLoc2(loc);
+                return;
+            }
+        }
+    };
+
+    setLocModel = (level: number, x: number, z: number, model: Model | null): void => {
+        if (!model) {
+            return;
+        }
+
+        const tile: Tile | null = this.levelTiles[level][x][z];
+        if (!tile) {
+            return;
+        }
+
+        for (let i: number = 0; i < tile.locCount; i++) {
+            const loc: Loc | null = tile.locs[i];
+            if (loc && ((loc.bitset >> 29) & 0x3) === 2) {
+                loc.model = model;
                 return;
             }
         }

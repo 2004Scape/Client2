@@ -246,21 +246,21 @@ export default class Draw3D extends Draw2D {
     static fillGouraudTriangle = (xA: number, xB: number, xC: number, yA: number, yB: number, yC: number, colorA: number, colorB: number, colorC: number): void => {
         let xStepAB: number = 0;
         let colorStepAB: number = 0;
-        if (yB != yA) {
+        if (yB !== yA) {
             xStepAB = (((xB - xA) << 16) / (yB - yA)) | 0;
             colorStepAB = (((colorB - colorA) << 15) / (yB - yA)) | 0;
         }
 
         let xStepBC: number = 0;
         let colorStepBC: number = 0;
-        if (yC != yB) {
+        if (yC !== yB) {
             xStepBC = (((xC - xB) << 16) / (yC - yB)) | 0;
             colorStepBC = (((colorC - colorB) << 15) / (yC - yB)) | 0;
         }
 
         let xStepAC: number = 0;
         let colorStepAC: number = 0;
-        if (yC != yA) {
+        if (yC !== yA) {
             xStepAC = (((xA - xC) << 16) / (yA - yC)) | 0;
             colorStepAC = (((colorA - colorC) << 15) / (yA - yC)) | 0;
         }
@@ -290,7 +290,7 @@ export default class Draw3D extends Draw2D {
                         colorB -= colorStepBC * yB;
                         yB = 0;
                     }
-                    if ((yA != yB && xStepAC < xStepAB) || (yA == yB && xStepAC > xStepBC)) {
+                    if ((yA !== yB && xStepAC < xStepAB) || (yA === yB && xStepAC > xStepBC)) {
                         yC -= yB;
                         yB -= yA;
                         yA = Draw3D.lineOffset[yA];
@@ -366,7 +366,7 @@ export default class Draw3D extends Draw2D {
                         colorC -= colorStepBC * yC;
                         yC = 0;
                     }
-                    if ((yA != yC && xStepAC < xStepAB) || (yA == yC && xStepBC > xStepAB)) {
+                    if ((yA !== yC && xStepAC < xStepAB) || (yA === yC && xStepBC > xStepAB)) {
                         yB -= yC;
                         yC -= yA;
                         yA = Draw3D.lineOffset[yA];
@@ -452,7 +452,7 @@ export default class Draw3D extends Draw2D {
                         colorC -= colorStepAC * yC;
                         yC = 0;
                     }
-                    if ((yB != yC && xStepAB < xStepBC) || (yB == yC && xStepAB > xStepAC)) {
+                    if ((yB !== yC && xStepAB < xStepBC) || (yB === yC && xStepAB > xStepAC)) {
                         yA -= yC;
                         yC -= yB;
                         yB = Draw3D.lineOffset[yB];
@@ -780,7 +780,7 @@ export default class Draw3D extends Draw2D {
                 return;
             }
 
-            if (Draw3D.alpha == 0) {
+            if (Draw3D.alpha === 0) {
                 // eslint-disable-next-line no-constant-condition
                 while (true) {
                     length--;
@@ -846,7 +846,7 @@ export default class Draw3D extends Draw2D {
             }
             offset += x0;
             length = x1 - x0;
-            if (Draw3D.alpha == 0) {
+            if (Draw3D.alpha === 0) {
                 do {
                     dst[offset++] = Draw3D.palette[color0 >> 8];
                     color0 += colorStep;
