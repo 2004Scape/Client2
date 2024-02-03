@@ -2,11 +2,11 @@ export default class JavaRandom {
     private seed: bigint;
 
     constructor(seed: bigint) {
-        this.seed = (seed ^ BigInt(0x5deece66d)) & BigInt((BigInt(1) << BigInt(48)) - BigInt(1));
+        this.seed = (seed ^ BigInt(0x5deece66d)) & BigInt((1n << 48n) - 1n);
     }
 
     setSeed = (seed: bigint): void => {
-        this.seed = (seed ^ BigInt(0x5deece66d)) & BigInt((BigInt(1) << BigInt(48)) - BigInt(1));
+        this.seed = (seed ^ BigInt(0x5deece66d)) & BigInt((1n << 48n) - 1n);
     };
 
     nextInt = (): number => {
@@ -14,7 +14,7 @@ export default class JavaRandom {
     };
 
     next = (bits: number): number => {
-        this.seed = (this.seed * BigInt(0x5deece66d) + BigInt(0xb)) & BigInt((BigInt(1) << BigInt(48)) - BigInt(1));
+        this.seed = (this.seed * BigInt(0x5deece66d) + BigInt(0xb)) & BigInt((1n << 48n) - 1n);
         return Number(this.seed) >>> (48 - bits);
     };
 }

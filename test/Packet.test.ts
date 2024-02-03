@@ -89,9 +89,9 @@ describe('Packet', (): void => {
     describe('test 8', (): void => {
         test('unsigned', (): void => {
             const expected: Packet = Packet.alloc(4);
-            expected.p8(BigInt(900719925474099));
+            expected.p8(900719925474099n);
             const result: Packet = new Packet(expected.data);
-            expect(result.g8).toBe(BigInt(900719925474099));
+            expect(result.g8).toBe(900719925474099n);
         });
     });
 

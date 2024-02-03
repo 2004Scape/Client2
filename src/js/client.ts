@@ -1441,7 +1441,7 @@ class Client extends GameShell {
             await this.stream?.readBytes(this.in.data, 0, 8);
             this.in.pos = 0;
             this.serverSeed = this.in.g8;
-            const seed: Int32Array = new Int32Array([Math.floor(Math.random() * 99999999), Math.floor(Math.random() * 99999999), Number(this.serverSeed >> BigInt(32)), Number(this.serverSeed & BigInt(0xffffffff))]);
+            const seed: Int32Array = new Int32Array([Math.floor(Math.random() * 99999999), Math.floor(Math.random() * 99999999), Number(this.serverSeed >> 32n), Number(this.serverSeed & BigInt(0xffffffff))]);
             this.out.pos = 0;
             this.out.p1(10);
             this.out.p4(seed[0]);

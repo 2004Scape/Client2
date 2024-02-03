@@ -7,30 +7,30 @@ export const arraycopy = (src: Int32Array | Uint8Array, srcPos: number, dst: Int
 };
 
 export const bytesToBigInt = (bytes: Uint8Array): bigint => {
-    let result: bigint = BigInt(0);
+    let result: bigint = 0n;
     for (let index: number = 0; index < bytes.length; index++) {
-        result = (result << BigInt(8)) + BigInt(bytes[index]);
+        result = (result << 8n) + BigInt(bytes[index]);
     }
     return result;
 };
 
 export const bigIntToBytes = (bigInt: bigint): Uint8Array => {
     const byteArray: number[] = [];
-    while (bigInt > BigInt(0)) {
-        byteArray.unshift(Number(bigInt & BigInt(0xff)));
-        bigInt >>= BigInt(8);
+    while (bigInt > 0n) {
+        byteArray.unshift(Number(bigInt & 255n));
+        bigInt >>= 8n;
     }
     return new Uint8Array(byteArray);
 };
 
 export const bigIntModPow = (base: bigint, exponent: bigint, modulus: bigint): bigint => {
-    let result: bigint = BigInt(1);
-    while (exponent > BigInt(0)) {
-        if (exponent % BigInt(2) === BigInt(1)) {
+    let result: bigint = 1n;
+    while (exponent > 0n) {
+        if (exponent % 2n === 1n) {
             result = (result * base) % modulus;
         }
         base = (base * base) % modulus;
-        exponent >>= BigInt(1);
+        exponent >>= 1n;
     }
     return result;
 };
