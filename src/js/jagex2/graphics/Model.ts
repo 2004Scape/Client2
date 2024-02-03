@@ -1678,11 +1678,12 @@ export default class Model extends Hashable {
             }
         }
 
-        // try {
-        this.draw2(false, false, 0);
-        // } catch (err) {
-        //     console.error(err);
-        // }
+        try {
+            // try catch for example a model being drawn from 3d can crash like at baxtorian falls
+            this.draw2(false, false, 0);
+        } catch (err) {
+            /* empty */
+        }
     };
 
     // todo: better name, Java relies on overloads
@@ -1811,11 +1812,12 @@ export default class Model extends Hashable {
             }
         }
 
-        // try {
-        this.draw2(clipped, picking, bitset);
-        // } catch (err) {
-        //     console.error(err);
-        // }
+        try {
+            // try catch for example a model being drawn from 3d can crash like at baxtorian falls
+            this.draw2(clipped, picking, bitset);
+        } catch (err) {
+            /* empty */
+        }
     };
 
     // todo: better name, Java relies on overloads
