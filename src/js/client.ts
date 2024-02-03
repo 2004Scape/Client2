@@ -3862,7 +3862,7 @@ class Client extends GameShell {
                     this.addMessage(0, 'Unable to find ' + name, '');
                 }
             }
-        } else if (action === 450 && this.interactWithLoc(75, b, c, a)) {
+        } else if (action === 450 && this.interactWithLoc(ClientProt.OPLOCU, b, c, a)) {
             // OPLOCU
             this.out.p2(this.objInterface);
             this.out.p2(this.objSelectedSlot);
@@ -4001,7 +4001,7 @@ class Client extends GameShell {
             this.addMessage(0, examine, '');
         } else if (action === 285) {
             // OPLOC1
-            this.interactWithLoc(245, b, c, a);
+            this.interactWithLoc(ClientProt.OPLOC1, b, c, a);
         } else if (action === 881) {
             // OPHELDU
             this.out.p1isaac(ClientProt.OPHELDU);
@@ -4169,7 +4169,7 @@ class Client extends GameShell {
             }
         } else if (action === 55) {
             // OPLOCT
-            if (this.interactWithLoc(9, b, c, a)) {
+            if (this.interactWithLoc(ClientProt.OPLOCT, b, c, a)) {
                 this.out.p2(this.activeSpellId);
             }
         } else if (action === 224 || action === 993 || action === 99 || action === 746 || action === 877) {
@@ -4221,7 +4221,7 @@ class Client extends GameShell {
             }
         } else if (action === 504) {
             // OPLOC2
-            this.interactWithLoc(172, b, c, a);
+            this.interactWithLoc(ClientProt.OPLOC2, b, c, a);
         } else if (action === 930) {
             const com: ComType = ComType.instances[c];
             this.spellSelected = 1;
@@ -4326,7 +4326,7 @@ class Client extends GameShell {
             }
 
             // OPLOC4
-            this.interactWithLoc(97, b, c, a);
+            this.interactWithLoc(ClientProt.OPLOC4, b, c, a);
         } else if (action === 965) {
             if (this.localPlayer) {
                 const success: boolean = this.tryMove(this.localPlayer.pathTileX[0], this.localPlayer.pathTileZ[0], b, c, 2, 0, 0, 0, 0, 0, false);
@@ -4354,10 +4354,10 @@ class Client extends GameShell {
             }
 
             // OPLOC5
-            this.interactWithLoc(116, b, c, a);
+            this.interactWithLoc(ClientProt.OPLOC5, b, c, a);
         } else if (action === 364) {
             // OPLOC3
-            this.interactWithLoc(96, b, c, a);
+            this.interactWithLoc(ClientProt.OPLOC3, b, c, a);
         } else if (action === 1102) {
             // obj examine
             const obj: ObjType = ObjType.get(a);
