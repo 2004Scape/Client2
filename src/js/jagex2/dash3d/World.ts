@@ -12,6 +12,7 @@ import LocShape from './LocShape';
 import LocAngle from './LocAngle';
 import Colors from '../graphics/Colors';
 import TileOverlayShape from './type/TileOverlayShape';
+import {Int32Array2d, Int32Array3d, Uint8Array3d} from '../util/Arrays';
 
 // noinspection JSSuspiciousNameCombination,DuplicatedCode
 export default class World {
@@ -275,14 +276,14 @@ export default class World {
         this.levelHeightmap = levelHeightmap;
         this.levelTileFlags = levelTileFlags;
 
-        this.levelTileUnderlayIds = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ)));
-        this.levelTileOverlayIds = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ)));
-        this.levelTileOverlayShape = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ)));
-        this.levelTileOverlayRotation = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ)));
+        this.levelTileUnderlayIds = new Uint8Array3d(CollisionMap.LEVELS, maxTileX, maxTileZ);
+        this.levelTileOverlayIds = new Uint8Array3d(CollisionMap.LEVELS, maxTileX, maxTileZ);
+        this.levelTileOverlayShape = new Uint8Array3d(CollisionMap.LEVELS, maxTileX, maxTileZ);
+        this.levelTileOverlayRotation = new Uint8Array3d(CollisionMap.LEVELS, maxTileX, maxTileZ);
 
-        this.levelOccludemap = new Array(CollisionMap.LEVELS).fill(null).map((): Int32Array[] => new Array(maxTileX + 1).fill(null).map((): Int32Array => new Int32Array(maxTileZ + 1)));
-        this.levelShademap = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(maxTileX + 1).fill(null).map((): Uint8Array => new Uint8Array(maxTileZ + 1)));
-        this.levelLightmap = new Array(maxTileX + 1).fill(null).map((): Int32Array => new Int32Array(maxTileZ + 1));
+        this.levelOccludemap = new Int32Array3d(CollisionMap.LEVELS, maxTileX + 1, maxTileZ + 1);
+        this.levelShademap = new Uint8Array3d(CollisionMap.LEVELS, maxTileX + 1, maxTileZ + 1);
+        this.levelLightmap = new Int32Array2d(maxTileX + 1, maxTileZ + 1);
 
         this.blendChroma = new Int32Array(maxTileZ);
         this.blendSaturation = new Int32Array(maxTileZ);

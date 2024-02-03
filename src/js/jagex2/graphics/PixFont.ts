@@ -181,7 +181,11 @@ export default class PixFont extends Hashable {
         this.drawStringTaggable(x - this.stringWidth(str) / 2, y, str, color, shadowed);
     };
 
-    drawStringCenter = (x: number, y: number, str: string, color: number): void => {
+    drawStringCenter = (x: number, y: number, str: string | null, color: number): void => {
+        if (!str) {
+            return;
+        }
+
         x |= 0;
         y |= 0;
 
@@ -228,7 +232,11 @@ export default class PixFont extends Hashable {
         this.drawString(x - this.stringWidth(str), y, str, color);
     };
 
-    drawCenteredWave = (x: number, y: number, str: string, color: number, phase: number): void => {
+    drawCenteredWave = (x: number, y: number, str: string | null, color: number, phase: number): void => {
+        if (!str) {
+            return;
+        }
+
         x |= 0;
         y |= 0;
 

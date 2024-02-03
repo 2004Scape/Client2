@@ -1,5 +1,6 @@
 import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
+import {TypedArray1d} from '../util/Arrays';
 
 export default class SeqBase {
     static instances: SeqBase[] = [];
@@ -17,17 +18,18 @@ export default class SeqBase {
             const length: number = head.g1;
 
             const transformTypes: Uint8Array = new Uint8Array(length);
-            const groupLabels: Uint8Array[] = new Array(length).fill(null);
+            const groupLabels: (Uint8Array | null)[] = new TypedArray1d(length, null);
 
             for (let j: number = 0; j < length; j++) {
                 transformTypes[j] = type.g1;
 
                 const groupCount: number = label.g1;
-                groupLabels[j] = new Uint8Array(groupCount);
+                const labels: Uint8Array = new Uint8Array(groupCount);
 
                 for (let k: number = 0; k < groupCount; k++) {
-                    groupLabels[j][k] = label.g1;
+                    labels[k] = label.g1;
                 }
+                groupLabels[j] = labels;
             }
 
             this.instances[id] = new SeqBase();
@@ -41,5 +43,5 @@ export default class SeqBase {
 
     length: number = 0;
     types: Uint8Array | null = null;
-    labels: Uint8Array[] | null = null;
+    labels: (Uint8Array | null)[] | null = null;
 }

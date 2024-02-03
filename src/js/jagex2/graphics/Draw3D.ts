@@ -1,6 +1,7 @@
 import Draw2D from './Draw2D';
 import Pix8 from './Pix8';
 import Jagfile from '../io/Jagfile';
+import {Int32Array2d, TypedArray1d} from '../util/Arrays';
 
 // noinspection JSSuspiciousNameCombination,DuplicatedCode
 export default class Draw3D extends Draw2D {
@@ -12,7 +13,7 @@ export default class Draw3D extends Draw2D {
     static cos: Int32Array = new Int32Array(2048);
     static palette: Int32Array = new Int32Array(65536);
 
-    static textures: Pix8[] = new Array(50).fill(null);
+    static textures: (Pix8 | null)[] = new TypedArray1d(50, null);
     static textureCount: number = 0;
 
     static lineOffset: Int32Array = new Int32Array();
@@ -24,14 +25,14 @@ export default class Draw3D extends Draw2D {
     static alpha: number = 0;
 
     static texelPool: (Int32Array | null)[] | null = null;
-    static activeTexels: (Int32Array | null)[] = new Array(50).fill(null);
+    static activeTexels: (Int32Array | null)[] = new TypedArray1d(50, null);
     static poolSize: number = 0;
     static cycle: number = 0;
     static textureCycle: Int32Array = new Int32Array(50);
-    static texturePalette: (Int32Array | null)[] = new Array(50).fill(null);
+    static texturePalette: (Int32Array | null)[] = new TypedArray1d(50, null);
 
     private static opaque: boolean = false;
-    private static textureTranslucent: boolean[] = new Array(50).fill(false);
+    private static textureTranslucent: boolean[] = new TypedArray1d(50, false);
     private static averageTextureRGB: Int32Array = new Int32Array(50);
 
     static {
@@ -109,10 +110,10 @@ export default class Draw3D extends Draw2D {
         for (let i: number = 0; i < 50; i++) {
             try {
                 this.textures[i] = Pix8.fromArchive(textures, i.toString());
-                if (this.lowMemory && this.textures[i].cropW === 128) {
-                    this.textures[i].shrink();
+                if (this.lowMemory && this.textures[i]?.cropW === 128) {
+                    this.textures[i]?.shrink();
                 } else {
-                    this.textures[i].crop();
+                    this.textures[i]?.crop();
                 }
                 this.textureCount++;
             } catch (err) {
@@ -213,15 +214,18 @@ export default class Draw3D extends Draw2D {
             }
         }
         for (let id: number = 0; id < 50; id++) {
-            if (this.textures[id]) {
-                const palette: Int32Array = this.textures[id].palette;
-                this.texturePalette[id] = new Int32Array(palette.length);
-                for (let i: number = 0; i < palette.length; i++) {
-                    const tId: Int32Array | null = this.texturePalette[id];
-                    if (tId) {
-                        tId[i] = this.setGamma(palette[i], randomBrightness);
-                    }
+            const texture: Pix8 | null = this.textures[id];
+            if (!texture) {
+                continue;
+            }
+            const palette: Int32Array = texture.palette;
+            this.texturePalette[id] = new Int32Array(palette.length);
+            for (let i: number = 0; i < palette.length; i++) {
+                const texturePalette: Int32Array | null = this.texturePalette[id];
+                if (!texturePalette) {
+                    continue;
                 }
+                texturePalette[i] = this.setGamma(palette[i], randomBrightness);
             }
         }
 
@@ -249,9 +253,9 @@ export default class Draw3D extends Draw2D {
         }
         this.poolSize = size;
         if (this.lowMemory) {
-            this.texelPool = new Array(this.poolSize).fill(null).map((): Int32Array => new Int32Array(16384));
+            this.texelPool = new Int32Array2d(size, 16384);
         } else {
-            this.texelPool = new Array(this.poolSize).fill(null).map((): Int32Array => new Int32Array(65536));
+            this.texelPool = new Int32Array2d(size, 65536);
         }
         this.activeTexels.fill(null);
     };
@@ -2546,43 +2550,47 @@ export default class Draw3D extends Draw2D {
         }
 
         this.activeTexels[id] = texels;
-        const texture: Pix8 = this.textures[id];
+        const texture: Pix8 | null = this.textures[id];
         const palette: Int32Array | null = this.texturePalette[id];
+
+        if (!texels || !texture || !palette) {
+            return null;
+        }
 
         if (this.lowMemory) {
             this.textureTranslucent[id] = false;
             for (let i: number = 0; i < 4096; i++) {
-                const rgb: number = (texels![i] = palette![texture.pixels[i]] & 0xf8f8ff);
+                const rgb: number = (texels[i] = palette[texture.pixels[i]] & 0xf8f8ff);
                 if (rgb === 0) {
                     this.textureTranslucent[id] = true;
                 }
-                texels![i + 4096] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
-                texels![i + 8192] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
-                texels![i + 12288] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
+                texels[i + 4096] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
+                texels[i + 8192] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
+                texels[i + 12288] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
             }
         } else {
             if (texture.width === 64) {
                 for (let y: number = 0; y < 128; y++) {
                     for (let x: number = 0; x < 128; x++) {
-                        texels![x + ((y << 7) | 0)] = palette![texture.pixels[(x >> 1) + (((y >> 1) << 6) | 0)]];
+                        texels[x + ((y << 7) | 0)] = palette[texture.pixels[(x >> 1) + (((y >> 1) << 6) | 0)]];
                     }
                 }
             } else {
                 for (let i: number = 0; i < 16384; i++) {
-                    texels![i] = palette![texture.pixels[i]];
+                    texels[i] = palette[texture.pixels[i]];
                 }
             }
 
             this.textureTranslucent[id] = false;
             for (let i: number = 0; i < 16384; i++) {
-                texels![i] &= 0xf8f8ff;
-                const rgb: number = texels![i];
+                texels[i] &= 0xf8f8ff;
+                const rgb: number = texels[i];
                 if (rgb === 0) {
                     this.textureTranslucent[id] = true;
                 }
-                texels![i + 16384] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
-                texels![i + 32768] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
-                texels![i + 49152] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
+                texels[i + 16384] = (rgb - (rgb >>> 3)) & 0xf8f8ff;
+                texels[i + 32768] = (rgb - (rgb >>> 2)) & 0xf8f8ff;
+                texels[i + 49152] = (rgb - (rgb >>> 2) - (rgb >>> 3)) & 0xf8f8ff;
             }
         }
 

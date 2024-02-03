@@ -7,6 +7,7 @@ import IdkType from '../../config/IdkType';
 import ObjType from '../../config/ObjType';
 import Packet from '../../io/Packet';
 import JString from '../../datastruct/JString';
+import {TypedArray1d} from '../../util/Arrays';
 
 export default class PlayerEntity extends PathingEntity {
     static readonly DESIGN_HAIR_COLOR: number[] = [9104, 10275, 7595, 3610, 7975, 8526, 918, 38802, 24466, 10145, 58654, 5027, 1457, 16565, 34991, 25486];
@@ -205,7 +206,7 @@ export default class PlayerEntity extends PathingEntity {
             return null;
         }
 
-        const models: (Model | null)[] = new Array(12).fill(null);
+        const models: (Model | null)[] = new TypedArray1d(12, null);
         let modelCount: number = 0;
         for (let part: number = 0; part < 12; part++) {
             const value: number = this.appearances[part];
@@ -274,7 +275,7 @@ export default class PlayerEntity extends PathingEntity {
 
         let model: Model | null = PlayerEntity.modelCache?.get(hashCode) as Model | null;
         if (!model) {
-            const models: (Model | null)[] = new Array(12).fill(null);
+            const models: (Model | null)[] = new TypedArray1d(12, null);
             let modelCount: number = 0;
 
             for (let part: number = 0; part < 12; part++) {

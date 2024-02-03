@@ -15,14 +15,14 @@ import Draw2D from '../graphics/Draw2D';
 import TileOverlay from './type/TileOverlay';
 import TileOverlayShape from './type/TileOverlayShape';
 import LocAngle from './LocAngle';
-import LocEntity from './entity/LocEntity';
+import {Int32Array3d, TypedArray1d, TypedArray2d, TypedArray3d, TypedArray4d} from '../util/Arrays';
 
 export default class World3D {
-    private static visibilityMatrix: boolean[][][][] = new Array(8).fill(false).map((): boolean[][][] => new Array(32).fill(false).map((): boolean[][] => new Array(51).fill(false).map((): boolean[] => new Array(51).fill(false))));
-    private static locBuffer: (Loc | null)[] = new Array(100).fill(null);
+    private static visibilityMatrix: boolean[][][][] = new TypedArray4d(8, 32, 51, 51, false);
+    private static locBuffer: (Loc | null)[] = new TypedArray1d(100, null);
     private static levelOccluderCount: Int32Array = new Int32Array(CollisionMap.LEVELS);
-    private static levelOccluders: (Occluder | null)[][] = new Array(CollisionMap.LEVELS).fill(null).map((): Occluder[] => new Array(500).fill(null));
-    private static activeOccluders: (Occluder | null)[] = new Array(500).fill(null);
+    private static levelOccluders: (Occluder | null)[][] = new TypedArray2d(CollisionMap.LEVELS, 500, null);
+    private static activeOccluders: (Occluder | null)[] = new TypedArray1d(500, null);
     private static drawTileQueue: LinkList = new LinkList();
 
     private static cycle: number = 0;
@@ -119,7 +119,7 @@ export default class World3D {
         this.viewportCenterX = (viewportWidth / 2) | 0;
         this.viewportCenterY = (viewportHeight / 2) | 0;
 
-        const matrix: boolean[][][][] = new Array(9).fill(false).map((): boolean[][][] => new Array(32).fill(false).map((): boolean[][] => new Array(53).fill(false).map((): boolean[] => new Array(53).fill(false))));
+        const matrix: boolean[][][][] = new TypedArray4d(9, 32, 53, 53, false);
         for (let pitch: number = 128; pitch <= 384; pitch += 32) {
             for (let yaw: number = 0; yaw < 2048; yaw += 64) {
                 this.sinEyePitch = Draw3D.sin[pitch];
@@ -238,10 +238,10 @@ export default class World3D {
         this.maxLevel = maxLevel;
         this.maxTileX = maxTileX;
         this.maxTileZ = maxTileZ;
-        this.levelTiles = new Array(maxLevel).fill(null).map((): Tile[][] => new Array(maxTileX).fill(null).map((): Tile[] => new Array(maxTileZ).fill(null)));
-        this.levelTileOcclusionCycles = new Array(maxLevel).fill(null).map((): Int32Array[] => new Array(maxTileX + 1).fill(null).map((): Int32Array => new Int32Array(maxTileZ + 1)));
+        this.levelTiles = new TypedArray3d(maxLevel, maxTileX, maxTileZ, null);
+        this.levelTileOcclusionCycles = new Int32Array3d(maxLevel, maxTileX + 1, maxTileZ + 1);
         this.levelHeightmaps = levelHeightmaps;
-        this.temporaryLocs = new Array(5000).fill(null);
+        this.temporaryLocs = new TypedArray1d(5000, null);
         this.mergeIndexA = new Int32Array(10000);
         this.mergeIndexB = new Int32Array(10000);
         this.reset();
@@ -853,9 +853,9 @@ export default class World3D {
 
         if (modelA.vertexNormal && modelA.vertexNormalOriginal) {
             for (let vertexA: number = 0; vertexA < modelA.vertexCount; vertexA++) {
-                const normalA: VertexNormal = modelA.vertexNormal[vertexA];
-                const originalNormalA: VertexNormal = modelA.vertexNormalOriginal[vertexA];
-                if (originalNormalA.w !== 0) {
+                const normalA: VertexNormal | null = modelA.vertexNormal[vertexA];
+                const originalNormalA: VertexNormal | null = modelA.vertexNormalOriginal[vertexA];
+                if (originalNormalA && originalNormalA.w !== 0) {
                     const y: number = modelA.vertexY[vertexA] - offsetY;
                     if (y > modelB.minY) {
                         continue;
@@ -873,21 +873,23 @@ export default class World3D {
 
                     if (modelB.vertexNormal && modelB.vertexNormalOriginal) {
                         for (let vertexB: number = 0; vertexB < vertexCountB; vertexB++) {
-                            const normalB: VertexNormal = modelB.vertexNormal[vertexB];
-                            const originalNormalB: VertexNormal = modelB.vertexNormalOriginal[vertexB];
-                            if (x !== vertexX[vertexB] || z !== modelB.vertexZ[vertexB] || y !== modelB.vertexY[vertexB] || originalNormalB.w === 0) {
+                            const normalB: VertexNormal | null = modelB.vertexNormal[vertexB];
+                            const originalNormalB: VertexNormal | null = modelB.vertexNormalOriginal[vertexB];
+                            if (x !== vertexX[vertexB] || z !== modelB.vertexZ[vertexB] || y !== modelB.vertexY[vertexB] || (originalNormalB && originalNormalB.w === 0)) {
                                 continue;
                             }
 
-                            normalA.x += originalNormalB.x;
-                            normalA.y += originalNormalB.y;
-                            normalA.z += originalNormalB.z;
-                            normalA.w += originalNormalB.w;
-                            normalB.x += originalNormalA.x;
-                            normalB.y += originalNormalA.y;
-                            normalB.z += originalNormalA.z;
-                            normalB.w += originalNormalA.w;
-                            merged++;
+                            if (normalA && normalB && originalNormalB) {
+                                normalA.x += originalNormalB.x;
+                                normalA.y += originalNormalB.y;
+                                normalA.z += originalNormalB.z;
+                                normalA.w += originalNormalB.w;
+                                normalB.x += originalNormalA.x;
+                                normalB.y += originalNormalA.y;
+                                normalB.z += originalNormalA.z;
+                                normalB.w += originalNormalA.w;
+                                merged++;
+                            }
                             this.mergeIndexA[vertexA] = this.tmpMergeIndex;
                             this.mergeIndexB[vertexB] = this.tmpMergeIndex;
                         }

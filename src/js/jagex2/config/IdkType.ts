@@ -2,6 +2,7 @@ import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
 import {ConfigType} from './ConfigType';
 import Model from '../graphics/Model';
+import {TypedArray1d} from '../util/Arrays';
 
 export default class IdkType extends ConfigType {
     static count: number = 0;
@@ -53,7 +54,7 @@ export default class IdkType extends ConfigType {
             return null;
         }
 
-        const models: (Model | null)[] = new Array(this.models.length).fill(null);
+        const models: (Model | null)[] = new TypedArray1d(this.models.length, null);
         for (let i: number = 0; i < this.models.length; i++) {
             models[i] = Model.model(this.models[i]);
         }
@@ -74,7 +75,7 @@ export default class IdkType extends ConfigType {
     getHeadModel = (): Model => {
         let count: number = 0;
 
-        const models: (Model | null)[] = new Array(5).fill(null);
+        const models: (Model | null)[] = new TypedArray1d(5, null);
         for (let i: number = 0; i < 5; i++) {
             if (this.heads[i] !== -1) {
                 models[count++] = Model.model(this.heads[i]);

@@ -7,6 +7,7 @@ import SeqFrame from './SeqFrame';
 import SeqBase from './SeqBase';
 
 import Hashable from '../datastruct/Hashable';
+import {Int32Array2d, TypedArray1d} from '../util/Arrays';
 
 class Metadata {
     vertexCount: number = 0;
@@ -67,14 +68,14 @@ type ModelType = {
     minDepth?: number;
     vertexLabel?: Int32Array | null;
     faceLabel?: Int32Array | null;
-    labelVertices?: Int32Array[] | null;
-    labelFaces?: Int32Array[] | null;
-    vertexNormal?: VertexNormal[] | null;
-    vertexNormalOriginal?: VertexNormal[] | null;
+    labelVertices?: (Int32Array | null)[] | null;
+    labelFaces?: (Int32Array | null)[] | null;
+    vertexNormal?: (VertexNormal | null)[] | null;
+    vertexNormalOriginal?: (VertexNormal | null)[] | null;
 };
 
 export default class Model extends Hashable {
-    static metadata: Metadata[] | null = null;
+    static metadata: (Metadata | null)[] | null = null;
 
     static head: Packet | null = null;
     static face1: Packet | null = null;
@@ -91,8 +92,8 @@ export default class Model extends Hashable {
     static vertex2: Packet | null = null;
     static axis: Packet | null = null;
 
-    static faceClippedX: boolean[] | null = new Array(4096).fill(false);
-    static faceNearClipped: boolean[] | null = new Array(4096).fill(false);
+    static faceClippedX: boolean[] | null = new TypedArray1d(4096, false);
+    static faceNearClipped: boolean[] | null = new TypedArray1d(4096, false);
 
     static vertexScreenX: Int32Array | null = new Int32Array(4096);
     static vertexScreenY: Int32Array | null = new Int32Array(4096);
@@ -102,9 +103,9 @@ export default class Model extends Hashable {
     static vertexViewSpaceZ: Int32Array | null = new Int32Array(4096);
 
     static tmpDepthFaceCount: Int32Array | null = new Int32Array(1500);
-    static tmpDepthFaces: Int32Array[] | null = new Array(1500).fill(null).map((): Int32Array => new Int32Array(512));
+    static tmpDepthFaces: Int32Array[] | null = new Int32Array2d(1500, 512);
     static tmpPriorityFaceCount: Int32Array | null = new Int32Array(12);
-    static tmpPriorityFaces: Int32Array[] | null = new Array(12).fill(null).map((): Int32Array => new Int32Array(2000));
+    static tmpPriorityFaces: Int32Array[] | null = new Int32Array2d(12, 2000);
     static tmpPriority10FaceDepth: Int32Array | null = new Int32Array(2000);
     static tmpPriority11FaceDepth: Int32Array | null = new Int32Array(2000);
     static tmpPriorityDepthSum: Int32Array | null = new Int32Array(12);
@@ -149,7 +150,7 @@ export default class Model extends Hashable {
             Model.vertex2.pos = 0;
 
             const count: number = Model.head.g2;
-            Model.metadata = new Array(count + 100).fill(null);
+            Model.metadata = new TypedArray1d(count + 100, null);
 
             let vertexTextureDataOffset: number = 0;
             let labelDataOffset: number = 0;
@@ -322,8 +323,8 @@ export default class Model extends Hashable {
         let faceColorB: Int32Array | null;
         let faceColorC: Int32Array | null;
         let faceInfo: Int32Array | null;
-        let vertexNormal: VertexNormal[] | null = null;
-        let vertexNormalOriginal: VertexNormal[] | null = null;
+        let vertexNormal: (VertexNormal | null)[] | null = null;
+        let vertexNormalOriginal: (VertexNormal | null)[] | null = null;
         if (copyFaces) {
             faceColorA = new Int32Array(faceCount);
             faceColorB = new Int32Array(faceCount);
@@ -351,15 +352,17 @@ export default class Model extends Hashable {
                 }
             }
 
-            vertexNormal = new Array(vertexCount).fill(null);
+            vertexNormal = new TypedArray1d(vertexCount, null);
             for (let v: number = 0; v < vertexCount; v++) {
                 const copy: VertexNormal = (vertexNormal[v] = new VertexNormal());
                 if (src.vertexNormal) {
-                    const original: VertexNormal = src.vertexNormal[v];
-                    copy.x = original.x;
-                    copy.y = original.y;
-                    copy.z = original.z;
-                    copy.w = original.w;
+                    const original: VertexNormal | null = src.vertexNormal[v];
+                    if (original) {
+                        copy.x = original.x;
+                        copy.y = original.y;
+                        copy.z = original.z;
+                        copy.w = original.w;
+                    }
                 }
             }
 
@@ -946,8 +949,8 @@ export default class Model extends Hashable {
             throw new Error('cant loading model metadata!!!!!');
         }
 
-        const meta: Metadata = Model.metadata[id];
-        if (typeof meta === 'undefined') {
+        const meta: Metadata | null = Model.metadata[id];
+        if (!meta) {
             console.log(`Error model:${id} not found!`);
             throw new Error('cant loading model metadata!!!!!');
         }
@@ -1177,11 +1180,11 @@ export default class Model extends Hashable {
 
     vertexLabel: Int32Array | null;
     faceLabel: Int32Array | null;
-    labelVertices: Int32Array[] | null;
-    labelFaces: Int32Array[] | null;
+    labelVertices: (Int32Array | null)[] | null;
+    labelFaces: (Int32Array | null)[] | null;
 
-    vertexNormal: VertexNormal[] | null;
-    vertexNormalOriginal: VertexNormal[] | null;
+    vertexNormal: (VertexNormal | null)[] | null;
+    vertexNormalOriginal: (VertexNormal | null)[] | null;
 
     // runtime
     objRaise: number = 0;
@@ -1277,7 +1280,7 @@ export default class Model extends Hashable {
 
     createLabelReferences = (): void => {
         if (this.vertexLabel) {
-            const labelVertexCount: number[] = new Array(256).fill(0);
+            const labelVertexCount: Int32Array = new Int32Array(256);
             let count: number = 0;
             for (let v: number = 0; v < this.vertexCount; v++) {
                 const label: number = this.vertexLabel[v];
@@ -1287,7 +1290,7 @@ export default class Model extends Hashable {
                     count = label;
                 }
             }
-            this.labelVertices = new Array(count + 1).fill(0);
+            this.labelVertices = new TypedArray1d(count + 1, null);
             for (let label: number = 0; label <= count; label++) {
                 this.labelVertices[label] = new Int32Array(labelVertexCount[label]);
                 labelVertexCount[label] = 0;
@@ -1295,13 +1298,17 @@ export default class Model extends Hashable {
             let v: number = 0;
             while (v < this.vertexCount) {
                 const label: number = this.vertexLabel[v];
-                this.labelVertices[label][labelVertexCount[label]++] = v++;
+                const verts: Int32Array | null = this.labelVertices[label];
+                if (!verts) {
+                    continue;
+                }
+                verts[labelVertexCount[label]++] = v++;
             }
             this.vertexLabel = null;
         }
 
         if (this.faceLabel) {
-            const labelFaceCount: number[] = new Array(256).fill(0);
+            const labelFaceCount: Int32Array = new Int32Array(256);
             let count: number = 0;
             for (let f: number = 0; f < this.faceCount; f++) {
                 const label: number = this.faceLabel[f];
@@ -1311,7 +1318,7 @@ export default class Model extends Hashable {
                     count = label;
                 }
             }
-            this.labelFaces = new Array(count + 1).fill(0);
+            this.labelFaces = new TypedArray1d(count + 1, null);
             for (let label: number = 0; label <= count; label++) {
                 this.labelFaces[label] = new Int32Array(labelFaceCount[label]);
                 labelFaceCount[label] = 0;
@@ -1319,7 +1326,11 @@ export default class Model extends Hashable {
             let face: number = 0;
             while (face < this.faceCount) {
                 const label: number = this.faceLabel[face];
-                this.labelFaces[label][labelFaceCount[label]++] = face++;
+                const faces: Int32Array | null = this.labelFaces[label];
+                if (!faces) {
+                    continue;
+                }
+                faces[labelFaceCount[label]++] = face++;
             }
             this.faceLabel = null;
         }
@@ -1473,7 +1484,7 @@ export default class Model extends Hashable {
         }
 
         if (!this.vertexNormal) {
-            this.vertexNormal = new Array(this.vertexCount).fill(null);
+            this.vertexNormal = new TypedArray1d(this.vertexCount, null);
 
             for (let v: number = 0; v < this.vertexCount; v++) {
                 this.vertexNormal[v] = new VertexNormal();
@@ -1513,23 +1524,29 @@ export default class Model extends Hashable {
             nz = ((nz * 256) / length) | 0;
 
             if (!this.faceInfo || (this.faceInfo[f] & 0x1) === 0) {
-                let n: VertexNormal = this.vertexNormal[a];
-                n.x += nx;
-                n.y += ny;
-                n.z += nz;
-                n.w++;
+                let n: VertexNormal | null = this.vertexNormal[a];
+                if (n) {
+                    n.x += nx;
+                    n.y += ny;
+                    n.z += nz;
+                    n.w++;
+                }
 
                 n = this.vertexNormal[b];
-                n.x += nx;
-                n.y += ny;
-                n.z += nz;
-                n.w++;
+                if (n) {
+                    n.x += nx;
+                    n.y += ny;
+                    n.z += nz;
+                    n.w++;
+                }
 
                 n = this.vertexNormal[c];
-                n.x += nx;
-                n.y += ny;
-                n.z += nz;
-                n.w++;
+                if (n) {
+                    n.x += nx;
+                    n.y += ny;
+                    n.z += nz;
+                    n.w++;
+                }
             } else {
                 const lightness: number = lightAmbient + (((lightSrcX * nx + lightSrcY * ny + lightSrcZ * nz) / (attenuation + ((attenuation / 2) | 0))) | 0);
                 if (this.faceColor) {
@@ -1541,16 +1558,18 @@ export default class Model extends Hashable {
         if (applyLighting) {
             this.applyLighting(lightAmbient, attenuation, lightSrcX, lightSrcY, lightSrcZ);
         } else {
-            this.vertexNormalOriginal = new Array(this.vertexCount).fill(null);
+            this.vertexNormalOriginal = new TypedArray1d(this.vertexCount, null);
 
             for (let v: number = 0; v < this.vertexCount; v++) {
-                const normal: VertexNormal = this.vertexNormal[v];
+                const normal: VertexNormal | null = this.vertexNormal[v];
                 const copy: VertexNormal = new VertexNormal();
 
-                copy.x = normal.x;
-                copy.y = normal.y;
-                copy.z = normal.z;
-                copy.w = normal.w;
+                if (normal) {
+                    copy.x = normal.x;
+                    copy.y = normal.y;
+                    copy.z = normal.z;
+                    copy.w = normal.w;
+                }
 
                 this.vertexNormalOriginal[v] = copy;
             }
@@ -1572,32 +1591,38 @@ export default class Model extends Hashable {
             if (!this.faceInfo && this.faceColor && this.vertexNormal && this.faceColorA && this.faceColorB && this.faceColorC) {
                 const color: number = this.faceColor[f];
 
-                let n: VertexNormal = this.vertexNormal[a];
-                let lightness: number = lightAmbient + (((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w)) | 0);
-                this.faceColorA[f] = Model.mulColorLightness(color, lightness, 0);
+                const va: VertexNormal | null = this.vertexNormal[a];
+                if (va) {
+                    this.faceColorA[f] = Model.mulColorLightness(color, lightAmbient + (((lightSrcX * va.x + lightSrcY * va.y + lightSrcZ * va.z) / (lightAttenuation * va.w)) | 0), 0);
+                }
 
-                n = this.vertexNormal[b];
-                lightness = lightAmbient + (((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w)) | 0);
-                this.faceColorB[f] = Model.mulColorLightness(color, lightness, 0);
+                const vb: VertexNormal | null = this.vertexNormal[b];
+                if (vb) {
+                    this.faceColorB[f] = Model.mulColorLightness(color, lightAmbient + (((lightSrcX * vb.x + lightSrcY * vb.y + lightSrcZ * vb.z) / (lightAttenuation * vb.w)) | 0), 0);
+                }
 
-                n = this.vertexNormal[c];
-                lightness = lightAmbient + (((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w)) | 0);
-                this.faceColorC[f] = Model.mulColorLightness(color, lightness, 0);
+                const vc: VertexNormal | null = this.vertexNormal[c];
+                if (vc) {
+                    this.faceColorC[f] = Model.mulColorLightness(color, lightAmbient + (((lightSrcX * vc.x + lightSrcY * vc.y + lightSrcZ * vc.z) / (lightAttenuation * vc.w)) | 0), 0);
+                }
             } else if (this.faceInfo && (this.faceInfo[f] & 0x1) === 0 && this.faceColor && this.vertexNormal && this.faceColorA && this.faceColorB && this.faceColorC) {
                 const color: number = this.faceColor[f];
                 const info: number = this.faceInfo[f];
 
-                let n: VertexNormal = this.vertexNormal[a];
-                let lightness: number = lightAmbient + (((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w)) | 0);
-                this.faceColorA[f] = Model.mulColorLightness(color, lightness, info);
+                const va: VertexNormal | null = this.vertexNormal[a];
+                if (va) {
+                    this.faceColorA[f] = Model.mulColorLightness(color, lightAmbient + (((lightSrcX * va.x + lightSrcY * va.y + lightSrcZ * va.z) / (lightAttenuation * va.w)) | 0), info);
+                }
 
-                n = this.vertexNormal[b];
-                lightness = lightAmbient + (((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w)) | 0);
-                this.faceColorB[f] = Model.mulColorLightness(color, lightness, info);
+                const vb: VertexNormal | null = this.vertexNormal[b];
+                if (vb) {
+                    this.faceColorB[f] = Model.mulColorLightness(color, lightAmbient + (((lightSrcX * vb.x + lightSrcY * vb.y + lightSrcZ * vb.z) / (lightAttenuation * vb.w)) | 0), info);
+                }
 
-                n = this.vertexNormal[c];
-                lightness = lightAmbient + (((lightSrcX * n.x + lightSrcY * n.y + lightSrcZ * n.z) / (lightAttenuation * n.w)) | 0);
-                this.faceColorC[f] = Model.mulColorLightness(color, lightness, info);
+                const vc: VertexNormal | null = this.vertexNormal[c];
+                if (vc) {
+                    this.faceColorC[f] = Model.mulColorLightness(color, lightAmbient + (((lightSrcX * vc.x + lightSrcY * vc.y + lightSrcZ * vc.z) / (lightAttenuation * vc.w)) | 0), info);
+                }
             }
         }
 
@@ -2448,7 +2473,11 @@ export default class Model extends Hashable {
         }
     };
 
-    private applyTransform2 = (x: number, y: number, z: number, labels: Uint8Array, type: number): void => {
+    private applyTransform2 = (x: number, y: number, z: number, labels: Uint8Array | null, type: number): void => {
+        if (!labels) {
+            return;
+        }
+
         const labelCount: number = labels.length;
 
         if (type === 0) {
@@ -2463,13 +2492,15 @@ export default class Model extends Hashable {
                 }
                 const label: number = labels[g];
                 if (label < this.labelVertices.length) {
-                    const vertices: Int32Array = this.labelVertices[label];
-                    for (let i: number = 0; i < vertices.length; i++) {
-                        const v: number = vertices[i];
-                        Model.baseX += this.vertexX[v];
-                        Model.baseY += this.vertexY[v];
-                        Model.baseZ += this.vertexZ[v];
-                        count++;
+                    const vertices: Int32Array | null = this.labelVertices[label];
+                    if (vertices) {
+                        for (let i: number = 0; i < vertices.length; i++) {
+                            const v: number = vertices[i];
+                            Model.baseX += this.vertexX[v];
+                            Model.baseY += this.vertexY[v];
+                            Model.baseZ += this.vertexZ[v];
+                            count++;
+                        }
                     }
                 }
             }
@@ -2490,12 +2521,14 @@ export default class Model extends Hashable {
                     continue;
                 }
 
-                const vertices: Int32Array = this.labelVertices[group];
-                for (let i: number = 0; i < vertices.length; i++) {
-                    const v: number = vertices[i];
-                    this.vertexX[v] += x;
-                    this.vertexY[v] += y;
-                    this.vertexZ[v] += z;
+                const vertices: Int32Array | null = this.labelVertices[group];
+                if (vertices) {
+                    for (let i: number = 0; i < vertices.length; i++) {
+                        const v: number = vertices[i];
+                        this.vertexX[v] += x;
+                        this.vertexY[v] += y;
+                        this.vertexZ[v] += z;
+                    }
                 }
             }
         } else if (type === 2) {
@@ -2505,47 +2538,49 @@ export default class Model extends Hashable {
                     continue;
                 }
 
-                const vertices: Int32Array = this.labelVertices[label];
-                for (let i: number = 0; i < vertices.length; i++) {
-                    const v: number = vertices[i];
-                    this.vertexX[v] -= Model.baseX;
-                    this.vertexY[v] -= Model.baseY;
-                    this.vertexZ[v] -= Model.baseZ;
+                const vertices: Int32Array | null = this.labelVertices[label];
+                if (vertices) {
+                    for (let i: number = 0; i < vertices.length; i++) {
+                        const v: number = vertices[i];
+                        this.vertexX[v] -= Model.baseX;
+                        this.vertexY[v] -= Model.baseY;
+                        this.vertexZ[v] -= Model.baseZ;
 
-                    const pitch: number = (x & 0xff) * 8;
-                    const yaw: number = (y & 0xff) * 8;
-                    const roll: number = (z & 0xff) * 8;
+                        const pitch: number = (x & 0xff) * 8;
+                        const yaw: number = (y & 0xff) * 8;
+                        const roll: number = (z & 0xff) * 8;
 
-                    let sin: number;
-                    let cos: number;
+                        let sin: number;
+                        let cos: number;
 
-                    if (roll !== 0) {
-                        sin = Draw3D.sin[roll];
-                        cos = Draw3D.cos[roll];
-                        const x_: number = (this.vertexY[v] * sin + this.vertexX[v] * cos) >> 16;
-                        this.vertexY[v] = (this.vertexY[v] * cos - this.vertexX[v] * sin) >> 16;
-                        this.vertexX[v] = x_;
+                        if (roll !== 0) {
+                            sin = Draw3D.sin[roll];
+                            cos = Draw3D.cos[roll];
+                            const x_: number = (this.vertexY[v] * sin + this.vertexX[v] * cos) >> 16;
+                            this.vertexY[v] = (this.vertexY[v] * cos - this.vertexX[v] * sin) >> 16;
+                            this.vertexX[v] = x_;
+                        }
+
+                        if (pitch !== 0) {
+                            sin = Draw3D.sin[pitch];
+                            cos = Draw3D.cos[pitch];
+                            const y_: number = (this.vertexY[v] * cos - this.vertexZ[v] * sin) >> 16;
+                            this.vertexZ[v] = (this.vertexY[v] * sin + this.vertexZ[v] * cos) >> 16;
+                            this.vertexY[v] = y_;
+                        }
+
+                        if (yaw !== 0) {
+                            sin = Draw3D.sin[yaw];
+                            cos = Draw3D.cos[yaw];
+                            const x_: number = (this.vertexZ[v] * sin + this.vertexX[v] * cos) >> 16;
+                            this.vertexZ[v] = (this.vertexZ[v] * cos - this.vertexX[v] * sin) >> 16;
+                            this.vertexX[v] = x_;
+                        }
+
+                        this.vertexX[v] += Model.baseX;
+                        this.vertexY[v] += Model.baseY;
+                        this.vertexZ[v] += Model.baseZ;
                     }
-
-                    if (pitch !== 0) {
-                        sin = Draw3D.sin[pitch];
-                        cos = Draw3D.cos[pitch];
-                        const y_: number = (this.vertexY[v] * cos - this.vertexZ[v] * sin) >> 16;
-                        this.vertexZ[v] = (this.vertexY[v] * sin + this.vertexZ[v] * cos) >> 16;
-                        this.vertexY[v] = y_;
-                    }
-
-                    if (yaw !== 0) {
-                        sin = Draw3D.sin[yaw];
-                        cos = Draw3D.cos[yaw];
-                        const x_: number = (this.vertexZ[v] * sin + this.vertexX[v] * cos) >> 16;
-                        this.vertexZ[v] = (this.vertexZ[v] * cos - this.vertexX[v] * sin) >> 16;
-                        this.vertexX[v] = x_;
-                    }
-
-                    this.vertexX[v] += Model.baseX;
-                    this.vertexY[v] += Model.baseY;
-                    this.vertexZ[v] += Model.baseZ;
                 }
             }
         } else if (type === 3) {
@@ -2555,18 +2590,20 @@ export default class Model extends Hashable {
                     continue;
                 }
 
-                const vertices: Int32Array = this.labelVertices[label];
-                for (let i: number = 0; i < vertices.length; i++) {
-                    const v: number = vertices[i];
-                    this.vertexX[v] -= Model.baseX;
-                    this.vertexY[v] -= Model.baseY;
-                    this.vertexZ[v] -= Model.baseZ;
-                    this.vertexX[v] = ((this.vertexX[v] * x) / 128) | 0;
-                    this.vertexY[v] = ((this.vertexY[v] * y) / 128) | 0;
-                    this.vertexZ[v] = ((this.vertexZ[v] * z) / 128) | 0;
-                    this.vertexX[v] += Model.baseX;
-                    this.vertexY[v] += Model.baseY;
-                    this.vertexZ[v] += Model.baseZ;
+                const vertices: Int32Array | null = this.labelVertices[label];
+                if (vertices) {
+                    for (let i: number = 0; i < vertices.length; i++) {
+                        const v: number = vertices[i];
+                        this.vertexX[v] -= Model.baseX;
+                        this.vertexY[v] -= Model.baseY;
+                        this.vertexZ[v] -= Model.baseZ;
+                        this.vertexX[v] = ((this.vertexX[v] * x) / 128) | 0;
+                        this.vertexY[v] = ((this.vertexY[v] * y) / 128) | 0;
+                        this.vertexZ[v] = ((this.vertexZ[v] * z) / 128) | 0;
+                        this.vertexX[v] += Model.baseX;
+                        this.vertexY[v] += Model.baseY;
+                        this.vertexZ[v] += Model.baseZ;
+                    }
                 }
             }
         } else if (type === 5 && this.labelFaces && this.faceAlpha) {
@@ -2576,17 +2613,19 @@ export default class Model extends Hashable {
                     continue;
                 }
 
-                const triangles: Int32Array = this.labelFaces[label];
-                for (let i: number = 0; i < triangles.length; i++) {
-                    const t: number = triangles[i];
+                const triangles: Int32Array | null = this.labelFaces[label];
+                if (triangles) {
+                    for (let i: number = 0; i < triangles.length; i++) {
+                        const t: number = triangles[i];
 
-                    this.faceAlpha[t] += x * 8;
-                    if (this.faceAlpha[t] < 0) {
-                        this.faceAlpha[t] = 0;
-                    }
+                        this.faceAlpha[t] += x * 8;
+                        if (this.faceAlpha[t] < 0) {
+                            this.faceAlpha[t] = 0;
+                        }
 
-                    if (this.faceAlpha[t] > 255) {
-                        this.faceAlpha[t] = 255;
+                        if (this.faceAlpha[t] > 255) {
+                            this.faceAlpha[t] = 255;
+                        }
                     }
                 }
             }

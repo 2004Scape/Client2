@@ -1,5 +1,6 @@
 import Entity from './Entity';
 import SeqType from '../../config/SeqType';
+import {TypedArray1d} from '../../util/Arrays';
 
 export default abstract class PathingEntity extends Entity {
     x: number = 0;
@@ -52,7 +53,7 @@ export default abstract class PathingEntity extends Entity {
     pathLength: number = 0;
     pathTileX: Int32Array = new Int32Array(10);
     pathTileZ: Int32Array = new Int32Array(10);
-    pathRunning: boolean[] = new Array(10).fill(false);
+    pathRunning: boolean[] = new TypedArray1d(10, false);
     seqTrigger: number = 0;
 
     lastMask: number = -1;

@@ -18,7 +18,7 @@ export default class MesAnimType extends ConfigType {
 
     // ----
 
-    len: number[] = new Array(4).fill(-1);
+    len: Int32Array = new Int32Array(4).fill(-1);
 
     decode = (_index: number, code: number, dat: Packet): void => {
         if (code >= 1 && code < 5) {

@@ -3,10 +3,11 @@ import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
 import LruCache from '../datastruct/LruCache';
 import Model from '../graphics/Model';
+import {TypedArray1d} from '../util/Arrays';
 
 export default class NpcType extends ConfigType {
     static count: number = 0;
-    static cache: NpcType[] | null = null;
+    static cache: (NpcType | null)[] | null = null;
     static dat: Packet | null = null;
     static offsets: Int32Array | null = null;
     static cachePos: number = 0;
@@ -25,7 +26,7 @@ export default class NpcType extends ConfigType {
             offset += idx.g2;
         }
 
-        this.cache = new Array(20).fill(null);
+        this.cache = new TypedArray1d(20, null);
         for (let id: number = 0; id < 20; id++) {
             this.cache[id] = new NpcType();
         }
@@ -37,8 +38,12 @@ export default class NpcType extends ConfigType {
         }
 
         for (let i: number = 0; i < 20; i++) {
-            if (this.cache[i].index === id) {
-                return this.cache[i];
+            const type: NpcType | null = this.cache[i];
+            if (!type) {
+                continue;
+            }
+            if (type.index === id) {
+                return type;
             }
         }
 
@@ -110,7 +115,7 @@ export default class NpcType extends ConfigType {
             this.walkanim_l = dat.g2;
         } else if (code >= 30 && code < 40) {
             if (!this.ops) {
-                this.ops = new Array(5).fill(null);
+                this.ops = new TypedArray1d(5, null);
             }
 
             this.ops[code - 30] = dat.gjstr;
@@ -157,7 +162,7 @@ export default class NpcType extends ConfigType {
             model = NpcType.modelCache.get(BigInt(this.index)) as Model | null;
 
             if (!model && this.models) {
-                const models: (Model | null)[] = new Array(this.models.length).fill(null);
+                const models: (Model | null)[] = new TypedArray1d(this.models.length, null);
                 for (let i: number = 0; i < this.models.length; i++) {
                     models[i] = Model.model(this.models[i]);
                 }
@@ -212,7 +217,7 @@ export default class NpcType extends ConfigType {
             return null;
         }
 
-        const models: (Model | null)[] = new Array(this.heads.length).fill(null);
+        const models: (Model | null)[] = new TypedArray1d(this.heads.length, null);
         for (let i: number = 0; i < this.heads.length; i++) {
             models[i] = Model.model(this.heads[i]);
         }

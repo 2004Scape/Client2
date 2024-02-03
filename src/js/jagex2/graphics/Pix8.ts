@@ -53,6 +53,10 @@ export default class Pix8 extends Hashable {
             index.pos += 1;
         }
 
+        // if (dat.pos > dat.data.length || index.pos > index.data.length) {
+        //     throw new Error();
+        // }
+
         // read sprite
         const cropX: number = index.g1;
         const cropY: number = index.g1;

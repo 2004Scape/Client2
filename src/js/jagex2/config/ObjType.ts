@@ -7,10 +7,11 @@ import Model from '../graphics/Model';
 import Draw3D from '../graphics/Draw3D';
 import Draw2D from '../graphics/Draw2D';
 import Colors from '../graphics/Colors';
+import {TypedArray1d} from '../util/Arrays';
 
 export default class ObjType extends ConfigType {
     static count: number = 0;
-    static cache: ObjType[] | null = null;
+    static cache: (ObjType | null)[] | null = null;
     static dat: Packet | null = null;
     static offsets: Int32Array | null = null;
     static cachePos: number = 0;
@@ -32,7 +33,7 @@ export default class ObjType extends ConfigType {
             offset += idx.g2;
         }
 
-        this.cache = new Array(10).fill(null);
+        this.cache = new TypedArray1d(10, null);
         for (let id: number = 0; id < 10; id++) {
             this.cache[id] = new ObjType();
         }
@@ -44,13 +45,17 @@ export default class ObjType extends ConfigType {
         }
 
         for (let i: number = 0; i < 10; i++) {
-            if (this.cache[i].index === id) {
-                return this.cache[i];
+            const type: ObjType | null = this.cache[i];
+            if (!type) {
+                continue;
+            }
+            if (type.index === id) {
+                return type;
             }
         }
 
         this.cachePos = (this.cachePos + 1) % 10;
-        const obj: ObjType = this.cache[this.cachePos];
+        const obj: ObjType = this.cache[this.cachePos]!;
         this.dat.pos = this.offsets[id];
         obj.index = id;
         obj.reset();
@@ -270,7 +275,7 @@ export default class ObjType extends ConfigType {
             this.womanwear2 = dat.g2;
         } else if (code >= 30 && code < 35) {
             if (!this.ops) {
-                this.ops = new Array(5).fill(null);
+                this.ops = new TypedArray1d(5, null);
             }
 
             this.ops[code - 30] = dat.gjstr;
@@ -279,7 +284,7 @@ export default class ObjType extends ConfigType {
             }
         } else if (code >= 35 && code < 40) {
             if (!this.iops) {
-                this.iops = new Array(5).fill(null);
+                this.iops = new TypedArray1d(5, null);
             }
             this.iops[code - 35] = dat.gjstr;
         } else if (code === 40) {

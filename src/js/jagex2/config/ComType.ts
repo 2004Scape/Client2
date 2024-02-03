@@ -5,6 +5,7 @@ import Model from '../graphics/Model';
 import LruCache from '../datastruct/LruCache';
 import Pix24 from '../graphics/Pix24';
 import JString from '../datastruct/JString';
+import {TypedArray1d} from '../util/Arrays';
 
 export default class ComType {
     static instances: ComType[] = [];
@@ -143,7 +144,7 @@ export default class ComType {
 
             const scriptCount: number = dat.g1;
             if (scriptCount > 0) {
-                com.scripts = new Array(scriptCount).fill(null);
+                com.scripts = new TypedArray1d(scriptCount, null);
 
                 for (let i: number = 0; i < scriptCount; i++) {
                     const opcodeCount: number = dat.g2;
@@ -188,7 +189,7 @@ export default class ComType {
 
                 com.invSlotOffsetX = new Int16Array(20);
                 com.invSlotOffsetY = new Int16Array(20);
-                com.invSlotSprite = new Array(20).fill(null);
+                com.invSlotSprite = new TypedArray1d(20, null);
 
                 for (let i: number = 0; i < 20; i++) {
                     if (dat.g1 === 1) {
@@ -203,7 +204,7 @@ export default class ComType {
                     }
                 }
 
-                com.iops = new Array(5).fill(null);
+                com.iops = new TypedArray1d(5, null);
                 for (let i: number = 0; i < 5; i++) {
                     const iop: string = dat.gjstr;
                     com.iops[i] = iop;
@@ -302,7 +303,7 @@ export default class ComType {
                 com.marginY = dat.g2b;
                 com.interactable = dat.g1 === 1;
 
-                com.iops = new Array(5).fill(null);
+                com.iops = new TypedArray1d(5, null);
                 for (let i: number = 0; i < 5; i++) {
                     const iop: string = dat.gjstr;
                     com.iops[i] = iop;

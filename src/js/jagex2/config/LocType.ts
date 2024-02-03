@@ -5,10 +5,11 @@ import LruCache from '../datastruct/LruCache';
 import Model from '../graphics/Model';
 import LocShape from '../dash3d/LocShape';
 import LocAngle from '../dash3d/LocAngle';
+import {TypedArray1d} from '../util/Arrays';
 
 export default class LocType extends ConfigType {
     static count: number = 0;
-    static cache: LocType[] | null = null;
+    static cache: (LocType | null)[] | null = null;
     static dat: Packet | null = null;
     static offsets: Int32Array | null = null;
     static cachePos: number = 0;
@@ -28,7 +29,7 @@ export default class LocType extends ConfigType {
             offset += idx.g2;
         }
 
-        this.cache = new Array(10).fill(null);
+        this.cache = new TypedArray1d(10, null);
         for (let id: number = 0; id < 10; id++) {
             this.cache[id] = new LocType();
         }
@@ -40,13 +41,17 @@ export default class LocType extends ConfigType {
         }
 
         for (let i: number = 0; i < 10; i++) {
-            if (this.cache[i].index === id) {
-                return this.cache[i];
+            const type: LocType | null = this.cache[i];
+            if (!type) {
+                continue;
+            }
+            if (type.index === id) {
+                return type;
             }
         }
 
         this.cachePos = (this.cachePos + 1) % 10;
-        const loc: LocType = this.cache[this.cachePos];
+        const loc: LocType = this.cache[this.cachePos]!;
         this.dat.pos = this.offsets[id];
         loc.index = id;
         loc.reset();
@@ -160,7 +165,7 @@ export default class LocType extends ConfigType {
             this.contrast = dat.g1b;
         } else if (code >= 30 && code < 39) {
             if (!this.ops) {
-                this.ops = new Array(5).fill(null);
+                this.ops = new TypedArray1d(5, null);
             }
 
             this.ops[code - 30] = dat.gjstr;

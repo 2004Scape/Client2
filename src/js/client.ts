@@ -61,6 +61,7 @@ import {playMidi, playWave, setMidiVolume, setWaveVolume, stopMidi} from './jage
 import {arraycopy, downloadUrl, sleep} from './jagex2/util/JsUtil';
 import ServerProt from './jagex2/io/ServerProt';
 import ClientProt from './jagex2/io/ClientProt';
+import {Int32Array2d, Int32Array3d, TypedArray1d, TypedArray3d, Uint8Array3d} from './jagex2/util/Arrays';
 
 // noinspection JSSuspiciousNameCombination
 class Client extends GameShell {
@@ -215,15 +216,15 @@ class Client extends GameShell {
     private imageBackbase1: Pix8 | null = null;
     private imageBackbase2: Pix8 | null = null;
     private imageBackhmid1: Pix8 | null = null;
-    private imageSideicons: (Pix8 | null)[] = new Array(13).fill(null);
+    private imageSideicons: (Pix8 | null)[] = new TypedArray1d(13, null);
     private imageMinimap: Pix24 | null = null;
     private imageCompass: Pix24 | null = null;
-    private imageMapscene: (Pix8 | null)[] = new Array(50).fill(null);
-    private imageMapfunction: (Pix24 | null)[] = new Array(50).fill(null);
-    private imageHitmarks: (Pix24 | null)[] = new Array(20).fill(null);
-    private imageHeadicons: (Pix24 | null)[] = new Array(20).fill(null);
+    private imageMapscene: (Pix8 | null)[] = new TypedArray1d(50, null);
+    private imageMapfunction: (Pix24 | null)[] = new TypedArray1d(50, null);
+    private imageHitmarks: (Pix24 | null)[] = new TypedArray1d(20, null);
+    private imageHeadicons: (Pix24 | null)[] = new TypedArray1d(20, null);
     private imageMapflag: Pix24 | null = null;
-    private imageCrosses: (Pix24 | null)[] = new Array(8).fill(null);
+    private imageCrosses: (Pix24 | null)[] = new TypedArray1d(8, null);
     private imageMapdot0: Pix24 | null = null;
     private imageMapdot1: Pix24 | null = null;
     private imageMapdot2: Pix24 | null = null;
@@ -244,7 +245,7 @@ class Client extends GameShell {
     private genderButtonImage0: Pix24 | null = null;
     private genderButtonImage1: Pix24 | null = null;
 
-    private activeMapFunctions: (Pix24 | null)[] = new Array(1000).fill(null);
+    private activeMapFunctions: (Pix24 | null)[] = new TypedArray1d(1000, null);
 
     private redrawSidebar: boolean = false;
     private redrawChatback: boolean = false;
@@ -300,8 +301,8 @@ class Client extends GameShell {
     private chatbackInput: string = '';
     private chatbackInputOpen: boolean = false;
     private stickyChatInterfaceId: number = -1;
-    private messageText: (string | null)[] = new Array(100).fill(null);
-    private messageSender: (string | null)[] = new Array(100).fill(null);
+    private messageText: (string | null)[] = new TypedArray1d(100, null);
+    private messageSender: (string | null)[] = new TypedArray1d(100, null);
     private messageType: Int32Array = new Int32Array(100);
     private messageIds: Int32Array = new Int32Array(100);
     private privateMessageCount: number = 0;
@@ -369,7 +370,7 @@ class Client extends GameShell {
     private cameraOffsetZModifier: number = 2;
     private cameraOffsetYawModifier: number = 1;
     private cameraModifierCycle: Int32Array = new Int32Array(5);
-    private cameraModifierEnabled: boolean[] = new Array(5).fill(false);
+    private cameraModifierEnabled: boolean[] = new TypedArray1d(5, false);
     private cameraModifierJitter: Int32Array = new Int32Array(5);
     private cameraModifierWobbleScale: Int32Array = new Int32Array(5);
     private cameraModifierWobbleSpeed: Int32Array = new Int32Array(5);
@@ -397,7 +398,7 @@ class Client extends GameShell {
     private mapLastBaseX: number = 0;
     private mapLastBaseZ: number = 0;
     private textureBuffer: Int8Array = new Int8Array(16384);
-    private levelCollisionMap: (CollisionMap | null)[] = new Array(CollisionMap.LEVELS).fill(null);
+    private levelCollisionMap: (CollisionMap | null)[] = new TypedArray1d(CollisionMap.LEVELS, null);
     private currentLevel: number = 0;
     private cameraMovedWrite: number = 0;
     private orbitCameraPitch: number = 128;
@@ -408,7 +409,7 @@ class Client extends GameShell {
     private orbitCameraZ: number = 0;
     private levelHeightmap: Int32Array[][] | null = null;
     private levelTileFlags: Uint8Array[][] | null = null;
-    private tileLastOccupiedCycle: Int32Array[] = new Array(CollisionMap.SIZE).fill(null).map((): Int32Array => new Int32Array(CollisionMap.SIZE));
+    private tileLastOccupiedCycle: Int32Array[] = new Int32Array2d(CollisionMap.SIZE, CollisionMap.SIZE);
     private projectX: number = 0;
     private projectY: number = 0;
     private cutsceneDstLocalTileX: number = 0;
@@ -423,22 +424,22 @@ class Client extends GameShell {
     private cutsceneMoveAcceleration: number = 0;
 
     // entities
-    private players: (PlayerEntity | null)[] = new Array(this.MAX_PLAYER_COUNT).fill(null);
+    private players: (PlayerEntity | null)[] = new TypedArray1d(this.MAX_PLAYER_COUNT, null);
     private playerCount: number = 0;
     private playerIds: Int32Array = new Int32Array(this.MAX_PLAYER_COUNT);
     private entityUpdateCount: number = 0;
     private entityRemovalCount: number = 0;
     private entityUpdateIds: Int32Array = new Int32Array(this.MAX_PLAYER_COUNT);
     private entityRemovalIds: Int32Array = new Int32Array(1000);
-    private playerAppearanceBuffer: (Packet | null)[] = new Array(this.MAX_PLAYER_COUNT).fill(null);
-    private npcs: (NpcEntity | null)[] = new Array(8192).fill(null);
+    private playerAppearanceBuffer: (Packet | null)[] = new TypedArray1d(this.MAX_PLAYER_COUNT, null);
+    private npcs: (NpcEntity | null)[] = new TypedArray1d(8192, null);
     private npcCount: number = 0;
     private npcIds: Int32Array = new Int32Array(8192);
     private projectiles: LinkList = new LinkList();
     private spotanims: LinkList = new LinkList();
     private locList: LinkList = new LinkList();
     private temporaryLocs: LinkList = new LinkList();
-    private levelObjStacks: (LinkList | null)[][][] = new Array(CollisionMap.LEVELS).fill(null).map((): LinkList[][] => new Array(CollisionMap.SIZE).fill(null).map((): LinkList[] => new Array(CollisionMap.SIZE).fill(null)));
+    private levelObjStacks: (LinkList | null)[][][] = new TypedArray3d(CollisionMap.LEVELS, CollisionMap.SIZE, CollisionMap.SIZE, null);
     private spawnedLocations: LinkList = new LinkList();
 
     // bfs pathfinder
@@ -474,8 +475,8 @@ class Client extends GameShell {
     private chatColors: Int32Array = new Int32Array(Client.MAX_CHATS);
     private chatStyles: Int32Array = new Int32Array(Client.MAX_CHATS);
     private chatTimers: Int32Array = new Int32Array(Client.MAX_CHATS);
-    private chats: string[] = new Array(Client.MAX_CHATS).fill(null);
-    private friendName: string[] = new Array(100).fill(null);
+    private chats: (string | null)[] = new TypedArray1d(Client.MAX_CHATS, null);
+    private friendName: (string | null)[] = new TypedArray1d(100, null);
     private friendName37: BigInt64Array = new BigInt64Array(100);
     private friendWorld: Int32Array = new Int32Array(100);
     private socialName37: bigint | null = null;
@@ -540,8 +541,8 @@ class Client extends GameShell {
             const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
             const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
-            this.levelTileFlags = new Array(CollisionMap.LEVELS).fill(null).map((): Uint8Array[] => new Array(CollisionMap.SIZE).fill(null).map((): Uint8Array => new Uint8Array(CollisionMap.SIZE)));
-            this.levelHeightmap = new Array(CollisionMap.LEVELS).fill(null).map((): Int32Array[] => new Array(CollisionMap.SIZE + 1).fill(null).map((): Int32Array => new Int32Array(CollisionMap.SIZE + 1)));
+            this.levelTileFlags = new Uint8Array3d(CollisionMap.LEVELS, CollisionMap.SIZE, CollisionMap.SIZE);
+            this.levelHeightmap = new Int32Array3d(CollisionMap.LEVELS, CollisionMap.SIZE + 1, CollisionMap.SIZE + 1);
             if (this.levelHeightmap) {
                 this.scene = new World3D(this.levelHeightmap, CollisionMap.SIZE, CollisionMap.LEVELS, CollisionMap.SIZE);
             }
@@ -2505,7 +2506,7 @@ class Client extends GameShell {
             }
             this.projectX = this.chatX[i];
             this.projectY = this.chatY[i] = y;
-            const message: string = this.chats[i];
+            const message: string | null = this.chats[i];
             if (this.chatEffects == 0) {
                 let color: number = Colors.YELLOW;
                 if (this.chatColors[i] < 6) {
@@ -5084,7 +5085,7 @@ class Client extends GameShell {
         }
 
         for (let i: number = 0; i < this.friendCount; i++) {
-            if (username.toLowerCase() === this.friendName[i].toLowerCase()) {
+            if (username.toLowerCase() === this.friendName[i]?.toLowerCase()) {
                 return true;
             }
         }
@@ -5581,7 +5582,7 @@ class Client extends GameShell {
             if (this.updateDesignModel) {
                 this.updateDesignModel = false;
 
-                const models: (Model | null)[] = new Array(7).fill(null);
+                const models: (Model | null)[] = new TypedArray1d(7, null);
                 let modelCount: number = 0;
                 for (let part: number = 0; part < 7; part++) {
                     const kit: number = this.designIdentikits[part];
@@ -5863,7 +5864,7 @@ class Client extends GameShell {
                             this.friendWorld[i] = this.friendWorld[i + 1];
                             this.friendWorld[i + 1] = oldWorld;
 
-                            const oldName: string = this.friendName[i];
+                            const oldName: string | null = this.friendName[i];
                             this.friendName[i] = this.friendName[i + 1];
                             this.friendName[i + 1] = oldName;
 
@@ -5937,8 +5938,8 @@ class Client extends GameShell {
 
                 const regions: number = ((this.packetSize - 2) / 10) | 0;
 
-                this.sceneMapLandData = new Array(regions).fill(null);
-                this.sceneMapLocData = new Array(regions).fill(null);
+                this.sceneMapLandData = new TypedArray1d(regions, null);
+                this.sceneMapLocData = new TypedArray1d(regions, null);
                 this.sceneMapIndex = new Int32Array(regions);
 
                 this.out.p1isaac(ClientProt.REBUILD_GETMAPS);
@@ -10279,7 +10280,10 @@ class Client extends GameShell {
     private updateTextures = (cycle: number): void => {
         if (!Client.lowMemory) {
             if (Draw3D.textureCycle[17] >= cycle) {
-                const texture: Pix8 = Draw3D.textures[17];
+                const texture: Pix8 | null = Draw3D.textures[17];
+                if (!texture) {
+                    return;
+                }
                 const bottom: number = texture.width * texture.height - 1;
                 const adjustment: number = texture.width * this.sceneDelta * 2;
 
@@ -10295,7 +10299,10 @@ class Client extends GameShell {
             }
 
             if (Draw3D.textureCycle[24] >= cycle) {
-                const texture: Pix8 = Draw3D.textures[24];
+                const texture: Pix8 | null = Draw3D.textures[24];
+                if (!texture) {
+                    return;
+                }
                 const bottom: number = texture.width * texture.height - 1;
                 const adjustment: number = texture.width * this.sceneDelta * 2;
 

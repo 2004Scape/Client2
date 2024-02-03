@@ -6,6 +6,7 @@ import Wall from './Wall';
 import WallDecoration from './WallDecoration';
 import GroundDecoration from './GroundDecoration';
 import ObjStack from './ObjStack';
+import {TypedArray1d} from '../../util/Arrays';
 
 export default class Tile extends Linkable {
     // constructor
@@ -40,7 +41,7 @@ export default class Tile extends Linkable {
         this.occludeLevel = this.level = level;
         this.x = x;
         this.z = z;
-        this.locs = new Array(5).fill(null);
+        this.locs = new TypedArray1d(5, null);
         this.locSpan = new Int32Array(5);
     }
 }
