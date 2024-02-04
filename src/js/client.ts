@@ -10555,11 +10555,16 @@ async function getWorldInfo(secured: boolean, id: number, retries: number = 0): 
     }
     // github host is secured for example.
     const url: string = secured ? 'https://2004scape.org/api/v1/worldlist' : 'http://2004scape.org/api/v1/worldlist';
-    const worldlist: WorldList[] = JSON.parse(await downloadText(url));
-    const world: WorldList | undefined = worldlist.find((x): boolean => x.id === id);
-    if (!world) {
+    let worldlist: WorldList[];
+    try {
+        worldlist = JSON.parse(await downloadText(url));
+    } catch (e) {
         await sleep(1000);
         return getWorldInfo(secured, id, ++retries);
+    }
+    const world: WorldList | undefined = worldlist.find((x): boolean => x.id === id);
+    if (!world) {
+        return getWorldInfo(secured, id, 10);
     }
     return world;
 }
