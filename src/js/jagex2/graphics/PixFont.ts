@@ -7,31 +7,31 @@ import JavaRandom from '../util/JavaRandom';
 import Colors from './Colors';
 
 export default class PixFont extends Hashable {
-    static CHARSET: number[] = [];
+    static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
+    static readonly CHARCODESET: number[] = [];
 
     static {
-        const s: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
-
         for (let i: number = 0; i < 256; i++) {
-            let c: number = s.indexOf(String.fromCharCode(i));
+            let c: number = PixFont.CHARSET.indexOf(String.fromCharCode(i));
 
             if (c === -1) {
                 c = 74; // space
             }
 
-            PixFont.CHARSET[i] = c;
+            PixFont.CHARCODESET[i] = c;
         }
     }
 
-    charMask: Int8Array[] = [];
-    charMaskWidth: Int32Array = new Int32Array(94);
-    charMaskHeight: Int32Array = new Int32Array(94);
-    charOffsetX: Int32Array = new Int32Array(94);
-    charOffsetY: Int32Array = new Int32Array(94);
-    charAdvance: Int32Array = new Int32Array(95);
-    drawWidth: Int32Array = new Int32Array(256);
+    private readonly charMask: Int8Array[] = [];
+    private readonly charMaskWidth: Int32Array = new Int32Array(94);
+    private readonly charMaskHeight: Int32Array = new Int32Array(94);
+    private readonly charOffsetX: Int32Array = new Int32Array(94);
+    private readonly charOffsetY: Int32Array = new Int32Array(94);
+    private readonly charAdvance: Int32Array = new Int32Array(95);
+    private readonly drawWidth: Int32Array = new Int32Array(256);
+    private readonly random: JavaRandom = new JavaRandom(BigInt(Date.now()));
+
     height: number = 0;
-    random: JavaRandom = new JavaRandom(BigInt(Date.now()));
 
     static fromArchive = (archive: Jagfile, name: string): PixFont => {
         const dat: Packet = new Packet(archive.read(name + '.dat'));
@@ -104,7 +104,7 @@ export default class PixFont extends Hashable {
 
         font.charAdvance[94] = font.charAdvance[8];
         for (let i: number = 0; i < 256; i++) {
-            font.drawWidth[i] = font.charAdvance[PixFont.CHARSET[i]];
+            font.drawWidth[i] = font.charAdvance[PixFont.CHARCODESET[i]];
         }
 
         return font;
@@ -121,7 +121,7 @@ export default class PixFont extends Hashable {
         const length: number = str.length;
         y -= this.height;
         for (let i: number = 0; i < length; i++) {
-            const c: number = PixFont.CHARSET[str.charCodeAt(i)];
+            const c: number = PixFont.CHARCODESET[str.charCodeAt(i)];
 
             if (c !== 94) {
                 this.drawChar(this.charMask[c], x + this.charOffsetX[c], y + this.charOffsetY[c], this.charMaskWidth[c], this.charMaskHeight[c], color);
@@ -142,7 +142,7 @@ export default class PixFont extends Hashable {
                 color = this.evaluateTag(str.substring(i + 1, i + 4));
                 i += 4;
             } else {
-                const c: number = PixFont.CHARSET[str.charCodeAt(i)];
+                const c: number = PixFont.CHARCODESET[str.charCodeAt(i)];
 
                 if (c !== 94) {
                     if (shadowed) {
@@ -205,7 +205,7 @@ export default class PixFont extends Hashable {
                 color = this.evaluateTag(str.substring(i + 1, i + 4));
                 i += 4;
             } else {
-                const c: number = PixFont.CHARSET[str.charCodeAt(i)];
+                const c: number = PixFont.CHARCODESET[str.charCodeAt(i)];
                 if (c !== 94) {
                     if (shadowed) {
                         this.drawCharAlpha(x + this.charOffsetX[c] + 1, offY + this.charOffsetY[c] + 1, this.charMaskWidth[c], this.charMaskHeight[c], Colors.BLACK, 192, this.charMask[c]);
@@ -244,7 +244,7 @@ export default class PixFont extends Hashable {
         const offY: number = y - this.height;
 
         for (let i: number = 0; i < str.length; i++) {
-            const c: number = PixFont.CHARSET[str.charCodeAt(i)];
+            const c: number = PixFont.CHARCODESET[str.charCodeAt(i)];
 
             if (c != 94) {
                 this.drawChar(this.charMask[c], x + this.charOffsetX[c], offY + this.charOffsetY[c] + ((Math.sin(i / 2.0 + phase / 5.0) * 5.0) | 0), this.charMaskWidth[c], this.charMaskHeight[c], color);

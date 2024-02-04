@@ -17,9 +17,11 @@ export default class ClientStream {
 
     static openSocket = async (socket: Socket): Promise<WebSocket> => {
         return await new Promise<WebSocket>((resolve, reject): void => {
-            const protocol: string = socket.host.startsWith('https') ? 'wss' : 'ws';
+            const secured: boolean = socket.host.startsWith('https');
+            const protocol: string = secured ? 'wss' : 'ws';
             const host: string = socket.host.substring(socket.host.indexOf('//') + 2);
-            const ws: WebSocket = new WebSocket(`${protocol}://${host}:${socket.port}`, 'binary');
+            const port: number = secured ? socket.port + 2 : socket.port + 1;
+            const ws: WebSocket = new WebSocket(`${protocol}://${host}:${port}`, 'binary');
             ws.binaryType = 'arraybuffer';
 
             ws.addEventListener('open', (): void => {
@@ -68,7 +70,7 @@ export default class ClientStream {
         }
 
         if (this.remaining < 1) {
-            await sleep(1); // TODO maybe not do this?
+            await sleep(1);
             return this.read();
         }
 

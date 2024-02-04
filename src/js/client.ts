@@ -26,6 +26,8 @@ import ClientStream from './jagex2/io/ClientStream';
 import Protocol from './jagex2/io/Protocol';
 import Isaac from './jagex2/io/Isaac';
 import Database from './jagex2/io/Database';
+import ServerProt from './jagex2/io/ServerProt';
+import ClientProt from './jagex2/io/ClientProt';
 
 import WordFilter from './jagex2/wordenc/WordFilter';
 import WordPack from './jagex2/wordenc/WordPack';
@@ -58,41 +60,36 @@ import ProjectileEntity from './jagex2/dash3d/entity/ProjectileEntity';
 import SpotAnimEntity from './jagex2/dash3d/entity/SpotAnimEntity';
 
 import {playMidi, playWave, setMidiVolume, setWaveVolume, stopMidi} from './jagex2/util/AudioUtil.js';
-import {arraycopy, downloadUrl, sleep} from './jagex2/util/JsUtil';
-import ServerProt from './jagex2/io/ServerProt';
-import ClientProt from './jagex2/io/ClientProt';
+import {arraycopy, downloadText, downloadUrl, sleep} from './jagex2/util/JsUtil';
 import {Int32Array2d, Int32Array3d, TypedArray1d, TypedArray3d, Uint8Array3d} from './jagex2/util/Arrays';
 
 // noinspection JSSuspiciousNameCombination
 class Client extends GameShell {
-    // static readonly HOST: string = 'http://localhost';
-    // static readonly PORT: number = 43595;
-    static readonly HOST: string = 'https://w2.225.2004scape.org';
-    static readonly PORT: number = 43599;
-    static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
-
-    static EXPONENT: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
-    static MODULUS: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
-    static MEMBERS: boolean = true;
+    static readonly clientversion: number = 225;
+    static nodeId: number = 10;
+    static portOffset: number = 0;
+    static members: boolean = true;
     static lowMemory: boolean = false;
+    static serverAddress: string = '';
 
-    static updateCounter: number = 0;
-    static update2Counter: number = 0;
-    static sidebarInputCounter: number = 0;
-    static opHeld1Counter: number = 0;
-    static opLoc4Counter: number = 0;
-    static opNpc5Counter: number = 0;
-    static drawCounter: number = 0;
-    static opHeld4Counter: number = 0;
-    static opLoc5Counter: number = 0;
-    static opNpc3Counter: number = 0;
-    static opHeld9Counter: number = 0;
-    static opPlayer2Counter: number = 0;
-    static updatePlayersCounter: number = 0;
-    static ifButton5Counter: number = 0;
-    static updateLocCounter: number = 0;
+    private static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
+    private static readonly modulus: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
 
-    static nodeId: number = 0; // TODO
+    private static updateCounter: number = 0;
+    private static update2Counter: number = 0;
+    private static sidebarInputCounter: number = 0;
+    private static opHeld1Counter: number = 0;
+    private static opLoc4Counter: number = 0;
+    private static opNpc5Counter: number = 0;
+    private static drawCounter: number = 0;
+    private static opHeld4Counter: number = 0;
+    private static opLoc5Counter: number = 0;
+    private static opNpc3Counter: number = 0;
+    private static opHeld9Counter: number = 0;
+    private static opPlayer2Counter: number = 0;
+    private static updatePlayersCounter: number = 0;
+    private static ifButton5Counter: number = 0;
+    private static updateLocCounter: number = 0;
 
     static setHighMemory = (): void => {
         World3D.lowMemory = false;
@@ -515,7 +512,7 @@ class Client extends GameShell {
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
-            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.HOST}/crc`)));
+            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.serverAddress}/crc`)));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -682,7 +679,7 @@ class Client extends GameShell {
             SeqType.unpack(config);
             LocType.unpack(config);
             FloType.unpack(config);
-            ObjType.unpack(config, Client.MEMBERS);
+            ObjType.unpack(config, Client.members);
             NpcType.unpack(config);
             IdkType.unpack(config);
             SpotAnimType.unpack(config);
@@ -1298,8 +1295,8 @@ class Client extends GameShell {
                 }
 
                 let valid: boolean = false;
-                for (let i: number = 0; i < Client.CHARSET.length; i++) {
-                    if (String.fromCharCode(key) === Client.CHARSET.charAt(i)) {
+                for (let i: number = 0; i < PixFont.CHARSET.length; i++) {
+                    if (String.fromCharCode(key) === PixFont.CHARSET.charAt(i)) {
                         valid = true;
                         break;
                     }
@@ -1438,7 +1435,7 @@ class Client extends GameShell {
                 this.loginMessage1 = 'Connecting to server...';
                 await this.drawTitleScreen();
             }
-            this.stream = new ClientStream(await ClientStream.openSocket({host: Client.HOST, port: Client.PORT}));
+            this.stream = new ClientStream(await ClientStream.openSocket({host: Client.serverAddress, port: 43594 + Client.portOffset}));
             await this.stream?.readBytes(this.in.data, 0, 8);
             this.in.pos = 0;
             this.serverSeed = this.in.g8;
@@ -1452,7 +1449,7 @@ class Client extends GameShell {
             this.out.p4(0); // TODO signlink UUID
             this.out.pjstr(username);
             this.out.pjstr(password);
-            this.out.rsaenc(Client.MODULUS, Client.EXPONENT);
+            this.out.rsaenc(Client.modulus, Client.exponent);
             this.loginout.pos = 0;
             if (reconnect) {
                 this.loginout.p1(18);
@@ -1473,7 +1470,6 @@ class Client extends GameShell {
             this.randomIn = new Isaac(seed);
             this.stream?.write(this.loginout.data, this.loginout.pos, 0);
             const reply: number = await this.stream.read();
-            console.log(`Login reply was: ${reply}`);
 
             if (reply === 1) {
                 await sleep(2000);
@@ -7049,7 +7045,6 @@ class Client extends GameShell {
     };
 
     private addMessage = (type: number, text: string, sender: string): void => {
-        console.log(`${type}, ${text}, ${sender}, ${this.stickyChatInterfaceId}`);
         if (type === 0 && this.stickyChatInterfaceId !== -1) {
             this.modalMessage = text;
             this.mouseClickButton = 0;
@@ -8626,7 +8621,6 @@ class Client extends GameShell {
                         player.chatColor = colorEffect >> 8;
                         player.chatStyle = colorEffect & 0xff;
                         player.chatTimer = 150;
-                        console.log(filtered);
                         if (type > 1) {
                             this.addMessage(1, filtered, player.name);
                         } else {
@@ -10162,7 +10156,7 @@ class Client extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                data = await downloadUrl(`${Client.HOST}/${filename}${crc}`);
+                data = await downloadUrl(`${Client.serverAddress}/${filename}${crc}`);
             } catch (e) {
                 data = undefined;
                 for (let i: number = retry; i > 0; i--) {
@@ -10187,7 +10181,7 @@ class Client extends GameShell {
 
         if (!data) {
             try {
-                data = await downloadUrl(`${Client.HOST}/${name}_${crc}.mid`);
+                data = await downloadUrl(`${Client.serverAddress}/${name}_${crc}.mid`);
                 if (length !== data.length) {
                     data = data.slice(0, length);
                 }
@@ -10492,7 +10486,77 @@ class Client extends GameShell {
     };
 }
 
-const client: Client = new Client();
-Client.setHighMemory();
-console.log('RS2 user client - release #225');
-client.run().then((): void => {});
+// ----
+
+// main to launch the client
+type WorldList = {
+    id: number;
+    region: string;
+    address: string;
+    portOffset: number;
+    players: number;
+    members?: boolean;
+};
+
+const hostname: string = window.location.hostname;
+const secured: boolean = hostname.startsWith('https');
+
+//// check and set default browser params before starting
+if (GameShell.getParameter('world').length === 0) {
+    GameShell.setParameter('world', '1');
+}
+
+if (GameShell.getParameter('detail').length === 0) {
+    GameShell.setParameter('detail', 'high');
+}
+
+if (GameShell.getParameter('method').length === 0) {
+    GameShell.setParameter('method', '0');
+}
+
+if (hostname === 'localhost' && GameShell.getParameter('world') === '0') {
+    localConfiguration();
+} else {
+    await liveConfiguration();
+}
+
+if (GameShell.getParameter('detail') === 'low') {
+    Client.setLowMemory();
+} else {
+    Client.setHighMemory();
+}
+
+console.log(`RS2 user client - release #${Client.clientversion}`);
+new Client().run().then((): void => {});
+
+function localConfiguration(): void {
+    Client.serverAddress = 'http://localhost';
+    Client.portOffset = 0;
+}
+
+async function liveConfiguration(): Promise<void> {
+    // noinspection HttpUrlsUsage
+    const world: WorldList = await getWorldInfo(parseInt(GameShell.getParameter('world'), 10));
+
+    Client.nodeId = 10 + world.id - 1;
+    // noinspection HttpUrlsUsage
+    Client.serverAddress = world.address;
+    if (!secured) {
+        Client.serverAddress = Client.serverAddress.replace('https', 'http');
+    }
+    Client.portOffset = world.portOffset;
+    Client.members = world?.members === true;
+}
+
+async function getWorldInfo(id: number, retries: number = 0): Promise<WorldList> {
+    if (retries >= 10) {
+        throw new Error('could not find world to connect!');
+    }
+    const worldlist: WorldList[] = JSON.parse(await downloadText('http://2004scape.org/api/v1/worldlist'));
+    const world: WorldList | undefined = worldlist.find((x): boolean => x.id === id);
+    if (!world) {
+        await sleep(1000);
+        return getWorldInfo(id, ++retries);
+    }
+    return world;
+}

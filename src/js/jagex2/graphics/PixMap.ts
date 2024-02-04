@@ -1,14 +1,13 @@
 import Draw2D from './Draw2D';
 import {canvas2d} from './Canvas';
-import Colors from './Colors';
 
 export default class PixMap {
     // constructor
-    readonly image: ImageData;
+    private readonly image: ImageData;
+    private readonly width: number;
+    private readonly height: number;
+    private readonly ctx: CanvasRenderingContext2D;
     readonly pixels: Int32Array;
-    readonly width: number;
-    readonly height: number;
-    readonly ctx: CanvasRenderingContext2D;
 
     constructor(width: number, height: number, ctx: CanvasRenderingContext2D = canvas2d) {
         this.ctx = ctx;
