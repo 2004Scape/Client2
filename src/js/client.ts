@@ -10517,7 +10517,7 @@ if (GameShell.getParameter('method').length === 0) {
 if (hostname === 'localhost' && GameShell.getParameter('world') === '0') {
     localConfiguration();
 } else {
-    await liveConfiguration();
+    await liveConfiguration(secured);
 }
 
 if (GameShell.getParameter('detail') === 'low') {
@@ -10534,9 +10534,9 @@ function localConfiguration(): void {
     Client.portOffset = 0;
 }
 
-async function liveConfiguration(): Promise<void> {
+async function liveConfiguration(secured: boolean): Promise<void> {
     // noinspection HttpUrlsUsage
-    const world: WorldList = await getWorldInfo(parseInt(GameShell.getParameter('world'), 10));
+    const world: WorldList = await getWorldInfo(secured, parseInt(GameShell.getParameter('world'), 10));
 
     Client.nodeId = 10 + world.id - 1;
     // noinspection HttpUrlsUsage
@@ -10548,15 +10548,17 @@ async function liveConfiguration(): Promise<void> {
     Client.members = world?.members === true;
 }
 
-async function getWorldInfo(id: number, retries: number = 0): Promise<WorldList> {
+async function getWorldInfo(secured: boolean, id: number, retries: number = 0): Promise<WorldList> {
     if (retries >= 10) {
         throw new Error('could not find world to connect!');
     }
-    const worldlist: WorldList[] = JSON.parse(await downloadText('http://2004scape.org/api/v1/worldlist'));
+    // github host is secured for example.
+    const url: string = secured ? 'https://2004scape.org/api/v1/worldlist' : 'http://2004scape.org/api/v1/worldlist';
+    const worldlist: WorldList[] = JSON.parse(await downloadText(url));
     const world: WorldList | undefined = worldlist.find((x): boolean => x.id === id);
     if (!world) {
         await sleep(1000);
-        return getWorldInfo(id, ++retries);
+        return getWorldInfo(secured, id, ++retries);
     }
     return world;
 }
