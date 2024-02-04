@@ -10499,7 +10499,8 @@ type WorldList = {
 };
 
 const hostname: string = window.location.hostname;
-const secured: boolean = hostname.startsWith('https');
+const protocol: string = window.location.protocol;
+const secured: boolean = protocol.startsWith('https');
 
 //// check and set default browser params before starting
 if (GameShell.getParameter('world').length === 0) {
