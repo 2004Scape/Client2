@@ -23,12 +23,12 @@ export default class PixFont extends Hashable {
     }
 
     private readonly charMask: Int8Array[] = [];
-    private readonly charMaskWidth: Int32Array = new Int32Array(94);
-    private readonly charMaskHeight: Int32Array = new Int32Array(94);
-    private readonly charOffsetX: Int32Array = new Int32Array(94);
-    private readonly charOffsetY: Int32Array = new Int32Array(94);
-    private readonly charAdvance: Int32Array = new Int32Array(95);
-    private readonly drawWidth: Int32Array = new Int32Array(256);
+    readonly charMaskWidth: Int32Array = new Int32Array(94);
+    readonly charMaskHeight: Int32Array = new Int32Array(94);
+    readonly charOffsetX: Int32Array = new Int32Array(94);
+    readonly charOffsetY: Int32Array = new Int32Array(94);
+    readonly charAdvance: Int32Array = new Int32Array(95);
+    readonly drawWidth: Int32Array = new Int32Array(256);
     private readonly random: JavaRandom = new JavaRandom(BigInt(Date.now()));
 
     height: number = 0;
