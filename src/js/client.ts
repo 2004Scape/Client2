@@ -10536,14 +10536,14 @@ function localConfiguration(): void {
 }
 
 async function liveConfiguration(secured: boolean): Promise<void> {
-    // noinspection HttpUrlsUsage
     const world: WorldList = await getWorldInfo(secured, parseInt(GameShell.getParameter('world'), 10));
+    const url: URL = new URL(world.address);
 
     Client.nodeId = 10 + world.id - 1;
-    // noinspection HttpUrlsUsage
-    Client.serverAddress = world.address;
+    // this way so we dont keep the port if address has one
+    Client.serverAddress = `${url.protocol}//${url.hostname}`;
     if (!secured) {
-        Client.serverAddress = Client.serverAddress.replace('https', 'http');
+        Client.serverAddress = Client.serverAddress.replace('https:', 'http:');
     }
     Client.portOffset = world.portOffset;
     Client.members = world?.members === true;
@@ -10554,10 +10554,10 @@ async function getWorldInfo(secured: boolean, id: number, retries: number = 0): 
         throw new Error('could not find world to connect!');
     }
     // github host is secured for example.
-    const url: string = secured ? 'https://2004scape.org/api/v1/worldlist' : 'http://2004scape.org/api/v1/worldlist';
+    const protocol: string = secured ? 'https:' : 'http:';
     let worldlist: WorldList[];
     try {
-        worldlist = JSON.parse(await downloadText(url));
+        worldlist = JSON.parse(await downloadText(`${protocol}//2004scape.org/api/v1/worldlist`));
     } catch (e) {
         await sleep(1000);
         return getWorldInfo(secured, id, ++retries);
