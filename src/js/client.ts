@@ -71,6 +71,7 @@ class Client extends GameShell {
     static members: boolean = true;
     static lowMemory: boolean = false;
     static serverAddress: string = '';
+    static httpAddress: string = '';
 
     private static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
     private static readonly modulus: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
@@ -512,7 +513,7 @@ class Client extends GameShell {
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
-            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.serverAddress}/crc`)));
+            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/crc`)));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -10532,6 +10533,7 @@ new Client().run().then((): void => {});
 
 function localConfiguration(): void {
     Client.serverAddress = 'http://localhost';
+    Client.httpAddress = 'http://localhost';
     Client.portOffset = 0;
 }
 
@@ -10542,8 +10544,10 @@ async function liveConfiguration(secured: boolean): Promise<void> {
     Client.nodeId = 10 + world.id - 1;
     // this way so we dont keep the port if address has one
     Client.serverAddress = `${url.protocol}//${url.hostname}`;
+    Client.httpAddress = `${url.protocol}//${url.hostname}:${url.port}`;
     if (!secured) {
         Client.serverAddress = Client.serverAddress.replace('https:', 'http:');
+        // Client.httpAddress = Client.httpAddress.replace('https:', 'http:'); world 3 and 4 have to use secured
     }
     Client.portOffset = world.portOffset;
     Client.members = world?.members === true;
