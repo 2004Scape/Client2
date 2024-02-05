@@ -10157,7 +10157,7 @@ class Client extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                data = await downloadUrl(`${Client.serverAddress}/${filename}${crc}`);
+                data = await downloadUrl(`${Client.httpAddress}/${filename}${crc}`);
             } catch (e) {
                 data = undefined;
                 for (let i: number = retry; i > 0; i--) {
@@ -10182,7 +10182,7 @@ class Client extends GameShell {
 
         if (!data) {
             try {
-                data = await downloadUrl(`${Client.serverAddress}/${name}_${crc}.mid`);
+                data = await downloadUrl(`${Client.httpAddress}/${name}_${crc}.mid`);
                 if (length !== data.length) {
                     data = data.slice(0, length);
                 }
