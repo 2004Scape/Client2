@@ -42,7 +42,7 @@ export default class SoundTone {
 
         this.sin = new Int32Array(32768);
         for (let i: number = 0; i < 32768; i++) {
-            this.sin[1] = (Math.sin(i / 5215.1903) * 16384.0) | 0;
+            this.sin[i] = (Math.sin(i / 5215.1903) * 16384.0) | 0;
         }
 
         this.buffer = new Int32Array(220500); // 10s * 22050 KHz
