@@ -518,7 +518,9 @@ class Client extends GameShell {
                 this.archiveChecksums[i] = checksums.g4;
             }
 
-            await this.setMidi('scape_main', 12345678, 40000);
+            if (!Client.lowMemory) {
+                await this.setMidi('scape_main', 12345678, 40000);
+            }
 
             const title: Jagfile = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
             this.titleArchive = title;
@@ -5750,7 +5752,9 @@ class Client extends GameShell {
         stopMidi();
         this.currentMidi = null;
         this.nextMusicDelay = 0;
-        await this.setMidi('scape_main', 12345678, 40000);
+        if (!Client.lowMemory) {
+            await this.setMidi('scape_main', 12345678, 40000);
+        }
     };
 
     private read = async (): Promise<boolean> => {
