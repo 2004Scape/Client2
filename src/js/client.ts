@@ -9243,8 +9243,8 @@ class Client extends GameShell {
         const dstX: number = entity.forceMoveStartSceneTileX * 128 + entity.size * 64;
         const dstZ: number = entity.forceMoveStartSceneTileZ * 128 + entity.size * 64;
 
-        entity.x += (dstX - entity.x) / delta;
-        entity.z += (dstZ - entity.z) / delta;
+        entity.x += ((dstX - entity.x) / delta) | 0;
+        entity.z += ((dstZ - entity.z) / delta) | 0;
 
         entity.seqTrigger = 0;
 
@@ -9273,8 +9273,8 @@ class Client extends GameShell {
             const dz0: number = entity.forceMoveStartSceneTileZ * 128 + entity.size * 64;
             const dx1: number = entity.forceMoveEndSceneTileX * 128 + entity.size * 64;
             const dz1: number = entity.forceMoveEndSceneTileZ * 128 + entity.size * 64;
-            entity.x = (dx0 * (duration - delta) + dx1 * delta) / duration;
-            entity.z = (dz0 * (duration - delta) + dz1 * delta) / duration;
+            entity.x = ((dx0 * (duration - delta) + dx1 * delta) / duration) | 0;
+            entity.z = ((dz0 * (duration - delta) + dz1 * delta) / duration) | 0;
         }
 
         entity.seqTrigger = 0;
