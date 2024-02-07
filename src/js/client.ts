@@ -72,6 +72,7 @@ class Client extends GameShell {
     static lowMemory: boolean = false;
     static serverAddress: string = '';
     static httpAddress: string = '';
+    static showDebug: boolean = false;
 
     private static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
     private static readonly modulus: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
@@ -1460,7 +1461,7 @@ class Client extends GameShell {
                 this.loginout.p1(16);
             }
             this.loginout.p1(this.out.pos + 36 + 1 + 1);
-            this.loginout.p1(225);
+            this.loginout.p1(Client.clientversion);
             this.loginout.p1(Client.lowMemory ? 1 : 0);
             for (let i: number = 0; i < 9; i++) {
                 this.loginout.p4(this.archiveChecksums[i]);
@@ -2327,7 +2328,9 @@ class Client extends GameShell {
         this.scene?.clearTemporaryLocs();
         this.draw2DEntityElements();
         this.drawTileHint();
-        this.drawDebug();
+        if (Client.showDebug) {
+            this.drawDebug();
+        }
         this.updateTextures(jitter);
         this.draw3DEntityElements();
         this.areaViewport?.draw(8, 11);
@@ -4871,6 +4874,8 @@ class Client extends GameShell {
                                         }
                                     }
                                 }
+                            } else if (this.chatTyped === '::debug') {
+                                Client.showDebug = !Client.showDebug;
                             }
 
                             if (this.chatTyped.startsWith('::')) {

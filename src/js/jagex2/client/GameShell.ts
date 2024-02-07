@@ -183,9 +183,6 @@ export default abstract class GameShell {
 
             this.frameTime[this.fpos] = (performance.now() - time) / 1000;
             this.fpos = (this.fpos + 1) % this.frameTime.length;
-
-            // console.log(`${this.fps} fps`);
-            // console.log(`${this.ms.toFixed(4)} ms`);
         }
         if (this.state === -1) {
             this.shutdown();
