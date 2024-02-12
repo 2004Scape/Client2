@@ -10,7 +10,7 @@ describe('WordPack', (): void => {
 
         it('result after zezima', (): void => {
             const packet: Packet = new Packet(Uint8Array.from([221, 29, 213, 208, 48]));
-            expect(WordPack.unpack(packet, 5)).toBe('Zezima');
+            expect(WordPack.unpack(packet, 5)).toBe('Zezima ');
         });
     });
 

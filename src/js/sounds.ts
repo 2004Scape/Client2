@@ -1,60 +1,19 @@
 import 'style/sounds.scss';
 
-import SeqType from './jagex2/config/SeqType';
-import LocType from './jagex2/config/LocType';
-import FloType from './jagex2/config/FloType';
-import ObjType from './jagex2/config/ObjType';
-import NpcType from './jagex2/config/NpcType';
-import IdkType from './jagex2/config/IdkType';
-import SpotAnimType from './jagex2/config/SpotAnimType';
-import VarpType from './jagex2/config/VarpType';
-import ComType from './jagex2/config/ComType';
-import MesAnimType from './jagex2/config/MesAnimType';
-
-import Draw2D from './jagex2/graphics/Draw2D';
-import Draw3D from './jagex2/graphics/Draw3D';
-import PixFont from './jagex2/graphics/PixFont';
-import Model from './jagex2/graphics/Model';
-import SeqBase from './jagex2/graphics/SeqBase';
-import SeqFrame from './jagex2/graphics/SeqFrame';
-
 import Jagfile from './jagex2/io/Jagfile';
 
-import WordFilter from './jagex2/wordenc/WordFilter';
 import {downloadText, downloadUrl, sleep} from './jagex2/util/JsUtil';
-import GameShell from './jagex2/client/GameShell';
 import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
-import {canvas, canvas2d} from './jagex2/graphics/Canvas';
-import Pix8 from './jagex2/graphics/Pix8';
 import Bzip from './vendor/bzip';
-import Pix24 from './jagex2/graphics/Pix24';
-import PixMap from './jagex2/graphics/PixMap';
 
 import {playWave} from './jagex2/util/AudioUtil';
 import './vendor/midi.js';
+import {setupConfiguration} from './configuration';
+import {Client} from './client';
 
-class Viewer extends GameShell {
-    static HOST: string = 'https://w2.225.2004scape.org';
-    static REPO: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
-    static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
-
-    private db: Database | null = null;
-
-    alreadyStarted: boolean = false;
-    errorStarted: boolean = false;
-    errorLoading: boolean = false;
-    errorHost: boolean = false;
-
-    ingame: boolean = false;
-    archiveChecksums: number[] = [];
-
-    fontPlain11: PixFont | null = null;
-    fontPlain12: PixFont | null = null;
-    fontBold12: PixFont | null = null;
-    fontQuill8: PixFont | null = null;
-
+class Sounds extends Client {
     // id -> name for cache files
     packfiles: Map<number, string>[] = [];
 
@@ -92,7 +51,7 @@ class Viewer extends GameShell {
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
-            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Viewer.HOST}/crc`)));
+            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/crc`)));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -111,52 +70,6 @@ class Viewer extends GameShell {
         }
     };
 
-    update = async (): Promise<void> => {};
-
-    draw = async (): Promise<void> => {};
-
-    //
-
-    showProgress = async (progress: number, str: string): Promise<void> => {
-        console.log(`${progress}%: ${str}`);
-
-        await super.showProgress(progress, str);
-    };
-
-    async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
-        let retry: number = 5;
-        let data: Int8Array | undefined = await this.db?.cacheload(filename);
-        if (data) {
-            if (Packet.crc32(data) !== crc) {
-                data = undefined;
-            }
-        }
-
-        if (data) {
-            return new Jagfile(data);
-        }
-
-        while (!data) {
-            await this.showProgress(progress, `Requesting ${displayName}`);
-
-            try {
-                data = await downloadUrl(`${Viewer.HOST}/${filename}${crc}`);
-            } catch (e) {
-                data = undefined;
-                for (let i: number = retry; i > 0; i--) {
-                    await this.showProgress(progress, `Error loading - Will retry in ${i} secs.`);
-                    await sleep(1000);
-                }
-                retry *= 2;
-                if (retry > 60) {
-                    retry = 60;
-                }
-            }
-        }
-        await this.db?.cachesave(filename, data);
-        return new Jagfile(data);
-    }
-
     //
 
     async populateSounds(): Promise<void> {
@@ -167,7 +80,7 @@ class Viewer extends GameShell {
 
         sounds.innerHTML = '';
 
-        this.packfiles[1] = await this.loadPack(`${Viewer.REPO}/data/pack/sound.pack`);
+        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/pack/sound.pack`);
 
         const search: HTMLInputElement = document.createElement('input');
         search.type = 'search';
@@ -231,7 +144,8 @@ class Viewer extends GameShell {
     }
 }
 
-new Viewer().run().then((): void => {});
+await setupConfiguration();
+new Sounds().run().then((): void => {});
 
 // prevent space from scrolling page
 window.onkeydown = function (e): boolean {
