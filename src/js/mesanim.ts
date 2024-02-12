@@ -21,45 +21,24 @@ import SeqFrame from './jagex2/graphics/SeqFrame';
 import Jagfile from './jagex2/io/Jagfile';
 
 import WordFilter from './jagex2/wordenc/WordFilter';
-import {downloadText, downloadUrl, sleep} from './jagex2/util/JsUtil';
-import GameShell from './jagex2/client/GameShell';
+import {downloadText, downloadUrl} from './jagex2/util/JsUtil';
 import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
-import {canvas, canvas2d} from './jagex2/graphics/Canvas';
+import {canvas} from './jagex2/graphics/Canvas';
 import Pix8 from './jagex2/graphics/Pix8';
 import Bzip from './vendor/bzip';
+import {Client} from './client';
+import {setupConfiguration} from './configuration';
 
-class Viewer extends GameShell {
-    static HOST: string = 'https://w2.225.2004scape.org';
-    static REPO: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
-    static readonly CHARSET: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!"£$%^&*()-_=+[{]};:\'@#~,<.>/?\\| ';
-
-    private db: Database | null = null;
-
-    alreadyStarted: boolean = false;
-    errorStarted: boolean = false;
-    errorLoading: boolean = false;
-    errorHost: boolean = false;
-
-    loopCycle: number = 0;
-    ingame: boolean = false;
-    archiveChecksums: number[] = [];
-
-    fontPlain11: PixFont | null = null;
-    fontPlain12: PixFont | null = null;
-    fontBold12: PixFont | null = null;
-    fontQuill8: PixFont | null = null;
-
+// noinspection JSSuspiciousNameCombination
+class Mesanim extends Client {
     // id -> name for cache files
     packfiles: Map<number, string>[] = [];
-
-    imageChatback: Pix8 | null = null;
 
     splitPages: string[][] = [];
     splitMesanimId: number = -1;
 
-    chatInterfaceId: number = -1;
     activeNpc: NpcType = new NpcType();
     inputMesanimId: number = -1;
     input: string = '';
@@ -98,7 +77,7 @@ class Viewer extends GameShell {
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
-            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Viewer.HOST}/crc`)));
+            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/crc`)));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -122,7 +101,7 @@ class Viewer extends GameShell {
             // this.packfiles[2] = await this.loadPack(`${Viewer.REPO}/data/pack/mesanim.pack`);
             // this.packfiles[3] = await this.loadPack(`${Viewer.REPO}/data/pack/seq.pack`);
 
-            const mesanim: Packet = new Packet(new Uint8Array(await downloadUrl(`${Viewer.HOST}/server/mesanim.dat`)));
+            const mesanim: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/server/mesanim.dat`)));
 
             await this.showProgress(75, 'Unpacking media');
             this.imageChatback = Pix8.fromArchive(media, 'chatback', 0);
@@ -227,7 +206,7 @@ class Viewer extends GameShell {
 
     draw = async (): Promise<void> => {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
-            this.drawErrorScreen();
+            this.drawError();
             return;
         }
 
@@ -240,231 +219,8 @@ class Viewer extends GameShell {
 
     //
 
-    showProgress = async (progress: number, str: string): Promise<void> => {
-        console.log(`${progress}%: ${str}`);
-
-        await super.showProgress(progress, str);
-    };
-
-    async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
-        let retry: number = 5;
-        let data: Int8Array | undefined = await this.db?.cacheload(filename);
-        if (data) {
-            if (Packet.crc32(data) !== crc) {
-                data = undefined;
-            }
-        }
-
-        if (data) {
-            return new Jagfile(data);
-        }
-
-        while (!data) {
-            await this.showProgress(progress, `Requesting ${displayName}`);
-
-            try {
-                data = await downloadUrl(`${Viewer.HOST}/${filename}${crc}`);
-            } catch (e) {
-                data = undefined;
-                for (let i: number = retry; i > 0; i--) {
-                    await this.showProgress(progress, `Error loading - Will retry in ${i} secs.`);
-                    await sleep(1000);
-                }
-                retry *= 2;
-                if (retry > 60) {
-                    retry = 60;
-                }
-            }
-        }
-        await this.db?.cachesave(filename, data);
-        return new Jagfile(data);
-    }
-
-    drawErrorScreen(): void {
-        canvas2d.fillStyle = 'black';
-        canvas2d.fillRect(0, 0, this.width, this.height);
-
-        this.setFramerate(1);
-
-        if (this.errorLoading) {
-            canvas2d.font = 'bold 16px helvetica, sans-serif';
-            canvas2d.textAlign = 'left';
-            canvas2d.fillStyle = 'yellow';
-
-            let y: number = 35;
-            canvas2d.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
-
-            y += 50;
-            canvas2d.fillStyle = 'white';
-            canvas2d.fillText('To fix this try the following (in order):', 30, y);
-
-            y += 50;
-            canvas2d.font = 'bold 12px helvetica, sans-serif';
-            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
-
-            y += 30;
-            canvas2d.fillText('2: Try clearing your web-browsers cache from tools->internet options', 30, y);
-
-            y += 30;
-            canvas2d.fillText('3: Try using a different game-world', 30, y);
-
-            y += 30;
-            canvas2d.fillText('4: Try rebooting your computer', 30, y);
-
-            y += 30;
-            canvas2d.fillText('5: Try selecting a different version of Java from the play-game menu', 30, y);
-        }
-
-        if (this.errorHost) {
-            canvas2d.font = 'bold 20px helvetica, sans-serif';
-            canvas2d.textAlign = 'left';
-            canvas2d.fillStyle = 'white';
-
-            canvas2d.fillText('Error - unable to load game!', 50, 50);
-            canvas2d.fillText('To play RuneScape make sure you play from', 50, 100);
-            canvas2d.fillText('https://2004scape.org', 50, 150);
-        }
-
-        if (this.errorStarted) {
-            canvas2d.font = 'bold 13px helvetica, sans-serif';
-            canvas2d.textAlign = 'left';
-            canvas2d.fillStyle = 'yellow';
-
-            let y: number = 35;
-            canvas2d.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
-
-            y += 50;
-            canvas2d.fillStyle = 'white';
-            canvas2d.fillText('To fix this try the following (in order):', 30, y);
-
-            y += 50;
-            canvas2d.font = 'bold 12px helvetica, sans-serif';
-            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
-
-            y += 30;
-            canvas2d.fillText('2: Try rebooting your computer, and reloading', 30, y);
-        }
-    }
-
-    //
-
-    private drawInterface = (com: ComType, x: number, y: number, scrollY: number): void => {
-        if (com.type !== 0 || com.childId === null || com.hide) {
-            return;
-        }
-
-        const left: number = Draw2D.left;
-        const top: number = Draw2D.top;
-        const right: number = Draw2D.right;
-        const bottom: number = Draw2D.bottom;
-
-        Draw2D.setBounds(x, y, x + com.width, y + com.height);
-        const children: number = com.childId.length;
-
-        for (let i: number = 0; i < children; i++) {
-            if (!com.childX || !com.childY) {
-                continue;
-            }
-
-            let childX: number = com.childX[i] + x;
-            let childY: number = com.childY[i] + y - scrollY;
-
-            const child: ComType = ComType.instances[com.childId[i]];
-            childX += child.x;
-            childY += child.y;
-
-            if (child.type === 0) {
-                if (child.scrollPosition > child.scroll - child.height) {
-                    child.scrollPosition = child.scroll - child.height;
-                }
-
-                if (child.scrollPosition < 0) {
-                    child.scrollPosition = 0;
-                }
-
-                this.drawInterface(child, childX, childY, child.scrollPosition);
-            } else if (child.type === 2) {
-                /* todo */
-            } else if (child.type === 3) {
-                if (child.fill) {
-                    Draw2D.fillRect(childX, childY, child.width, child.height, child.colour);
-                } else {
-                    Draw2D.drawRect(childX, childY, child.width, child.height, child.colour);
-                }
-            } else if (child.type === 4) {
-                const font: PixFont | null = child.font;
-                const color: number = child.colour;
-                let text: string | null = child.text;
-
-                if (!font || !text) {
-                    continue;
-                }
-
-                for (let lineY: number = childY + font.height; text.length > 0; lineY += font.height) {
-                    const newline: number = text.indexOf('\\n');
-                    let split: string;
-                    if (newline !== -1) {
-                        split = text.substring(0, newline);
-                        text = text.substring(newline + 2);
-                    } else {
-                        split = text;
-                        text = '';
-                    }
-
-                    if (child.center) {
-                        font.drawStringTaggableCenter(childX + child.width / 2, lineY, split, color, child.shadowed);
-                    } else {
-                        font.drawStringTaggable(childX, lineY, split, color, child.shadowed);
-                    }
-                }
-            } else if (child.type === 5) {
-                /* todo */
-            } else if (child.type === 6) {
-                const tmpX: number = Draw3D.centerX;
-                const tmpY: number = Draw3D.centerY;
-
-                Draw3D.centerX = childX + child.width / 2;
-                Draw3D.centerY = childY + child.height / 2;
-
-                const eyeY: number = (Draw3D.sin[child.xan] * child.zoom) >> 16;
-                const eyeZ: number = (Draw3D.cos[child.xan] * child.zoom) >> 16;
-
-                const active: boolean = false;
-                let seqId: number;
-                if (active) {
-                    seqId = child.activeAnim;
-                } else {
-                    seqId = child.anim;
-                }
-
-                let model: Model | null = null;
-                if (seqId === -1) {
-                    model = child.getModel(-1, -1, active);
-                } else {
-                    const seq: SeqType = SeqType.instances[seqId];
-                    if (seq.frames && seq.iframes) {
-                        model = child.getModel(seq.frames[child.seqFrame], seq.iframes[child.seqFrame], active);
-                    }
-                }
-
-                if (model) {
-                    model.drawSimple(0, child.yan, 0, child.xan, 0, eyeY, eyeZ);
-                }
-
-                Draw3D.centerX = tmpX;
-                Draw3D.centerY = tmpY;
-            } else if (child.type === 7) {
-                /* todo */
-            }
-        }
-
-        Draw2D.setBounds(left, top, right, bottom);
-    };
-
-    //
-
     async populateNpcSelector(): Promise<void> {
-        this.packfiles[1] = await this.loadPack(`${Viewer.REPO}/data/pack/npc.pack`);
+        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/pack/npc.pack`);
 
         const npcs: HTMLSelectElement | null = document.querySelector('#npcs');
         if (!npcs) {
@@ -619,7 +375,7 @@ class Viewer extends GameShell {
                 continue;
             }
 
-            const valid: boolean = Viewer.CHARSET.indexOf(String.fromCharCode(key)) !== -1;
+            const valid: boolean = PixFont.CHARSET.indexOf(String.fromCharCode(key)) !== -1;
             if (valid) {
                 this.input += String.fromCharCode(key);
                 changed = true;
@@ -644,31 +400,11 @@ class Viewer extends GameShell {
 
     drawChat(): void {
         this.imageChatback?.draw(0, 0);
-
-        if (this.chatInterfaceId !== -1) {
-            const com: ComType = ComType.instances[this.chatInterfaceId + 1];
-            const seq: SeqType = SeqType.instances[com.anim];
-
-            com.seqCycle += 1;
-
-            while (com.seqCycle > seq.delay![com.seqFrame]) {
-                com.seqCycle -= seq.delay![com.seqFrame] + 1;
-                com.seqFrame++;
-
-                if (com.seqFrame >= seq.frameCount) {
-                    com.seqFrame -= seq.replayoff;
-
-                    if (com.seqFrame < 0 || com.seqFrame >= seq.frameCount) {
-                        com.seqFrame = 0;
-                    }
-                }
-            }
-
-            try {
-                this.drawInterface(ComType.instances[this.chatInterfaceId], 0, 0, 0);
-            } catch (err) {
-                console.error(err);
-            }
+        this.updateInterfaceAnimation(this.chatInterfaceId, 1);
+        try {
+            this.drawInterface(ComType.instances[this.chatInterfaceId], 0, 0, 0);
+        } catch (err) {
+            console.error(err);
         }
     }
 
@@ -805,7 +541,8 @@ class Viewer extends GameShell {
     }
 }
 
-new Viewer().run().then((): void => {});
+await setupConfiguration();
+new Mesanim().run().then((): void => {});
 
 // prevent space from scrolling page
 window.onkeydown = function (e): boolean {

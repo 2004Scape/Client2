@@ -20,35 +20,18 @@ import SeqFrame from './jagex2/graphics/SeqFrame';
 import Jagfile from './jagex2/io/Jagfile';
 
 import WordFilter from './jagex2/wordenc/WordFilter';
-import {downloadText, downloadUrl, sleep} from './jagex2/util/JsUtil';
+import {downloadText, downloadUrl} from './jagex2/util/JsUtil';
 import GameShell from './jagex2/client/GameShell';
 import Packet from './jagex2/io/Packet';
 import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
-import {canvas2d} from './jagex2/graphics/Canvas';
 import Bzip from './vendor/bzip';
 import Colors from './jagex2/graphics/Colors';
+import {Client} from './client';
+import {setupConfiguration} from './configuration';
 
-class Viewer extends GameShell {
-    static HOST: string = 'https://w2.225.2004scape.org';
-    static REPO: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
-
-    private db: Database | null = null;
-
-    alreadyStarted: boolean = false;
-    errorStarted: boolean = false;
-    errorLoading: boolean = false;
-    errorHost: boolean = false;
-
-    loopCycle: number = 0;
-    ingame: boolean = false;
-    archiveChecksums: number[] = [];
-
-    fontPlain11: PixFont | null = null;
-    fontPlain12: PixFont | null = null;
-    fontBold12: PixFont | null = null;
-    fontQuill8: PixFont | null = null;
-
+// noinspection JSSuspiciousNameCombination
+class Viewer extends Client {
     // id -> name for cache files
     packfiles: Map<number, string>[] = [];
 
@@ -101,7 +84,7 @@ class Viewer extends GameShell {
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
-            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Viewer.HOST}/crc`)));
+            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/crc`)));
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
@@ -174,7 +157,7 @@ class Viewer extends GameShell {
 
     draw = async (): Promise<void> => {
         if (this.errorStarted || this.errorLoading || this.errorHost) {
-            this.drawErrorScreen();
+            this.drawError();
             return;
         }
 
@@ -195,118 +178,8 @@ class Viewer extends GameShell {
         this.drawArea?.draw(0, 0);
     };
 
-    //
-
-    showProgress = async (progress: number, str: string): Promise<void> => {
-        console.log(`${progress}%: ${str}`);
-
-        await super.showProgress(progress, str);
-    };
-
-    //
-
-    async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
-        let retry: number = 5;
-        let data: Int8Array | undefined = await this.db?.cacheload(filename);
-        if (data) {
-            if (Packet.crc32(data) !== crc) {
-                data = undefined;
-            }
-        }
-
-        if (data) {
-            return new Jagfile(data);
-        }
-
-        while (!data) {
-            await this.showProgress(progress, `Requesting ${displayName}`);
-
-            try {
-                data = new Int8Array(await downloadUrl(`${Viewer.HOST}/${filename}${crc}`));
-            } catch (e) {
-                data = undefined;
-                for (let i: number = retry; i > 0; i--) {
-                    await this.showProgress(progress, `Error loading - Will retry in ${i} secs.`);
-                    await sleep(1000);
-                }
-                retry *= 2;
-                if (retry > 60) {
-                    retry = 60;
-                }
-            }
-        }
-        await this.db?.cachesave(filename, data);
-        return new Jagfile(data);
-    }
-
-    drawErrorScreen(): void {
-        canvas2d.fillStyle = 'black';
-        canvas2d.fillRect(0, 0, this.width, this.height);
-
-        this.setFramerate(1);
-
-        if (this.errorLoading) {
-            canvas2d.font = 'bold 16px helvetica, sans-serif';
-            canvas2d.textAlign = 'left';
-            canvas2d.fillStyle = 'yellow';
-
-            let y: number = 35;
-            canvas2d.fillText('Sorry, an error has occured whilst loading RuneScape', 30, y);
-
-            y += 50;
-            canvas2d.fillStyle = 'white';
-            canvas2d.fillText('To fix this try the following (in order):', 30, y);
-
-            y += 50;
-            canvas2d.font = 'bold 12px helvetica, sans-serif';
-            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
-
-            y += 30;
-            canvas2d.fillText('2: Try clearing your web-browsers cache from tools->internet options', 30, y);
-
-            y += 30;
-            canvas2d.fillText('3: Try using a different game-world', 30, y);
-
-            y += 30;
-            canvas2d.fillText('4: Try rebooting your computer', 30, y);
-
-            y += 30;
-            canvas2d.fillText('5: Try selecting a different version of Java from the play-game menu', 30, y);
-        }
-
-        if (this.errorHost) {
-            canvas2d.font = 'bold 20px helvetica, sans-serif';
-            canvas2d.textAlign = 'left';
-            canvas2d.fillStyle = 'white';
-
-            canvas2d.fillText('Error - unable to load game!', 50, 50);
-            canvas2d.fillText('To play RuneScape make sure you play from', 50, 100);
-            canvas2d.fillText('https://2004scape.org', 50, 150);
-        }
-
-        if (this.errorStarted) {
-            canvas2d.font = 'bold 13px helvetica, sans-serif';
-            canvas2d.textAlign = 'left';
-            canvas2d.fillStyle = 'yellow';
-
-            let y: number = 35;
-            canvas2d.fillText('Error a copy of RuneScape already appears to be loaded', 30, y);
-
-            y += 50;
-            canvas2d.fillStyle = 'white';
-            canvas2d.fillText('To fix this try the following (in order):', 30, y);
-
-            y += 50;
-            canvas2d.font = 'bold 12px helvetica, sans-serif';
-            canvas2d.fillText('1: Try closing ALL open web-browser windows, and reloading', 30, y);
-
-            y += 30;
-            canvas2d.fillText('2: Try rebooting your computer, and reloading', 30, y);
-        }
-    }
-
     async showModels(): Promise<void> {
-        this.packfiles[0] = await this.loadPack(`${Viewer.REPO}/data/pack/model.pack`);
+        this.packfiles[0] = await this.loadPack(`${Client.githubRepository}/data/pack/model.pack`);
 
         const leftPanel: HTMLElement | null = document.getElementById('leftPanel');
         if (leftPanel) {
@@ -364,4 +237,5 @@ class Viewer extends GameShell {
     }
 }
 
+await setupConfiguration();
 new Viewer().run().then((): void => {});

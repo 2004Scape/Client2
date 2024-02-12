@@ -19,7 +19,7 @@ const htmlPlugins = pages.map(name => {
 
 const config = {
     entry: {
-        index: './src/js/client.ts',
+        index: './src/js/game.ts',
         playground: './src/js/playground.js',
         viewer: './src/js/viewer.ts',
         mesanim: './src/js/mesanim.ts',

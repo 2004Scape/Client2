@@ -26,17 +26,11 @@ import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
 import Bzip from './vendor/bzip';
 import Colors from './jagex2/graphics/Colors';
+import {Client} from './client';
+import {setupConfiguration} from './configuration';
 
-class Playground extends GameShell {
-    static HOST = 'https://w2.225.2004scape.org';
-
-    private db: Database | null = null;
-
-    private fontPlain11: PixFont | null = null;
-    private fontPlain12: PixFont | null = null;
-    private fontBold12: PixFont | null = null;
-    private fontQuill8: PixFont | null = null;
-
+// noinspection JSSuspiciousNameCombination
+class Playground extends Client {
     lastHistoryRefresh = 0;
     historyRefresh = true;
 
@@ -50,7 +44,7 @@ class Playground extends GameShell {
         await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
         this.db = new Database(await Database.openDatabase());
 
-        const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Playground.HOST}/crc`)));
+        const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/crc`)));
         const archiveChecksums: number[] = [];
         for (let i: number = 0; i < 9; i++) {
             archiveChecksums[i] = checksums.g4;
@@ -210,40 +204,6 @@ class Playground extends GameShell {
 
     // ----
 
-    async loadArchive(filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> {
-        let retry: number = 5;
-        let data: Int8Array | undefined = await this.db?.cacheload(filename);
-        if (data) {
-            if (Packet.crc32(data) !== crc) {
-                data = undefined;
-            }
-        }
-
-        if (data) {
-            return new Jagfile(data);
-        }
-
-        while (!data) {
-            await this.showProgress(progress, `Requesting ${displayName}`);
-
-            try {
-                data = new Int8Array(await downloadUrl(`${Playground.HOST}/${filename}${crc}`));
-            } catch (e) {
-                data = undefined;
-                for (let i: number = retry; i > 0; i--) {
-                    await this.showProgress(progress, `Error loading - Will retry in ${i} secs.`);
-                    await sleep(1000);
-                }
-                retry *= 2;
-                if (retry > 60) {
-                    retry = 60;
-                }
-            }
-        }
-        await this.db?.cachesave(filename, data);
-        return new Jagfile(data);
-    }
-
     modifier = 2;
     model = {
         id: parseInt(GameShell.getParameter('model')) || 0,
@@ -362,4 +322,5 @@ class Playground extends GameShell {
     }
 }
 
+await setupConfiguration();
 new Playground().run().then((): void => {});
