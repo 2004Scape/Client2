@@ -34,6 +34,21 @@ class Playground extends Client {
     lastHistoryRefresh = 0;
     historyRefresh = true;
 
+    private eyeX: number = 0;
+    private eyeY: number = 0;
+    private eyeZ: number = 0;
+    private eyePitch: number = 0;
+    private eyeYaw: number = 0;
+
+    modifier = 2;
+    model = {
+        id: parseInt(GameShell.getParameter('model')) || 0,
+        x: 0,
+        y: 0,
+        z: 420,
+        yaw: 0
+    };
+
     constructor() {
         super(true);
     }
@@ -110,13 +125,6 @@ class Playground extends Client {
         if (this.lastHistoryRefresh > 50) {
             if (this.historyRefresh) {
                 GameShell.setParameter('model', this.model.id.toString());
-                GameShell.setParameter('x', this.model.pitch.toString());
-                GameShell.setParameter('y', this.model.yaw.toString());
-                GameShell.setParameter('z', this.model.roll.toString());
-                GameShell.setParameter('eyeX', this.camera.x.toString());
-                GameShell.setParameter('eyeY', this.camera.y.toString());
-                GameShell.setParameter('eyeZ', this.camera.z.toString());
-                GameShell.setParameter('eyePitch', this.camera.pitch.toString());
 
                 this.historyRefresh = false;
             }
@@ -129,50 +137,14 @@ class Playground extends Client {
         Draw2D.clear();
         Draw2D.fillRect(0, 0, this.width, this.height, 0x555555);
 
-        /// draw all textures
-        // let x = 0;
-        // let y = 0;
-        // for (let i = 0; i < Draw3D.textureCount; i++) {
-        //     if (x > this.width) {
-        //         x = 0;
-        //         y += 128;
-        //     }
-
-        //     Draw3D.textures[i].draw(x, y);
-        //     x += 128;
-        // }
-
-        /// draw all flotypes
-        // let x = 0;
-        // let y = this.b12.fontHeight;
-        // for (let i = 0; i < FloType.count; i++) {
-        //     let flo = FloType.get(i);
-        //     this.b12.draw(x, y, `${i}: ${flo.name}`, Colors.YELLOW);
-
-        //     let textSize = this.b12.getTextWidth(`${i}: ${flo.name}`);
-
-        //     if (flo.texture !== -1) {
-        //         Draw3D.textures[flo.texture].draw(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight);
-        //     } else {
-        //         Draw2D.fillRect(x + textSize, y - this.b12.fontHeight + 1, this.b12.fontHeight, this.b12.fontHeight, flo.rgb);
-        //     }
-
-        //     y += this.b12.fontHeight;
-        //     if (y > this.height) {
-        //         x += 200;
-        //         y = this.b12.fontHeight;
-        //     }
-        // }
-
         // draw a model
         const model: Model = Model.model(this.model.id);
         model.calculateNormals(64, 850, -30, -50, -30, true);
-        model.drawSimple(this.model.pitch | 0, this.model.yaw | 0, this.model.roll | 0, this.camera.pitch | 0, this.camera.x | 0, this.camera.y | 0, this.camera.z | 0);
+        model.draw(this.model.yaw, Draw3D.sin[this.eyePitch], Draw3D.cos[this.eyePitch], Draw3D.sin[this.eyeYaw], Draw3D.cos[this.eyeYaw], this.model.x - this.eyeX, this.model.y - this.eyeY, this.model.z - this.eyeZ, 0);
 
         // debug
         if (this.fontBold12) {
             this.fontBold12.drawStringRight(this.width, this.fontBold12.height, `FPS: ${this.fps}`, Colors.YELLOW);
-            this.fontBold12.drawStringRight(this.width, this.height, `${this.model.pitch},${this.model.yaw},${this.model.roll},${this.camera.pitch},${this.camera.x},${this.camera.z},${this.camera.y}`, Colors.YELLOW);
 
             // controls
             let leftY: number = this.fontBold12.height;
@@ -204,20 +176,6 @@ class Playground extends Client {
 
     // ----
 
-    modifier = 2;
-    model = {
-        id: parseInt(GameShell.getParameter('model')) || 0,
-        pitch: parseInt(GameShell.getParameter('x')) || 0,
-        yaw: parseInt(GameShell.getParameter('y')) || 0,
-        roll: parseInt(GameShell.getParameter('z')) || 0
-    };
-    camera = {
-        x: parseInt(GameShell.getParameter('eyeX')) || 0,
-        y: parseInt(GameShell.getParameter('eyeY')) || 0,
-        z: parseInt(GameShell.getParameter('eyeZ')) || 420,
-        pitch: parseInt(GameShell.getParameter('eyePitch')) || 0
-    };
-
     updateKeysPressed(): void {
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -228,18 +186,6 @@ class Playground extends Client {
 
             if (key === 'r'.charCodeAt(0)) {
                 this.modifier = 2;
-                this.model = {
-                    id: this.model.id,
-                    pitch: 0,
-                    yaw: 0,
-                    roll: 0
-                };
-                this.camera = {
-                    x: 0,
-                    y: 0,
-                    z: 420,
-                    pitch: 0
-                };
                 this.historyRefresh = true;
             } else if (key === '1'.charCodeAt(0)) {
                 this.model.id--;
@@ -274,51 +220,33 @@ class Playground extends Client {
             this.historyRefresh = true;
         }
 
-        if (this.actionKey[3]) {
-            // up arrow
-            this.model.pitch -= this.modifier;
-            this.historyRefresh = true;
-        } else if (this.actionKey[4]) {
-            // down arrow
-            this.model.pitch += this.modifier;
-            this.historyRefresh = true;
-        }
-
-        if (this.actionKey['.'.charCodeAt(0)]) {
-            this.model.roll += this.modifier;
-            this.historyRefresh = true;
-        } else if (this.actionKey['/'.charCodeAt(0)]) {
-            this.model.roll -= this.modifier;
-            this.historyRefresh = true;
-        }
-
         if (this.actionKey['w'.charCodeAt(0)]) {
-            this.camera.z -= this.modifier;
+            this.model.z -= this.modifier;
             this.historyRefresh = true;
         } else if (this.actionKey['s'.charCodeAt(0)]) {
-            this.camera.z += this.modifier;
+            this.model.z += this.modifier;
             this.historyRefresh = true;
         }
 
         if (this.actionKey['a'.charCodeAt(0)]) {
-            this.camera.x -= this.modifier;
+            this.model.x -= this.modifier;
             this.historyRefresh = true;
         } else if (this.actionKey['d'.charCodeAt(0)]) {
-            this.camera.x += this.modifier;
+            this.model.x += this.modifier;
             this.historyRefresh = true;
         }
 
         if (this.actionKey['q'.charCodeAt(0)]) {
-            this.camera.y -= this.modifier;
+            this.model.y += this.modifier;
             this.historyRefresh = true;
         } else if (this.actionKey['e'.charCodeAt(0)]) {
-            this.camera.y += this.modifier;
+            this.model.y -= this.modifier;
             this.historyRefresh = true;
         }
 
-        this.model.pitch = this.model.pitch & 2047;
+        this.eyePitch = this.eyePitch & 2047;
+        this.eyeYaw = this.eyeYaw & 2047;
         this.model.yaw = this.model.yaw & 2047;
-        this.model.roll = this.model.roll & 2047;
     }
 }
 

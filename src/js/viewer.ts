@@ -32,19 +32,20 @@ class Viewer extends Client {
     midiStore: DiskStore | null = null;
     mapStore: DiskStore | null = null;
 
+    private eyeX: number = 0;
+    private eyeY: number = 0;
+    private eyeZ: number = 0;
+    private eyePitch: number = 0;
+    private eyeYaw: number = 0;
+
     modifier = 2;
     model = {
         id: parseInt(GameShell.getParameter('model')) || 0,
-        pitch: parseInt(GameShell.getParameter('x')) || 0,
-        yaw: parseInt(GameShell.getParameter('y')) || 0,
-        roll: parseInt(GameShell.getParameter('z')) || 0,
-        built: null as Model | null
-    };
-    camera = {
-        x: parseInt(GameShell.getParameter('eyeX')) || 0,
-        y: parseInt(GameShell.getParameter('eyeY')) || 0,
-        z: parseInt(GameShell.getParameter('eyeZ')) || 420,
-        pitch: parseInt(GameShell.getParameter('eyePitch')) || 0
+        built: null as Model | null,
+        x: 0,
+        y: 0,
+        z: 420,
+        yaw: 0
     };
 
     constructor() {
@@ -132,7 +133,7 @@ class Viewer extends Client {
         Draw2D.fillRect(0, 0, this.width, this.height, Colors.BLACK);
 
         if (this.model.built !== null) {
-            this.model.built.drawSimple(this.model.pitch | 0, this.model.yaw | 0, this.model.roll | 0, this.camera.pitch | 0, this.camera.x | 0, this.camera.y | 0, this.camera.z | 0);
+            this.model.built.draw(this.model.yaw, Draw3D.sin[this.eyePitch], Draw3D.cos[this.eyePitch], Draw3D.sin[this.eyeYaw], Draw3D.cos[this.eyeYaw], this.model.x - this.eyeX, this.model.y - this.eyeY, this.model.z - this.eyeZ, 0);
         }
 
         this.drawArea?.draw(0, 0);
@@ -233,13 +234,15 @@ class Viewer extends Client {
 
             if (key === 'r'.charCodeAt(0)) {
                 this.modifier = 2;
-                this.model.pitch = 0;
+                this.eyeX = 0;
+                this.eyeY = 0;
+                this.eyeZ = 0;
+                this.eyePitch = 0;
+                this.eyeYaw = 0;
+                this.model.x = 0;
+                this.model.y = 0;
+                this.model.z = 420;
                 this.model.yaw = 0;
-                this.model.roll = 0;
-                this.camera.x = 0;
-                this.camera.y = 0;
-                this.camera.z = 420;
-                this.camera.pitch = 0;
             } else if (key === '1'.charCodeAt(0)) {
                 this.model.id--;
                 if (Model.metadata && this.model.id < 0) {
@@ -271,41 +274,27 @@ class Viewer extends Client {
             this.model.yaw -= this.modifier;
         }
 
-        if (this.actionKey[3]) {
-            // up arrow
-            this.model.pitch -= this.modifier;
-        } else if (this.actionKey[4]) {
-            // down arrow
-            this.model.pitch += this.modifier;
-        }
-
-        if (this.actionKey['.'.charCodeAt(0)]) {
-            this.model.roll += this.modifier;
-        } else if (this.actionKey['/'.charCodeAt(0)]) {
-            this.model.roll -= this.modifier;
-        }
-
         if (this.actionKey['w'.charCodeAt(0)]) {
-            this.camera.z -= this.modifier;
+            this.model.z -= this.modifier;
         } else if (this.actionKey['s'.charCodeAt(0)]) {
-            this.camera.z += this.modifier;
+            this.model.z += this.modifier;
         }
 
         if (this.actionKey['a'.charCodeAt(0)]) {
-            this.camera.x -= this.modifier;
+            this.model.x -= this.modifier;
         } else if (this.actionKey['d'.charCodeAt(0)]) {
-            this.camera.x += this.modifier;
+            this.model.x += this.modifier;
         }
 
         if (this.actionKey['q'.charCodeAt(0)]) {
-            this.camera.y -= this.modifier;
+            this.model.y -= this.modifier;
         } else if (this.actionKey['e'.charCodeAt(0)]) {
-            this.camera.y += this.modifier;
+            this.model.y += this.modifier;
         }
 
-        this.model.pitch = this.model.pitch & 2047;
+        this.eyePitch = this.eyePitch & 2047;
+        this.eyeYaw = this.eyeYaw & 2047;
         this.model.yaw = this.model.yaw & 2047;
-        this.model.roll = this.model.roll & 2047;
     }
 }
 

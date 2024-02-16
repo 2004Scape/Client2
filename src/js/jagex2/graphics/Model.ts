@@ -1965,6 +1965,7 @@ export default class Model extends Hashable {
     };
 
     // todo: better name, Java relies on overloads
+    // this function is NOT near-clipped (helps with performance) so be careful how you use it!
     drawSimple = (pitch: number, yaw: number, roll: number, eyePitch: number, eyeX: number, eyeY: number, eyeZ: number): void => {
         const sinPitch: number = Draw3D.sin[pitch];
         const cosPitch: number = Draw3D.cos[pitch];
@@ -2013,9 +2014,9 @@ export default class Model extends Hashable {
             y = tmp;
 
             if (Model.vertexScreenX && Model.vertexScreenY && Model.vertexScreenZ) {
+                Model.vertexScreenZ[v] = z - midZ;
                 Model.vertexScreenX[v] = Draw3D.centerX + (((x << 9) / z) | 0);
                 Model.vertexScreenY[v] = Draw3D.centerY + (((y << 9) / z) | 0);
-                Model.vertexScreenZ[v] = z - midZ;
             }
 
             if (this.texturedFaceCount > 0 && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
@@ -2139,6 +2140,7 @@ export default class Model extends Hashable {
 
             temp = (y * cosEyePitch - z * sinEyePitch) >> 16;
             z = (y * sinEyePitch + z * cosEyePitch) >> 16;
+            y = temp;
 
             if (Model.vertexScreenZ) {
                 Model.vertexScreenZ[v] = z - midZ;
@@ -2146,7 +2148,7 @@ export default class Model extends Hashable {
 
             if (z >= 50 && Model.vertexScreenX && Model.vertexScreenY) {
                 Model.vertexScreenX[v] = centerX + (((x << 9) / z) | 0);
-                Model.vertexScreenY[v] = centerY + (((temp << 9) / z) | 0);
+                Model.vertexScreenY[v] = centerY + (((y << 9) / z) | 0);
             } else if (Model.vertexScreenX) {
                 Model.vertexScreenX[v] = -5000;
                 clipped = true;
@@ -2154,7 +2156,7 @@ export default class Model extends Hashable {
 
             if ((clipped || this.texturedFaceCount > 0) && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
                 Model.vertexViewSpaceX[v] = x;
-                Model.vertexViewSpaceY[v] = temp;
+                Model.vertexViewSpaceY[v] = y;
                 Model.vertexViewSpaceZ[v] = z;
             }
         }
