@@ -217,6 +217,9 @@ class Viewer extends Client {
         if (data !== null) {
             this.model.built = Model.model317(data as Uint8Array, id);
             this.model.built.calculateNormals(64, 850, -30, -50, -30, true);
+            document.title = `Model ${id} | 2004Scape Tools`;
+        } else {
+            document.title = `Missing model ${id} | 2004Scape Tools`;
         }
     }
 
