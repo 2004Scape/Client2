@@ -197,6 +197,7 @@ class Viewer extends Client {
                 li.className = 'list-group-item';
                 li.innerText = `Model ${i}`;
                 li.onclick = (): void => {
+                    this.model.id = i;
                     this.loadModel(i);
                 };
                 ul.appendChild(li);
@@ -236,7 +237,7 @@ class Viewer extends Client {
             } else if (key === '1'.charCodeAt(0)) {
                 this.model.id--;
                 if (Model.metadata && this.model.id < 0) {
-                    this.model.id = Model.metadata.length;
+                    this.model.id = Model.metadata.length - 1;
                 }
                 this.loadModel(this.model.id);
             } else if (key === '2'.charCodeAt(0)) {
