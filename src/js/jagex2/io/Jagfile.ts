@@ -21,7 +21,11 @@ export default class Jagfile {
     fileOffset: number[];
     fileUnpacked: Uint8Array[] = [];
 
-    constructor(src: Int8Array) {
+    constructor(src: Int8Array | Uint8Array) {
+        if (src instanceof Uint8Array) {
+            src = new Int8Array(src);
+        }
+
         let data: Packet = new Packet(new Uint8Array(src));
         const unpackedSize: number = data.g3;
         const packedSize: number = data.g3;

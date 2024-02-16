@@ -27,6 +27,8 @@ class Metadata {
     faceAlphasOffset: number = -1;
     faceLabelsOffset: number = -1;
     faceTextureAxisOffset: number = -1;
+
+    data: Uint8Array | null = null;
 }
 
 export class VertexNormal {
@@ -176,7 +178,7 @@ export default class Model extends Hashable {
                 meta.faceOrientationsOffset = Model.vertex2.pos;
 
                 const hasInfo: number = Model.head.g1;
-                const hasPriorities: number = Model.head.g1;
+                const priority: number = Model.head.g1;
                 const hasAlpha: number = Model.head.g1;
                 const hasSkins: number = Model.head.g1;
                 const hasLabels: number = Model.head.g1;
@@ -216,11 +218,11 @@ export default class Model extends Hashable {
                     triangleInfoDataOffset += meta.faceCount;
                 }
 
-                if (hasPriorities === 255) {
+                if (priority === 255) {
                     meta.facePrioritiesOffset = trianglePriorityDataOffset;
                     trianglePriorityDataOffset += meta.faceCount;
                 } else {
-                    meta.facePrioritiesOffset = -hasPriorities - 1;
+                    meta.facePrioritiesOffset = -priority - 1;
                 }
 
                 if (hasAlpha === 1) {
@@ -247,6 +249,102 @@ export default class Model extends Hashable {
             console.log('Error loading model index');
             console.error(err);
         }
+    }
+
+    static unpack317(src: Uint8Array, id: number): void {
+        if (Model.metadata === null) {
+            Model.metadata = [];
+        }
+
+        if (src === null) {
+            const meta: Metadata = new Metadata();
+            meta.vertexCount = 0;
+            meta.faceCount = 0;
+            meta.texturedFaceCount = 0;
+            Model.metadata[id] = meta;
+            return;
+        }
+
+        const buf: Packet = new Packet(src);
+        buf.pos = buf.length - 18;
+
+        const meta: Metadata = new Metadata();
+        meta.data = src;
+        meta.vertexCount = buf.g2;
+        meta.faceCount = buf.g2;
+        meta.texturedFaceCount = buf.g1;
+        Model.metadata[id] = meta;
+
+        const hasInfo: number = buf.g1;
+        const priority: number = buf.g1;
+        const hasAlpha: number = buf.g1;
+        const hasSkins: number = buf.g1;
+        const hasLabels: number = buf.g1;
+
+        const dataLengthX: number = buf.g2;
+        const dataLengthY: number = buf.g2;
+        const dataLengthZ: number = buf.g2;
+        const dataLengthFaceOrientations: number = buf.g2;
+
+        let offset: number = 0;
+        meta.vertexFlagsOffset = offset;
+        offset += meta.vertexCount;
+
+        meta.faceOrientationsOffset = offset;
+        offset += meta.faceCount;
+
+        meta.facePrioritiesOffset = offset;
+        if (priority === 255) {
+            offset += meta.faceCount;
+        } else {
+            meta.facePrioritiesOffset = -priority - 1;
+        }
+
+        meta.faceLabelsOffset = offset;
+        if (hasSkins === 1) {
+            offset += meta.faceCount;
+        } else {
+            meta.faceLabelsOffset = -1;
+        }
+
+        meta.faceInfosOffset = offset;
+        if (hasInfo === 1) {
+            offset += meta.faceCount;
+        } else {
+            meta.faceInfosOffset = -1;
+        }
+
+        meta.vertexLabelsOffset = offset;
+        if (hasLabels === 1) {
+            offset += meta.vertexCount;
+        } else {
+            meta.vertexLabelsOffset = -1;
+        }
+
+        meta.faceAlphasOffset = offset;
+        if (hasAlpha === 1) {
+            offset += meta.faceCount;
+        } else {
+            meta.faceAlphasOffset = -1;
+        }
+
+        meta.faceVerticesOffset = offset;
+        offset += dataLengthFaceOrientations;
+
+        meta.faceColorsOffset = offset;
+        offset += meta.faceCount * 2;
+
+        meta.faceTextureAxisOffset = offset;
+        offset += meta.texturedFaceCount * 6;
+
+        meta.vertexXOffset = offset;
+        offset += dataLengthX;
+
+        meta.vertexYOffset = offset;
+        offset += dataLengthY;
+
+        meta.vertexZOffset = offset;
+        offset += dataLengthZ;
     }
 
     static unload(): void {
@@ -941,10 +1039,6 @@ export default class Model extends Hashable {
     };
 
     static model = (id: number): Model => {
-        if (!Model.head || !Model.face1 || !Model.face2 || !Model.face3 || !Model.face4 || !Model.face5 || !Model.point1 || !Model.point2 || !Model.point3 || !Model.point4 || !Model.point5 || !Model.vertex1 || !Model.vertex2 || !Model.axis) {
-            throw new Error('cant loading model!!!!!');
-        }
-
         if (!Model.metadata) {
             throw new Error('cant loading model metadata!!!!!');
         }
@@ -953,6 +1047,10 @@ export default class Model extends Hashable {
         if (!meta) {
             console.log(`Error model:${id} not found!`);
             throw new Error('cant loading model metadata!!!!!');
+        }
+
+        if (!Model.head || !Model.face1 || !Model.face2 || !Model.face3 || !Model.face4 || !Model.face5 || !Model.point1 || !Model.point2 || !Model.point3 || !Model.point4 || !Model.point5 || !Model.vertex1 || !Model.vertex2 || !Model.axis) {
+            throw new Error('cant loading model!!!!!');
         }
 
         const vertexCount: number = meta.vertexCount;
@@ -1115,6 +1213,230 @@ export default class Model extends Hashable {
             texturedVertexB[f] = Model.axis.g2;
             texturedVertexC[f] = Model.axis.g2;
         }
+        return new Model({
+            vertexCount: vertexCount,
+            vertexX: vertexX,
+            vertexY: vertexY,
+            vertexZ: vertexZ,
+            faceCount: faceCount,
+            faceVertexA: faceVertexA,
+            faceVertexB: faceVertexB,
+            faceVertexC: faceVertexC,
+            faceColorA: null,
+            faceColorB: null,
+            faceColorC: null,
+            faceInfo: faceInfo,
+            facePriority: facePriority,
+            faceAlpha: faceAlpha,
+            faceColor: faceColor,
+            priority: priority,
+            texturedFaceCount: texturedFaceCount,
+            texturedVertexA: texturedVertexA,
+            texturedVertexB: texturedVertexB,
+            texturedVertexC: texturedVertexC,
+            vertexLabel: vertexLabel,
+            faceLabel: faceLabel
+        });
+    };
+
+    // todo: 99% identical to above function...
+    // todo: have to pass src for now because arraybuffer is getting garbage collected
+    static model317 = (src: Uint8Array, id: number): Model => {
+        if (!Model.metadata || !Model.metadata[id]) {
+            throw new Error('No model metadata');
+        }
+
+        const meta: Metadata = Model.metadata[id] as Metadata;
+        meta.data = src; // todo: see above comment
+
+        if (!meta.data.length) {
+            throw new Error('No model data');
+        }
+
+        const vertexCount: number = meta.vertexCount;
+        const faceCount: number = meta.faceCount;
+        const texturedFaceCount: number = meta.texturedFaceCount;
+
+        const vertexX: Int32Array = new Int32Array(vertexCount);
+        const vertexY: Int32Array = new Int32Array(vertexCount);
+        const vertexZ: Int32Array = new Int32Array(vertexCount);
+
+        const faceVertexA: Int32Array = new Int32Array(faceCount);
+        const faceVertexB: Int32Array = new Int32Array(faceCount);
+        const faceVertexC: Int32Array = new Int32Array(faceCount);
+
+        const texturedVertexA: Int32Array = new Int32Array(texturedFaceCount);
+        const texturedVertexB: Int32Array = new Int32Array(texturedFaceCount);
+        const texturedVertexC: Int32Array = new Int32Array(texturedFaceCount);
+
+        let vertexLabel: Int32Array | null = null;
+        if (meta.vertexLabelsOffset >= 0) {
+            vertexLabel = new Int32Array(vertexCount);
+        }
+
+        let faceInfo: Int32Array | null = null;
+        if (meta.faceInfosOffset >= 0) {
+            faceInfo = new Int32Array(faceCount);
+        }
+
+        let facePriority: Int32Array | null = null;
+        let priority: number = 0;
+        if (meta.facePrioritiesOffset >= 0) {
+            facePriority = new Int32Array(faceCount);
+        } else {
+            priority = -meta.facePrioritiesOffset - 1;
+        }
+
+        let faceAlpha: Int32Array | null = null;
+        if (meta.faceAlphasOffset >= 0) {
+            faceAlpha = new Int32Array(faceCount);
+        }
+
+        let faceLabel: Int32Array | null = null;
+        if (meta.faceLabelsOffset >= 0) {
+            faceLabel = new Int32Array(faceCount);
+        }
+
+        const faceColor: Int32Array = new Int32Array(faceCount);
+
+        const point1: Packet = new Packet(meta.data);
+        point1.pos = meta.vertexFlagsOffset;
+
+        const point2: Packet = new Packet(meta.data);
+        point2.pos = meta.vertexXOffset;
+
+        const point3: Packet = new Packet(meta.data);
+        point3.pos = meta.vertexYOffset;
+
+        const point4: Packet = new Packet(meta.data);
+        point4.pos = meta.vertexZOffset;
+
+        const point5: Packet = new Packet(meta.data);
+        point5.pos = meta.vertexLabelsOffset;
+
+        let dx: number = 0;
+        let dy: number = 0;
+        let dz: number = 0;
+        let a: number;
+        let b: number;
+        let c: number;
+
+        for (let v: number = 0; v < vertexCount; v++) {
+            const flags: number = point1.g1;
+
+            a = 0;
+            if ((flags & 0x1) !== 0) {
+                a = point2.gsmart;
+            }
+
+            b = 0;
+            if ((flags & 0x2) !== 0) {
+                b = point3.gsmart;
+            }
+
+            c = 0;
+            if ((flags & 0x4) !== 0) {
+                c = point4.gsmart;
+            }
+
+            vertexX[v] = dx + a;
+            vertexY[v] = dy + b;
+            vertexZ[v] = dz + c;
+            dx = vertexX[v];
+            dy = vertexY[v];
+            dz = vertexZ[v];
+
+            if (vertexLabel) {
+                vertexLabel[v] = point5.g1;
+            }
+        }
+
+        const face1: Packet = new Packet(meta.data);
+        face1.pos = meta.faceColorsOffset;
+
+        const face2: Packet = new Packet(meta.data);
+        face2.pos = meta.faceInfosOffset;
+
+        const face3: Packet = new Packet(meta.data);
+        face3.pos = meta.facePrioritiesOffset;
+
+        const face4: Packet = new Packet(meta.data);
+        face4.pos = meta.faceAlphasOffset;
+
+        const face5: Packet = new Packet(meta.data);
+        face5.pos = meta.faceLabelsOffset;
+
+        for (let f: number = 0; f < faceCount; f++) {
+            faceColor[f] = face1.g2;
+
+            if (faceInfo) {
+                faceInfo[f] = face2.g1;
+            }
+
+            if (facePriority) {
+                facePriority[f] = face3.g1;
+            }
+
+            if (faceAlpha) {
+                faceAlpha[f] = face4.g1;
+            }
+
+            if (faceLabel) {
+                faceLabel[f] = face5.g1;
+            }
+        }
+
+        const vertex1: Packet = new Packet(meta.data);
+        vertex1.pos = meta.faceVerticesOffset;
+
+        const vertex2: Packet = new Packet(meta.data);
+        vertex2.pos = meta.faceOrientationsOffset;
+
+        a = 0;
+        b = 0;
+        c = 0;
+        let last: number = 0;
+
+        for (let f: number = 0; f < faceCount; f++) {
+            const orientation: number = vertex2.g1;
+
+            if (orientation === 1) {
+                a = vertex1.gsmart + last;
+                last = a;
+                b = vertex1.gsmart + last;
+                last = b;
+                c = vertex1.gsmart + last;
+                last = c;
+            } else if (orientation === 2) {
+                b = c;
+                c = vertex1.gsmart + last;
+                last = c;
+            } else if (orientation === 3) {
+                a = c;
+                c = vertex1.gsmart + last;
+                last = c;
+            } else if (orientation === 4) {
+                const tmp: number = a;
+                a = b;
+                b = tmp;
+                c = vertex1.gsmart + last;
+                last = c;
+            }
+
+            faceVertexA[f] = a;
+            faceVertexB[f] = b;
+            faceVertexC[f] = c;
+        }
+
+        const axis: Packet = new Packet(meta.data);
+        axis.pos = meta.faceTextureAxisOffset * 6;
+
+        for (let f: number = 0; f < texturedFaceCount; f++) {
+            texturedVertexA[f] = axis.g2;
+            texturedVertexB[f] = axis.g2;
+            texturedVertexC[f] = axis.g2;
+        }
+
         return new Model({
             vertexCount: vertexCount,
             vertexX: vertexX,

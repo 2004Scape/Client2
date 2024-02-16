@@ -1,41 +1,39 @@
 import 'style/viewer.scss';
 
-import SeqType from './jagex2/config/SeqType';
-import LocType from './jagex2/config/LocType';
-import FloType from './jagex2/config/FloType';
-import ObjType from './jagex2/config/ObjType';
-import NpcType from './jagex2/config/NpcType';
-import IdkType from './jagex2/config/IdkType';
-import SpotAnimType from './jagex2/config/SpotAnimType';
-import VarpType from './jagex2/config/VarpType';
-import ComType from './jagex2/config/ComType';
+import Bzip from './vendor/bzip';
+import Gzip from './vendor/gzip';
+
+import GameShell from './jagex2/client/GameShell';
+
+import Database from './jagex2/io/Database';
 
 import Draw2D from './jagex2/graphics/Draw2D';
 import Draw3D from './jagex2/graphics/Draw3D';
-import PixFont from './jagex2/graphics/PixFont';
+import DiskStore from './jagex2/io/DiskStore';
 import Model from './jagex2/graphics/Model';
-import SeqBase from './jagex2/graphics/SeqBase';
-import SeqFrame from './jagex2/graphics/SeqFrame';
-
 import Jagfile from './jagex2/io/Jagfile';
 
-import WordFilter from './jagex2/wordenc/WordFilter';
-import {downloadText, downloadUrl} from './jagex2/util/JsUtil';
-import GameShell from './jagex2/client/GameShell';
-import Packet from './jagex2/io/Packet';
-import Wave from './jagex2/sound/Wave';
-import Database from './jagex2/io/Database';
-import Bzip from './vendor/bzip';
-import Colors from './jagex2/graphics/Colors';
 import {Client} from './client';
-import {setupConfiguration} from './configuration';
+import Colors from './jagex2/graphics/Colors';
+import {canvas} from './jagex2/graphics/Canvas';
 
 // noinspection JSSuspiciousNameCombination
 class Viewer extends Client {
-    // id -> name for cache files
-    packfiles: Map<number, string>[] = [];
+    alreadyStarted: boolean = false;
+    errorStarted: boolean = false;
+    errorLoading: boolean = false;
+    errorHost: boolean = false;
 
-    inputSpeedMultiplier = 2;
+    leftPanel: HTMLElement | null = null;
+    rightPanel: HTMLElement | null = null;
+
+    jagStore: DiskStore | null = null;
+    modelStore: DiskStore | null = null;
+    animStore: DiskStore | null = null;
+    midiStore: DiskStore | null = null;
+    mapStore: DiskStore | null = null;
+
+    modifier = 2;
     model = {
         id: parseInt(GameShell.getParameter('model')) || 0,
         pitch: parseInt(GameShell.getParameter('x')) || 0,
@@ -50,24 +48,8 @@ class Viewer extends Client {
         pitch: parseInt(GameShell.getParameter('eyePitch')) || 0
     };
 
-    async loadPack(url: string): Promise<Map<number, string>> {
-        const map: Map<number, string> = new Map();
-
-        const pack: string = await downloadText(url);
-        const lines: string[] = pack.split('\n');
-        for (let i: number = 0; i < lines.length; i++) {
-            const line: string = lines[i];
-            const idx: number = line.indexOf('=');
-            if (idx === -1) {
-                continue;
-            }
-
-            const id: number = parseInt(line.substring(0, idx));
-            const name: string = line.substring(idx + 1);
-            map.set(id, name);
-        }
-
-        return map;
+    constructor() {
+        super(true);
     }
 
     load = async (): Promise<void> => {
@@ -79,68 +61,53 @@ class Viewer extends Client {
         this.alreadyStarted = true;
 
         try {
-            await this.showProgress(10, 'Connecting to fileserver');
-
+            await Gzip();
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
-
-            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/crc`)));
-            for (let i: number = 0; i < 9; i++) {
-                this.archiveChecksums[i] = checksums.g4;
-            }
-
-            const title: Jagfile = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
-
-            this.fontPlain11 = PixFont.fromArchive(title, 'p11');
-            this.fontPlain12 = PixFont.fromArchive(title, 'p12');
-            this.fontBold12 = PixFont.fromArchive(title, 'b12');
-            this.fontQuill8 = PixFont.fromArchive(title, 'q8');
-
-            const config: Jagfile = await this.loadArchive('config', 'config', this.archiveChecksums[2], 15);
-            const interfaces: Jagfile = await this.loadArchive('interface', 'interface', this.archiveChecksums[3], 20);
-            const media: Jagfile = await this.loadArchive('media', '2d graphics', this.archiveChecksums[4], 30);
-            const models: Jagfile = await this.loadArchive('models', '3d graphics', this.archiveChecksums[5], 40);
-            const textures: Jagfile = await this.loadArchive('textures', 'textures', this.archiveChecksums[6], 60);
-            const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
-            const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
-
-            await this.showProgress(75, 'Unpacking media');
-
-            await this.showProgress(80, 'Unpacking textures');
-            Draw3D.unpackTextures(textures);
-            Draw3D.setBrightness(0.8);
-            Draw3D.initPool(20);
-
-            await this.showProgress(83, 'Unpacking models');
-            Model.unpack(models);
-            SeqBase.unpack(models);
-            SeqFrame.unpack(models);
-
-            await this.showProgress(86, 'Unpacking config');
-            SeqType.unpack(config);
-            LocType.unpack(config);
-            FloType.unpack(config);
-            ObjType.unpack(config, true);
-            NpcType.unpack(config);
-            IdkType.unpack(config);
-            SpotAnimType.unpack(config);
-            VarpType.unpack(config);
-
-            await this.showProgress(90, 'Unpacking sounds');
-            Wave.unpack(sounds);
-
-            await this.showProgress(92, 'Unpacking interfaces');
-            ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
-
-            await this.showProgress(97, 'Preparing game engine');
-            WordFilter.unpack(wordenc);
-
-            await this.showProgress(100, 'Getting ready to start...');
 
             this.drawArea?.bind();
             Draw3D.init2D();
 
-            await this.showModels();
+            this.leftPanel = document.getElementById('leftPanel');
+            this.rightPanel = document.getElementById('rightPanel');
+
+            if (this.leftPanel !== null) {
+                this.leftPanel.ondragover = (event: DragEvent): void => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                };
+
+                this.leftPanel.ondrop = async (event: DragEvent): Promise<void> => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    if (!event.dataTransfer || !event.dataTransfer.files.length) {
+                        return;
+                    }
+
+                    const WHITELIST: string[] = ['main_file_cache.dat', 'main_file_cache.idx0', 'main_file_cache.idx1', 'main_file_cache.idx2', 'main_file_cache.idx3', 'main_file_cache.idx4'];
+
+                    const files: File[] = [];
+                    for (let i: number = 0; i < event.dataTransfer.files.length; i++) {
+                        const file: File = event.dataTransfer.files[i];
+
+                        if (WHITELIST.includes(file.name)) {
+                            files.push(file);
+                        }
+                    }
+
+                    for (let i: number = 0; i < files.length; i++) {
+                        const file: File = files[i];
+
+                        const data: ArrayBuffer = await file.arrayBuffer();
+                        await this.db?.cachesave(file.name, new Int8Array(data));
+                    }
+
+                    await this.init();
+                };
+            }
+
+            await this.init();
         } catch (err) {
             this.errorLoading = true;
             console.error(err);
@@ -152,7 +119,8 @@ class Viewer extends Client {
             return;
         }
 
-        this.loopCycle++;
+        this.updateKeysPressed();
+        this.updateKeysHeld();
     };
 
     draw = async (): Promise<void> => {
@@ -164,78 +132,174 @@ class Viewer extends Client {
         Draw2D.clear();
         Draw2D.fillRect(0, 0, this.width, this.height, Colors.BLACK);
 
-        if (this.model.built === null) {
-            this.model.built = Model.model(this.model.id);
+        if (this.model.built !== null) {
+            this.model.built.drawSimple(this.model.pitch | 0, this.model.yaw | 0, this.model.roll | 0, this.camera.pitch | 0, this.camera.x | 0, this.camera.y | 0, this.camera.z | 0);
         }
-
-        this.model.built.calculateNormals(64, 850, -30, -50, -30, true);
-        this.model.built.drawSimple(this.model.pitch, this.model.yaw, this.model.roll, this.camera.pitch, this.camera.x, this.camera.y, this.camera.z);
-
-        // debug
-        this.fontBold12?.drawStringRight(this.width - 1, this.fontBold12.height, `FPS: ${this.fps}`, Colors.YELLOW);
-        this.fontBold12?.drawString(1, this.fontBold12.height, `ID: ${this.model.id}`, Colors.YELLOW);
 
         this.drawArea?.draw(0, 0);
     };
 
-    async showModels(): Promise<void> {
-        this.packfiles[0] = await this.loadPack(`${Client.githubRepository}/data/pack/model.pack`);
+    //
 
-        const leftPanel: HTMLElement | null = document.getElementById('leftPanel');
-        if (leftPanel) {
-            leftPanel.innerHTML = '';
+    init = async (): Promise<void> => {
+        const dat: Int8Array | undefined = await this.db?.cacheload('main_file_cache.dat');
+        if (!dat) {
+            return;
+        }
 
-            {
-                const input: HTMLInputElement = document.createElement('input');
-                input.type = 'search';
-                input.placeholder = 'Search';
-                input.oninput = (): void => {
-                    const filter: string = input.value.toLowerCase().replaceAll(' ', '_');
+        const idx0: Int8Array | undefined = await this.db?.cacheload('main_file_cache.idx0');
+        const idx1: Int8Array | undefined = await this.db?.cacheload('main_file_cache.idx1');
+        const idx2: Int8Array | undefined = await this.db?.cacheload('main_file_cache.idx2');
+        const idx3: Int8Array | undefined = await this.db?.cacheload('main_file_cache.idx3');
+        const idx4: Int8Array | undefined = await this.db?.cacheload('main_file_cache.idx4');
 
-                    for (let i: number = 0; i < ul.children.length; i++) {
-                        const child: HTMLElement = ul.children[i] as HTMLElement;
+        if (!idx0 || !idx1 || !idx2 || !idx3 || !idx4) {
+            return;
+        }
 
-                        if (child.id.indexOf(filter) > -1) {
-                            child.style.display = '';
-                        } else {
-                            child.style.display = 'none';
-                        }
-                    }
-                };
-                leftPanel.appendChild(input);
+        canvas.style.display = 'block';
+
+        this.jagStore = new DiskStore(dat, idx0, 0);
+        this.modelStore = new DiskStore(dat, idx1, 1);
+        this.animStore = new DiskStore(dat, idx2, 2);
+        this.midiStore = new DiskStore(dat, idx3, 3);
+        this.mapStore = new DiskStore(dat, idx4, 4);
+
+        if (this.leftPanel) {
+            this.leftPanel.innerHTML = `Cache Stats<br>Jagfiles: ${this.jagStore.fileCount}<br>Models: ${this.modelStore.fileCount}<br>Animations: ${this.animStore.fileCount}<br>MIDIs: ${this.midiStore.fileCount}<br>Maps: ${this.mapStore.fileCount}<br><br>You can drag a new cache here any time.`;
+        }
+
+        await this.showProgress(10, 'Unpacking textures');
+        const textures: Jagfile | Uint8Array | null = this.jagStore.read(6);
+        Draw3D.unpackTextures(textures as Jagfile);
+        Draw3D.setBrightness(0.8);
+        Draw3D.initPool(20);
+
+        await this.showProgress(20, 'Loading models...');
+        for (let i: number = 0; i < this.modelStore.fileCount; i++) {
+            const data: Uint8Array | Jagfile | null = this.modelStore.read(i);
+
+            if (data !== null) {
+                Model.unpack317(data as Uint8Array, i);
             }
+        }
 
-            // create a clickable list of all the files in the pack, that sets this.model.id on click
+        this.loadModel(0);
+
+        if (this.rightPanel !== null) {
             const ul: HTMLUListElement = document.createElement('ul');
+            ul.id = 'modelList';
             ul.className = 'list-group';
-            leftPanel.appendChild(ul);
+            this.rightPanel.appendChild(ul);
 
-            for (const [id, name] of this.packfiles[0]) {
+            for (let i: number = 0; i < this.modelStore.fileCount; i++) {
                 const li: HTMLLIElement = document.createElement('li');
-                li.id = name;
                 li.className = 'list-group-item';
-                if (id === 0) {
-                    li.className += ' active';
-                }
-                li.innerText = name;
+                li.innerText = `Model ${i}`;
                 li.onclick = (): void => {
-                    // unmark the last selected item have fun :)
-                    const last: Element | null = ul.querySelector('.active');
-                    if (last) {
-                        last.className = 'list-group-item';
-                    }
-
-                    // mark the new selected item
-                    li.className = 'list-group-item active';
-
-                    this.model.id = id;
-                    this.model.built = Model.model(this.model.id);
+                    this.loadModel(i);
                 };
                 ul.appendChild(li);
             }
         }
+    };
+
+    loadModel(id: number): void {
+        if (this.modelStore === null) {
+            return;
+        }
+
+        const data: Uint8Array | Jagfile | null = this.modelStore.read(id);
+        if (data !== null) {
+            this.model.built = Model.model317(data as Uint8Array, id);
+            this.model.built.calculateNormals(64, 850, -30, -50, -30, true);
+        }
+    }
+
+    updateKeysPressed(): void {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const key: number = this.pollKey();
+            if (key === -1) {
+                break;
+            }
+
+            if (key === 'r'.charCodeAt(0)) {
+                this.modifier = 2;
+                this.model.pitch = 0;
+                this.model.yaw = 0;
+                this.model.roll = 0;
+                this.camera.x = 0;
+                this.camera.y = 0;
+                this.camera.z = 420;
+                this.camera.pitch = 0;
+            } else if (key === '1'.charCodeAt(0)) {
+                this.model.id--;
+                if (Model.metadata && this.model.id < 0) {
+                    this.model.id = Model.metadata.length;
+                }
+                this.loadModel(this.model.id);
+            } else if (key === '2'.charCodeAt(0)) {
+                this.model.id++;
+                if (Model.metadata && this.model.id >= Model.metadata.length) {
+                    this.model.id = 0;
+                }
+                this.loadModel(this.model.id);
+            }
+        }
+    }
+
+    updateKeysHeld(): void {
+        if (this.actionKey['['.charCodeAt(0)]) {
+            this.modifier--;
+        } else if (this.actionKey[']'.charCodeAt(0)]) {
+            this.modifier++;
+        }
+
+        if (this.actionKey[1]) {
+            // left arrow
+            this.model.yaw += this.modifier;
+        } else if (this.actionKey[2]) {
+            // right arrow
+            this.model.yaw -= this.modifier;
+        }
+
+        if (this.actionKey[3]) {
+            // up arrow
+            this.model.pitch -= this.modifier;
+        } else if (this.actionKey[4]) {
+            // down arrow
+            this.model.pitch += this.modifier;
+        }
+
+        if (this.actionKey['.'.charCodeAt(0)]) {
+            this.model.roll += this.modifier;
+        } else if (this.actionKey['/'.charCodeAt(0)]) {
+            this.model.roll -= this.modifier;
+        }
+
+        if (this.actionKey['w'.charCodeAt(0)]) {
+            this.camera.z -= this.modifier;
+        } else if (this.actionKey['s'.charCodeAt(0)]) {
+            this.camera.z += this.modifier;
+        }
+
+        if (this.actionKey['a'.charCodeAt(0)]) {
+            this.camera.x -= this.modifier;
+        } else if (this.actionKey['d'.charCodeAt(0)]) {
+            this.camera.x += this.modifier;
+        }
+
+        if (this.actionKey['q'.charCodeAt(0)]) {
+            this.camera.y -= this.modifier;
+        } else if (this.actionKey['e'.charCodeAt(0)]) {
+            this.camera.y += this.modifier;
+        }
+
+        this.model.pitch = this.model.pitch & 2047;
+        this.model.yaw = this.model.yaw & 2047;
+        this.model.roll = this.model.roll & 2047;
     }
 }
 
-await setupConfiguration();
 new Viewer().run().then((): void => {});

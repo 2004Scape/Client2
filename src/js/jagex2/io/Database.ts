@@ -37,12 +37,12 @@ export default class Database {
             const request: IDBRequest<Int8Array> = store.get(name); // this.genHash(name)
 
             request.onsuccess = (): void => {
-                console.log('cacheload successful!');
+                // console.log('cacheload successful!');
                 resolve(request.result);
             };
 
             request.onerror = (event: Event): void => {
-                console.error('cacheload error!:', event);
+                // console.error('cacheload error!:', event);
                 resolve(undefined);
             };
         });
@@ -50,22 +50,22 @@ export default class Database {
 
     cachesave = async (name: string, src: Int8Array): Promise<void> => {
         return await new Promise<void>((resolve, reject): void => {
-            if (src.length > 2000000) {
-                reject();
-                return;
-            }
+            // if (src.length > 2000000) {
+            //     reject();
+            //     return;
+            // }
 
             const transaction: IDBTransaction = this.db.transaction('cache', 'readwrite');
             const store: IDBObjectStore = transaction.objectStore('cache');
             const request: IDBRequest<IDBValidKey> = store.put(src, name); // this.genHash(name)
 
             request.onsuccess = (): void => {
-                console.log('cachesave successful!');
+                // console.log('cachesave successful!');
                 resolve();
             };
 
             request.onerror = (event: Event): void => {
-                console.error('cachesave error!:', event);
+                // console.error('cachesave error!:', event);
                 reject();
             };
         });
