@@ -10,7 +10,7 @@ export default class DiskStore {
     idx: Packet;
     store: number;
 
-    constructor(dat: ArrayBuffer, idx: ArrayBuffer, store: number) {
+    constructor(dat: Uint8Array | Int8Array, idx: Uint8Array | Int8Array, store: number) {
         this.dat = new Packet(dat);
         this.idx = new Packet(idx);
         this.store = store + 1;

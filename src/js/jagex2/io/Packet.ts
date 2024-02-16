@@ -54,12 +54,12 @@ export default class Packet extends Hashable {
     bitPos: number = 0;
     random: Isaac | null = null;
 
-    constructor(src: Uint8Array | ArrayBuffer | null) {
+    constructor(src: Uint8Array | Int8Array | null) {
         if (!src) {
             throw new Error('Input src packet array was null!');
         }
         super();
-        if (src instanceof ArrayBuffer) {
+        if (src instanceof Int8Array) {
             this.data = new Uint8Array(src);
         } else {
             this.data = src;
