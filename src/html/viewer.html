@@ -5,6 +5,9 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>2004Scape Tools - Cache Viewer</title>
 </head>
 
@@ -24,18 +27,15 @@
             <div class="large-12 cell">
                 <div class="callout">
                     <div class="grid-x grid-padding-x">
-                        <div class="small-12 cell">
-                            <canvas id="canvas" style="display: none; width: 100%;"></canvas>
-                            <a href="#" id="screenshot" style="float: right;" onclick="saveScreenshot();">Take screenshot</a><br><br>
-                        </div>
-
-                        <div class="small-12 cell">
-                            <div class="callout">
-                                <div id="leftPanel">
-                                    Drag a complete cache here<br><br>
-                                    <img src="https://media.itspazaz.com/2024/02/explorer_OeY1shht4w.gif">
-                                </div>
+                        <div class="small-12 cell" id="mainPanel">
+                            <canvas id="canvas" style="display: block; width: 100%;"></canvas>
+                            <div id="helpme" style="display: none;">
+                                You will need to load a cache. It's as easy as dragging-and-dropping right here!<br>
+                                Remember, you can load a new cache by dragging-and-dropping again at any time.<br>
+                                <br>
+                                <img src="https://media.itspazaz.com/2024/02/msedge_HprzmakbmA.gif">
                             </div>
+                            <a href="#" id="screenshot" style="float: right;" onclick="saveScreenshot();">Take screenshot</a><br><br>
                         </div>
 
                         <div class="small-6 cell">

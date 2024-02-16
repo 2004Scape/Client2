@@ -24,7 +24,6 @@ class Viewer extends Client {
     errorLoading: boolean = false;
     errorHost: boolean = false;
 
-    leftPanel: HTMLElement | null = null;
     rightPanel: HTMLElement | null = null;
 
     jagStore: DiskStore | null = null;
@@ -68,16 +67,16 @@ class Viewer extends Client {
             this.drawArea?.bind();
             Draw3D.init2D();
 
-            this.leftPanel = document.getElementById('leftPanel');
             this.rightPanel = document.getElementById('rightPanel');
 
-            if (this.leftPanel !== null) {
-                this.leftPanel.ondragover = (event: DragEvent): void => {
+            const mainPanel: HTMLElement = document.getElementById('mainPanel') as HTMLElement;
+            if (mainPanel) {
+                mainPanel.ondragover = (event: DragEvent): void => {
                     event.preventDefault();
                     event.stopPropagation();
                 };
 
-                this.leftPanel.ondrop = async (event: DragEvent): Promise<void> => {
+                mainPanel.ondrop = async (event: DragEvent): Promise<void> => {
                     event.preventDefault();
                     event.stopPropagation();
 
@@ -144,6 +143,9 @@ class Viewer extends Client {
     init = async (): Promise<void> => {
         const dat: Int8Array | undefined = await this.db?.cacheload('main_file_cache.dat');
         if (!dat) {
+            const helpMe: HTMLElement = document.getElementById('helpme') as HTMLElement;
+            helpMe.style.display = 'block';
+            canvas.style.display = 'none';
             return;
         }
 
@@ -154,9 +156,14 @@ class Viewer extends Client {
         const idx4: Int8Array | undefined = await this.db?.cacheload('main_file_cache.idx4');
 
         if (!idx0 || !idx1 || !idx2 || !idx3 || !idx4) {
+            const helpMe: HTMLElement = document.getElementById('helpme') as HTMLElement;
+            helpMe.style.display = 'block';
+            canvas.style.display = 'none';
             return;
         }
 
+        const helpMe: HTMLElement = document.getElementById('helpme') as HTMLElement;
+        helpMe.style.display = 'none';
         canvas.style.display = 'block';
 
         this.jagStore = new DiskStore(dat, idx0, 0);
@@ -164,10 +171,6 @@ class Viewer extends Client {
         this.animStore = new DiskStore(dat, idx2, 2);
         this.midiStore = new DiskStore(dat, idx3, 3);
         this.mapStore = new DiskStore(dat, idx4, 4);
-
-        if (this.leftPanel) {
-            this.leftPanel.innerHTML = `Cache Stats<br>Jagfiles: ${this.jagStore.fileCount}<br>Models: ${this.modelStore.fileCount}<br>Animations: ${this.animStore.fileCount}<br>MIDIs: ${this.midiStore.fileCount}<br>Maps: ${this.mapStore.fileCount}<br><br>You can drag a new cache here any time.`;
-        }
 
         await this.showProgress(10, 'Unpacking textures');
         const textures: Jagfile | Uint8Array | null = this.jagStore.read(6);
