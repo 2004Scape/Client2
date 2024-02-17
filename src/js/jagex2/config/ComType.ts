@@ -6,6 +6,7 @@ import LruCache from '../datastruct/LruCache';
 import Pix24 from '../graphics/Pix24';
 import JString from '../datastruct/JString';
 import {TypedArray1d} from '../util/Arrays';
+import Draw2D from '../graphics/Draw2D';
 
 export default class ComType {
     static instances: ComType[] = [];
@@ -162,9 +163,9 @@ export default class ComType {
                 com.hide = dat.g1 === 1;
 
                 const childCount: number = dat.g1;
-                com.childId = new Uint16Array(childCount);
-                com.childX = new Int16Array(childCount);
-                com.childY = new Int16Array(childCount);
+                com.childId = new Array(childCount);
+                com.childX = new Array(childCount);
+                com.childY = new Array(childCount);
 
                 for (let i: number = 0; i < childCount; i++) {
                     com.childId[i] = dat.g2;
@@ -480,9 +481,9 @@ export default class ComType {
     action: string | null = null;
     actionTarget: number = -1;
     option: string | null = null;
-    childId: Uint16Array | null = null;
-    childX: Int16Array | null = null;
-    childY: Int16Array | null = null;
+    childId: number[] | null = null;
+    childX: number[] | null = null;
+    childY: number[] | null = null;
 
     // other
     x: number = 0;
@@ -523,4 +524,108 @@ export default class ComType {
         tmp.calculateNormals(64, 768, -50, -10, -50, true);
         return tmp;
     };
+
+    getAbsoluteX(): number {
+        if (this.layer === this.id) {
+            return this.x;
+        }
+
+        let parent: ComType = ComType.instances[this.layer];
+        if (!parent.childId || !parent.childX || !parent.childY) {
+            return this.x;
+        }
+
+        let childIndex: number = parent.childId.indexOf(this.id);
+        if (childIndex === -1) {
+            return this.x;
+        }
+
+        let x: number = parent.childX[childIndex];
+        while (parent.layer !== parent.id) {
+            const grandParent: ComType = ComType.instances[parent.layer];
+            if (grandParent.childId && grandParent.childX && grandParent.childY) {
+                childIndex = grandParent.childId.indexOf(parent.id);
+                if (childIndex !== -1) {
+                    x += grandParent.childX[childIndex];
+                }
+            }
+            parent = grandParent;
+        }
+
+        return x;
+    }
+
+    getAbsoluteY(): number {
+        if (this.layer === this.id) {
+            return this.y;
+        }
+
+        let parent: ComType = ComType.instances[this.layer];
+        if (!parent.childId || !parent.childX || !parent.childY) {
+            return this.y;
+        }
+
+        let childIndex: number = parent.childId.indexOf(this.id);
+        if (childIndex === -1) {
+            return this.y;
+        }
+
+        let y: number = parent.childY[childIndex];
+        while (parent.layer !== parent.id) {
+            const grandParent: ComType = ComType.instances[parent.layer];
+            if (grandParent.childId && grandParent.childX && grandParent.childY) {
+                childIndex = grandParent.childId.indexOf(parent.id);
+                if (childIndex !== -1) {
+                    y += grandParent.childY[childIndex];
+                }
+            }
+            parent = grandParent;
+        }
+
+        return y;
+    }
+
+    outline(color: number): void {
+        const x: number = this.getAbsoluteX();
+        const y: number = this.getAbsoluteY();
+        Draw2D.drawRect(x, y, this.width, this.height, color);
+    }
+
+    move(x: number, y: number): void {
+        if (this.layer === this.id) {
+            return;
+        }
+
+        this.x = 0;
+        this.y = 0;
+
+        const parent: ComType = ComType.instances[this.layer];
+
+        if (parent.childId && parent.childX && parent.childY) {
+            const childIndex: number = parent.childId.indexOf(this.id);
+
+            if (childIndex !== -1) {
+                parent.childX[childIndex] = x;
+                parent.childY[childIndex] = y;
+            }
+        }
+    }
+
+    delete(): void {
+        if (this.layer === this.id) {
+            return;
+        }
+
+        const parent: ComType = ComType.instances[this.layer];
+
+        if (parent.childId && parent.childX && parent.childY) {
+            const childIndex: number = parent.childId.indexOf(this.id);
+
+            if (childIndex !== -1) {
+                parent.childId.splice(childIndex, 1);
+                parent.childX.splice(childIndex, 1);
+                parent.childY.splice(childIndex, 1);
+            }
+        }
+    }
 }

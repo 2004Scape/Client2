@@ -906,7 +906,7 @@ export abstract class Client extends GameShell {
         return updated;
     };
 
-    protected drawInterface = (com: ComType, x: number, y: number, scrollY: number): void => {
+    protected drawInterface = (com: ComType, x: number, y: number, scrollY: number, outline: boolean = false): void => {
         if (com.type !== 0 || !com.childId || (com.hide && this.viewportHoveredInterfaceIndex !== com.id && this.sidebarHoveredInterfaceIndex !== com.id && this.chatHoveredInterfaceIndex !== com.id)) {
             return;
         }
@@ -931,6 +931,10 @@ export abstract class Client extends GameShell {
             childX += child.x;
             childY += child.y;
 
+            if (outline) {
+                Draw2D.drawRect(childX, childY, child.width, child.height, Colors.WHITE);
+            }
+
             if (child.clientCode > 0) {
                 this.updateInterfaceContent(child);
             }
@@ -944,7 +948,8 @@ export abstract class Client extends GameShell {
                     child.scrollPosition = 0;
                 }
 
-                this.drawInterface(child, childX, childY, child.scrollPosition);
+                this.drawInterface(child, childX, childY, child.scrollPosition, outline);
+
                 if (child.scroll > child.height) {
                     this.drawScrollbar(childX + child.width, childY, child.scrollPosition, child.scroll, child.height);
                 }
