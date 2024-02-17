@@ -38,9 +38,11 @@ class InterfaceEditor extends Client {
 
     activeInterface: ComType | null = null;
     activeComponent: ComType | null = null;
+    stickyComponent: boolean = false;
     movingComponent: boolean = false;
     movingRelativeX: number = 0;
     movingRelativeY: number = 0;
+    tooltip: string = '';
 
     load = async (): Promise<void> => {
         try {
@@ -121,12 +123,13 @@ class InterfaceEditor extends Client {
             return;
         }
 
-        if (!this.movingComponent) {
-            if (this.activeInterface) {
-                this.simulateClientInput(this.activeInterface, this.mouseX, this.mouseY, 0, 0, 0);
-                this.viewportHoveredInterfaceIndex = this.lastHoveredInterfaceId;
-                this.lastHoveredInterfaceId = -1;
+        if (!this.movingComponent && this.activeInterface) {
+            this.tooltip = '';
+            this.simulateClientInput(this.activeInterface, this.mouseX, this.mouseY, 0, 0, 0);
+            this.viewportHoveredInterfaceIndex = this.lastHoveredInterfaceId;
+            this.lastHoveredInterfaceId = -1;
 
+            if (!this.stickyComponent) {
                 this.activeComponent = this.getActiveComponent(this.activeInterface, this.mouseX, this.mouseY, 0, 0, 0);
             }
         }
@@ -134,6 +137,8 @@ class InterfaceEditor extends Client {
         if (this.activeComponent) {
             if (this.mouseButton === 1) {
                 if (!this.movingComponent) {
+                    // this.stickyComponent = !this.stickyComponent;
+
                     // first time we start moving we want to preserve where the designer clicked on the component and move relative to that
                     this.movingRelativeX = this.activeComponent.getAbsoluteX() - this.mouseX;
                     this.movingRelativeY = this.activeComponent.getAbsoluteY() - this.mouseY;
@@ -170,13 +175,10 @@ class InterfaceEditor extends Client {
 
         if (this.activeInterface) {
             this.drawInterface(this.activeInterface, 0, 0, 0, false);
+            this.fontBold12?.drawStringTooltip(4, 15, this.tooltip, Colors.WHITE, true, 0);
         }
 
         if (this.activeComponent) {
-            if (this.activeComponent.option) {
-                this.fontBold12?.drawStringTooltip(4, 15, this.activeComponent.option, Colors.WHITE, true, 0);
-            }
-
             this.activeComponent.outline(0x00ffff);
         }
 
@@ -193,14 +195,43 @@ class InterfaceEditor extends Client {
                 break;
             }
 
-            if (key === 8 && this.activeComponent) {
-                this.activeComponent.delete();
-                this.activeComponent = null;
+            if (this.activeComponent) {
+                if (key === 8) {
+                    // delete key
+                    this.activeComponent.delete();
+                    this.activeComponent = null;
+                    this.stickyComponent = false;
+                } else if (key === 9) {
+                    // tab key
+                    this.stickyComponent = false;
+                }
             }
         }
     }
 
-    updateKeysHeld(): void {}
+    updateKeysHeld(): void {
+        if (this.activeComponent) {
+            if (this.actionKey[1]) {
+                // left
+                const x: number = this.activeComponent.getAbsoluteX();
+                this.activeComponent.move(x - 1, this.activeComponent.getAbsoluteY());
+            } else if (this.actionKey[2]) {
+                // right
+                const x: number = this.activeComponent.getAbsoluteX();
+                this.activeComponent.move(x + 1, this.activeComponent.getAbsoluteY());
+            }
+
+            if (this.actionKey[3]) {
+                // up
+                const y: number = this.activeComponent.getAbsoluteY();
+                this.activeComponent.move(this.activeComponent.getAbsoluteX(), y - 1);
+            } else if (this.actionKey[4]) {
+                // down
+                const y: number = this.activeComponent.getAbsoluteY();
+                this.activeComponent.move(this.activeComponent.getAbsoluteX(), y + 1);
+            }
+        }
+    }
 
     // 8, 8, 16, 16, 0x505050: used in a real interface!
     drawGrid = (x: number, y: number, width: number, height: number, color: number): void => {
@@ -244,6 +275,12 @@ class InterfaceEditor extends Client {
 
             if (child.type === 0) {
                 this.simulateClientInput(child, mouseX, mouseY, childX, childY, child.scrollPosition);
+            } else if (mouseX >= childX && mouseY >= childY && mouseX < childX + child.width && mouseY < childY + child.height) {
+                if (child.buttonType !== 0 && child.option && child.option.length) {
+                    this.tooltip = child.option;
+                } else if (child.buttonType === ComType.BUTTON_CLOSE) {
+                    this.tooltip = 'Close';
+                }
             }
         }
     };
