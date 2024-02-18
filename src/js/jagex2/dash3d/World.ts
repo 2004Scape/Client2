@@ -293,9 +293,9 @@ export default class World {
     }
 
     build = (scene: World3D | null, collision: (CollisionMap | null)[]): void => {
-        for (let level: number = 0; level < 4; level++) {
-            for (let x: number = 0; x < 104; x++) {
-                for (let z: number = 0; z < 104; z++) {
+        for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
+            for (let x: number = 0; x < CollisionMap.SIZE; x++) {
+                for (let z: number = 0; z < CollisionMap.SIZE; z++) {
                     // solid
                     if ((this.levelTileFlags[level][x][z] & 0x1) === 1) {
                         let trueLevel: number = level;
@@ -327,7 +327,7 @@ export default class World {
             World.randomLightnessOffset = 16;
         }
 
-        for (let level: number = 0; level < 4; level++) {
+        for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
             const shademap: Uint8Array[] = this.levelShademap[level];
             const lightAmbient: number = 96;
             const lightAttenuation: number = 768;
@@ -565,7 +565,7 @@ export default class World {
             let wall1: number = 0x2; // this flag is set by walls with rotation 1 or 3
             let floor: number = 0x4; // this flag is set by floors which are flat
 
-            for (let topLevel: number = 0; topLevel < 4; topLevel++) {
+            for (let topLevel: number = 0; topLevel < CollisionMap.LEVELS; topLevel++) {
                 if (topLevel > 0) {
                     wall0 <<= 0x3;
                     wall1 <<= 0x3;
@@ -734,7 +734,7 @@ export default class World {
                 if (x >= 0 && x < this.maxTileX && z >= 0 && z < this.maxTileZ) {
                     this.levelTileOverlayIds[0][x][z] = waterOverlay;
 
-                    for (let level: number = 0; level < 4; level++) {
+                    for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
                         this.levelHeightmap[level][x][z] = 0;
                         this.levelTileFlags[level][x][z] = 0;
                     }

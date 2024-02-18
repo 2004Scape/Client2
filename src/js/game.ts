@@ -112,7 +112,7 @@ class Game extends Client {
             if (this.levelHeightmap) {
                 this.scene = new World3D(this.levelHeightmap, CollisionMap.SIZE, CollisionMap.LEVELS, CollisionMap.SIZE);
             }
-            for (let level: number = 0; level < 4; level++) {
+            for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
                 this.levelCollisionMap[level] = new CollisionMap();
             }
             this.imageMinimap = new Pix24(512, 512);
@@ -2386,10 +2386,10 @@ class Game extends Client {
             pixels[i] = 0;
         }
 
-        for (let z: number = 1; z < 103; z++) {
-            let offset: number = (103 - z) * 512 * 4 + 24628;
+        for (let z: number = 1; z < CollisionMap.SIZE - 1; z++) {
+            let offset: number = (CollisionMap.SIZE - 1 - z) * 512 * 4 + 24628;
 
-            for (let x: number = 1; x < 103; x++) {
+            for (let x: number = 1; x < CollisionMap.SIZE - 1; x++) {
                 if (this.levelTileFlags && (this.levelTileFlags[level][x][z] & 0x18) === 0) {
                     this.scene?.drawMinimapTile(level, x, z, pixels, offset, 512);
                 }
@@ -2407,8 +2407,8 @@ class Game extends Client {
 
         this.imageMinimap.bind();
 
-        for (let z: number = 1; z < 103; z++) {
-            for (let x: number = 1; x < 103; x++) {
+        for (let z: number = 1; z < CollisionMap.SIZE - 1; z++) {
+            for (let x: number = 1; x < CollisionMap.SIZE - 1; x++) {
                 if (this.levelTileFlags && (this.levelTileFlags[level][x][z] & 0x18) === 0) {
                     this.drawMinimapLoc(x, z, level, wallRgb, doorRgb);
                 }
@@ -3900,9 +3900,9 @@ class Game extends Client {
                             if (this.chatTyped === '::clientdrop' /* && super.frame*/) {
                                 await this.tryReconnect();
                             } else if (this.chatTyped === '::noclip') {
-                                for (let level: number = 0; level < 4; level++) {
-                                    for (let x: number = 1; x < 103; x++) {
-                                        for (let z: number = 1; z < 103; z++) {
+                                for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
+                                    for (let x: number = 1; x < CollisionMap.SIZE - 1; x++) {
+                                        for (let z: number = 1; z < CollisionMap.SIZE - 1; z++) {
                                             const collisionMap: CollisionMap | null = this.levelCollisionMap[level];
                                             if (collisionMap) {
                                                 collisionMap.flags[CollisionMap.index(x, z)] = 0;
@@ -4452,7 +4452,7 @@ class Game extends Client {
         this.clearCaches();
         this.scene?.reset();
 
-        for (let level: number = 0; level < 4; level++) {
+        for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
             this.levelCollisionMap[level]?.reset();
         }
 
@@ -4748,7 +4748,7 @@ class Game extends Client {
                     for (let z: number = startTileZ; z !== endTileZ; z += dirZ) {
                         const lastX: number = x + dx;
                         const lastZ: number = z + dz;
-                        for (let level: number = 0; level < 4; level++) {
+                        for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
                             if (lastX >= 0 && lastZ >= 0 && lastX < CollisionMap.SIZE && lastZ < CollisionMap.SIZE) {
                                 this.levelObjStacks[level][x][z] = this.levelObjStacks[level][lastX][lastZ];
                             } else {
@@ -5639,7 +5639,7 @@ class Game extends Client {
             Draw3D.clearTexels();
             this.clearCaches();
             this.scene?.reset();
-            for (let level: number = 0; level < 4; level++) {
+            for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
                 this.levelCollisionMap[level]?.reset();
             }
 
