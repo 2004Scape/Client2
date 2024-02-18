@@ -1961,7 +1961,7 @@ class Game extends Client {
                 }
             } else {
                 this.fontBold12?.drawStringCenter(this.projectX, this.projectY + 1, message, 0);
-                this.fontBold12?.drawStringCenter(this.projectX, this.projectY, message, 16776960);
+                this.fontBold12?.drawStringCenter(this.projectX, this.projectY, message, Colors.YELLOW);
             }
         }
     };
