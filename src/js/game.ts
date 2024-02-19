@@ -1712,7 +1712,7 @@ class Game extends Client {
         Model.checkHover = true;
         Model.pickedCount = 0;
         Model.mouseX = this.mouseX - 8;
-        Model.mouseZ = this.mouseY - 11;
+        Model.mouseY = this.mouseY - 11;
         Draw2D.clear();
         this.scene?.draw(this.cameraX, this.cameraY, this.cameraZ, level, this.cameraYaw, this.cameraPitch, this.loopCycle);
         this.scene?.clearTemporaryLocs();

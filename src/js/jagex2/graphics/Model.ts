@@ -122,9 +122,10 @@ export default class Model extends Hashable {
 
     static checkHover: boolean = false;
     static mouseX: number = 0;
-    static mouseZ: number = 0;
+    static mouseY: number = 0;
     static pickedCount: number = 0;
     static pickedBitsets: Int32Array = new Int32Array(1000);
+    static checkHoverFace: boolean = false;
 
     static unpack(models: Jagfile): void {
         try {
@@ -1511,6 +1512,8 @@ export default class Model extends Hashable {
     // runtime
     objRaise: number = 0;
     pickable: boolean = false;
+    pickedFace: number = -1;
+    pickedFaceDepth: number = -1;
 
     constructor(type: ModelType) {
         super();
@@ -2098,7 +2101,7 @@ export default class Model extends Hashable {
             }
 
             const mouseX: number = Model.mouseX - Draw3D.centerX;
-            const mouseY: number = Model.mouseZ - Draw3D.centerY;
+            const mouseY: number = Model.mouseY - Draw3D.centerY;
             if (mouseX > leftX && mouseX < rightX && mouseY > topY && mouseY < bottomY) {
                 if (this.pickable) {
                     Model.pickedBitsets[Model.pickedCount++] = bitset;
@@ -2170,7 +2173,12 @@ export default class Model extends Hashable {
     };
 
     // todo: better name, Java relies on overloads
-    private draw2 = (clipped: boolean, picking: boolean, bitset: number): void => {
+    private draw2 = (clipped: boolean, picking: boolean, bitset: number, wireframe: boolean = false): void => {
+        if (Model.checkHoverFace) {
+            this.pickedFace = -1;
+            this.pickedFaceDepth = -1;
+        }
+
         for (let depth: number = 0; depth < this.maxDepth; depth++) {
             if (Model.tmpDepthFaceCount) {
                 Model.tmpDepthFaceCount[depth] = 0;
@@ -2182,7 +2190,7 @@ export default class Model extends Hashable {
                 continue;
             }
 
-            if (Model.vertexScreenX) {
+            if (Model.vertexScreenX && Model.vertexScreenY && Model.vertexScreenZ && Model.tmpDepthFaces && Model.tmpDepthFaceCount) {
                 const a: number = this.faceVertexA[f];
                 const b: number = this.faceVertexB[f];
                 const c: number = this.faceVertexC[f];
@@ -2191,41 +2199,53 @@ export default class Model extends Hashable {
                 const xB: number = Model.vertexScreenX[b];
                 const xC: number = Model.vertexScreenX[c];
 
+                const yA: number = Model.vertexScreenY[a];
+                const yB: number = Model.vertexScreenY[b];
+                const yC: number = Model.vertexScreenY[c];
+
+                const zA: number = Model.vertexScreenZ[a];
+                const zB: number = Model.vertexScreenZ[b];
+                const zC: number = Model.vertexScreenZ[c];
+
                 if (clipped && (xA === -5000 || xB === -5000 || xC === -5000)) {
                     if (Model.faceNearClipped) {
                         Model.faceNearClipped[f] = true;
                     }
 
-                    if (Model.vertexScreenZ && Model.tmpDepthFaces && Model.tmpDepthFaceCount) {
-                        const depthAverage: number = (((Model.vertexScreenZ[a] + Model.vertexScreenZ[b] + Model.vertexScreenZ[c]) / 3) | 0) + this.minDepth;
+                    if (Model.tmpDepthFaces && Model.tmpDepthFaceCount) {
+                        const depthAverage: number = (((zA + zB + zC) / 3) | 0) + this.minDepth;
                         Model.tmpDepthFaces[depthAverage][Model.tmpDepthFaceCount[depthAverage]++] = f;
                     }
                 } else {
-                    if (Model.vertexScreenY) {
-                        if (picking && this.pointWithinTriangle(Model.mouseX, Model.mouseZ, Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], xA, xB, xC)) {
-                            Model.pickedBitsets[Model.pickedCount++] = bitset;
-                            picking = false;
-                        }
+                    if (picking && this.pointWithinTriangle(Model.mouseX, Model.mouseY, yA, yB, yC, xA, xB, xC)) {
+                        Model.pickedBitsets[Model.pickedCount++] = bitset;
+                        picking = false;
+                    }
 
-                        const dxAB: number = xA - xB;
-                        const dyAB: number = Model.vertexScreenY[a] - Model.vertexScreenY[b];
-                        const dxCB: number = xC - xB;
-                        const dyCB: number = Model.vertexScreenY[c] - Model.vertexScreenY[b];
+                    const dxAB: number = xA - xB;
+                    const dyAB: number = yA - yB;
+                    const dxCB: number = xC - xB;
+                    const dyCB: number = yC - yB;
 
-                        if (dxAB * dyCB - dyAB * dxCB <= 0) {
-                            continue;
-                        }
+                    if (dxAB * dyCB - dyAB * dxCB <= 0) {
+                        continue;
+                    }
 
-                        if (Model.faceNearClipped) {
-                            Model.faceNearClipped[f] = false;
-                        }
-                        if (Model.faceClippedX) {
-                            Model.faceClippedX[f] = xA < 0 || xB < 0 || xC < 0 || xA > Draw2D.boundX || xB > Draw2D.boundX || xC > Draw2D.boundX;
-                        }
+                    if (Model.faceNearClipped) {
+                        Model.faceNearClipped[f] = false;
+                    }
+                    if (Model.faceClippedX) {
+                        Model.faceClippedX[f] = xA < 0 || xB < 0 || xC < 0 || xA > Draw2D.boundX || xB > Draw2D.boundX || xC > Draw2D.boundX;
+                    }
 
-                        if (Model.vertexScreenZ && Model.tmpDepthFaces && Model.tmpDepthFaceCount) {
-                            const depthAverage: number = (((Model.vertexScreenZ[a] + Model.vertexScreenZ[b] + Model.vertexScreenZ[c]) / 3) | 0) + this.minDepth;
-                            Model.tmpDepthFaces[depthAverage][Model.tmpDepthFaceCount[depthAverage]++] = f;
+                    if (Model.tmpDepthFaces && Model.tmpDepthFaceCount) {
+                        const depthAverage: number = (((zA + zB + zC) / 3) | 0) + this.minDepth;
+                        Model.tmpDepthFaces[depthAverage][Model.tmpDepthFaceCount[depthAverage]++] = f;
+
+                        // todo: better check (depth avg isn't always accurate)
+                        if (Model.checkHoverFace && this.pointWithinTriangle(Model.mouseX, Model.mouseY, yA, yB, yC, xA, xB, xC) && this.pickedFaceDepth < depthAverage) {
+                            this.pickedFace = f;
+                            this.pickedFaceDepth = depthAverage;
                         }
                     }
                 }
@@ -2242,7 +2262,7 @@ export default class Model extends Hashable {
                 if (Model.tmpDepthFaces) {
                     const faces: Int32Array = Model.tmpDepthFaces[depth];
                     for (let f: number = 0; f < count; f++) {
-                        this.drawFace(faces[f]);
+                        this.drawFace(faces[f], wireframe);
                     }
                 }
             }
@@ -2322,7 +2342,7 @@ export default class Model extends Hashable {
 
             for (let priority: number = 0; priority < 10; priority++) {
                 while (priority === 0 && priorityDepth > averagePriorityDepthSum1_2) {
-                    this.drawFace(priorityFaces[priorityFace++]);
+                    this.drawFace(priorityFaces[priorityFace++], wireframe);
 
                     if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
                         priorityFace = 0;
@@ -2339,7 +2359,7 @@ export default class Model extends Hashable {
                 }
 
                 while (priority === 3 && priorityDepth > averagePriorityDepthSum3_4) {
-                    this.drawFace(priorityFaces[priorityFace++]);
+                    this.drawFace(priorityFaces[priorityFace++], wireframe);
 
                     if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
                         priorityFace = 0;
@@ -2356,7 +2376,7 @@ export default class Model extends Hashable {
                 }
 
                 while (priority === 5 && priorityDepth > averagePriorityDepthSum6_8) {
-                    this.drawFace(priorityFaces[priorityFace++]);
+                    this.drawFace(priorityFaces[priorityFace++], wireframe);
 
                     if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
                         priorityFace = 0;
@@ -2376,12 +2396,12 @@ export default class Model extends Hashable {
                 const faces: Int32Array = Model.tmpPriorityFaces[priority];
 
                 for (let i: number = 0; i < count; i++) {
-                    this.drawFace(faces[i]);
+                    this.drawFace(faces[i], wireframe);
                 }
             }
 
             while (priorityDepth !== -1000) {
-                this.drawFace(priorityFaces[priorityFace++]);
+                this.drawFace(priorityFaces[priorityFace++], wireframe);
 
                 if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
                     priorityFace = 0;
@@ -2399,9 +2419,9 @@ export default class Model extends Hashable {
         }
     };
 
-    private drawFace = (face: number): void => {
+    private drawFace = (face: number, wireframe: boolean = false): void => {
         if (Model.faceNearClipped && Model.faceNearClipped[face]) {
-            this.drawNearClippedFace(face);
+            this.drawNearClippedFace(face, wireframe);
             return;
         }
 
@@ -2426,7 +2446,11 @@ export default class Model extends Hashable {
             type = this.faceInfo[face] & 0x3;
         }
 
-        if (type === 0 && this.faceColorA && this.faceColorB && this.faceColorC && Model.vertexScreenX && Model.vertexScreenY) {
+        if (wireframe && Model.vertexScreenX && Model.vertexScreenY && this.faceColorA && this.faceColorB && this.faceColorC) {
+            Draw3D.drawLine(Model.vertexScreenX[a], Model.vertexScreenY[a], Model.vertexScreenX[b], Model.vertexScreenY[b], Draw3D.palette[this.faceColorA[face]]);
+            Draw3D.drawLine(Model.vertexScreenX[b], Model.vertexScreenY[b], Model.vertexScreenX[c], Model.vertexScreenY[c], Draw3D.palette[this.faceColorB[face]]);
+            Draw3D.drawLine(Model.vertexScreenX[c], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenY[a], Draw3D.palette[this.faceColorC[face]]);
+        } else if (type === 0 && this.faceColorA && this.faceColorB && this.faceColorC && Model.vertexScreenX && Model.vertexScreenY) {
             Draw3D.fillGouraudTriangle(
                 Model.vertexScreenX[a],
                 Model.vertexScreenX[b],
@@ -2438,10 +2462,8 @@ export default class Model extends Hashable {
                 this.faceColorB[face],
                 this.faceColorC[face]
             );
-        } else if (type === 1) {
-            if (this.faceColorA && Model.vertexScreenX && Model.vertexScreenY) {
-                Draw3D.fillTriangle(Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Draw3D.palette[this.faceColorA[face]]);
-            }
+        } else if (type === 1 && this.faceColorA && Model.vertexScreenX && Model.vertexScreenY) {
+            Draw3D.fillTriangle(Model.vertexScreenX[a], Model.vertexScreenX[b], Model.vertexScreenX[c], Model.vertexScreenY[a], Model.vertexScreenY[b], Model.vertexScreenY[c], Draw3D.palette[this.faceColorA[face]]);
         } else if (type === 2 && this.faceInfo && this.faceColor && this.faceColorA && this.faceColorB && this.faceColorC && Model.vertexScreenX && Model.vertexScreenY && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
             const texturedFace: number = this.faceInfo[face] >> 2;
             const tA: number = this.texturedVertexA[texturedFace];
@@ -2497,7 +2519,7 @@ export default class Model extends Hashable {
         }
     };
 
-    private drawNearClippedFace = (face: number): void => {
+    private drawNearClippedFace = (face: number, wireframe: boolean = false): void => {
         let elements: number = 0;
 
         if (Model.vertexViewSpaceZ) {
@@ -2610,68 +2632,66 @@ export default class Model extends Hashable {
                 type = this.faceInfo[face] & 0x3;
             }
 
-            if (type === 0) {
+            if (wireframe) {
+                Draw3D.drawLine(x0, x1, y0, y1, Model.clippedColor[0]);
+                Draw3D.drawLine(x1, x2, y1, y2, Model.clippedColor[1]);
+                Draw3D.drawLine(x2, x0, y2, y0, Model.clippedColor[2]);
+            } else if (type === 0) {
                 Draw3D.fillGouraudTriangle(x0, x1, x2, y0, y1, y2, Model.clippedColor[0], Model.clippedColor[1], Model.clippedColor[2]);
-            } else if (type === 1) {
-                if (this.faceColorA) {
-                    Draw3D.fillTriangle(x0, x1, x2, y0, y1, y2, Draw3D.palette[this.faceColorA[face]]);
-                }
-            } else if (type === 2) {
-                if (this.faceInfo && this.faceColor && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
-                    const texturedFace: number = this.faceInfo[face] >> 2;
-                    const tA: number = this.texturedVertexA[texturedFace];
-                    const tB: number = this.texturedVertexB[texturedFace];
-                    const tC: number = this.texturedVertexC[texturedFace];
-                    Draw3D.fillTexturedTriangle(
-                        x0,
-                        x1,
-                        x2,
-                        y0,
-                        y1,
-                        y2,
-                        Model.clippedColor[0],
-                        Model.clippedColor[1],
-                        Model.clippedColor[2],
-                        Model.vertexViewSpaceX[tA],
-                        Model.vertexViewSpaceY[tA],
-                        Model.vertexViewSpaceZ[tA],
-                        Model.vertexViewSpaceX[tB],
-                        Model.vertexViewSpaceX[tC],
-                        Model.vertexViewSpaceY[tB],
-                        Model.vertexViewSpaceY[tC],
-                        Model.vertexViewSpaceZ[tB],
-                        Model.vertexViewSpaceZ[tC],
-                        this.faceColor[face]
-                    );
-                }
-            } else if (type === 3) {
-                if (this.faceInfo && this.faceColor && this.faceColorA && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
-                    const texturedFace: number = this.faceInfo[face] >> 2;
-                    const tA: number = this.texturedVertexA[texturedFace];
-                    const tB: number = this.texturedVertexB[texturedFace];
-                    const tC: number = this.texturedVertexC[texturedFace];
-                    Draw3D.fillTexturedTriangle(
-                        x0,
-                        x1,
-                        x2,
-                        y0,
-                        y1,
-                        y2,
-                        this.faceColorA[face],
-                        this.faceColorA[face],
-                        this.faceColorA[face],
-                        Model.vertexViewSpaceX[tA],
-                        Model.vertexViewSpaceY[tA],
-                        Model.vertexViewSpaceZ[tA],
-                        Model.vertexViewSpaceX[tB],
-                        Model.vertexViewSpaceX[tC],
-                        Model.vertexViewSpaceY[tB],
-                        Model.vertexViewSpaceY[tC],
-                        Model.vertexViewSpaceZ[tB],
-                        Model.vertexViewSpaceZ[tC],
-                        this.faceColor[face]
-                    );
-                }
+            } else if (type === 1 && this.faceColorA) {
+                Draw3D.fillTriangle(x0, x1, x2, y0, y1, y2, Draw3D.palette[this.faceColorA[face]]);
+            } else if (type === 2 && this.faceInfo && this.faceColor && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
+                const texturedFace: number = this.faceInfo[face] >> 2;
+                const tA: number = this.texturedVertexA[texturedFace];
+                const tB: number = this.texturedVertexB[texturedFace];
+                const tC: number = this.texturedVertexC[texturedFace];
+                Draw3D.fillTexturedTriangle(
+                    x0,
+                    x1,
+                    x2,
+                    y0,
+                    y1,
+                    y2,
+                    Model.clippedColor[0],
+                    Model.clippedColor[1],
+                    Model.clippedColor[2],
+                    Model.vertexViewSpaceX[tA],
+                    Model.vertexViewSpaceY[tA],
+                    Model.vertexViewSpaceZ[tA],
+                    Model.vertexViewSpaceX[tB],
+                    Model.vertexViewSpaceX[tC],
+                    Model.vertexViewSpaceY[tB],
+                    Model.vertexViewSpaceY[tC],
+                    Model.vertexViewSpaceZ[tB],
+                    Model.vertexViewSpaceZ[tC],
+                    this.faceColor[face]
+                );
+            } else if (type === 3 && this.faceInfo && this.faceColor && this.faceColorA && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
+                const texturedFace: number = this.faceInfo[face] >> 2;
+                const tA: number = this.texturedVertexA[texturedFace];
+                const tB: number = this.texturedVertexB[texturedFace];
+                const tC: number = this.texturedVertexC[texturedFace];
+                Draw3D.fillTexturedTriangle(
+                    x0,
+                    x1,
+                    x2,
+                    y0,
+                    y1,
+                    y2,
+                    this.faceColorA[face],
+                    this.faceColorA[face],
+                    this.faceColorA[face],
+                    Model.vertexViewSpaceX[tA],
+                    Model.vertexViewSpaceY[tA],
+                    Model.vertexViewSpaceZ[tA],
+                    Model.vertexViewSpaceX[tB],
+                    Model.vertexViewSpaceX[tC],
+                    Model.vertexViewSpaceY[tB],
+                    Model.vertexViewSpaceY[tC],
+                    Model.vertexViewSpaceZ[tB],
+                    Model.vertexViewSpaceZ[tC],
+                    this.faceColor[face]
+                );
             }
         } else if (elements === 4) {
             if (x0 < 0 || x1 < 0 || x2 < 0 || x0 > Draw2D.boundX || x1 > Draw2D.boundX || x2 > Draw2D.boundX || Model.clippedX[3] < 0 || Model.clippedX[3] > Draw2D.boundX) {
@@ -2685,7 +2705,12 @@ export default class Model extends Hashable {
                 type = this.faceInfo[face] & 0x3;
             }
 
-            if (type === 0) {
+            if (wireframe) {
+                Draw3D.drawLine(x0, x1, y0, y1, Model.clippedColor[0]);
+                Draw3D.drawLine(x1, x2, y1, y2, Model.clippedColor[1]);
+                Draw3D.drawLine(x2, Model.clippedX[3], y2, Model.clippedY[3], Model.clippedColor[2]);
+                Draw3D.drawLine(Model.clippedX[3], x0, Model.clippedY[3], y0, Model.clippedColor[3]);
+            } else if (type === 0) {
                 Draw3D.fillGouraudTriangle(x0, x1, x2, y0, y1, y2, Model.clippedColor[0], Model.clippedColor[1], Model.clippedColor[2]);
                 Draw3D.fillGouraudTriangle(x0, x2, Model.clippedX[3], y0, y2, Model.clippedY[3], Model.clippedColor[0], Model.clippedColor[2], Model.clippedColor[3]);
             } else if (type === 1) {
@@ -2694,105 +2719,100 @@ export default class Model extends Hashable {
                     Draw3D.fillTriangle(x0, x1, x2, y0, y1, y2, colorA);
                     Draw3D.fillTriangle(x0, x2, Model.clippedX[3], y0, y2, Model.clippedY[3], colorA);
                 }
-            }
-            if (type === 2) {
-                if (this.faceInfo && this.faceColor && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
-                    const texturedFace: number = this.faceInfo[face] >> 2;
-                    const tA: number = this.texturedVertexA[texturedFace];
-                    const tB: number = this.texturedVertexB[texturedFace];
-                    const tC: number = this.texturedVertexC[texturedFace];
-                    Draw3D.fillTexturedTriangle(
-                        x0,
-                        x1,
-                        x2,
-                        y0,
-                        y1,
-                        y2,
-                        Model.clippedColor[0],
-                        Model.clippedColor[1],
-                        Model.clippedColor[2],
-                        Model.vertexViewSpaceX[tA],
-                        Model.vertexViewSpaceY[tA],
-                        Model.vertexViewSpaceZ[tA],
-                        Model.vertexViewSpaceX[tB],
-                        Model.vertexViewSpaceX[tC],
-                        Model.vertexViewSpaceY[tB],
-                        Model.vertexViewSpaceY[tC],
-                        Model.vertexViewSpaceZ[tB],
-                        Model.vertexViewSpaceZ[tC],
-                        this.faceColor[face]
-                    );
-                    Draw3D.fillTexturedTriangle(
-                        x0,
-                        x2,
-                        Model.clippedX[3],
-                        y0,
-                        y2,
-                        Model.clippedY[3],
-                        Model.clippedColor[0],
-                        Model.clippedColor[2],
-                        Model.clippedColor[3],
-                        Model.vertexViewSpaceX[tA],
-                        Model.vertexViewSpaceY[tA],
-                        Model.vertexViewSpaceZ[tA],
-                        Model.vertexViewSpaceX[tB],
-                        Model.vertexViewSpaceX[tC],
-                        Model.vertexViewSpaceY[tB],
-                        Model.vertexViewSpaceY[tC],
-                        Model.vertexViewSpaceZ[tB],
-                        Model.vertexViewSpaceZ[tC],
-                        this.faceColor[face]
-                    );
-                }
-            } else if (type === 3) {
-                if (this.faceInfo && this.faceColor && this.faceColorA && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
-                    const texturedFace: number = this.faceInfo[face] >> 2;
-                    const tA: number = this.texturedVertexA[texturedFace];
-                    const tB: number = this.texturedVertexB[texturedFace];
-                    const tC: number = this.texturedVertexC[texturedFace];
-                    Draw3D.fillTexturedTriangle(
-                        x0,
-                        x1,
-                        x2,
-                        y0,
-                        y1,
-                        y2,
-                        this.faceColorA[face],
-                        this.faceColorA[face],
-                        this.faceColorA[face],
-                        Model.vertexViewSpaceX[tA],
-                        Model.vertexViewSpaceY[tA],
-                        Model.vertexViewSpaceZ[tA],
-                        Model.vertexViewSpaceX[tB],
-                        Model.vertexViewSpaceX[tC],
-                        Model.vertexViewSpaceY[tB],
-                        Model.vertexViewSpaceY[tC],
-                        Model.vertexViewSpaceZ[tB],
-                        Model.vertexViewSpaceZ[tC],
-                        this.faceColor[face]
-                    );
-                    Draw3D.fillTexturedTriangle(
-                        x0,
-                        x2,
-                        Model.clippedX[3],
-                        y0,
-                        y2,
-                        Model.clippedY[3],
-                        this.faceColorA[face],
-                        this.faceColorA[face],
-                        this.faceColorA[face],
-                        Model.vertexViewSpaceX[tA],
-                        Model.vertexViewSpaceY[tA],
-                        Model.vertexViewSpaceZ[tA],
-                        Model.vertexViewSpaceX[tB],
-                        Model.vertexViewSpaceX[tC],
-                        Model.vertexViewSpaceY[tB],
-                        Model.vertexViewSpaceY[tC],
-                        Model.vertexViewSpaceZ[tB],
-                        Model.vertexViewSpaceZ[tC],
-                        this.faceColor[face]
-                    );
-                }
+            } else if (type === 2 && this.faceInfo && this.faceColor && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
+                const texturedFace: number = this.faceInfo[face] >> 2;
+                const tA: number = this.texturedVertexA[texturedFace];
+                const tB: number = this.texturedVertexB[texturedFace];
+                const tC: number = this.texturedVertexC[texturedFace];
+                Draw3D.fillTexturedTriangle(
+                    x0,
+                    x1,
+                    x2,
+                    y0,
+                    y1,
+                    y2,
+                    Model.clippedColor[0],
+                    Model.clippedColor[1],
+                    Model.clippedColor[2],
+                    Model.vertexViewSpaceX[tA],
+                    Model.vertexViewSpaceY[tA],
+                    Model.vertexViewSpaceZ[tA],
+                    Model.vertexViewSpaceX[tB],
+                    Model.vertexViewSpaceX[tC],
+                    Model.vertexViewSpaceY[tB],
+                    Model.vertexViewSpaceY[tC],
+                    Model.vertexViewSpaceZ[tB],
+                    Model.vertexViewSpaceZ[tC],
+                    this.faceColor[face]
+                );
+                Draw3D.fillTexturedTriangle(
+                    x0,
+                    x2,
+                    Model.clippedX[3],
+                    y0,
+                    y2,
+                    Model.clippedY[3],
+                    Model.clippedColor[0],
+                    Model.clippedColor[2],
+                    Model.clippedColor[3],
+                    Model.vertexViewSpaceX[tA],
+                    Model.vertexViewSpaceY[tA],
+                    Model.vertexViewSpaceZ[tA],
+                    Model.vertexViewSpaceX[tB],
+                    Model.vertexViewSpaceX[tC],
+                    Model.vertexViewSpaceY[tB],
+                    Model.vertexViewSpaceY[tC],
+                    Model.vertexViewSpaceZ[tB],
+                    Model.vertexViewSpaceZ[tC],
+                    this.faceColor[face]
+                );
+            } else if (type === 3 && this.faceInfo && this.faceColor && this.faceColorA && Model.vertexViewSpaceX && Model.vertexViewSpaceY && Model.vertexViewSpaceZ) {
+                const texturedFace: number = this.faceInfo[face] >> 2;
+                const tA: number = this.texturedVertexA[texturedFace];
+                const tB: number = this.texturedVertexB[texturedFace];
+                const tC: number = this.texturedVertexC[texturedFace];
+                Draw3D.fillTexturedTriangle(
+                    x0,
+                    x1,
+                    x2,
+                    y0,
+                    y1,
+                    y2,
+                    this.faceColorA[face],
+                    this.faceColorA[face],
+                    this.faceColorA[face],
+                    Model.vertexViewSpaceX[tA],
+                    Model.vertexViewSpaceY[tA],
+                    Model.vertexViewSpaceZ[tA],
+                    Model.vertexViewSpaceX[tB],
+                    Model.vertexViewSpaceX[tC],
+                    Model.vertexViewSpaceY[tB],
+                    Model.vertexViewSpaceY[tC],
+                    Model.vertexViewSpaceZ[tB],
+                    Model.vertexViewSpaceZ[tC],
+                    this.faceColor[face]
+                );
+                Draw3D.fillTexturedTriangle(
+                    x0,
+                    x2,
+                    Model.clippedX[3],
+                    y0,
+                    y2,
+                    Model.clippedY[3],
+                    this.faceColorA[face],
+                    this.faceColorA[face],
+                    this.faceColorA[face],
+                    Model.vertexViewSpaceX[tA],
+                    Model.vertexViewSpaceY[tA],
+                    Model.vertexViewSpaceZ[tA],
+                    Model.vertexViewSpaceX[tB],
+                    Model.vertexViewSpaceX[tC],
+                    Model.vertexViewSpaceY[tB],
+                    Model.vertexViewSpaceY[tC],
+                    Model.vertexViewSpaceZ[tB],
+                    Model.vertexViewSpaceZ[tC],
+                    this.faceColor[face]
+                );
             }
         }
     };
@@ -3015,5 +3035,19 @@ export default class Model extends Hashable {
         } else {
             return x <= xA || x <= xB || x <= xC;
         }
+    };
+
+    drawFaceOutline = (face: number): void => {
+        if (!Model.vertexScreenX || !Model.vertexScreenY || !this.faceColorA || !this.faceColorB || !this.faceColorC) {
+            return;
+        }
+
+        const a: number = this.faceVertexA[face];
+        const b: number = this.faceVertexB[face];
+        const c: number = this.faceVertexC[face];
+
+        Draw3D.drawLine(Model.vertexScreenX[a], Model.vertexScreenY[a], Model.vertexScreenX[b], Model.vertexScreenY[b], Draw3D.palette[1000]);
+        Draw3D.drawLine(Model.vertexScreenX[b], Model.vertexScreenY[b], Model.vertexScreenX[c], Model.vertexScreenY[c], Draw3D.palette[1000]);
+        Draw3D.drawLine(Model.vertexScreenX[c], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenY[a], Draw3D.palette[1000]);
     };
 }

@@ -175,4 +175,12 @@ export default class Draw2D extends Hashable {
             offset += step;
         }
     };
+
+    static setPixel = (x: number, y: number, color: number): void => {
+        if (x < this.left || x >= this.right || y < this.top || y >= this.bottom) {
+            return;
+        }
+
+        this.pixels[x + y * this.width2d] = color;
+    };
 }
