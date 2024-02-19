@@ -402,6 +402,10 @@ export default abstract class GameShell {
         x -= left;
         y -= top;
 
+        const rect: DOMRect = canvas.getBoundingClientRect();
+        x *= canvas.width / rect.width;
+        y *= canvas.height / rect.height;
+
         x |= 0;
         y |= 0;
 
@@ -452,6 +456,10 @@ export default abstract class GameShell {
         const {top, left} = this.getInsets;
         x -= left;
         y -= top;
+
+        const rect: DOMRect = canvas.getBoundingClientRect();
+        x *= canvas.width / rect.width;
+        y *= canvas.height / rect.height;
 
         x |= 0;
         y |= 0;
