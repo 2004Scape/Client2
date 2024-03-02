@@ -4,7 +4,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
+// const TerserPlugin = require('terser-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
@@ -115,7 +115,7 @@ module.exports = () => {
     if (isProduction) {
         config.mode = 'production';
         config.plugins.push(new MiniCssExtractPlugin());
-        config.plugins.push(
+        /*config.plugins.push(
           new TerserPlugin({
               exclude: /\/tinymidipcm/,
               minify: TerserPlugin.terserMinify,
@@ -128,7 +128,7 @@ module.exports = () => {
                   }
               }
           })
-        );
+        );*/
     } else {
         config.mode = 'development';
     }
