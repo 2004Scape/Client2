@@ -120,9 +120,7 @@ module.exports = () => {
               minify: TerserPlugin.terserMinify,
               terserOptions: {
                   mangle: {
-                      properties: {
-                          builtins: true // Mangle property names that overlaps with standard JavaScript globals and DOM API props.
-                      }
+                      properties: true
                   },
                   format: {
                       quote_style: 3 // original
