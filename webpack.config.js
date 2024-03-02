@@ -4,8 +4,9 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
-const isProduction = process.env.NODE_ENV == 'production';
+const isProduction = process.env.NODE_ENV === 'production';
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
 
 const pages = [
@@ -114,6 +115,21 @@ module.exports = () => {
     if (isProduction) {
         config.mode = 'production';
         config.plugins.push(new MiniCssExtractPlugin());
+        config.plugins.push(
+          new TerserPlugin({
+              minify: TerserPlugin.terserMinify,
+              terserOptions: {
+                  mangle: {
+                      properties: {
+                          builtins: true // Mangle property names that overlaps with standard JavaScript globals and DOM API props.
+                      }
+                  },
+                  format: {
+                      quote_style: 3 // original
+                  }
+              }
+          })
+        );
     } else {
         config.mode = 'development';
     }
