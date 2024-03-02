@@ -117,6 +117,7 @@ module.exports = () => {
         config.plugins.push(new MiniCssExtractPlugin());
         config.plugins.push(
           new TerserPlugin({
+              exclude: /\/tinymidipcm/,
               minify: TerserPlugin.terserMinify,
               terserOptions: {
                   mangle: {
