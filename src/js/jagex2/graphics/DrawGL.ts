@@ -79,6 +79,9 @@ export default class DrawGL {
     private static glRenderer: string;
     private static glVersion: string;
 
+    // debug
+    private static noDraw:boolean = false;
+
     static init = async (): Promise<void> => {
         if (!gl) {
             throw new Error('WebGL 2.0 not supported');
@@ -198,31 +201,6 @@ export default class DrawGL {
         console.log(`initGlBuffer: ${glBuffer.name} ${glBuffer.glBufferId}`)
 	}
 
-    static convertPixels(srcPixels:Int8Array, width:number, height:number, textureWidth:number, textureHeight:number) : Uint8Array {
-		const pixels = new Uint8Array(textureWidth * textureHeight * 4);
-
-		let pixelIdx = 0;
-		let srcPixelIdx = 0;
-
-		let offset = (textureWidth - width) * 4;
-
-		for (let y = 0; y < height; y++) {
-			for (let x = 0; x < width; x++) {
-				let rgb = srcPixels[srcPixelIdx++];
-				if (rgb != 0) {
-					pixels[pixelIdx++] = (rgb >> 16);
-					pixels[pixelIdx++] = (rgb >> 8);
-					pixels[pixelIdx++] = rgb;
-					pixels[pixelIdx++] = -1;
-				} else {
-					pixelIdx += 4;
-				}
-			}
-			pixelIdx += offset;
-		}
-		return pixels;
-	}
-
     private static updateTextures(textureArrayId:WebGLTexture) :void{
 		const textures = Draw3D.textures;
 
@@ -239,11 +217,11 @@ export default class DrawGL {
 
 				++cnt;
 
-				if (texturePixels.length != DrawGL.TEXTURE_SIZE * DrawGL.TEXTURE_SIZE) {
+				//if (texturePixels.length != DrawGL.TEXTURE_SIZE * DrawGL.TEXTURE_SIZE) {
 					// The texture storage is 128x128 bytes, and will only work correctly with the
 					// 128x128 textures from high detail mode
 					//continue;
-				}
+				//}
 
                 const pixels = DrawGL.convertPixels(texturePixels, DrawGL.TEXTURE_SIZE, DrawGL.TEXTURE_SIZE, DrawGL.TEXTURE_SIZE, DrawGL.TEXTURE_SIZE);
 				// = new Uint8Array(texturePixels);//DrawGL.getPixelsAsUint8ArrayFromSigned(texturePixels);
@@ -282,13 +260,13 @@ export default class DrawGL {
 		DrawGL.textureArrayId = textureArrayId;
 	}
 
-    static shutdownBuffers = (): void => {
+    static shutdownBuffers(): void {
 		DrawGL.destroyGlBuffer(DrawGL.tmpVertexBuffer);
 		DrawGL.destroyGlBuffer(DrawGL.tmpUvBuffer);
 		DrawGL.destroyGlBuffer(DrawGL.uniformBuffer);
 	}
 
-    static destroyGlBuffer = (glBuffer:GLBuffer): void => {
+    static destroyGlBuffer(glBuffer:GLBuffer): void {
 		if (glBuffer.glBufferId != -1) {
 
 			gl.deleteBuffer(glBuffer.glBufferId);
@@ -374,28 +352,9 @@ export default class DrawGL {
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}*/
 
-    private static noDraw:boolean = false;
+    
 
-    /// <summary>
-    /// Float.floatToIntBits (Java) equivalent
-    /// </summary>
-    private static floatToIntBitsEq(f:number) : number
-    {
-        let buffer = new ArrayBuffer(4);
-        let view = new DataView(buffer);
-        view.setFloat32(0, f, false); // false for big-endian
-        return view.getInt32(0, false); // false for big-endian
-    }
-
-    private static getPixelsAsUint8Array(arr: Int32Array): Uint8Array {
-        let pixels:Uint8Array = new Uint8Array(arr.buffer);
-        for (let i = 0; i < pixels.length; i += 4) {
-            let temp = pixels[i];
-            pixels[i] = pixels[i + 2];
-            pixels[i + 2] = temp;
-        }
-        return pixels;
-    }
+    
 
     static uniformBufferAlloc(): void {
 
@@ -660,4 +619,39 @@ export default class DrawGL {
             return;
 		}
 	}
+
+    static convertPixels(srcPixels:Int8Array, width:number, height:number, textureWidth:number, textureHeight:number) : Uint8Array {
+		const pixels = new Uint8Array(textureWidth * textureHeight * 4);
+
+		let pixelIdx = 0;
+		let srcPixelIdx = 0;
+
+		let offset = (textureWidth - width) * 4;
+
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				let rgb = srcPixels[srcPixelIdx++];
+				if (rgb != 0) {
+					pixels[pixelIdx++] = (rgb >> 16);
+					pixels[pixelIdx++] = (rgb >> 8);
+					pixels[pixelIdx++] = rgb;
+					pixels[pixelIdx++] = -1;
+				} else {
+					pixelIdx += 4;
+				}
+			}
+			pixelIdx += offset;
+		}
+		return pixels;
+	}
+
+    private static getPixelsAsUint8Array(arr: Int32Array): Uint8Array {
+        let pixels:Uint8Array = new Uint8Array(arr.buffer);
+        for (let i = 0; i < pixels.length; i += 4) {
+            let temp = pixels[i];
+            pixels[i] = pixels[i + 2];
+            pixels[i + 2] = temp;
+        }
+        return pixels;
+    }
 }

@@ -177,7 +177,7 @@ class Playground2 extends Client {
 
     drawGpu = async (): Promise<void> => {
         if(!DrawGL.glInitted) return;
-        
+
         const model: Model = Model.model(this.model.id);
         model.calculateNormals(64, 850, -30, -50, -30, true);
         
@@ -192,8 +192,6 @@ class Playground2 extends Client {
                 this.model.z - this.eyeZ,
                 0,
                 RenderMode.GPU);
-
-        DrawGL.draw();
 
         if (this.fontBold12) {
             this.fontBold12.drawStringRight(this.width, this.fontBold12.height, `FPS: ${this.fps}`, Colors.YELLOW);
@@ -228,6 +226,8 @@ class Playground2 extends Client {
             leftY += this.fontBold12.height;
             this.fontBold12.drawString(0, leftY, 'q and e - move camera along y axis', Colors.YELLOW);
         }
+
+        DrawGL.draw();
     };
 
     draw = async (): Promise<void> => {

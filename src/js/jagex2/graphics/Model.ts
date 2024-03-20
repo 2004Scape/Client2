@@ -2113,7 +2113,6 @@ export default class Model extends Hashable {
                     Model.pickedBitsets[Model.pickedCount++] = bitset;
                     // WebGL change: -> render model here
                     
-                    return 0;
                 } else {
                     picking = true;
                 }
@@ -2227,7 +2226,7 @@ export default class Model extends Hashable {
                 const zC: number = Model.vertexScreenZ[c];
 
                 //WebGL change:
-                if (DrawGL.GL_ENABLED) {
+                /*if (DrawGL.GL_ENABLED) {
                     if (xA == -5000 || xB == -5000 || xC == -5000) {
                         continue;
                     }
@@ -2236,7 +2235,7 @@ export default class Model extends Hashable {
                         //picking = false; // explicitly not set in 317deob-gpu
                     }
                     continue;
-                }
+                }*/
 
                 if (clipped && (xA === -5000 || xB === -5000 || xC === -5000)) {
                     if (Model.faceNearClipped) {
@@ -2286,9 +2285,9 @@ export default class Model extends Hashable {
             }
         }
 
-        if(DrawGL.GL_ENABLED) {
+        /*if(DrawGL.GL_ENABLED) {
             return 0;
-        }
+        }*/
 
         if (!this.facePriority && Model.tmpDepthFaceCount) {
             for (let depth: number = this.maxDepth - 1; depth >= 0; depth--) {
