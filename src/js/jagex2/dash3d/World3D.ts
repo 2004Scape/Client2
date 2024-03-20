@@ -16,6 +16,7 @@ import TileOverlay from './type/TileOverlay';
 import TileOverlayShape from './type/TileOverlayShape';
 import LocAngle from './LocAngle';
 import {Int32Array3d, TypedArray1d, TypedArray2d, TypedArray3d, TypedArray4d} from '../util/Arrays';
+import DrawGL from '../graphics/DrawGL';
 
 export default class World3D {
     private static visibilityMatrix: boolean[][][][] = new TypedArray4d(8, 32, 51, 51, false);
@@ -988,7 +989,14 @@ export default class World3D {
         World3D.clickTileZ = -1;
     };
 
+    // WebGL change -> draw scene
     draw = (eyeX: number, eyeY: number, eyeZ: number, topLevel: number, eyeYaw: number, eyePitch: number, loopCycle: number): void => {
+
+        // WebGL change -> pre-draw scene callback
+        if(DrawGL.GL_ENABLED) {
+            DrawGL.preDrawScene(eyeX, eyeY, eyeZ, topLevel, eyeYaw, eyePitch);
+        }
+
         if (eyeX < 0) {
             eyeX = 0;
         } else if (eyeX >= this.maxTileX * 128) {
@@ -1000,6 +1008,8 @@ export default class World3D {
         } else if (eyeZ >= this.maxTileZ * 128) {
             eyeZ = this.maxTileZ * 128 - 1;
         }
+
+        const distance = (DrawGL.GL_ENABLED ? DrawGL.renderDistance : 25);
 
         World3D.cycle++;
         World3D.sinEyePitch = Draw3D.sin[eyePitch];
@@ -1015,22 +1025,22 @@ export default class World3D {
         World3D.eyeTileZ = (eyeZ / 128) | 0;
         World3D.topLevel = topLevel;
 
-        World3D.minDrawTileX = World3D.eyeTileX - 25;
+        World3D.minDrawTileX = World3D.eyeTileX - distance;
         if (World3D.minDrawTileX < 0) {
             World3D.minDrawTileX = 0;
         }
 
-        World3D.minDrawTileZ = World3D.eyeTileZ - 25;
+        World3D.minDrawTileZ = World3D.eyeTileZ - distance;
         if (World3D.minDrawTileZ < 0) {
             World3D.minDrawTileZ = 0;
         }
 
-        World3D.maxDrawTileX = World3D.eyeTileX + 25;
+        World3D.maxDrawTileX = World3D.eyeTileX + distance;
         if (World3D.maxDrawTileX > this.maxTileX) {
             World3D.maxDrawTileX = this.maxTileX;
         }
 
-        World3D.maxDrawTileZ = World3D.eyeTileZ + 25;
+        World3D.maxDrawTileZ = World3D.eyeTileZ + distance;
         if (World3D.maxDrawTileZ > this.maxTileZ) {
             World3D.maxDrawTileZ = this.maxTileZ;
         }
@@ -1047,7 +1057,11 @@ export default class World3D {
                         continue;
                     }
 
-                    if (tile.drawLevel <= topLevel && (World3D.visibilityMap[x + 25 - World3D.eyeTileX][z + 25 - World3D.eyeTileZ] || this.levelHeightmaps[level][x][z] - eyeY >= 2000)) {
+                    // WebGL change -> visibility check (increase draw distance)
+                    if (tile.drawLevel <= topLevel 
+                        && (!DrawGL.GL_ENABLED 
+                            && World3D.visibilityMap[x + distance - World3D.eyeTileX][z + distance - World3D.eyeTileZ] 
+                            || this.levelHeightmaps[level][x][z] - eyeY >= 2000)) {
                         tile.visible = true;
                         tile.update = true;
                         tile.containsLocs = tile.locCount > 0;
@@ -1063,7 +1077,7 @@ export default class World3D {
 
         for (let level: number = this.minLevel; level < this.maxLevel; level++) {
             const tiles: (Tile | null)[][] = this.levelTiles[level];
-            for (let dx: number = -25; dx <= 0; dx++) {
+            for (let dx: number = -distance; dx <= 0; dx++) {
                 const rightTileX: number = World3D.eyeTileX + dx;
                 const leftTileX: number = World3D.eyeTileX - dx;
 
@@ -1071,7 +1085,7 @@ export default class World3D {
                     continue;
                 }
 
-                for (let dz: number = -25; dz <= 0; dz++) {
+                for (let dz: number = -distance; dz <= 0; dz++) {
                     const forwardTileZ: number = World3D.eyeTileZ + dz;
                     const backwardTileZ: number = World3D.eyeTileZ - dz;
                     let tile: Tile | null;
@@ -1117,14 +1131,14 @@ export default class World3D {
 
         for (let level: number = this.minLevel; level < this.maxLevel; level++) {
             const tiles: (Tile | null)[][] = this.levelTiles[level];
-            for (let dx: number = -25; dx <= 0; dx++) {
+            for (let dx: number = -distance; dx <= 0; dx++) {
                 const rightTileX: number = World3D.eyeTileX + dx;
                 const leftTileX: number = World3D.eyeTileX - dx;
                 if (rightTileX < World3D.minDrawTileX && leftTileX >= World3D.maxDrawTileX) {
                     continue;
                 }
 
-                for (let dz: number = -25; dz <= 0; dz++) {
+                for (let dz: number = -distance; dz <= 0; dz++) {
                     const forwardTileZ: number = World3D.eyeTileZ + dz;
                     const backgroundTileZ: number = World3D.eyeTileZ - dz;
                     let tile: Tile | null;

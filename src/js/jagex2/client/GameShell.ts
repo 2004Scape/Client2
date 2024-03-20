@@ -5,6 +5,8 @@ import {sleep} from '../util/JsUtil';
 import {CANVAS_PREVENTED, KEY_CODES} from './KeyCodes';
 import InputTracking from './InputTracking';
 import {canvas, canvas2d} from '../graphics/Canvas';
+import DrawGL from '../graphics/DrawGL';
+import { RenderMode } from '../graphics/RenderMode';
 
 export default abstract class GameShell {
     static getParameter(name: string): string {
@@ -45,6 +47,8 @@ export default abstract class GameShell {
     protected keyQueueReadPos: number = 0;
     protected keyQueueWritePos: number = 0;
 
+    protected renderMode: RenderMode = RenderMode.GPU;
+
     constructor(resizetoFit: boolean = false) {
         canvas2d.fillStyle = 'black';
         canvas2d.fillRect(0, 0, canvas.width, canvas.height);
@@ -53,6 +57,9 @@ export default abstract class GameShell {
             this.resize(window.innerWidth, window.innerHeight);
         } else {
             this.resize(canvas.width, canvas.height);
+        }
+        if(this.renderMode === RenderMode.GPU) {
+            DrawGL.init();
         }
     }
 

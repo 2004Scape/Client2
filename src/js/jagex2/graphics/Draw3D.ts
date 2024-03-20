@@ -2,6 +2,7 @@ import Draw2D from './Draw2D';
 import Pix8 from './Pix8';
 import Jagfile from '../io/Jagfile';
 import {Int32Array2d, TypedArray1d} from '../util/Arrays';
+import DrawGL from './DrawGL';
 
 // noinspection JSSuspiciousNameCombination,DuplicatedCode
 export default class Draw3D extends Draw2D {
@@ -15,6 +16,7 @@ export default class Draw3D extends Draw2D {
 
     static textures: (Pix8 | null)[] = new TypedArray1d(50, null);
     static textureCount: number = 0;
+    static textureBrightness: number = 1;
 
     static lineOffset: Int32Array = new Int32Array();
     static centerX: number = 0;
@@ -152,6 +154,7 @@ export default class Draw3D extends Draw2D {
     };
 
     static setBrightness = (brightness: number): void => {
+        this.textureBrightness = brightness;
         const randomBrightness: number = brightness + Math.random() * 0.03 - 0.015;
         let offset: number = 0;
         for (let y: number = 0; y < 512; y++) {
@@ -261,6 +264,10 @@ export default class Draw3D extends Draw2D {
     };
 
     static fillGouraudTriangle = (xA: number, xB: number, xC: number, yA: number, yB: number, yC: number, colorA: number, colorB: number, colorC: number): void => {
+        //WebGL change -> don't draw on CPU if GL is enabled
+        if(DrawGL.GL_ENABLED) {
+            return;
+        }
         let xStepAB: number = 0;
         let colorStepAB: number = 0;
         if (yB !== yA) {
@@ -884,6 +891,10 @@ export default class Draw3D extends Draw2D {
     };
 
     static fillTriangle = (x0: number, x1: number, x2: number, y0: number, y1: number, y2: number, color: number): void => {
+        //WebGL change -> don't draw on CPU if GL is enabled
+        if(DrawGL.GL_ENABLED) {
+            return;
+        }
         let xStepAB: number = 0;
         if (y1 !== y0) {
             xStepAB = (((x1 - x0) << 16) / (y1 - y0)) | 0;
@@ -1326,6 +1337,11 @@ export default class Draw3D extends Draw2D {
         tzC: number,
         texture: number
     ): void => {
+        //WebGL change -> don't draw on CPU if GL is enabled
+        if(DrawGL.GL_ENABLED) {
+            return;
+        }
+
         const texels: Int32Array | null = this.getTexels(texture);
         this.opaque = !this.textureTranslucent[texture];
 
