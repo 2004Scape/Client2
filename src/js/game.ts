@@ -130,6 +130,11 @@ class Game extends Client {
 
             try {
                 for (let i: number = 0; i < 50; i++) {
+                    if (i === 22) {
+                        // weird debug sprite along water
+                        continue;
+                    }
+
                     this.imageMapscene[i] = Pix8.fromArchive(media, 'mapscene', i);
                 }
             } catch (e) {
