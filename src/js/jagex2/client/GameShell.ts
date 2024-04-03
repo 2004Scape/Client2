@@ -94,7 +94,7 @@ export default abstract class GameShell {
     }
 
     async run(): Promise<void> {
-        window.addEventListener(
+        canvas.addEventListener(
             'resize',
             (): void => {
                 if (this.resizeToFit) {
@@ -105,21 +105,21 @@ export default abstract class GameShell {
         );
 
         // pc
-        window.onkeydown = this.keyPressed;
-        window.onkeyup = this.keyReleased;
-        window.onmousedown = this.mousePressed;
-        window.onmouseup = this.mouseReleased;
-        window.onmouseenter = this.mouseEntered;
-        window.onmouseleave = this.mouseExited;
-        window.onmousemove = this.mouseMoved;
+        canvas.onkeydown = this.keyPressed;
+        canvas.onkeyup = this.keyReleased;
+        canvas.onmousedown = this.mousePressed;
+        canvas.onmouseup = this.mouseReleased;
+        canvas.onmouseenter = this.mouseEntered;
+        canvas.onmouseleave = this.mouseExited;
+        canvas.onmousemove = this.mouseMoved;
         window.onbeforeunload = this.unload;
-        window.onfocus = this.focusGained;
-        window.onblur = this.focusLost;
+        canvas.onfocus = this.focusGained;
+        canvas.onblur = this.focusLost;
 
         // mobile
-        window.ontouchstart = this.touchStarted;
-        window.ontouchend = this.touchEnded;
-        window.ontouchmove = this.touchMoved;
+        canvas.ontouchstart = this.touchStarted;
+        canvas.ontouchend = this.touchEnded;
+        canvas.ontouchmove = this.touchMoved;
 
         // Preventing mouse events from bubbling up to the context menu in the browser for our canvas.
         // This may need to be hooked up to our own context menu in the future.
@@ -770,11 +770,20 @@ export default abstract class GameShell {
         const fixedWidth: number = 789;
         const fixedHeight: number = 532;
 
-        const rect: DOMRect = canvas.getBoundingClientRect();
-        const scaleX: number = canvas.width / rect.width;
-        const scaleY: number = canvas.height / rect.height;
-        this.mouseX = ((e.clientX - rect.left) * scaleX) | 0;
-        this.mouseY = ((e.clientY - rect.top) * scaleY) | 0;
+        if (this.isFullScreen()) {
+            const element: HTMLElement = e.target as HTMLElement;
+            const br: DOMRect = element.getBoundingClientRect();
+            const ratio: number = window.innerHeight / canvas.height;
+            const offset: number = (window.innerWidth - canvas.width * ratio) / 2.0;
+            this.mouseX = this.mapCoord(e.clientX - br.left - offset, 0, canvas.width * ratio, 0, fixedWidth) | 0;
+            this.mouseY = this.mapCoord(e.clientY - br.top, 0, canvas.height * ratio, 0, fixedHeight) | 0;
+        } else {
+            const rect: DOMRect = canvas.getBoundingClientRect();
+            const scaleX: number = canvas.width / rect.width;
+            const scaleY: number = canvas.height / rect.height;
+            this.mouseX = ((e.clientX - rect.left) * scaleX) | 0;
+            this.mouseY = ((e.clientY - rect.top) * scaleY) | 0;
+        }
 
         if (this.mouseX < 0) {
             this.mouseX = 0;
