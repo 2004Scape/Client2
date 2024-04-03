@@ -441,17 +441,49 @@ export default abstract class GameShell {
     };
 
     private mousePressed = (e: MouseEvent): void => {
+        this.touching = false;
+        this.setMousePosition(e);
+
         this.idleCycles = 0;
         this.mouseClickX = this.mouseX;
         this.mouseClickY = this.mouseY;
 
-        if (e.buttons === 2) {
-            this.mouseClickButton = 2;
-            this.mouseButton = 2;
-        } else if (e.buttons === 1) {
-            this.mouseClickButton = 1;
-            this.mouseButton = 1;
+        if (this.isMobile) {
+            if (this.insideChatInputArea() || this.insideUsernameArea() || this.inPasswordArea()) {
+                this.mouseClickButton = 1;
+                this.mouseButton = 1;
+                return;
+            }
+
+            const eventTime: number = e.timeStamp;
+            if (eventTime >= this.time + 500) {
+                this.mouseClickButton = 2;
+                this.mouseButton = 2;
+            } else {
+                this.mouseClickButton = 1;
+                this.mouseButton = 1;
+            }
+        } else {
+            if (e.buttons == 2) {
+                this.mouseClickButton = 2;
+                this.mouseButton = 2;
+            } else {
+                this.mouseClickButton = 1;
+                this.mouseButton = 1;
+            }
         }
+
+        // this.idleCycles = 0;
+        // this.mouseClickX = this.mouseX;
+        // this.mouseClickY = this.mouseY;
+
+        // if (e.buttons === 2) {
+        //     this.mouseClickButton = 2;
+        //     this.mouseButton = 2;
+        // } else if (e.buttons === 1) {
+        //     this.mouseClickButton = 1;
+        //     this.mouseButton = 1;
+        // }
 
         if (InputTracking.enabled) {
             // InputTracking.mousePressed(x, y, (e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) !== 0 ? 1 : 0);
@@ -523,7 +555,7 @@ export default abstract class GameShell {
 
         this.sx = this.nx = this.mx = touch.screenX || 0;
         this.sy = this.ny = this.my = touch.screenY || 0;
-        this.time = e.timeStamp || 0;
+        this.time = e.timeStamp;
 
         this.startedInViewport = this.insideViewportArea();
         this.startedInTabArea = this.insideTabArea();
@@ -539,8 +571,8 @@ export default abstract class GameShell {
         const clientY: number = touch.clientY || 0;
         this.mouseMoved(new MouseEvent('mousedown', {clientX: clientX, clientY: clientY}));
 
-        const nx: number = touch.screenX || 0;
-        const ny: number = touch.screenY || 0;
+        this.nx = touch.screenX || 0;
+        this.ny = touch.screenY || 0;
 
         this.keyReleased(new KeyboardEvent('ArrowLeft', {key: 'ArrowLeft', code: 'ArrowLeft'}));
         this.keyReleased(new KeyboardEvent('ArrowUp', {key: 'ArrowUp', code: 'ArrowUp'}));
@@ -554,7 +586,7 @@ export default abstract class GameShell {
             this.touching = false;
             return;
         } else if (this.insideChatInputArea() || this.insideChatPopupArea() || this.insideUsernameArea() || this.inPasswordArea()) {
-            if (this.touchInput !== null) {
+            if (this.touchInput !== null && this.touchInput.parentNode?.contains(this.touchInput)) {
                 this.touchInput.parentNode?.removeChild(this.touchInput);
                 this.touchInput = null;
             }
@@ -592,13 +624,13 @@ export default abstract class GameShell {
             return;
         }
 
-        const eventTime: number = e.timeStamp || 0;
+        const eventTime: number = e.timeStamp;
         const longPress: boolean = eventTime >= this.time + 500;
-        const moved: boolean = Math.abs(this.sx - nx) > 16 || Math.abs(this.sy - ny) > 16;
+        const moved: boolean = Math.abs(this.sx - this.nx) > 16 || Math.abs(this.sy - this.ny) > 16;
 
         if (longPress && !moved) {
             this.touching = true;
-            this.mousePressed(new MouseEvent('e', {buttons: 2}));
+            this.mousePressed(new MouseEvent('e2', {buttons: 2}));
         } else {
             this.mouseButton = 0;
             this.touching = false;
@@ -615,20 +647,20 @@ export default abstract class GameShell {
         const clientY: number = touch.clientY || 0;
         this.mouseMoved(new MouseEvent('mousedown', {clientX: clientX, clientY: clientY}));
 
-        const nx: number = touch.screenX || 0;
-        const ny: number = touch.screenY || 0;
+        this.nx = touch.screenX || 0;
+        this.ny = touch.screenY || 0;
 
         if (this.startedInViewport && this.getViewportInterfaceId() === -1) {
             // Camera panning
-            if (this.mx - nx > 0) {
+            if (this.mx - this.nx > 0) {
                 this.rotate(2);
-            } else if (this.mx - nx < 0) {
+            } else if (this.mx - this.nx < 0) {
                 this.rotate(0);
             }
 
-            if (this.my - ny > 0) {
+            if (this.my - this.ny > 0) {
                 this.rotate(3);
-            } else if (this.my - ny < 0) {
+            } else if (this.my - this.ny < 0) {
                 this.rotate(1);
             }
         } else if (this.startedInTabArea || this.getViewportInterfaceId() !== -1) {
@@ -636,12 +668,12 @@ export default abstract class GameShell {
             this.mousePressed(new MouseEvent('e2', {buttons: 1}));
         }
 
-        this.mx = nx;
-        this.my = ny;
+        this.mx = this.nx;
+        this.my = this.ny;
     };
 
-    private get isMobile(): boolean {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    get isMobile(): boolean {
+        return navigator.maxTouchPoints > 0 /* || navigator.msMaxTouchPoints > 0*/;
     }
 
     private insideViewportArea(): boolean {
