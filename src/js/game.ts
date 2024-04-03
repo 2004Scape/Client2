@@ -4432,13 +4432,12 @@ class Game extends Client {
             this.fontPlain12?.drawStringCenter(256, 158, 'Please wait - attempting to reestablish', Colors.WHITE);
             this.areaViewport?.draw(8, 11);
             this.flagSceneTileX = 0;
-            const stream: ClientStream | null = this.stream;
+            this.stream?.close();
             this.ingame = false;
             await this.login(this.username, this.password, true);
             if (!this.ingame) {
                 await this.logout();
             }
-            stream?.close();
         }
     };
 
