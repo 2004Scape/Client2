@@ -127,6 +127,10 @@ export default abstract class GameShell {
             e.preventDefault();
         };
 
+        window.oncontextmenu = (e: MouseEvent): void => {
+            e.preventDefault();
+        };
+
         await this.showProgress(0, 'Loading...');
         await this.load();
 
@@ -607,7 +611,7 @@ export default abstract class GameShell {
             }
             this.input.setAttribute('type', this.inPasswordArea() ? 'password' : 'text');
             this.input.setAttribute('autofocus', 'autofocus');
-            this.input.setAttribute('style', `position: absolute; left: ${clientX}px; top: ${clientY}px; width: 1px; height: 1px; opacity: 0;`);
+            this.input.setAttribute('style', `position: fixed; left: ${clientX}px; top: ${clientY}px; width: 1px; height: 1px; opacity: 0;`);
             document.body.appendChild(this.input);
 
             this.input.focus();
