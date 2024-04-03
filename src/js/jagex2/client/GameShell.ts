@@ -591,7 +591,7 @@ export default abstract class GameShell {
                 this.touchInput = null;
             }
 
-            // const document = document; // Replace with your document reference
+            const document: Document = window.document;
             this.touchInput = document.createElement('touchInput');
             if (this.insideUsernameArea()) {
                 this.touchInput.setAttribute('id', 'username');
@@ -673,7 +673,8 @@ export default abstract class GameShell {
     };
 
     get isMobile(): boolean {
-        return navigator.maxTouchPoints > 0 /* || navigator.msMaxTouchPoints > 0*/;
+        const touch: string[] = ['Android', 'webOS', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'Windows Phone'];
+        return touch.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
     }
 
     private insideViewportArea(): boolean {
