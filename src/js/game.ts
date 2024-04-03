@@ -867,7 +867,7 @@ class Game extends Client {
                 seed[i] += 50;
             }
             this.randomIn = new Isaac(seed);
-            this.stream?.write(this.loginout.data, this.loginout.pos, 0);
+            this.stream?.write(this.loginout.data, this.loginout.pos);
             const reply: number = await this.stream.read();
 
             if (reply === 1) {
@@ -1345,7 +1345,7 @@ class Game extends Client {
 
             try {
                 if (this.stream && this.out.pos > 0) {
-                    this.stream.write(this.out.data, this.out.pos, 0);
+                    this.stream.write(this.out.data, this.out.pos);
                     this.out.pos = 0;
                     this.heartbeatTimer = 0;
                 }
