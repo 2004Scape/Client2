@@ -150,10 +150,10 @@ class WebSocketReader {
     constructor(socket: WebSocket, limit: number) {
         this.limit = limit;
         socket.binaryType = 'arraybuffer';
-        socket.addEventListener('message', this.on.bind(this));
+        socket.onmessage = this.onmessage;
     }
 
-    private on = (event: MessageEvent): void => {
+    private onmessage = (event: MessageEvent): void => {
         if (this.closed) {
             throw new Error('WebSocketReader is closed!');
         }
