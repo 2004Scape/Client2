@@ -20,10 +20,10 @@ export default class CollisionFlag {
     static readonly WALL_WEST_PROJ_BLOCKER: number = CollisionFlag.WALL_EAST_PROJ_BLOCKER << 4; // 65536 0x10000
     static readonly LOC_PROJ_BLOCKER: number = CollisionFlag.LOC << 9; // 131072 0x20000
 
-    static readonly FLOOR_DECORATION: number = 0x80000; // 524288
+    static readonly ANTIMACRO: number = 0x80000; // 524288
     static readonly FLOOR: number = 0x200000; // 2097152
 
-    static readonly FLOOR_BLOCKED: number = CollisionFlag.FLOOR | CollisionFlag.FLOOR_DECORATION; // 2621440 0x280000
+    static readonly FLOOR_BLOCKED: number = CollisionFlag.FLOOR | CollisionFlag.ANTIMACRO; // 2621440 0x280000
     static readonly WALK_BLOCKED: number = CollisionFlag.LOC | CollisionFlag.FLOOR_BLOCKED; // 2621696 0x280100
 
     static readonly BLOCK_SOUTH: number = CollisionFlag.WALL_NORTH | CollisionFlag.WALK_BLOCKED; // 2621698 0x280102
