@@ -31,9 +31,18 @@
                 -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
                 z-index: -1;
             }
+
+            #touchInput {
+                position: absolute;
+                top: 0;
+                left: 0;
+                opacity: 0; /* Make the input element transparent */
+                pointer-events: none; /* Disable pointer events on the input element */
+            }
         </style>
     </head>
     <body>
         <canvas id="canvas" width="789" height="532"></canvas>
+        <input type="text" id="touchInput" />
     </body>
 </html>

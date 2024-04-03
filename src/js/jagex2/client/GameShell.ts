@@ -586,7 +586,7 @@ export default abstract class GameShell {
             this.touching = false;
             return;
         } else if (this.insideChatInputArea() || this.insideChatPopupArea() || this.insideUsernameArea() || this.inPasswordArea()) {
-            if (this.touchInput !== null && this.touchInput.parentNode?.contains(this.touchInput)) {
+            if (this.touchInput !== null) {
                 this.touchInput.parentNode?.removeChild(this.touchInput);
                 this.touchInput = null;
             }
