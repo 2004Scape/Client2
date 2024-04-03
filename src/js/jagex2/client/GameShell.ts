@@ -48,7 +48,7 @@ export default abstract class GameShell {
     protected keyQueueWritePos: number = 0;
 
     // touch controls
-    private touchInput: HTMLElement | null = null;
+    private input: HTMLElement | null = null;
     private touching: boolean = false;
     private startedInViewport: boolean = false;
     private startedInTabArea: boolean = false;
@@ -61,6 +61,7 @@ export default abstract class GameShell {
     private ny: number = 0;
 
     constructor(resizetoFit: boolean = false) {
+        canvas.tabIndex = -1;
         canvas2d.fillStyle = 'black';
         canvas2d.fillRect(0, 0, canvas.width, canvas.height);
         this.resizeToFit = resizetoFit;
@@ -491,6 +492,7 @@ export default abstract class GameShell {
     };
 
     private mouseReleased = (e: MouseEvent): void => {
+        this.setMousePosition(e);
         this.idleCycles = 0;
         this.mouseButton = 0;
 
@@ -500,6 +502,7 @@ export default abstract class GameShell {
     };
 
     private mouseEntered = (e: MouseEvent): void => {
+        this.setMousePosition(e);
         if (!InputTracking.enabled) {
             return;
         }
@@ -507,6 +510,7 @@ export default abstract class GameShell {
     };
 
     private mouseExited = (e: MouseEvent): void => {
+        this.setMousePosition(e);
         if (!InputTracking.enabled) {
             return;
         }
@@ -542,19 +546,19 @@ export default abstract class GameShell {
             return;
         }
 
-        if (this.touchInput !== null) {
-            this.touchInput.parentNode?.removeChild(this.touchInput);
-            this.touchInput = null;
+        if (this.input !== null) {
+            this.input.parentNode?.removeChild(this.input);
+            this.input = null;
         }
 
         this.touching = true;
         const touch: Touch = e.changedTouches[0];
-        const clientX: number = touch.clientX || 0;
-        const clientY: number = touch.clientY || 0;
+        const clientX: number = touch.clientX | 0;
+        const clientY: number = touch.clientY | 0;
         this.mouseMoved(new MouseEvent('mousedown', {clientX: clientX, clientY: clientY}));
 
-        this.sx = this.nx = this.mx = touch.screenX || 0;
-        this.sy = this.ny = this.my = touch.screenY || 0;
+        this.sx = this.nx = this.mx = touch.screenX | 0;
+        this.sy = this.ny = this.my = touch.screenY | 0;
         this.time = e.timeStamp;
 
         this.startedInViewport = this.insideViewportArea();
@@ -567,12 +571,12 @@ export default abstract class GameShell {
         }
 
         const touch: Touch = e.changedTouches[0];
-        const clientX: number = touch.clientX || 0;
-        const clientY: number = touch.clientY || 0;
+        const clientX: number = touch.clientX | 0;
+        const clientY: number = touch.clientY | 0;
         this.mouseMoved(new MouseEvent('mousedown', {clientX: clientX, clientY: clientY}));
 
-        this.nx = touch.screenX || 0;
-        this.ny = touch.screenY || 0;
+        this.nx = touch.screenX | 0;
+        this.ny = touch.screenY | 0;
 
         this.keyReleased(new KeyboardEvent('ArrowLeft', {key: 'ArrowLeft', code: 'ArrowLeft'}));
         this.keyReleased(new KeyboardEvent('ArrowUp', {key: 'ArrowUp', code: 'ArrowUp'}));
@@ -586,39 +590,41 @@ export default abstract class GameShell {
             this.touching = false;
             return;
         } else if (this.insideChatInputArea() || this.insideChatPopupArea() || this.insideUsernameArea() || this.inPasswordArea()) {
-            if (this.touchInput !== null) {
-                this.touchInput.parentNode?.removeChild(this.touchInput);
-                this.touchInput = null;
+            if (this.input !== null) {
+                if (this.input.parentNode?.contains(this.input)) {
+                    this.input.parentNode?.removeChild(this.input);
+                }
+                this.input = null;
             }
 
-            const document: Document = window.document;
-            this.touchInput = document.createElement('touchInput');
+            this.input = document.createElement('input');
             if (this.insideUsernameArea()) {
-                this.touchInput.setAttribute('id', 'username');
-                this.touchInput.setAttribute('placeholder', 'Username');
+                this.input.setAttribute('id', 'username');
+                this.input.setAttribute('placeholder', 'Username');
             } else if (this.inPasswordArea()) {
-                this.touchInput.setAttribute('id', 'password');
-                this.touchInput.setAttribute('placeholder', 'Password');
+                this.input.setAttribute('id', 'password');
+                this.input.setAttribute('placeholder', 'Password');
             }
-            this.touchInput.setAttribute('type', this.inPasswordArea() ? 'password' : 'text');
-            this.touchInput.setAttribute('autofocus', 'autofocus');
-            this.touchInput.setAttribute('style', `position: absolute; left: ${clientX}px; top: ${clientY}px; width: 1px; height: 1px; opacity: 0;`);
-            document.body.appendChild(this.touchInput);
-            this.touchInput.focus();
-            this.touchInput.click();
+            this.input.setAttribute('type', this.inPasswordArea() ? 'password' : 'text');
+            this.input.setAttribute('autofocus', 'autofocus');
+            this.input.setAttribute('style', `position: absolute; left: ${clientX}px; top: ${clientY}px; width: 1px; height: 1px; opacity: 0;`);
+            document.body.appendChild(this.input);
 
-            this.touchInput.addEventListener('keydown', (event: KeyboardEvent): void => {
-                this.keyPressed(event);
-            });
+            this.input.focus();
+            this.input.click();
 
-            this.touchInput.addEventListener('keyup', (event: KeyboardEvent): void => {
-                this.keyReleased(event);
-            });
+            this.input.onkeydown = (e: KeyboardEvent): void => {
+                this.keyPressed(e);
+            };
 
-            this.touchInput.addEventListener('focusout', (): void => {
-                this.touchInput?.parentNode?.removeChild(this.touchInput);
-                this.touchInput = null;
-            });
+            this.input.onkeyup = (e: KeyboardEvent): void => {
+                this.keyReleased(e);
+            };
+
+            this.input.onfocus = (e: FocusEvent): void => {
+                this.input?.parentNode?.removeChild(this.input);
+                this.input = null;
+            };
 
             this.touching = false;
             return;
@@ -643,12 +649,12 @@ export default abstract class GameShell {
         }
 
         const touch: Touch = e.changedTouches[0];
-        const clientX: number = touch.clientX || 0;
-        const clientY: number = touch.clientY || 0;
+        const clientX: number = touch.clientX | 0;
+        const clientY: number = touch.clientY | 0;
         this.mouseMoved(new MouseEvent('mousedown', {clientX: clientX, clientY: clientY}));
 
-        this.nx = touch.screenX || 0;
-        this.ny = touch.screenY || 0;
+        this.nx = touch.screenX | 0;
+        this.ny = touch.screenY | 0;
 
         if (this.startedInViewport && this.getViewportInterfaceId() === -1) {
             // Camera panning
@@ -764,20 +770,11 @@ export default abstract class GameShell {
         const fixedWidth: number = 789;
         const fixedHeight: number = 532;
 
-        if (this.isFullScreen()) {
-            const element: HTMLElement = e.target as HTMLElement;
-            const br: DOMRect = element.getBoundingClientRect();
-            const ratio: number = window.innerHeight / canvas.height;
-            const offset: number = (window.innerWidth - canvas.width * ratio) / 2.0;
-            this.mouseX = this.mapCoord(e.clientX - br.left - offset, 0, canvas.width * ratio, 0, fixedWidth) | 0;
-            this.mouseY = this.mapCoord(e.clientY - br.top, 0, canvas.height * ratio, 0, fixedHeight) | 0;
-        } else {
-            const rect: DOMRect = canvas.getBoundingClientRect();
-            const scaleX: number = canvas.width / rect.width;
-            const scaleY: number = canvas.height / rect.height;
-            this.mouseX = ((e.clientX - rect.left) * scaleX) | 0;
-            this.mouseY = ((e.clientY - rect.top) * scaleY) | 0;
-        }
+        const rect: DOMRect = canvas.getBoundingClientRect();
+        const scaleX: number = canvas.width / rect.width;
+        const scaleY: number = canvas.height / rect.height;
+        this.mouseX = ((e.clientX - rect.left) * scaleX) | 0;
+        this.mouseY = ((e.clientY - rect.top) * scaleY) | 0;
 
         if (this.mouseX < 0) {
             this.mouseX = 0;
