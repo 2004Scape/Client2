@@ -99,7 +99,6 @@ export abstract class Client extends GameShell {
     // important client stuff
     protected db: Database | null = null;
     protected loopCycle: number = 0;
-    protected ingame: boolean = false;
     protected archiveChecksums: number[] = [];
     protected stream: ClientStream | null = null;
     protected in: Packet = Packet.alloc(1);
@@ -653,6 +652,26 @@ export abstract class Client extends GameShell {
         SeqBase.instances = [];
         SeqFrame.instances = [];
     };
+
+    getTitleScreenState(): number {
+        return this.titleScreenState;
+    }
+
+    isChatBackInputOpen(): boolean {
+        return this.chatbackInputOpen;
+    }
+
+    isShowSocialInput(): boolean {
+        return this.showSocialInput;
+    }
+
+    getChatInterfaceId(): number {
+        return this.chatInterfaceId;
+    }
+
+    getViewportInterfaceId(): number {
+        return this.viewportInterfaceId;
+    }
 
     // ---- protected functions can be used by impl classes
 
