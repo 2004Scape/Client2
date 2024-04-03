@@ -8,30 +8,22 @@ Click [here](https://github.com/2004scape/Client2/tree/gh-pages) to view the cur
 
 ### Client
 
-Try out the client hosted on Github!
+Try out the client hosted on Github! It is 100% source ported and available to use.
+Create your account on the 2004scape website.
 
 | World           | High Detail                                                                    | Low Detail                                                                    | Members |
 |-----------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------|---------|
 | 1 (Central USA) | [Play Now!](https://2004scape.github.io/Client2/?world=1&detail=high&method=0) | [Play Now!](https://2004scape.github.io/Client2/?world=1&detail=low&method=0) | No      |
-| 2 (Central USA)     | [Play Now!](https://2004scape.github.io/Client2/?world=2&detail=high&method=0) | [Play Now!](https://2004scape.github.io/Client2/?world=2&detail=low&method=0) | Yes     |
-| 3 (Germany) | [Play Now!](https://2004scape.github.io/Client2/?world=3&detail=high&method=0) | [Play Now!](https://2004scape.github.io/Client2/?world=3&detail=low&method=0) | Yes     |
+| 2 (Central USA) | [Play Now!](https://2004scape.github.io/Client2/?world=2&detail=high&method=0) | [Play Now!](https://2004scape.github.io/Client2/?world=2&detail=low&method=0) | Yes     |
+| 3 (Germany)     | [Play Now!](https://2004scape.github.io/Client2/?world=3&detail=high&method=0) | [Play Now!](https://2004scape.github.io/Client2/?world=3&detail=low&method=0) | Yes     |
 | 4 (Germany)     | [Play Now!](https://2004scape.github.io/Client2/?world=4&detail=high&method=0) | [Play Now!](https://2004scape.github.io/Client2/?world=4&detail=low&method=0) | No      |
 
-### Playground
+### <a href="https://2004scape.github.io/Client2/playground" target="_blank">Playground</a> - An Interactive Model Viewer
+### <a href="https://2004scape.github.io/Client2/viewer" target="_blank">Viewer</a> - A Cache Viewer
+### <a href="https://2004scape.github.io/Client2/items" target="_blank">Items Viewer</a> - View All the Items
+### <a href="https://2004scape.github.io/Client2/mesanim" target="_blank">Message Animation Viewer</a> - A Chat Message Animation Editor
 
-Testing code for an interactive model viewer. Code "playground."
-
-https://2004scape.github.io/Client2/playground
-
-### Viewer
-
-Cache viewer.
-
-https://2004scape.github.io/Client2/viewer
-
-### Items Viewer
-
-https://2004scape.github.io/Client2/items
+---
 
 ## First Time Installation
 
@@ -55,8 +47,8 @@ The client will automatically launch connecting to World 1.
 Local world is hosted on World 0.
 You have the ability to connect to live servers from the local client by changing the param.
 
-http://localhost:8080/?world=0&detail=high&method=0
+http://localhost:8080/?world=0&detail=high&method=0 (TypeScript)
 
 This is not to be confused with the Java TeaVM client which is hosted here if the local server is running:
 
-http://localhost/client?world=0&detail=high&method=0
+http://localhost/client?world=0&detail=high&method=0 (Java)
