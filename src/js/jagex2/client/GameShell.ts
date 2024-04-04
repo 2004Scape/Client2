@@ -495,20 +495,8 @@ export default abstract class GameShell {
             }
         }
 
-        // this.idleCycles = 0;
-        // this.mouseClickX = this.mouseX;
-        // this.mouseClickY = this.mouseY;
-
-        // if (e.buttons === 2) {
-        //     this.mouseClickButton = 2;
-        //     this.mouseButton = 2;
-        // } else if (e.buttons === 1) {
-        //     this.mouseClickButton = 1;
-        //     this.mouseButton = 1;
-        // }
-
         if (InputTracking.enabled) {
-            // InputTracking.mousePressed(x, y, (e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) !== 0 ? 1 : 0);
+            InputTracking.mousePressed(this.mouseClickX, this.mouseClickY, e.buttons);
         }
     };
 
@@ -518,7 +506,7 @@ export default abstract class GameShell {
         this.mouseButton = 0;
 
         if (InputTracking.enabled) {
-            // InputTracking.mouseReleased((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) !== 0 ? 1 : 0);
+            InputTracking.mouseReleased(e.buttons);
         }
     };
 
