@@ -32,19 +32,19 @@ describe('CollisionMap', (): void => {
     describe('wall', (): void => {
         it('blocked no range', (): void => {
             const collisionMap: CollisionMap = new CollisionMap();
-            collisionMap.addWall(22, 22, LocShape.WALL_STRAIGHT, LocAngle.EAST, false);
+            collisionMap.addWall(22, 22, LocShape.WALL_STRAIGHT.id, LocAngle.EAST, false);
             expect(collisionMap.flags[CollisionMap.index(22, 22)]).toBe(CollisionFlag.WALL_EAST);
         });
 
         it('blocked no range', (): void => {
             const collisionMap: CollisionMap = new CollisionMap();
-            collisionMap.addWall(22, 22, LocShape.WALL_STRAIGHT, LocAngle.EAST, true);
+            collisionMap.addWall(22, 22, LocShape.WALL_STRAIGHT.id, LocAngle.EAST, true);
             expect(collisionMap.flags[CollisionMap.index(22, 22)]).toBe(CollisionFlag.WALL_EAST | CollisionFlag.WALL_EAST_PROJ_BLOCKER);
         });
 
         it('not blocked', (): void => {
             const collisionMap: CollisionMap = new CollisionMap();
-            collisionMap.addWall(22, 22, LocShape.WALL_STRAIGHT, LocAngle.EAST, true);
+            collisionMap.addWall(22, 22, LocShape.WALL_STRAIGHT.id, LocAngle.EAST, true);
             expect(collisionMap.flags[CollisionMap.index(22, 22)]).toBe(CollisionFlag.WALL_EAST | CollisionFlag.WALL_EAST_PROJ_BLOCKER);
             collisionMap.removeWall(22, 22, 0, 2, false);
             expect(collisionMap.flags[CollisionMap.index(22, 22)]).toBe(CollisionFlag.WALL_EAST_PROJ_BLOCKER);
@@ -54,7 +54,7 @@ describe('CollisionMap', (): void => {
 
         it('not blocked 2', (): void => {
             const collisionMap: CollisionMap = new CollisionMap();
-            collisionMap.addWall(22, 22, LocShape.WALL_STRAIGHT, LocAngle.EAST, true);
+            collisionMap.addWall(22, 22, LocShape.WALL_STRAIGHT.id, LocAngle.EAST, true);
             expect(collisionMap.flags[CollisionMap.index(22, 22)]).toBe(CollisionFlag.WALL_EAST | CollisionFlag.WALL_EAST_PROJ_BLOCKER);
             collisionMap.removeWall(22, 22, 0, 2, true);
             expect(collisionMap.flags[CollisionMap.index(22, 22)]).toBe(CollisionFlag.OPEN);
