@@ -62,7 +62,7 @@ export default class LocType extends ConfigType {
         }
 
         if (loc.active2 === -1 && loc.shapes) {
-            loc.active = loc.shapes.length > 0 && loc.shapes[0] === LocShape.CENTREPIECE_STRAIGHT;
+            loc.active = loc.shapes.length > 0 && loc.shapes[0] === LocShape.CENTREPIECE_STRAIGHT.id;
 
             if (loc.ops) {
                 loc.active = true;

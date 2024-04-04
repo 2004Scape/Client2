@@ -102,7 +102,7 @@ export default class CollisionMap {
         }
     };
 
-    addWall = (tileX: number, tileZ: number, shape: LocShape, angle: LocAngle, blockrange: boolean): void => {
+    addWall = (tileX: number, tileZ: number, shape: number, angle: LocAngle, blockrange: boolean): void => {
         const x: number = tileX - this.offsetX;
         const z: number = tileZ - this.offsetZ;
 
@@ -115,7 +115,7 @@ export default class CollisionMap {
         const northEast: number = blockrange ? CollisionFlag.WALL_NORTH_EAST_PROJ_BLOCKER : CollisionFlag.WALL_NORTH_EAST;
         const southWest: number = blockrange ? CollisionFlag.WALL_SOUTH_WEST_PROJ_BLOCKER : CollisionFlag.WALL_SOUTH_WEST;
 
-        if (shape === LocShape.WALL_STRAIGHT) {
+        if (shape === LocShape.WALL_STRAIGHT.id) {
             if (angle === LocAngle.WEST) {
                 this.add(x, z, west);
                 this.add(x - 1, z, east);
@@ -129,7 +129,7 @@ export default class CollisionMap {
                 this.add(x, z, south);
                 this.add(x, z - 1, north);
             }
-        } else if (shape === LocShape.WALL_DIAGONAL_CORNER || shape === LocShape.WALL_SQUARE_CORNER) {
+        } else if (shape === LocShape.WALL_DIAGONAL_CORNER.id || shape === LocShape.WALL_SQUARE_CORNER.id) {
             if (angle === LocAngle.WEST) {
                 this.add(x, z, northWest);
                 this.add(x - 1, z + 1, southEast);
@@ -143,7 +143,7 @@ export default class CollisionMap {
                 this.add(x, z, southWest);
                 this.add(x - 1, z - 1, northEast);
             }
-        } else if (shape === LocShape.WALL_L) {
+        } else if (shape === LocShape.WALL_L.id) {
             if (angle === LocAngle.WEST) {
                 this.add(x, z, north | west);
                 this.add(x - 1, z, east);
@@ -167,7 +167,7 @@ export default class CollisionMap {
         }
     };
 
-    removeWall = (tileX: number, tileZ: number, shape: LocShape, angle: LocAngle, blockrange: boolean): void => {
+    removeWall = (tileX: number, tileZ: number, shape: number, angle: LocAngle, blockrange: boolean): void => {
         const x: number = tileX - this.offsetX;
         const z: number = tileZ - this.offsetZ;
 
@@ -180,7 +180,7 @@ export default class CollisionMap {
         const northEast: number = blockrange ? CollisionFlag.WALL_NORTH_EAST_PROJ_BLOCKER : CollisionFlag.WALL_NORTH_EAST;
         const southWest: number = blockrange ? CollisionFlag.WALL_SOUTH_WEST_PROJ_BLOCKER : CollisionFlag.WALL_SOUTH_WEST;
 
-        if (shape === LocShape.WALL_STRAIGHT) {
+        if (shape === LocShape.WALL_STRAIGHT.id) {
             if (angle === LocAngle.WEST) {
                 this.remove(x, z, west);
                 this.remove(x - 1, z, east);
@@ -194,7 +194,7 @@ export default class CollisionMap {
                 this.remove(x, z, south);
                 this.remove(x, z - 1, north);
             }
-        } else if (shape === LocShape.WALL_DIAGONAL_CORNER || shape === LocShape.WALL_SQUARE_CORNER) {
+        } else if (shape === LocShape.WALL_DIAGONAL_CORNER.id || shape === LocShape.WALL_SQUARE_CORNER.id) {
             if (angle === LocAngle.WEST) {
                 this.remove(x, z, northWest);
                 this.remove(x - 1, z + 1, southEast);
@@ -208,7 +208,7 @@ export default class CollisionMap {
                 this.remove(x, z, southWest);
                 this.remove(x - 1, z - 1, northEast);
             }
-        } else if (shape === LocShape.WALL_L) {
+        } else if (shape === LocShape.WALL_L.id) {
             if (angle === LocAngle.WEST) {
                 this.remove(x, z, north | west);
                 this.remove(x - 1, z, east);
@@ -232,7 +232,7 @@ export default class CollisionMap {
         }
     };
 
-    reachedWall = (sourceX: number, sourceZ: number, destX: number, destZ: number, shape: LocShape, angle: LocAngle): boolean => {
+    reachedWall = (sourceX: number, sourceZ: number, destX: number, destZ: number, shape: number, angle: LocAngle): boolean => {
         if (sourceX === destX && sourceZ === destZ) {
             return true;
         }
@@ -243,7 +243,7 @@ export default class CollisionMap {
         const dz: number = destZ - this.offsetZ;
         const index: number = CollisionMap.index(sx, sz);
 
-        if (shape === LocShape.WALL_STRAIGHT) {
+        if (shape === LocShape.WALL_STRAIGHT.id) {
             if (angle === LocAngle.WEST) {
                 if (sx === dx - 1 && sz === dz) {
                     return true;
@@ -277,7 +277,7 @@ export default class CollisionMap {
                     return true;
                 }
             }
-        } else if (shape === LocShape.WALL_L) {
+        } else if (shape === LocShape.WALL_L.id) {
             if (angle === LocAngle.WEST) {
                 if (sx === dx - 1 && sz === dz) {
                     return true;
@@ -319,7 +319,7 @@ export default class CollisionMap {
                     return true;
                 }
             }
-        } else if (shape === LocShape.WALL_DIAGONAL) {
+        } else if (shape === LocShape.WALL_DIAGONAL.id) {
             if (sx === dx && sz === dz + 1 && (this.flags[index] & CollisionFlag.WALL_SOUTH) === CollisionFlag.OPEN) {
                 return true;
             } else if (sx === dx && sz === dz - 1 && (this.flags[index] & CollisionFlag.WALL_NORTH) === CollisionFlag.OPEN) {
@@ -333,7 +333,7 @@ export default class CollisionMap {
         return false;
     };
 
-    reachedWallDecoration = (sourceX: number, sourceZ: number, destX: number, destZ: number, shape: LocShape, angle: LocAngle): boolean => {
+    reachedWallDecoration = (sourceX: number, sourceZ: number, destX: number, destZ: number, shape: number, angle: number): boolean => {
         if (sourceX === destX && sourceZ === destZ) {
             return true;
         }
@@ -344,8 +344,8 @@ export default class CollisionMap {
         const dz: number = destZ - this.offsetZ;
         const index: number = CollisionMap.index(sx, sz);
 
-        if (shape === LocShape.WALLDECOR_DIAGONAL_OFFSET || shape === LocShape.WALLDECOR_DIAGONAL_NOOFFSET) {
-            if (shape === LocShape.WALLDECOR_DIAGONAL_NOOFFSET) {
+        if (shape === LocShape.WALLDECOR_DIAGONAL_OFFSET.id || shape === LocShape.WALLDECOR_DIAGONAL_NOOFFSET.id) {
+            if (shape === LocShape.WALLDECOR_DIAGONAL_NOOFFSET.id) {
                 angle = (angle + 2) & 0x3;
             }
 
@@ -374,7 +374,7 @@ export default class CollisionMap {
                     return true;
                 }
             }
-        } else if (shape === LocShape.WALLDECOR_DIAGONAL_BOTH) {
+        } else if (shape === LocShape.WALLDECOR_DIAGONAL_BOTH.id) {
             if (sx === dx && sz === dz + 1 && (this.flags[index] & CollisionFlag.WALL_SOUTH) === CollisionFlag.OPEN) {
                 return true;
             } else if (sx === dx && sz === dz - 1 && (this.flags[index] & CollisionFlag.WALL_NORTH) === CollisionFlag.OPEN) {

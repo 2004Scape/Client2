@@ -1,8 +1,6 @@
-enum LocAngle {
-    WEST = 0,
-    NORTH = 1,
-    EAST = 2,
-    SOUTH = 3
+export default class LocAngle {
+    static readonly WEST: number = 0;
+    static readonly NORTH: number = 1;
+    static readonly EAST: number = 2;
+    static readonly SOUTH: number = 3;
 }
-
-export default LocAngle;
