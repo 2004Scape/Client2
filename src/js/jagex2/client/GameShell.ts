@@ -32,6 +32,7 @@ export default abstract class GameShell {
     protected frameTime: number[] = [];
     protected redrawScreen: boolean = true;
     protected resizeToFit: boolean = false;
+    protected tfps: number = 50; // custom
 
     protected ingame: boolean = false;
 
@@ -131,11 +132,15 @@ export default abstract class GameShell {
             e.preventDefault();
         };
 
+        if (this.isMobile && GameShell.getParameter('detail') === 'low') {
+            this.tfps = 30;
+        }
+
         await this.showProgress(0, 'Loading...');
         await this.load();
 
         for (let i: number = 0; i < 10; i++) {
-            this.otim[i] = Date.now();
+            this.otim[i] = performance.now();
         }
 
         let ntime: number;
@@ -159,7 +164,7 @@ export default abstract class GameShell {
             ratio = 300;
             delta = 1;
 
-            ntime = Date.now();
+            ntime = performance.now();
             const otim: number = this.otim[opos];
 
             if (otim === 0) {
@@ -215,6 +220,14 @@ export default abstract class GameShell {
 
             this.frameTime[this.fpos] = (performance.now() - time) / 1000;
             this.fpos = (this.fpos + 1) % this.frameTime.length;
+
+            // this is custom for targeting specific fps (on mobile).
+            if (this.tfps < 50) {
+                const tfps: number = 1000 / this.tfps - (performance.now() - ntime);
+                if (tfps > 0) {
+                    await sleep(tfps);
+                }
+            }
         }
         if (this.state === -1) {
             this.shutdown();
@@ -228,6 +241,10 @@ export default abstract class GameShell {
 
     protected setFramerate(rate: number): void {
         this.deltime = (1000 / rate) | 0;
+    }
+
+    protected setTargetedFramerate(rate: number): void {
+        this.tfps = Math.max(Math.min(50, rate | 0), 0);
     }
 
     protected start(): void {

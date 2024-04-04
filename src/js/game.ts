@@ -3901,10 +3901,9 @@ class Game extends Client {
                         }
 
                         if ((key === 13 || key === 10) && this.chatTyped.length > 0) {
-                            // if (this.rights) {
                             if (this.chatTyped === '::clientdrop' /* && super.frame*/) {
                                 await this.tryReconnect();
-                            } else if (this.chatTyped === '::noclip') {
+                            } else if (this.rights && this.chatTyped === '::noclip') {
                                 for (let level: number = 0; level < CollisionMap.LEVELS; level++) {
                                     for (let x: number = 1; x < CollisionMap.SIZE - 1; x++) {
                                         for (let z: number = 1; z < CollisionMap.SIZE - 1; z++) {
@@ -3917,6 +3916,12 @@ class Game extends Client {
                                 }
                             } else if (this.chatTyped === '::debug') {
                                 Client.showDebug = !Client.showDebug;
+                            } else if (this.chatTyped.startsWith('::fps ')) {
+                                try {
+                                    this.setTargetedFramerate(parseInt(this.chatTyped.substring(6), 10));
+                                } catch (e) {
+                                    /* empty */
+                                }
                             }
 
                             if (this.chatTyped.startsWith('::')) {

@@ -25,6 +25,14 @@ Create your account on the 2004scape website.
 
 ---
 
+## Commands
+
+`::debug` Shows performance metrics (FPS, frame times).
+
+`::fps` Set a targeted FPS (ex. `::fps 30`)
+
+---
+
 ## First Time Installation
 
 ```shell

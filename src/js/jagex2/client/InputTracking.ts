@@ -13,7 +13,7 @@ export default class InputTracking {
     static setEnabled = (): void => {
         this.outBuffer = Packet.alloc(1);
         this.oldBuffer = null;
-        this.lastTime = Date.now();
+        this.lastTime = performance.now();
         this.enabled = true;
     };
 
@@ -45,7 +45,7 @@ export default class InputTracking {
             return;
         }
         this.trackedCount++;
-        const now: number = Date.now();
+        const now: number = performance.now();
         let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
@@ -66,7 +66,7 @@ export default class InputTracking {
             return;
         }
         this.trackedCount++;
-        const now: number = Date.now();
+        const now: number = performance.now();
         let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
@@ -85,7 +85,7 @@ export default class InputTracking {
         if (!(this.enabled && x >= 0 && x < 789 && y >= 0 && y < 532)) {
             return;
         }
-        const now: number = Date.now();
+        const now: number = performance.now();
         if (now - this.lastMoveTime >= 50) {
             this.lastMoveTime = now;
             this.trackedCount++;
@@ -124,7 +124,7 @@ export default class InputTracking {
             return;
         }
         this.trackedCount++;
-        const now: number = Date.now();
+        const now: number = performance.now();
         let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
@@ -152,7 +152,7 @@ export default class InputTracking {
             return;
         }
         this.trackedCount++;
-        const now: number = Date.now();
+        const now: number = performance.now();
         let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
@@ -180,7 +180,7 @@ export default class InputTracking {
             return;
         }
         this.trackedCount++;
-        const now: number = Date.now();
+        const now: number = performance.now();
         let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
@@ -196,7 +196,7 @@ export default class InputTracking {
             return;
         }
         this.trackedCount++;
-        const now: number = Date.now();
+        const now: number = performance.now();
         let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
@@ -212,7 +212,7 @@ export default class InputTracking {
             return;
         }
         this.trackedCount++;
-        const now: number = Date.now();
+        const now: number = performance.now();
         let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
@@ -228,7 +228,7 @@ export default class InputTracking {
             return;
         }
         this.trackedCount++;
-        const now: number = Date.now();
+        const now: number = performance.now();
         let delta: number = ((now - this.lastTime) / 10) | 0;
         if (delta > 250) {
             delta = 250;
