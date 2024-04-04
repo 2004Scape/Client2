@@ -4,7 +4,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-// const TerserPlugin = require('terser-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
@@ -115,20 +115,48 @@ module.exports = () => {
     if (isProduction) {
         config.mode = 'production';
         config.plugins.push(new MiniCssExtractPlugin());
-        /*config.plugins.push(
+        config.plugins.push(
           new TerserPlugin({
-              exclude: /\/tinymidipcm/,
               minify: TerserPlugin.terserMinify,
+              parallel: true,
               terserOptions: {
                   mangle: {
-                      properties: true
+                      properties: {
+                          keep_quoted: true, // needed for tinymidipcm.mjs
+                          reserved: [
+                              'loadTinyMidiPCM', // needed for tinymidipcm.mjs
+                              'newBzip2State', // keeps renaming this to $S
+                              'portOffset', // idk why but has to
+                              'willReadFrequently', // terser removes this option from canvas
+                              '__liftRecord5', // the rest is for vendor
+                              '__lowerRecord5',
+                              '__liftString',
+                              '__liftArray',
+                              '__lowerArray',
+                              '__liftTypedArray',
+                              '__lowerTypedArray',
+                              '__liftStaticArray',
+                              '__lowerStaticArray',
+                              '__retain',
+                              '__release',
+                              '__notnull',
+                              '__setU8',
+                              '__setU32',
+                              '__getU8',
+                              '__getU32',
+                              '__pin',
+                              '__new',
+                              '__unpin'
+                          ]
+                      }
                   },
                   format: {
-                      quote_style: 3 // original
+                      quote_style: 3, // original
+                      keep_quoted_props: true // needed for tinymidipcm.mjs
                   }
               }
           })
-        );*/
+        );
     } else {
         config.mode = 'development';
     }
