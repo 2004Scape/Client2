@@ -7,11 +7,13 @@ export default class PixMap {
     private readonly width: number;
     private readonly height: number;
     private readonly ctx: CanvasRenderingContext2D;
+    private readonly paint: Uint32Array;
     readonly pixels: Int32Array;
 
     constructor(width: number, height: number, ctx: CanvasRenderingContext2D = canvas2d) {
         this.ctx = ctx;
         this.image = this.ctx.getImageData(0, 0, width, height);
+        this.paint = new Uint32Array(this.image.data.buffer);
         this.pixels = new Int32Array(width * height);
         this.width = width;
         this.height = height;
@@ -32,15 +34,12 @@ export default class PixMap {
     };
 
     #setPixels = (): void => {
-        // copy pixels (uint32) to imageData (uint8)
-        const data: Uint8ClampedArray = this.image.data;
-        for (let i: number = 0; i < this.pixels.length; i++) {
-            const pixel: number = this.pixels[i];
-            const index: number = i * 4;
-            data[index] = (pixel >> 16) & 0xff;
-            data[index + 1] = (pixel >> 8) & 0xff;
-            data[index + 2] = (pixel >> 0) & 0xff;
-            data[index + 3] = 255;
+        const length: number = this.pixels.length;
+        const pixels: Int32Array = this.pixels;
+        const paint: Uint32Array = this.paint;
+        for (let i: number = 0; i < length; i++) {
+            const pixel: number = pixels[i];
+            paint[i] = ((pixel >> 16) & 0xff) | (((pixel >> 8) & 0xff) << 8) | ((pixel & 0xff) << 16) | 0xff000000;
         }
     };
 }
