@@ -6,37 +6,37 @@ export default class TileOverlay {
     static readonly tmpViewspaceZ: Int32Array = new Int32Array(6);
 
     // prettier-ignore
-    private static readonly SHAPE_POINTS: Int32Array[] = [
-        Int32Array.of(1, 3, 5, 7),
-        Int32Array.of(1, 3, 5, 7),
-        Int32Array.of(1, 3, 5, 7),
-        Int32Array.of(1, 3, 5, 7, 6),
-        Int32Array.of(1, 3, 5, 7, 6),
-        Int32Array.of(1, 3, 5, 7, 6),
-        Int32Array.of(1, 3, 5, 7, 6),
-        Int32Array.of(1, 3, 5, 7, 2, 6),
-        Int32Array.of(1, 3, 5, 7, 2, 8),
-        Int32Array.of(1, 3, 5, 7, 2, 8),
-        Int32Array.of(1, 3, 5, 7, 11, 12),
-        Int32Array.of(1, 3, 5, 7, 11, 12),
-        Int32Array.of(1, 3, 5, 7, 13, 14)
+    private static readonly SHAPE_POINTS: Int8Array[] = [
+        Int8Array.of(1, 3, 5, 7),
+        Int8Array.of(1, 3, 5, 7),
+        Int8Array.of(1, 3, 5, 7),
+        Int8Array.of(1, 3, 5, 7, 6),
+        Int8Array.of(1, 3, 5, 7, 6),
+        Int8Array.of(1, 3, 5, 7, 6),
+        Int8Array.of(1, 3, 5, 7, 6),
+        Int8Array.of(1, 3, 5, 7, 2, 6),
+        Int8Array.of(1, 3, 5, 7, 2, 8),
+        Int8Array.of(1, 3, 5, 7, 2, 8),
+        Int8Array.of(1, 3, 5, 7, 11, 12),
+        Int8Array.of(1, 3, 5, 7, 11, 12),
+        Int8Array.of(1, 3, 5, 7, 13, 14)
     ];
 
     // prettier-ignore
-    private static readonly SHAPE_PATHS: Int32Array[] = [
-        Int32Array.of(0, 1, 2, 3, 0, 0, 1, 3),
-        Int32Array.of(1, 1, 2, 3, 1, 0, 1, 3),
-        Int32Array.of(0, 1, 2, 3, 1, 0, 1, 3),
-        Int32Array.of(0, 0, 1, 2, 0, 0, 2, 4, 1, 0, 4, 3),
-        Int32Array.of(0, 0, 1, 4, 0, 0, 4, 3, 1, 1, 2, 4),
-        Int32Array.of(0, 0, 4, 3, 1, 0, 1, 2, 1, 0, 2, 4),
-        Int32Array.of(0, 1, 2, 4, 1, 0, 1, 4, 1, 0, 4, 3),
-        Int32Array.of(0, 4, 1, 2, 0, 4, 2, 5, 1, 0, 4, 5, 1, 0, 5, 3),
-        Int32Array.of(0, 4, 1, 2, 0, 4, 2, 3, 0, 4, 3, 5, 1, 0, 4, 5),
-        Int32Array.of(0, 0, 4, 5, 1, 4, 1, 2, 1, 4, 2, 3, 1, 4, 3, 5),
-        Int32Array.of(0, 0, 1, 5, 0, 1, 4, 5, 0, 1, 2, 4, 1, 0, 5, 3, 1, 5, 4, 3, 1, 4, 2, 3),
-        Int32Array.of(1, 0, 1, 5, 1, 1, 4, 5, 1, 1, 2, 4, 0, 0, 5, 3, 0, 5, 4, 3, 0, 4, 2, 3),
-        Int32Array.of(1, 0, 5, 4, 1, 0, 1, 5, 0, 0, 4, 3, 0, 4, 5, 3, 0, 5, 2, 3, 0, 1, 2, 5)
+    private static readonly SHAPE_PATHS: Int8Array[] = [
+        Int8Array.of(0, 1, 2, 3, 0, 0, 1, 3),
+        Int8Array.of(1, 1, 2, 3, 1, 0, 1, 3),
+        Int8Array.of(0, 1, 2, 3, 1, 0, 1, 3),
+        Int8Array.of(0, 0, 1, 2, 0, 0, 2, 4, 1, 0, 4, 3),
+        Int8Array.of(0, 0, 1, 4, 0, 0, 4, 3, 1, 1, 2, 4),
+        Int8Array.of(0, 0, 4, 3, 1, 0, 1, 2, 1, 0, 2, 4),
+        Int8Array.of(0, 1, 2, 4, 1, 0, 1, 4, 1, 0, 4, 3),
+        Int8Array.of(0, 4, 1, 2, 0, 4, 2, 5, 1, 0, 4, 5, 1, 0, 5, 3),
+        Int8Array.of(0, 4, 1, 2, 0, 4, 2, 3, 0, 4, 3, 5, 1, 0, 4, 5),
+        Int8Array.of(0, 0, 4, 5, 1, 4, 1, 2, 1, 4, 2, 3, 1, 4, 3, 5),
+        Int8Array.of(0, 0, 1, 5, 0, 1, 4, 5, 0, 1, 2, 4, 1, 0, 5, 3, 1, 5, 4, 3, 1, 4, 2, 3),
+        Int8Array.of(1, 0, 1, 5, 1, 1, 4, 5, 1, 1, 2, 4, 0, 0, 5, 3, 0, 5, 4, 3, 0, 4, 2, 3),
+        Int8Array.of(1, 0, 5, 4, 1, 0, 1, 5, 0, 0, 4, 3, 0, 4, 5, 3, 0, 5, 2, 3, 0, 1, 2, 5)
     ];
 
     private static readonly FULL_SQUARE: number = 128;
@@ -90,7 +90,7 @@ export default class TileOverlay {
         this.backgroundRgb = backgroundRgb;
         this.foregroundRgb = foregroundRgb;
 
-        const points: Int32Array = TileOverlay.SHAPE_POINTS[shape];
+        const points: Int8Array = TileOverlay.SHAPE_POINTS[shape];
         const vertexCount: number = points.length;
         this.vertexX = new Int32Array(vertexCount);
         this.vertexY = new Int32Array(vertexCount);
@@ -227,7 +227,7 @@ export default class TileOverlay {
             secondaryColors[v] = color2;
         }
 
-        const paths: Int32Array = TileOverlay.SHAPE_PATHS[shape];
+        const paths: Int8Array = TileOverlay.SHAPE_PATHS[shape];
         const triangleCount: number = (paths.length / 4) | 0;
         this.triangleVertexA = new Int32Array(triangleCount);
         this.triangleVertexB = new Int32Array(triangleCount);

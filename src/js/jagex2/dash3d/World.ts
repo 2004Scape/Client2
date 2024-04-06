@@ -16,10 +16,10 @@ import {Int32Array2d, Int32Array3d, Uint8Array3d} from '../util/Arrays';
 
 // noinspection JSSuspiciousNameCombination,DuplicatedCode
 export default class World {
-    static readonly ROTATION_WALL_TYPE: Int32Array = Int32Array.of(1, 2, 4, 8);
-    static readonly ROTATION_WALL_CORNER_TYPE: Int32Array = Int32Array.of(16, 32, 64, 128);
-    static readonly WALL_DECORATION_ROTATION_FORWARD_X: Int32Array = Int32Array.of(1, 0, -1, 0);
-    static readonly WALL_DECORATION_ROTATION_FORWARD_Z: Int32Array = Int32Array.of(0, -1, 0, 1);
+    static readonly ROTATION_WALL_TYPE: Int8Array = Int8Array.of(1, 2, 4, 8);
+    static readonly ROTATION_WALL_CORNER_TYPE: Uint8Array = Uint8Array.of(16, 32, 64, 128);
+    static readonly WALL_DECORATION_ROTATION_FORWARD_X: Int8Array = Int8Array.of(1, 0, -1, 0);
+    static readonly WALL_DECORATION_ROTATION_FORWARD_Z: Int8Array = Int8Array.of(0, -1, 0, 1);
 
     static randomHueOffset: number = ((Math.random() * 17.0) | 0) - 8;
     static randomLightnessOffset: number = ((Math.random() * 33.0) | 0) - 16;
