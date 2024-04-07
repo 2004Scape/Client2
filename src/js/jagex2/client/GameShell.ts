@@ -87,14 +87,14 @@ export default abstract class GameShell {
         return canvas.height;
     }
 
-    protected resize(width: number, height: number): void {
+    protected resize = (width: number, height: number): void => {
         canvas.width = width;
         canvas.height = height;
         this.drawArea = new PixMap(width, height);
         Draw3D.init2D();
-    }
+    };
 
-    async run(): Promise<void> {
+    run = async (): Promise<void> => {
         canvas.addEventListener(
             'resize',
             (): void => {
@@ -106,21 +106,23 @@ export default abstract class GameShell {
         );
 
         // pc
-        canvas.onkeydown = this.keyPressed;
-        canvas.onkeyup = this.keyReleased;
-        canvas.onmousedown = this.mousePressed;
-        canvas.onmouseup = this.mouseReleased;
-        canvas.onmouseenter = this.mouseEntered;
-        canvas.onmouseleave = this.mouseExited;
-        canvas.onmousemove = this.mouseMoved;
+        canvas.onmousedown = this.onmousedown;
+        canvas.onmouseup = this.onmouseup;
+        canvas.onmouseenter = this.onmouseenter;
+        canvas.onmouseleave = this.onmouseleave;
+        canvas.onmousemove = this.onmousemove;
         window.onbeforeunload = this.unload;
-        canvas.onfocus = this.focusGained;
-        canvas.onblur = this.focusLost;
+        canvas.onfocus = this.onfocus;
+        canvas.onblur = this.onblur;
 
-        // mobile
-        canvas.ontouchstart = this.touchStarted;
-        canvas.ontouchend = this.touchEnded;
-        canvas.ontouchmove = this.touchMoved;
+        if (this.isMobile) {
+            canvas.ontouchstart = this.ontouchstart;
+            canvas.ontouchend = this.ontouchend;
+            canvas.ontouchmove = this.ontouchmove;
+        } else {
+            canvas.onkeydown = this.onkeydown;
+            canvas.onkeyup = this.onkeyup;
+        }
 
         // Preventing mouse events from bubbling up to the context menu in the browser for our canvas.
         // This may need to be hooked up to our own context menu in the future.
@@ -132,6 +134,7 @@ export default abstract class GameShell {
             e.preventDefault();
         };
 
+        // force set mobile on low detail mode to 30 fps as default.
         if (this.isMobile && GameShell.getParameter('detail') === 'low') {
             this.tfps = 30;
         }
@@ -232,46 +235,46 @@ export default abstract class GameShell {
         if (this.state === -1) {
             this.shutdown();
         }
-    }
+    };
 
-    protected shutdown(): void {
+    protected shutdown = (): void => {
         this.state = -2;
         this.unload();
-    }
+    };
 
-    protected setFramerate(rate: number): void {
+    protected setFramerate = (rate: number): void => {
         this.deltime = (1000 / rate) | 0;
-    }
+    };
 
-    protected setTargetedFramerate(rate: number): void {
+    protected setTargetedFramerate = (rate: number): void => {
         this.tfps = Math.max(Math.min(50, rate | 0), 0);
-    }
+    };
 
-    protected start(): void {
+    protected start = (): void => {
         if (this.state >= 0) {
             this.state = 0;
         }
-    }
+    };
 
-    protected stop(): void {
+    protected stop = (): void => {
         if (this.state >= 0) {
             this.state = (4000 / this.deltime) | 0;
         }
-    }
+    };
 
-    protected destroy(): void {
+    protected destroy = (): void => {
         this.state = -1;
-    }
+    };
 
-    protected async load(): Promise<void> {}
+    protected load = async (): Promise<void> => {};
 
-    protected async update(): Promise<void> {}
+    protected update = async (): Promise<void> => {};
 
-    protected unload(): void {}
+    protected unload = (): void => {};
 
-    protected async draw(): Promise<void> {}
+    protected draw = async (): Promise<void> => {};
 
-    protected refresh(): void {}
+    protected refresh = (): void => {};
 
     protected async showProgress(progress: number, message: string): Promise<void> {
         const width: number = this.width;
@@ -331,7 +334,10 @@ export default abstract class GameShell {
         return this.averageMS.reduce((accumulator: number, currentValue: number): number => accumulator + currentValue, 0) / 250; // 250 circular limit
     }
 
-    private keyPressed = (e: KeyboardEvent): void => {
+    // ----
+
+    private onkeydown = (e: KeyboardEvent): void => {
+        console.log(e);
         const key: string = e.key;
 
         if (CANVAS_PREVENTED.includes(key)) {
@@ -342,9 +348,8 @@ export default abstract class GameShell {
         this.idleCycles = 0;
 
         const mappedKey: {key: number; ch: number} = KEY_CODES[key];
-
-        if (!mappedKey) {
-            console.error(`Unhandled key ${key}`);
+        if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
+            console.warn(`Unhandled key: ${key}`);
             return;
         }
 
@@ -399,7 +404,7 @@ export default abstract class GameShell {
         }
     };
 
-    private keyReleased = (e: KeyboardEvent): void => {
+    private onkeyup = (e: KeyboardEvent): void => {
         const key: string = e.key;
 
         if (CANVAS_PREVENTED.includes(key)) {
@@ -410,9 +415,8 @@ export default abstract class GameShell {
         this.idleCycles = 0;
 
         const mappedKey: {key: number; ch: number} = KEY_CODES[key];
-
-        if (!mappedKey) {
-            console.error(`Unhandled key ${key}`);
+        if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
+            console.warn(`Unhandled key: ${key}`);
             return;
         }
 
@@ -462,7 +466,7 @@ export default abstract class GameShell {
         }
     };
 
-    private mousePressed = (e: MouseEvent): void => {
+    private onmousedown = (e: MouseEvent): void => {
         this.touching = false;
         this.setMousePosition(e);
 
@@ -500,7 +504,7 @@ export default abstract class GameShell {
         }
     };
 
-    private mouseReleased = (e: MouseEvent): void => {
+    private onmouseup = (e: MouseEvent): void => {
         this.setMousePosition(e);
         this.idleCycles = 0;
         this.mouseButton = 0;
@@ -510,7 +514,7 @@ export default abstract class GameShell {
         }
     };
 
-    private mouseEntered = (e: MouseEvent): void => {
+    private onmouseenter = (e: MouseEvent): void => {
         this.setMousePosition(e);
         if (!InputTracking.enabled) {
             return;
@@ -518,7 +522,7 @@ export default abstract class GameShell {
         InputTracking.mouseEntered();
     };
 
-    private mouseExited = (e: MouseEvent): void => {
+    private onmouseleave = (e: MouseEvent): void => {
         this.setMousePosition(e);
         if (!InputTracking.enabled) {
             return;
@@ -526,7 +530,7 @@ export default abstract class GameShell {
         InputTracking.mouseExited();
     };
 
-    private mouseMoved = (e: MouseEvent): void => {
+    private onmousemove = (e: MouseEvent): void => {
         this.setMousePosition(e);
         this.idleCycles = 0;
 
@@ -535,7 +539,7 @@ export default abstract class GameShell {
         }
     };
 
-    private focusGained = (e: FocusEvent): void => {
+    private onfocus = (e: FocusEvent): void => {
         this.redrawScreen = true;
         this.refresh();
 
@@ -544,13 +548,13 @@ export default abstract class GameShell {
         }
     };
 
-    private focusLost = (e: FocusEvent): void => {
+    private onblur = (e: FocusEvent): void => {
         if (InputTracking.enabled) {
             InputTracking.focusLost();
         }
     };
 
-    private touchStarted = (e: TouchEvent): void => {
+    private ontouchstart = (e: TouchEvent): void => {
         if (!this.isMobile) {
             return;
         }
@@ -564,7 +568,7 @@ export default abstract class GameShell {
         const touch: Touch = e.changedTouches[0];
         const clientX: number = touch.clientX | 0;
         const clientY: number = touch.clientY | 0;
-        this.mouseMoved(new MouseEvent('mousedown', {clientX: clientX, clientY: clientY}));
+        this.onmousemove(new MouseEvent('mousemove', {clientX: clientX, clientY: clientY}));
 
         this.sx = this.nx = this.mx = touch.screenX | 0;
         this.sy = this.ny = this.my = touch.screenY | 0;
@@ -574,7 +578,7 @@ export default abstract class GameShell {
         this.startedInTabArea = this.insideTabArea();
     };
 
-    private touchEnded = (e: TouchEvent): void => {
+    private ontouchend = (e: TouchEvent): void => {
         if (!this.isMobile || !this.touching) {
             return;
         }
@@ -582,15 +586,15 @@ export default abstract class GameShell {
         const touch: Touch = e.changedTouches[0];
         const clientX: number = touch.clientX | 0;
         const clientY: number = touch.clientY | 0;
-        this.mouseMoved(new MouseEvent('mousedown', {clientX: clientX, clientY: clientY}));
+        this.onmousemove(new MouseEvent('mousemove', {clientX: clientX, clientY: clientY}));
 
         this.nx = touch.screenX | 0;
         this.ny = touch.screenY | 0;
 
-        this.keyReleased(new KeyboardEvent('ArrowLeft', {key: 'ArrowLeft', code: 'ArrowLeft'}));
-        this.keyReleased(new KeyboardEvent('ArrowUp', {key: 'ArrowUp', code: 'ArrowUp'}));
-        this.keyReleased(new KeyboardEvent('ArrowRight', {key: 'ArrowRight', code: 'ArrowRight'}));
-        this.keyReleased(new KeyboardEvent('ArrowDown', {key: 'ArrowDown', code: 'ArrowDown'}));
+        this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowLeft', code: 'ArrowLeft'}));
+        this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowUp', code: 'ArrowUp'}));
+        this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowRight', code: 'ArrowRight'}));
+        this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowDown', code: 'ArrowDown'}));
 
         if (this.startedInViewport && !this.insideViewportArea()) {
             this.touching = false;
@@ -606,35 +610,82 @@ export default abstract class GameShell {
                 this.input = null;
             }
 
-            this.input = document.createElement('input');
+            const input: HTMLInputElement = document.createElement('input');
             if (this.insideUsernameArea()) {
-                this.input.setAttribute('id', 'username');
-                this.input.setAttribute('placeholder', 'Username');
+                input.setAttribute('id', 'username');
+                input.setAttribute('placeholder', 'Username');
             } else if (this.inPasswordArea()) {
-                this.input.setAttribute('id', 'password');
-                this.input.setAttribute('placeholder', 'Password');
+                input.setAttribute('id', 'password');
+                input.setAttribute('placeholder', 'Password');
+            } else if (this.insideChatInputArea()) {
+                input.setAttribute('id', 'chatinput');
+                input.setAttribute('placeholder', 'Chatinput');
+            } else if (this.insideChatPopupArea()) {
+                input.setAttribute('id', 'chatpopup');
+                input.setAttribute('placeholder', 'Chatpopup');
             }
-            this.input.setAttribute('type', this.inPasswordArea() ? 'password' : 'text');
-            this.input.setAttribute('autofocus', 'autofocus');
-            this.input.setAttribute('style', `position: fixed; left: ${clientX}px; top: ${clientY}px; width: 1px; height: 1px; opacity: 0;`);
-            document.body.appendChild(this.input);
+            if (this.isAndroid) {
+                // this forces android to not use compose text for oninput. its good enough.
+                input.setAttribute('type', 'password');
+            } else {
+                input.setAttribute('type', this.inPasswordArea() ? 'password' : 'text');
+            }
+            input.setAttribute('autofocus', 'autofocus');
+            input.setAttribute('spellcheck', 'false');
+            input.setAttribute('autocomplete', 'off');
+            input.setAttribute('style', `position: fixed; left: ${clientX}px; top: ${clientY}px; width: 1px; height: 1px; opacity: 0;`);
+            document.body.appendChild(input);
 
-            this.input.focus();
-            this.input.click();
+            input.focus();
+            input.click();
 
-            this.input.onkeydown = (e: KeyboardEvent): void => {
-                this.keyPressed(e);
+            if (this.isAndroid) {
+                input.oninput = (e: Event): void => {
+                    if (!(e instanceof InputEvent)) {
+                        return;
+                    }
+                    const input: InputEvent = e as InputEvent;
+                    const data: string | null = input.data;
+
+                    if (data === null) {
+                        return;
+                    }
+
+                    if (input.inputType !== 'insertText') {
+                        return;
+                    }
+
+                    this.onkeydown(new KeyboardEvent('keydown', {key: data, code: data}));
+                };
+            }
+
+            input.onkeydown = (e: KeyboardEvent): void => {
+                if (this.isAndroid) {
+                    if (e.key === 'Enter' || e.key === 'Backspace') {
+                        this.onkeydown(new KeyboardEvent('keydown', {key: e.key, code: e.key}));
+                    }
+                    return;
+                }
+                this.onkeydown(new KeyboardEvent('keydown', {key: e.key, code: e.key}));
             };
 
-            this.input.onkeyup = (e: KeyboardEvent): void => {
-                this.keyReleased(e);
+            input.onkeyup = (e: KeyboardEvent): void => {
+                if (this.isAndroid) {
+                    if (e.key === 'Enter' || e.key === 'Backspace') {
+                        this.onkeyup(new KeyboardEvent('keyup', {key: e.key, code: e.key}));
+                    }
+                    return;
+                }
+                this.onkeyup(new KeyboardEvent('keyup', {key: e.key, code: e.key}));
             };
 
-            this.input.onfocus = (e: FocusEvent): void => {
+            input.onfocus = (e: FocusEvent): void => {
                 this.input?.parentNode?.removeChild(this.input);
                 this.input = null;
+                this.onfocus(e);
             };
 
+            this.input = input;
             this.touching = false;
             return;
         }
@@ -645,14 +696,14 @@ export default abstract class GameShell {
 
         if (longPress && !moved) {
             this.touching = true;
-            this.mousePressed(new MouseEvent('e2', {buttons: 2}));
+            this.onmousedown(new MouseEvent('mousedown', {buttons: 2}));
         } else {
             this.mouseButton = 0;
             this.touching = false;
         }
     };
 
-    private touchMoved = (e: TouchEvent): void => {
+    private ontouchmove = (e: TouchEvent): void => {
         if (!this.isMobile || !this.touching) {
             return;
         }
@@ -660,7 +711,7 @@ export default abstract class GameShell {
         const touch: Touch = e.changedTouches[0];
         const clientX: number = touch.clientX | 0;
         const clientY: number = touch.clientY | 0;
-        this.mouseMoved(new MouseEvent('mousedown', {clientX: clientX, clientY: clientY}));
+        this.onmousemove(new MouseEvent('mousemove', {clientX: clientX, clientY: clientY}));
 
         this.nx = touch.screenX | 0;
         this.ny = touch.screenY | 0;
@@ -680,28 +731,33 @@ export default abstract class GameShell {
             }
         } else if (this.startedInTabArea || this.getViewportInterfaceId() !== -1) {
             // Drag and drop
-            this.mousePressed(new MouseEvent('e2', {buttons: 1}));
+            this.onmousedown(new MouseEvent('mousedown', {buttons: 1}));
         }
 
         this.mx = this.nx;
         this.my = this.ny;
     };
 
-    get isMobile(): boolean {
-        const touch: string[] = ['Android', 'webOS', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'Windows Phone'];
-        return touch.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
+    private get isMobile(): boolean {
+        const keywords: string[] = ['Android', 'webOS', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'Windows Phone'];
+        return keywords.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
     }
 
-    private insideViewportArea(): boolean {
+    private get isAndroid(): boolean {
+        const keywords: string[] = ['Android'];
+        return keywords.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
+    }
+
+    private insideViewportArea = (): boolean => {
         // 512 x 334
         const viewportAreaX1: number = 8;
         const viewportAreaY1: number = 11;
         const viewportAreaX2: number = viewportAreaX1 + 512;
         const viewportAreaY2: number = viewportAreaY1 + 334;
         return this.ingame && this.mouseX >= viewportAreaX1 && this.mouseX <= viewportAreaX2 && this.mouseY >= viewportAreaY1 && this.mouseY <= viewportAreaY2;
-    }
+    };
 
-    private insideChatInputArea(): boolean {
+    private insideChatInputArea = (): boolean => {
         // 495 x 33
         const chatInputAreaX1: number = 11;
         const chatInputAreaY1: number = 449;
@@ -717,57 +773,57 @@ export default abstract class GameShell {
             this.mouseY >= chatInputAreaY1 &&
             this.mouseY <= chatInputAreaY2
         );
-    }
+    };
 
-    private insideChatPopupArea(): boolean {
+    private insideChatPopupArea = (): boolean => {
         // 495 x 99
         const chatInputAreaX1: number = 11;
         const chatInputAreaY1: number = 383;
         const chatInputAreaX2: number = chatInputAreaX1 + 495;
         const chatInputAreaY2: number = chatInputAreaY1 + 99;
         return this.ingame && (this.isChatBackInputOpen() || this.isShowSocialInput()) && this.mouseX >= chatInputAreaX1 && this.mouseX <= chatInputAreaX2 && this.mouseY >= chatInputAreaY1 && this.mouseY <= chatInputAreaY2;
-    }
+    };
 
-    private insideTabArea(): boolean {
+    private insideTabArea = (): boolean => {
         // 190 x 261
         const tabAreaX1: number = 562;
         const tabAreaY1: number = 231;
         const tabAreaX2: number = tabAreaX1 + 190;
         const tabAreaY2: number = tabAreaY1 + 261;
         return this.ingame && this.mouseX >= tabAreaX1 && this.mouseX <= tabAreaX2 && this.mouseY >= tabAreaY1 && this.mouseY <= tabAreaY2;
-    }
+    };
 
-    private insideUsernameArea(): boolean {
+    private insideUsernameArea = (): boolean => {
         // 261 x 17
         const usernameAreaX1: number = 301;
         const usernameAreaY1: number = 262;
         const usernameAreaX2: number = usernameAreaX1 + 261;
         const usernameAreaY2: number = usernameAreaY1 + 17;
         return !this.ingame && this.getTitleScreenState() == 2 && this.mouseX >= usernameAreaX1 && this.mouseX <= usernameAreaX2 && this.mouseY >= usernameAreaY1 && this.mouseY <= usernameAreaY2;
-    }
+    };
 
-    private inPasswordArea(): boolean {
+    private inPasswordArea = (): boolean => {
         // 261 x 17
         const passwordAreaX1: number = 301;
         const passwordAreaY1: number = 279;
         const passwordAreaX2: number = passwordAreaX1 + 261;
         const passwordAreaY2: number = passwordAreaY1 + 17;
         return !this.ingame && this.getTitleScreenState() == 2 && this.mouseX >= passwordAreaX1 && this.mouseX <= passwordAreaX2 && this.mouseY >= passwordAreaY1 && this.mouseY <= passwordAreaY2;
-    }
+    };
 
     private rotate = (direction: number): void => {
         if (direction == 0) {
-            this.keyReleased(new KeyboardEvent('ArrowRight', {key: 'ArrowRight', code: 'ArrowRight'}));
-            this.keyPressed(new KeyboardEvent('ArrowLeft', {key: 'ArrowLeft', code: 'ArrowLeft'}));
+            this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowRight', code: 'ArrowRight'}));
+            this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowLeft', code: 'ArrowLeft'}));
         } else if (direction == 1) {
-            this.keyReleased(new KeyboardEvent('ArrowDown', {key: 'ArrowDown', code: 'ArrowDown'}));
-            this.keyPressed(new KeyboardEvent('ArrowUp', {key: 'ArrowUp', code: 'ArrowUp'}));
+            this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowDown', code: 'ArrowDown'}));
+            this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowUp', code: 'ArrowUp'}));
         } else if (direction == 2) {
-            this.keyReleased(new KeyboardEvent('ArrowLeft', {key: 'ArrowLeft', code: 'ArrowLeft'}));
-            this.keyPressed(new KeyboardEvent('ArrowRight', {key: 'ArrowRight', code: 'ArrowRight'}));
+            this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowLeft', code: 'ArrowLeft'}));
+            this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowRight', code: 'ArrowRight'}));
         } else if (direction == 3) {
-            this.keyReleased(new KeyboardEvent('ArrowUp', {key: 'ArrowUp', code: 'ArrowUp'}));
-            this.keyPressed(new KeyboardEvent('ArrowDown', {key: 'ArrowDown', code: 'ArrowDown'}));
+            this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowUp', code: 'ArrowUp'}));
+            this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowDown', code: 'ArrowDown'}));
         }
     };
 
