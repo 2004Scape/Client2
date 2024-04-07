@@ -67,9 +67,8 @@ export default class World {
 
     static noise = (x: number, y: number): number => {
         const n: number = x + y * 57;
-        const n1: number = (n << 13) ^ n;
-        const n2: bigint = (BigInt(n1) * (BigInt(n1) * BigInt(n1) * 15731n + 789221n) + 1376312589n) & 0x7fffffffn;
-        return Number(n2 >> 19n) & 0xff;
+        const n1: bigint = BigInt((n << 13) ^ n);
+        return Number(((n1 * (n1 * n1 * 15731n + 789221n) + 1376312589n) & 0x7fffffffn) >> 19n) & 0xff;
     };
 
     static addLoc = (level: number, x: number, z: number, scene: World3D | null, levelHeightmap: Int32Array[][], locs: LinkList, collision: CollisionMap, locId: number, shape: number, angle: number, trueLevel: number): void => {
