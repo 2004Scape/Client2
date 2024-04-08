@@ -8,7 +8,7 @@ import SeqBase from './SeqBase';
 
 import Hashable from '../datastruct/Hashable';
 import {Int32Array2d, TypedArray1d} from '../util/Arrays';
-import { RenderMode } from './RenderMode';
+import {RenderMode} from './RenderMode';
 import DrawGL from './DrawGL';
 
 class Metadata {
@@ -2048,7 +2048,7 @@ export default class Model extends Hashable {
         const radiusCosEyePitch: number = (this.radius * cosEyePitch) >> 16;
 
         const maxZ: number = midZ + radiusCosEyePitch;
-        
+
         // WebGL Change: Allow more rendering distance for WebGL
         if (maxZ <= 50 || (midZ >= 3500 && !DrawGL.GL_ENABLED)) {
             return 0;
@@ -2112,7 +2112,6 @@ export default class Model extends Hashable {
                 if (this.pickable) {
                     Model.pickedBitsets[Model.pickedCount++] = bitset;
                     // WebGL change: -> render model here
-                    
                 } else {
                     picking = true;
                 }
@@ -2198,9 +2197,9 @@ export default class Model extends Hashable {
             }
         }
 
-        if(DrawGL.GL_ENABLED) {
+        if (DrawGL.GL_ENABLED) {
             DrawGL.vertexBuffer.ensureCapacity(12 * this.faceCount);
-		    DrawGL.uvBuffer.ensureCapacity(12 * this.faceCount);    
+            DrawGL.uvBuffer.ensureCapacity(12 * this.faceCount);
         }
 
         for (let f: number = 0; f < this.faceCount; f++) {
@@ -2273,9 +2272,7 @@ export default class Model extends Hashable {
                         Model.tmpDepthFaces[depthAverage][Model.tmpDepthFaceCount[depthAverage]++] = f;
 
                         // todo: better check (depth avg isn't always accurate)
-                        if (Model.checkHoverFace 
-                                && this.pointWithinTriangle(Model.mouseX, Model.mouseY, yA, yB, yC, xA, xB, xC) 
-                                && this.pickedFaceDepth < depthAverage) {
+                        if (Model.checkHoverFace && this.pointWithinTriangle(Model.mouseX, Model.mouseY, yA, yB, yC, xA, xB, xC) && this.pickedFaceDepth < depthAverage) {
                             this.pickedFace = f;
                             this.pickedFaceDepth = depthAverage;
                             // WebGL change -> stop execution here. We don't need to check the rest of the faces
@@ -2489,7 +2486,7 @@ export default class Model extends Hashable {
             Draw3D.drawLine(Model.vertexScreenX[b], Model.vertexScreenY[b], Model.vertexScreenX[c], Model.vertexScreenY[c], Draw3D.palette[this.faceColorB[face]]);
             Draw3D.drawLine(Model.vertexScreenX[c], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenY[a], Draw3D.palette[this.faceColorC[face]]);
         } else if (type === 0 && this.faceColorA && this.faceColorB && this.faceColorC && Model.vertexScreenX && Model.vertexScreenY) {
-            if(renderMode === RenderMode.GPU){
+            if (renderMode === RenderMode.GPU) {
                 //console.log(`Model.vertexScreenX[a]: ${Model.vertexScreenX[a]}, Model.vertexScreenY[a]: ${Model.vertexScreenY[a]}`);
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[a], Model.vertexScreenY[a], 0, this.faceColorA[face]);
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[b], Model.vertexScreenY[b], 0, this.faceColorB[face]);
@@ -2512,7 +2509,7 @@ export default class Model extends Hashable {
                 );
             }
         } else if (type === 1 && this.faceColorA && Model.vertexScreenX && Model.vertexScreenY) {
-            if(renderMode === RenderMode.GPU){
+            if (renderMode === RenderMode.GPU) {
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[a], Model.vertexScreenY[a], 0, Draw3D.palette[this.faceColorA[face]]);
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[b], Model.vertexScreenY[b], 0, Draw3D.palette[this.faceColorA[face]]);
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[c], Model.vertexScreenY[c], 0, Draw3D.palette[this.faceColorA[face]]);
@@ -2529,17 +2526,16 @@ export default class Model extends Hashable {
             const tB: number = this.texturedVertexB[texturedFace];
             const tC: number = this.texturedVertexC[texturedFace];
 
-            if(renderMode === RenderMode.GPU){
+            if (renderMode === RenderMode.GPU) {
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[a], Model.vertexScreenY[a], 0, this.faceColorA[face]);
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[b], Model.vertexScreenY[b], 0, this.faceColorB[face]);
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[c], Model.vertexScreenY[c], 0, this.faceColorC[face]);
 
-                const texture = this.faceColor[face];
+                const texture: number = this.faceColor[face];
                 DrawGL.uvBuffer.putC(texture, Model.vertexViewSpaceX[tA], Model.vertexViewSpaceY[tA], Model.vertexViewSpaceZ[tA]);
                 DrawGL.uvBuffer.putC(texture, Model.vertexViewSpaceX[tB], Model.vertexViewSpaceY[tB], Model.vertexViewSpaceZ[tB]);
                 DrawGL.uvBuffer.putC(texture, Model.vertexViewSpaceX[tC], Model.vertexViewSpaceY[tC], Model.vertexViewSpaceZ[tC]);
-            }
-            else {
+            } else {
                 Draw3D.fillTexturedTriangle(
                     Model.vertexScreenX[a],
                     Model.vertexScreenX[b],
@@ -2568,17 +2564,16 @@ export default class Model extends Hashable {
             const tB: number = this.texturedVertexB[texturedFace];
             const tC: number = this.texturedVertexC[texturedFace];
 
-            if(renderMode === RenderMode.GPU){
+            if (renderMode === RenderMode.GPU) {
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[a], Model.vertexScreenY[a], Model.vertexScreenZ![a], this.faceColorA[face]);
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[b], Model.vertexScreenY[b], Model.vertexScreenZ![b], this.faceColorA[face]);
                 DrawGL.vertexBuffer.putC(Model.vertexScreenX[c], Model.vertexScreenY[c], Model.vertexScreenZ![c], this.faceColorA[face]);
 
-                const texture = this.faceColor[face];
+                const texture: number = this.faceColor[face];
                 DrawGL.uvBuffer.putC(texture, Model.vertexViewSpaceX[tA], Model.vertexViewSpaceY[tA], Model.vertexViewSpaceZ[tA]);
                 DrawGL.uvBuffer.putC(texture, Model.vertexViewSpaceX[tB], Model.vertexViewSpaceY[tB], Model.vertexViewSpaceZ[tB]);
                 DrawGL.uvBuffer.putC(texture, Model.vertexViewSpaceX[tC], Model.vertexViewSpaceY[tC], Model.vertexViewSpaceZ[tC]);
-            }
-            else {
+            } else {
                 Draw3D.fillTexturedTriangle(
                     Model.vertexScreenX[a],
                     Model.vertexScreenX[b],
@@ -2602,7 +2597,7 @@ export default class Model extends Hashable {
                 );
             }
         }
-        return 3;// 1 triangle drawn, offset buffer by this count
+        return 3; // 1 triangle drawn, offset buffer by this count
     };
 
     private drawNearClippedFace = (face: number, renderMode: RenderMode = RenderMode.CPU): void => {
@@ -2790,7 +2785,6 @@ export default class Model extends Hashable {
             } else {
                 type = this.faceInfo[face] & 0x3;
             }
-
 
             if (renderMode === RenderMode.CPU_WF) {
                 Draw3D.drawLine(x0, x1, y0, y1, Model.clippedColor[0]);

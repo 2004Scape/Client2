@@ -26,12 +26,12 @@ import Wave from './jagex2/sound/Wave';
 import Database from './jagex2/io/Database';
 import Bzip from './vendor/bzip';
 import Colors from './jagex2/graphics/Colors';
-import { canvas, glCanvas, gl } from './jagex2/graphics/Canvas';
+import {canvas, glCanvas, gl} from './jagex2/graphics/Canvas';
 import {Client} from './client';
 import {setupConfiguration} from './configuration';
 import DrawGL from './jagex2/graphics/DrawGL';
 import GLManager from './jagex2/graphics/GLManager';
-import { RenderMode } from './jagex2/graphics/RenderMode';
+import {RenderMode} from './jagex2/graphics/RenderMode';
 
 // noinspection JSSuspiciousNameCombination
 class Playground2 extends Client {
@@ -60,7 +60,7 @@ class Playground2 extends Client {
         super(true);
     }
 
-    showProgress = async (progress: number, message: string): Promise<void>=>{
+    showProgress = async (progress: number, message: string): Promise<void> => {
         console.log(`${progress}% ov: ${message}`);
 
         const x: number = 360;
@@ -81,12 +81,10 @@ class Playground2 extends Client {
 
     private modelsLoaded = false;
     load = async (): Promise<void> => {
-
         if (!gl) {
             this.glVersion = 'WebGL 2.0 not supported';
             this.glRenderer = 'WebGL 2.0 not supported';
-        }
-        else {
+        } else {
             this.glVersion = gl.getParameter(gl.VERSION);
             this.glRenderer = gl.getParameter(gl.RENDERER);
         }
@@ -95,7 +93,6 @@ class Playground2 extends Client {
         //DrawGL.init();
 
         await this.showProgress(10, 'Connecting to fileserver');
-
 
         await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
         this.db = new Database(await Database.openDatabase());
@@ -154,7 +151,7 @@ class Playground2 extends Client {
 
         // this.setLoopRate(1);
         //this.drawArea?.bind();
-        
+
         this.modelsLoaded = true;
     };
 
@@ -176,29 +173,30 @@ class Playground2 extends Client {
     };
 
     drawGpu = async (): Promise<void> => {
-        if(!DrawGL.glInitted) return;
+        if (!DrawGL.glInitted) return;
 
         const model: Model = Model.model(this.model.id);
         model.calculateNormals(64, 850, -30, -50, -30, true);
-        
-        DrawGL.targetBufferOffset += 
-            model.draw(this.model.yaw, 
-                Draw3D.sin[this.eyePitch], 
-                Draw3D.cos[this.eyePitch], 
-                Draw3D.sin[this.eyeYaw], 
-                Draw3D.cos[this.eyeYaw], 
-                this.model.x - this.eyeX,
-                this.model.y - this.eyeY,
-                this.model.z - this.eyeZ,
-                0,
-                RenderMode.GPU);
+
+        DrawGL.targetBufferOffset += model.draw(
+            this.model.yaw,
+            Draw3D.sin[this.eyePitch],
+            Draw3D.cos[this.eyePitch],
+            Draw3D.sin[this.eyeYaw],
+            Draw3D.cos[this.eyeYaw],
+            this.model.x - this.eyeX,
+            this.model.y - this.eyeY,
+            this.model.z - this.eyeZ,
+            0,
+            RenderMode.GPU
+        );
 
         if (this.fontBold12) {
             this.fontBold12.drawStringRight(this.width, this.fontBold12.height, `FPS: ${this.fps}`, Colors.YELLOW);
 
             // controls
             let leftY: number = this.fontBold12.height;
-            this.fontBold12.drawString(0, leftY, `WebGL Edition`, Colors.WHITE);
+            this.fontBold12.drawString(0, leftY, 'WebGL Edition', Colors.WHITE);
             leftY += this.fontBold12.height;
             this.fontBold12.drawString(0, leftY, `Renderer: ${this.glRenderer}`, Colors.WHITE);
             leftY += this.fontBold12.height;
@@ -231,13 +229,12 @@ class Playground2 extends Client {
     };
 
     draw = async (): Promise<void> => {
-        if(this.gpuRender && this.modelsLoaded) {
+        if (this.gpuRender && this.modelsLoaded) {
             await this.drawGpu();
-        }
-        else if(!this.gpuRender) {
+        } else if (!this.gpuRender) {
             Draw2D.clear();
-            
-            const startColor = 0x555555;
+
+            const startColor: number = 0x555555;
             Draw2D.fillRect(0, 0, this.width, this.height, startColor);
             // draw a model
             const model: Model = Model.model(this.model.id);
@@ -250,7 +247,7 @@ class Playground2 extends Client {
 
                 // controls
                 let leftY: number = this.fontBold12.height;
-                this.fontBold12.drawString(0, leftY, `WebGL Edition`, Colors.WHITE);
+                this.fontBold12.drawString(0, leftY, 'WebGL Edition', Colors.WHITE);
                 leftY += this.fontBold12.height;
                 this.fontBold12.drawString(0, leftY, `Renderer: ${this.glRenderer}`, Colors.WHITE);
                 leftY += this.fontBold12.height;
@@ -308,8 +305,7 @@ class Playground2 extends Client {
                     this.model.id = 0;
                 }
                 this.historyRefresh = true;
-            }
-            else if (key === '.'.charCodeAt(0)) {
+            } else if (key === '.'.charCodeAt(0)) {
                 console.log('roll' + this.gpuRender);
                 this.gpuRender = !this.gpuRender;
                 glCanvas.style.display = this.gpuRender ? 'block' : 'none';

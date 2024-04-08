@@ -1,4 +1,4 @@
-import { gl } from "./Canvas";
+import {gl} from './Canvas';
 
 export class GLShader {
     private units: Unit[] = [];
@@ -23,9 +23,9 @@ export class GLShader {
                     throw new ShaderException(`Unable to create shader of type ${unit.getType}`);
                 }
                 console.log(unit.getFilename);
-                
-                let resp = await fetch(unit.getFilename);
-                let source = await resp.text();
+
+                const resp: Response = await fetch(unit.getFilename);
+                const source: string = await resp.text();
                 gl.shaderSource(shader, source);
                 gl.compileShader(shader);
 
@@ -71,7 +71,10 @@ export class GLShader {
 }
 
 class Unit {
-    constructor(private readonly type: number, private readonly filename: string) {}
+    constructor(
+        private readonly type: number,
+        private readonly filename: string
+    ) {}
 
     public get getType(): number {
         return this.type;

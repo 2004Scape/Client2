@@ -6,7 +6,7 @@ import {CANVAS_PREVENTED, KEY_CODES} from './KeyCodes';
 import InputTracking from './InputTracking';
 import {canvas, canvas2d} from '../graphics/Canvas';
 import DrawGL from '../graphics/DrawGL';
-import { RenderMode } from '../graphics/RenderMode';
+import {RenderMode} from '../graphics/RenderMode';
 
 export default abstract class GameShell {
     static getParameter(name: string): string {
@@ -34,6 +34,9 @@ export default abstract class GameShell {
     protected frameTime: number[] = [];
     protected redrawScreen: boolean = true;
     protected resizeToFit: boolean = false;
+    protected tfps: number = 50; // custom
+
+    protected ingame: boolean = false;
 
     protected idleCycles: number = 0;
     protected mouseButton: number = 0;
@@ -47,9 +50,23 @@ export default abstract class GameShell {
     protected keyQueueReadPos: number = 0;
     protected keyQueueWritePos: number = 0;
 
+    // touch controls
+    private input: HTMLElement | null = null;
+    private touching: boolean = false;
+    private startedInViewport: boolean = false;
+    private startedInTabArea: boolean = false;
+    private time: number = -1;
+    private sx: number = 0;
+    private sy: number = 0;
+    private mx: number = 0;
+    private my: number = 0;
+    private nx: number = 0;
+    private ny: number = 0;
+
     protected renderMode: RenderMode = RenderMode.GPU;
 
     constructor(resizetoFit: boolean = false) {
+        canvas.tabIndex = -1;
         canvas2d.fillStyle = 'black';
         canvas2d.fillRect(0, 0, canvas.width, canvas.height);
         this.resizeToFit = resizetoFit;
@@ -58,28 +75,34 @@ export default abstract class GameShell {
         } else {
             this.resize(canvas.width, canvas.height);
         }
-        if(this.renderMode === RenderMode.GPU) {
+        if (this.renderMode === RenderMode.GPU) {
             DrawGL.init();
         }
     }
 
-    get width(): number {
+    abstract getTitleScreenState(): number;
+    abstract isChatBackInputOpen(): boolean;
+    abstract isShowSocialInput(): boolean;
+    abstract getChatInterfaceId(): number;
+    abstract getViewportInterfaceId(): number;
+
+    protected get width(): number {
         return canvas.width;
     }
 
-    get height(): number {
+    protected get height(): number {
         return canvas.height;
     }
 
-    resize(width: number, height: number): void {
+    protected resize = (width: number, height: number): void => {
         canvas.width = width;
         canvas.height = height;
         this.drawArea = new PixMap(width, height);
         Draw3D.init2D();
-    }
+    };
 
-    async run(): Promise<void> {
-        window.addEventListener(
+    run = async (): Promise<void> => {
+        canvas.addEventListener(
             'resize',
             (): void => {
                 if (this.resizeToFit) {
@@ -89,16 +112,24 @@ export default abstract class GameShell {
             false
         );
 
-        window.addEventListener('keydown', this.keyPressed);
-        window.addEventListener('keyup', this.keyReleased);
-        window.addEventListener('mousedown', this.mousePressed);
-        window.addEventListener('mouseup', this.mouseReleased);
-        window.addEventListener('mouseenter', this.mouseEntered);
-        window.addEventListener('mouseleave', this.mouseExited);
-        window.addEventListener('mousemove', this.mouseMoved);
-        window.addEventListener('focusin', this.focusGained);
-        window.addEventListener('focusout', this.focusLost);
-        window.addEventListener('beforeunload', this.unload);
+        // pc
+        canvas.onmousedown = this.onmousedown;
+        canvas.onmouseup = this.onmouseup;
+        canvas.onmouseenter = this.onmouseenter;
+        canvas.onmouseleave = this.onmouseleave;
+        canvas.onmousemove = this.onmousemove;
+        window.onbeforeunload = this.unload;
+        canvas.onfocus = this.onfocus;
+        canvas.onblur = this.onblur;
+
+        if (this.isMobile) {
+            canvas.ontouchstart = this.ontouchstart;
+            canvas.ontouchend = this.ontouchend;
+            canvas.ontouchmove = this.ontouchmove;
+        } else {
+            canvas.onkeydown = this.onkeydown;
+            canvas.onkeyup = this.onkeyup;
+        }
 
         // Preventing mouse events from bubbling up to the context menu in the browser for our canvas.
         // This may need to be hooked up to our own context menu in the future.
@@ -106,11 +137,20 @@ export default abstract class GameShell {
             e.preventDefault();
         };
 
+        window.oncontextmenu = (e: MouseEvent): void => {
+            e.preventDefault();
+        };
+
+        // force set mobile on low detail mode to 30 fps as default.
+        if (this.isMobile && GameShell.getParameter('detail') === 'low') {
+            this.tfps = 30;
+        }
+
         await this.showProgress(0, 'Loading...');
         await this.load();
 
         for (let i: number = 0; i < 10; i++) {
-            this.otim[i] = Date.now();
+            this.otim[i] = performance.now();
         }
 
         let ntime: number;
@@ -134,7 +174,7 @@ export default abstract class GameShell {
             ratio = 300;
             delta = 1;
 
-            ntime = Date.now();
+            ntime = performance.now();
             const otim: number = this.otim[opos];
 
             if (otim === 0) {
@@ -190,48 +230,60 @@ export default abstract class GameShell {
 
             this.frameTime[this.fpos] = (performance.now() - time) / 1000;
             this.fpos = (this.fpos + 1) % this.frameTime.length;
+
+            // this is custom for targeting specific fps (on mobile).
+            if (this.tfps < 50) {
+                const tfps: number = 1000 / this.tfps - (performance.now() - ntime);
+                if (tfps > 0) {
+                    await sleep(tfps);
+                }
+            }
         }
         if (this.state === -1) {
             this.shutdown();
         }
-    }
+    };
 
-    shutdown(): void {
+    protected shutdown = (): void => {
         this.state = -2;
         this.unload();
-    }
+    };
 
-    setFramerate(rate: number): void {
+    protected setFramerate = (rate: number): void => {
         this.deltime = (1000 / rate) | 0;
-    }
+    };
 
-    start(): void {
+    protected setTargetedFramerate = (rate: number): void => {
+        this.tfps = Math.max(Math.min(50, rate | 0), 0);
+    };
+
+    protected start = (): void => {
         if (this.state >= 0) {
             this.state = 0;
         }
-    }
+    };
 
-    stop(): void {
+    protected stop = (): void => {
         if (this.state >= 0) {
             this.state = (4000 / this.deltime) | 0;
         }
-    }
+    };
 
-    destroy(): void {
+    protected destroy = (): void => {
         this.state = -1;
-    }
+    };
 
-    async load(): Promise<void> {}
+    protected load = async (): Promise<void> => {};
 
-    async update(): Promise<void> {}
+    protected update = async (): Promise<void> => {};
 
-    unload(): void {}
+    protected unload = (): void => {};
 
-    async draw(): Promise<void> {}
+    protected draw = async (): Promise<void> => {};
 
-    refresh(): void {}
+    protected refresh = (): void => {};
 
-    async showProgress(progress: number, message: string): Promise<void> {
+    protected async showProgress(progress: number, message: string): Promise<void> {
         const width: number = this.width;
         const height: number = this.height;
 
@@ -261,7 +313,38 @@ export default abstract class GameShell {
         await sleep(5); // return a slice of time to the main loop so it can update the progress bar
     }
 
-    keyPressed = (e: KeyboardEvent): void => {
+    protected pollKey = (): number => {
+        let key: number = -1;
+        if (this.keyQueueWritePos !== this.keyQueueReadPos) {
+            key = this.keyQueue[this.keyQueueReadPos];
+            this.keyQueueReadPos = (this.keyQueueReadPos + 1) & 0x7f;
+        }
+        return key;
+    };
+
+    protected get ms(): number {
+        const length: number = this.frameTime.length;
+        let ft: number = 0;
+        for (let index: number = 0; index < length; index++) {
+            ft += this.frameTime[index];
+        }
+        const ms: number = ft / length;
+        if (ms > this.slowestMS) {
+            this.slowestMS = ms;
+        }
+        this.averageMS[this.averageIndexMS] = ms;
+        this.averageIndexMS = (this.averageIndexMS + 1) % 250; // 250 circular limit
+        return ms;
+    }
+
+    protected get msAvg(): number {
+        return this.averageMS.reduce((accumulator: number, currentValue: number): number => accumulator + currentValue, 0) / 250; // 250 circular limit
+    }
+
+    // ----
+
+    private onkeydown = (e: KeyboardEvent): void => {
+        console.log(e);
         const key: string = e.key;
 
         if (CANVAS_PREVENTED.includes(key)) {
@@ -272,9 +355,8 @@ export default abstract class GameShell {
         this.idleCycles = 0;
 
         const mappedKey: {key: number; ch: number} = KEY_CODES[key];
-
-        if (!mappedKey) {
-            console.error(`Unhandled key ${key}`);
+        if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
+            console.warn(`Unhandled key: ${key}`);
             return;
         }
 
@@ -329,7 +411,7 @@ export default abstract class GameShell {
         }
     };
 
-    keyReleased = (e: KeyboardEvent): void => {
+    private onkeyup = (e: KeyboardEvent): void => {
         const key: string = e.key;
 
         if (CANVAS_PREVENTED.includes(key)) {
@@ -340,9 +422,8 @@ export default abstract class GameShell {
         this.idleCycles = 0;
 
         const mappedKey: {key: number; ch: number} = KEY_CODES[key];
-
-        if (!mappedKey) {
-            console.error(`Unhandled key ${key}`);
+        if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
+            console.warn(`Unhandled key: ${key}`);
             return;
         }
 
@@ -392,95 +473,80 @@ export default abstract class GameShell {
         }
     };
 
-    pollKey(): number {
-        let key: number = -1;
-        if (this.keyQueueWritePos !== this.keyQueueReadPos) {
-            key = this.keyQueue[this.keyQueueReadPos];
-            this.keyQueueReadPos = (this.keyQueueReadPos + 1) & 0x7f;
-        }
-        return key;
-    }
-
-    mousePressed = (e: MouseEvent): void => {
-        let x: number = e.x;
-        let y: number = e.y;
-
-        const {top, left} = this.getInsets;
-        x -= left;
-        y -= top;
-
-        const rect: DOMRect = canvas.getBoundingClientRect();
-        x *= canvas.width / rect.width;
-        y *= canvas.height / rect.height;
-
-        x |= 0;
-        y |= 0;
+    private onmousedown = (e: MouseEvent): void => {
+        this.touching = false;
+        this.setMousePosition(e);
 
         this.idleCycles = 0;
-        this.mouseClickX = x;
-        this.mouseClickY = y;
+        this.mouseClickX = this.mouseX;
+        this.mouseClickY = this.mouseY;
 
-        if (e.buttons === 2) {
-            this.mouseClickButton = 2;
-            this.mouseButton = 2;
-        } else if (e.buttons === 1) {
-            this.mouseClickButton = 1;
-            this.mouseButton = 1;
+        if (this.isMobile) {
+            if (this.insideChatInputArea() || this.insideUsernameArea() || this.inPasswordArea()) {
+                this.mouseClickButton = 1;
+                this.mouseButton = 1;
+                return;
+            }
+
+            const eventTime: number = e.timeStamp;
+            if (eventTime >= this.time + 500) {
+                this.mouseClickButton = 2;
+                this.mouseButton = 2;
+            } else {
+                this.mouseClickButton = 1;
+                this.mouseButton = 1;
+            }
+        } else {
+            if (e.buttons == 2) {
+                this.mouseClickButton = 2;
+                this.mouseButton = 2;
+            } else {
+                this.mouseClickButton = 1;
+                this.mouseButton = 1;
+            }
         }
 
         if (InputTracking.enabled) {
-            // InputTracking.mousePressed(x, y, (e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) !== 0 ? 1 : 0);
+            InputTracking.mousePressed(this.mouseClickX, this.mouseClickY, e.buttons);
         }
     };
 
-    mouseReleased = (e: MouseEvent): void => {
+    private onmouseup = (e: MouseEvent): void => {
+        this.setMousePosition(e);
         this.idleCycles = 0;
         this.mouseButton = 0;
 
         if (InputTracking.enabled) {
-            // InputTracking.mouseReleased((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) !== 0 ? 1 : 0);
+            InputTracking.mouseReleased(e.buttons);
         }
     };
 
-    mouseEntered = (e: MouseEvent): void => {
+    private onmouseenter = (e: MouseEvent): void => {
+        this.setMousePosition(e);
         if (!InputTracking.enabled) {
             return;
         }
         InputTracking.mouseEntered();
     };
 
-    mouseExited = (e: MouseEvent): void => {
+    private onmouseleave = (e: MouseEvent): void => {
+        this.setMousePosition(e);
         if (!InputTracking.enabled) {
             return;
         }
         InputTracking.mouseExited();
     };
 
-    mouseMoved = (e: MouseEvent): void => {
-        let x: number = e.x;
-        let y: number = e.y;
-
-        const {top, left} = this.getInsets;
-        x -= left;
-        y -= top;
-
-        const rect: DOMRect = canvas.getBoundingClientRect();
-        x *= canvas.width / rect.width;
-        y *= canvas.height / rect.height;
-
-        x |= 0;
-        y |= 0;
-
+    private onmousemove = (e: MouseEvent): void => {
+        this.setMousePosition(e);
         this.idleCycles = 0;
-        this.mouseX = x;
-        this.mouseY = y;
 
         if (InputTracking.enabled) {
-            InputTracking.mouseMoved(x, y);
+            InputTracking.mouseMoved(this.mouseX, this.mouseY);
         }
     };
 
-    focusGained = (e: FocusEvent): void => {
+    private onfocus = (e: FocusEvent): void => {
         this.redrawScreen = true;
         this.refresh();
 
@@ -489,42 +555,326 @@ export default abstract class GameShell {
         }
     };
 
-    focusLost = (e: FocusEvent): void => {
+    private onblur = (e: FocusEvent): void => {
         if (InputTracking.enabled) {
             InputTracking.focusLost();
         }
     };
 
-    protected get ms(): number {
-        const length: number = this.frameTime.length;
-        let ft: number = 0;
-        for (let index: number = 0; index < length; index++) {
-            ft += this.frameTime[index];
+    private ontouchstart = (e: TouchEvent): void => {
+        if (!this.isMobile) {
+            return;
         }
-        const ms: number = ft / length;
-        if (ms > this.slowestMS) {
-            this.slowestMS = ms;
+
+        if (this.input !== null) {
+            this.input.parentNode?.removeChild(this.input);
+            this.input = null;
         }
-        this.averageMS[this.averageIndexMS] = ms;
-        this.averageIndexMS = (this.averageIndexMS + 1) % 250; // 250 circular limit
-        return ms;
+
+        this.touching = true;
+        const touch: Touch = e.changedTouches[0];
+        const clientX: number = touch.clientX | 0;
+        const clientY: number = touch.clientY | 0;
+        this.onmousemove(new MouseEvent('mousemove', {clientX: clientX, clientY: clientY}));
+
+        this.sx = this.nx = this.mx = touch.screenX | 0;
+        this.sy = this.ny = this.my = touch.screenY | 0;
+        this.time = e.timeStamp;
+
+        this.startedInViewport = this.insideViewportArea();
+        this.startedInTabArea = this.insideTabArea();
+    };
+
+    private ontouchend = (e: TouchEvent): void => {
+        if (!this.isMobile || !this.touching) {
+            return;
+        }
+
+        const touch: Touch = e.changedTouches[0];
+        const clientX: number = touch.clientX | 0;
+        const clientY: number = touch.clientY | 0;
+        this.onmousemove(new MouseEvent('mousemove', {clientX: clientX, clientY: clientY}));
+
+        this.nx = touch.screenX | 0;
+        this.ny = touch.screenY | 0;
+
+        this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowLeft', code: 'ArrowLeft'}));
+        this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowUp', code: 'ArrowUp'}));
+        this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowRight', code: 'ArrowRight'}));
+        this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowDown', code: 'ArrowDown'}));
+
+        if (this.startedInViewport && !this.insideViewportArea()) {
+            this.touching = false;
+            return;
+        } else if (this.startedInTabArea && !this.insideTabArea()) {
+            this.touching = false;
+            return;
+        } else if (this.insideChatInputArea() || this.insideChatPopupArea() || this.insideUsernameArea() || this.inPasswordArea()) {
+            if (this.input !== null) {
+                if (this.input.parentNode?.contains(this.input)) {
+                    this.input.parentNode?.removeChild(this.input);
+                }
+                this.input = null;
+            }
+
+            const input: HTMLInputElement = document.createElement('input');
+            if (this.insideUsernameArea()) {
+                input.setAttribute('id', 'username');
+                input.setAttribute('placeholder', 'Username');
+            } else if (this.inPasswordArea()) {
+                input.setAttribute('id', 'password');
+                input.setAttribute('placeholder', 'Password');
+            } else if (this.insideChatInputArea()) {
+                input.setAttribute('id', 'chatinput');
+                input.setAttribute('placeholder', 'Chatinput');
+            } else if (this.insideChatPopupArea()) {
+                input.setAttribute('id', 'chatpopup');
+                input.setAttribute('placeholder', 'Chatpopup');
+            }
+            if (this.isAndroid) {
+                // this forces android to not use compose text for oninput. its good enough.
+                input.setAttribute('type', 'password');
+            } else {
+                input.setAttribute('type', this.inPasswordArea() ? 'password' : 'text');
+            }
+            input.setAttribute('autofocus', 'autofocus');
+            input.setAttribute('spellcheck', 'false');
+            input.setAttribute('autocomplete', 'off');
+            input.setAttribute('style', `position: fixed; left: ${clientX}px; top: ${clientY}px; width: 1px; height: 1px; opacity: 0;`);
+            document.body.appendChild(input);
+
+            input.focus();
+            input.click();
+
+            if (this.isAndroid) {
+                input.oninput = (e: Event): void => {
+                    if (!(e instanceof InputEvent)) {
+                        return;
+                    }
+                    const input: InputEvent = e as InputEvent;
+                    const data: string | null = input.data;
+
+                    if (data === null) {
+                        return;
+                    }
+
+                    if (input.inputType !== 'insertText') {
+                        return;
+                    }
+
+                    this.onkeydown(new KeyboardEvent('keydown', {key: data, code: data}));
+                };
+            }
+
+            input.onkeydown = (e: KeyboardEvent): void => {
+                if (this.isAndroid) {
+                    if (e.key === 'Enter' || e.key === 'Backspace') {
+                        this.onkeydown(new KeyboardEvent('keydown', {key: e.key, code: e.key}));
+                    }
+                    return;
+                }
+                this.onkeydown(new KeyboardEvent('keydown', {key: e.key, code: e.key}));
+            };
+
+            input.onkeyup = (e: KeyboardEvent): void => {
+                if (this.isAndroid) {
+                    if (e.key === 'Enter' || e.key === 'Backspace') {
+                        this.onkeyup(new KeyboardEvent('keyup', {key: e.key, code: e.key}));
+                    }
+                    return;
+                }
+                this.onkeyup(new KeyboardEvent('keyup', {key: e.key, code: e.key}));
+            };
+
+            input.onfocus = (e: FocusEvent): void => {
+                this.input?.parentNode?.removeChild(this.input);
+                this.input = null;
+                this.onfocus(e);
+            };
+
+            this.input = input;
+            this.touching = false;
+            return;
+        }
+
+        const eventTime: number = e.timeStamp;
+        const longPress: boolean = eventTime >= this.time + 500;
+        const moved: boolean = Math.abs(this.sx - this.nx) > 16 || Math.abs(this.sy - this.ny) > 16;
+
+        if (longPress && !moved) {
+            this.touching = true;
+            this.onmousedown(new MouseEvent('mousedown', {buttons: 2}));
+        } else {
+            this.mouseButton = 0;
+            this.touching = false;
+        }
+    };
+
+    private ontouchmove = (e: TouchEvent): void => {
+        if (!this.isMobile || !this.touching) {
+            return;
+        }
+
+        const touch: Touch = e.changedTouches[0];
+        const clientX: number = touch.clientX | 0;
+        const clientY: number = touch.clientY | 0;
+        this.onmousemove(new MouseEvent('mousemove', {clientX: clientX, clientY: clientY}));
+
+        this.nx = touch.screenX | 0;
+        this.ny = touch.screenY | 0;
+
+        if (this.startedInViewport && this.getViewportInterfaceId() === -1) {
+            // Camera panning
+            if (this.mx - this.nx > 0) {
+                this.rotate(2);
+            } else if (this.mx - this.nx < 0) {
+                this.rotate(0);
+            }
+
+            if (this.my - this.ny > 0) {
+                this.rotate(3);
+            } else if (this.my - this.ny < 0) {
+                this.rotate(1);
+            }
+        } else if (this.startedInTabArea || this.getViewportInterfaceId() !== -1) {
+            // Drag and drop
+            this.onmousedown(new MouseEvent('mousedown', {buttons: 1}));
+        }
+
+        this.mx = this.nx;
+        this.my = this.ny;
+    };
+
+    private get isMobile(): boolean {
+        const keywords: string[] = ['Android', 'webOS', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'Windows Phone'];
+        return keywords.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
     }
 
-    protected get msAvg(): number {
-        return this.averageMS.reduce((accumulator: number, currentValue: number): number => accumulator + currentValue, 0) / 250; // 250 circular limit
+    private get isAndroid(): boolean {
+        const keywords: string[] = ['Android'];
+        return keywords.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
     }
 
-    private get getInsets(): {top: number; left: number} {
-        const rect: DOMRect = canvas.getBoundingClientRect();
-        const computedStyle: CSSStyleDeclaration = window.getComputedStyle(canvas);
-        const paddingLeft: number = parseFloat(computedStyle.paddingLeft || '0');
-        const paddingTop: number = parseFloat(computedStyle.paddingTop || '0');
-        const borderLeft: number = parseFloat(computedStyle.borderLeftWidth || '0');
-        const borderTop: number = parseFloat(computedStyle.borderTopWidth || '0');
+    private insideViewportArea = (): boolean => {
+        // 512 x 334
+        const viewportAreaX1: number = 8;
+        const viewportAreaY1: number = 11;
+        const viewportAreaX2: number = viewportAreaX1 + 512;
+        const viewportAreaY2: number = viewportAreaY1 + 334;
+        return this.ingame && this.mouseX >= viewportAreaX1 && this.mouseX <= viewportAreaX2 && this.mouseY >= viewportAreaY1 && this.mouseY <= viewportAreaY2;
+    };
 
-        const left: number = rect.left + borderLeft + paddingLeft;
-        const top: number = rect.top + borderTop + paddingTop;
+    private insideChatInputArea = (): boolean => {
+        // 495 x 33
+        const chatInputAreaX1: number = 11;
+        const chatInputAreaY1: number = 449;
+        const chatInputAreaX2: number = chatInputAreaX1 + 495;
+        const chatInputAreaY2: number = chatInputAreaY1 + 33;
+        return (
+            this.ingame &&
+            this.getChatInterfaceId() == -1 &&
+            !this.isChatBackInputOpen() &&
+            !this.isShowSocialInput() &&
+            this.mouseX >= chatInputAreaX1 &&
+            this.mouseX <= chatInputAreaX2 &&
+            this.mouseY >= chatInputAreaY1 &&
+            this.mouseY <= chatInputAreaY2
+        );
+    };
 
-        return {top, left};
-    }
+    private insideChatPopupArea = (): boolean => {
+        // 495 x 99
+        const chatInputAreaX1: number = 11;
+        const chatInputAreaY1: number = 383;
+        const chatInputAreaX2: number = chatInputAreaX1 + 495;
+        const chatInputAreaY2: number = chatInputAreaY1 + 99;
+        return this.ingame && (this.isChatBackInputOpen() || this.isShowSocialInput()) && this.mouseX >= chatInputAreaX1 && this.mouseX <= chatInputAreaX2 && this.mouseY >= chatInputAreaY1 && this.mouseY <= chatInputAreaY2;
+    };
+
+    private insideTabArea = (): boolean => {
+        // 190 x 261
+        const tabAreaX1: number = 562;
+        const tabAreaY1: number = 231;
+        const tabAreaX2: number = tabAreaX1 + 190;
+        const tabAreaY2: number = tabAreaY1 + 261;
+        return this.ingame && this.mouseX >= tabAreaX1 && this.mouseX <= tabAreaX2 && this.mouseY >= tabAreaY1 && this.mouseY <= tabAreaY2;
+    };
+
+    private insideUsernameArea = (): boolean => {
+        // 261 x 17
+        const usernameAreaX1: number = 301;
+        const usernameAreaY1: number = 262;
+        const usernameAreaX2: number = usernameAreaX1 + 261;
+        const usernameAreaY2: number = usernameAreaY1 + 17;
+        return !this.ingame && this.getTitleScreenState() == 2 && this.mouseX >= usernameAreaX1 && this.mouseX <= usernameAreaX2 && this.mouseY >= usernameAreaY1 && this.mouseY <= usernameAreaY2;
+    };
+
+    private inPasswordArea = (): boolean => {
+        // 261 x 17
+        const passwordAreaX1: number = 301;
+        const passwordAreaY1: number = 279;
+        const passwordAreaX2: number = passwordAreaX1 + 261;
+        const passwordAreaY2: number = passwordAreaY1 + 17;
+        return !this.ingame && this.getTitleScreenState() == 2 && this.mouseX >= passwordAreaX1 && this.mouseX <= passwordAreaX2 && this.mouseY >= passwordAreaY1 && this.mouseY <= passwordAreaY2;
+    };
+
+    private rotate = (direction: number): void => {
+        if (direction == 0) {
+            this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowRight', code: 'ArrowRight'}));
+            this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowLeft', code: 'ArrowLeft'}));
+        } else if (direction == 1) {
+            this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowDown', code: 'ArrowDown'}));
+            this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowUp', code: 'ArrowUp'}));
+        } else if (direction == 2) {
+            this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowLeft', code: 'ArrowLeft'}));
+            this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowRight', code: 'ArrowRight'}));
+        } else if (direction == 3) {
+            this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowUp', code: 'ArrowUp'}));
+            this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowDown', code: 'ArrowDown'}));
+        }
+    };
+
+    private isFullScreen = (): boolean => {
+        return document.fullscreenElement != null;
+    };
+
+    private setMousePosition = (e: MouseEvent): void => {
+        const fixedWidth: number = 789;
+        const fixedHeight: number = 532;
+
+        if (this.isFullScreen()) {
+            const element: HTMLElement = e.target as HTMLElement;
+            const br: DOMRect = element.getBoundingClientRect();
+            const ratio: number = window.innerHeight / canvas.height;
+            const offset: number = (window.innerWidth - canvas.width * ratio) / 2.0;
+            this.mouseX = this.mapCoord(e.clientX - br.left - offset, 0, canvas.width * ratio, 0, fixedWidth) | 0;
+            this.mouseY = this.mapCoord(e.clientY - br.top, 0, canvas.height * ratio, 0, fixedHeight) | 0;
+        } else {
+            const rect: DOMRect = canvas.getBoundingClientRect();
+            const scaleX: number = canvas.width / rect.width;
+            const scaleY: number = canvas.height / rect.height;
+            this.mouseX = ((e.clientX - rect.left) * scaleX) | 0;
+            this.mouseY = ((e.clientY - rect.top) * scaleY) | 0;
+        }
+
+        if (this.mouseX < 0) {
+            this.mouseX = 0;
+        }
+
+        if (this.mouseY < 0) {
+            this.mouseY = 0;
+        }
+
+        if (this.mouseX > fixedWidth) {
+            this.mouseX = fixedWidth;
+        }
+
+        if (this.mouseY > fixedHeight) {
+            this.mouseY = fixedHeight;
+        }
+    };
+
+    private mapCoord = (v: number, n1: number, n2: number, m1: number, m2: number): number => {
+        return ((v - n1) * (m2 - m1)) / (n2 - n1) + m1;
+    };
 }

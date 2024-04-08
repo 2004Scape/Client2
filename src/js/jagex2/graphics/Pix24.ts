@@ -34,14 +34,12 @@ export default class Pix24 extends Hashable {
         const jpeg: ImageData = await decodeJpeg(dat);
         const image: Pix24 = new Pix24(jpeg.width, jpeg.height);
 
-        // copy pixels (uint32) to imageData (uint8)
+        const data: Uint32Array = new Uint32Array(jpeg.data.buffer);
         const pixels: Int32Array = image.pixels;
-        const data: Uint8ClampedArray = jpeg.data;
         for (let i: number = 0; i < pixels.length; i++) {
-            const index: number = i * 4;
-            pixels[i] = (data[index + 3] << 24) | (data[index] << 16) | (data[index + 1] << 8) | (data[index + 2] << 0);
+            const pixel: number = data[i];
+            pixels[i] = (((pixel >> 24) & 0xff) << 24) | ((pixel & 0xff) << 16) | (((pixel >> 8) & 0xff) << 8) | ((pixel >> 16) & 0xff);
         }
-
         return image;
     };
 

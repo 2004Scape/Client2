@@ -40,7 +40,7 @@ import InputTracking from './jagex2/client/InputTracking';
 import World3D from './jagex2/dash3d/World3D';
 import World from './jagex2/dash3d/World';
 import LocLayer from './jagex2/dash3d/LocLayer';
-import LocShape, {LocShapes} from './jagex2/dash3d/LocShape';
+import LocShape from './jagex2/dash3d/LocShape';
 import LocAngle from './jagex2/dash3d/LocAngle';
 import LocTemporary from './jagex2/dash3d/type/LocTemporary';
 import LocSpawned from './jagex2/dash3d/type/LocSpawned';
@@ -73,8 +73,8 @@ class Game extends Client {
         }
 
         // Enable webgl
-        DrawGL.GL_ENABLED = true;//
-        let v0 = 0;
+        DrawGL.GL_ENABLED = true; //
+        const v0: number = 0;
 
         this.alreadyStarted = true;
 
@@ -369,7 +369,7 @@ class Game extends Client {
 
         const x: number = 360;
         const y: number = 200;
-``
+
         const offsetY: number = 20;
         this.fontBold12?.drawStringCenter((x / 2) | 0, ((y / 2) | 0) - offsetY - 26, 'RuneScape is loading - please wait...', Colors.WHITE);
         const midY: number = ((y / 2) | 0) - 18 - offsetY;
@@ -868,7 +868,7 @@ class Game extends Client {
                 seed[i] += 50;
             }
             this.randomIn = new Isaac(seed);
-            this.stream?.write(this.loginout.data, this.loginout.pos, 0);
+            this.stream?.write(this.loginout.data, this.loginout.pos);
             const reply: number = await this.stream.read();
 
             if (reply === 1) {
@@ -1346,7 +1346,7 @@ class Game extends Client {
 
             try {
                 if (this.stream && this.out.pos > 0) {
-                    this.stream.write(this.out.data, this.out.pos, 0);
+                    this.stream.write(this.out.data, this.out.pos);
                     this.out.pos = 0;
                     this.heartbeatTimer = 0;
                 }
@@ -2501,7 +2501,7 @@ class Game extends Client {
 
             const loc: LocType = LocType.get(locId);
             if (loc.mapscene === -1) {
-                if (shape === LocShape.WALL_STRAIGHT || shape === LocShape.WALL_L) {
+                if (shape === LocShape.WALL_STRAIGHT.id || shape === LocShape.WALL_L.id) {
                     if (angle === LocAngle.WEST) {
                         dst[offset] = rgb;
                         dst[offset + 512] = rgb;
@@ -2525,7 +2525,7 @@ class Game extends Client {
                     }
                 }
 
-                if (shape === LocShape.WALL_SQUARE_CORNER) {
+                if (shape === LocShape.WALL_SQUARE_CORNER.id) {
                     if (angle === LocAngle.WEST) {
                         dst[offset] = rgb;
                     } else if (angle === LocAngle.NORTH) {
@@ -2537,7 +2537,7 @@ class Game extends Client {
                     }
                 }
 
-                if (shape === LocShape.WALL_L) {
+                if (shape === LocShape.WALL_L.id) {
                     if (angle === LocAngle.SOUTH) {
                         dst[offset] = rgb;
                         dst[offset + 512] = rgb;
@@ -2585,7 +2585,7 @@ class Game extends Client {
                     const offsetY: number = ((loc.length * 4 - scene.height) / 2) | 0;
                     scene.draw(tileX * 4 + 48 + offsetX, (CollisionMap.SIZE - tileZ - loc.length) * 4 + offsetY + 48);
                 }
-            } else if (shape === LocShape.WALL_DIAGONAL) {
+            } else if (shape === LocShape.WALL_DIAGONAL.id) {
                 let rgb: number = 0xeeeeee;
                 if (bitset > 0) {
                     rgb = 0xee0000;
@@ -3683,7 +3683,7 @@ class Game extends Client {
 
         const type: number = info & 0x1f;
         const angle: number = (info >> 6) & 0x3;
-        if (type === LocShape.CENTREPIECE_STRAIGHT || type === LocShape.CENTREPIECE_DIAGONAL || type === LocShape.GROUND_DECOR) {
+        if (type === LocShape.CENTREPIECE_STRAIGHT.id || type === LocShape.CENTREPIECE_DIAGONAL.id || type === LocShape.GROUND_DECOR.id) {
             const loc: LocType = LocType.get(locId);
             let width: number;
             let height: number;
@@ -6842,13 +6842,13 @@ class Game extends Client {
                 break;
             }
 
-            if (locShape !== LocShape.WALL_STRAIGHT) {
-                if ((locShape < LocShape.WALLDECOR_STRAIGHT_OFFSET || locShape === LocShape.CENTREPIECE_STRAIGHT) && collisionMap.reachedWall(x, z, dx, dz, locShape - 1, locAngle)) {
+            if (locShape !== LocShape.WALL_STRAIGHT.id) {
+                if ((locShape < LocShape.WALLDECOR_STRAIGHT_OFFSET.id || locShape === LocShape.CENTREPIECE_STRAIGHT.id) && collisionMap.reachedWall(x, z, dx, dz, locShape - 1, locAngle)) {
                     arrived = true;
                     break;
                 }
 
-                if (locShape < LocShape.CENTREPIECE_STRAIGHT && collisionMap.reachedWallDecoration(x, z, dx, dz, locShape - 1, locAngle)) {
+                if (locShape < LocShape.CENTREPIECE_STRAIGHT.id && collisionMap.reachedWallDecoration(x, z, dx, dz, locShape - 1, locAngle)) {
                     arrived = true;
                     break;
                 }
@@ -7868,26 +7868,26 @@ class Game extends Client {
                         let shape: number = info & 0x1f;
                         const rotation: number = info >> 6;
 
-                        if (shape === LocShape.CENTREPIECE_DIAGONAL) {
-                            shape = LocShape.CENTREPIECE_STRAIGHT;
+                        if (shape === LocShape.CENTREPIECE_DIAGONAL.id) {
+                            shape = LocShape.CENTREPIECE_STRAIGHT.id;
                         }
 
                         this.scene?.setLocModel(level, x, z, type.getModel(shape, rotation, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId));
                     } else if (loc.heightmapSE === 1) {
-                        this.scene?.setWallDecorationModel(level, x, z, type.getModel(LocShape.WALLDECOR_STRAIGHT_NOOFFSET, 0, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId));
+                        this.scene?.setWallDecorationModel(level, x, z, type.getModel(LocShape.WALLDECOR_STRAIGHT_NOOFFSET.id, 0, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId));
                     } else if (loc.heightmapSE === 0) {
                         const info: number = this.scene.getInfo(level, x, z, bitset);
                         const shape: number = info & 0x1f;
                         const rotation: number = info >> 6;
 
-                        if (shape === LocShape.WALL_L) {
+                        if (shape === LocShape.WALL_L.id) {
                             const nextRotation: number = (rotation + 1) & 0x3;
                             this.scene?.setWallModels(
                                 x,
                                 z,
                                 level,
-                                type.getModel(LocShape.WALL_L, rotation + 4, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId),
-                                type.getModel(LocShape.WALL_L, nextRotation, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId)
+                                type.getModel(LocShape.WALL_L.id, rotation + 4, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId),
+                                type.getModel(LocShape.WALL_L.id, nextRotation, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId)
                             );
                         } else {
                             this.scene?.setWallModel(level, x, z, type.getModel(shape, rotation, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId));
@@ -7895,7 +7895,7 @@ class Game extends Client {
                     } else if (loc.heightmapSE === 3) {
                         const info: number = this.scene.getInfo(level, x, z, bitset);
                         const rotation: number = info >> 6;
-                        this.scene?.setGroundDecorationModel(level, x, z, type.getModel(LocShape.GROUND_DECOR, rotation, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId));
+                        this.scene?.setGroundDecorationModel(level, x, z, type.getModel(LocShape.GROUND_DECOR.id, rotation, heightmapSW, heightmapSE, heightmapNE, heightmapNW, seqId));
                     }
                 } else {
                     loc.unlink();
@@ -8608,7 +8608,7 @@ class Game extends Client {
             const info: number = buf.g1;
             const shape: number = info >> 2;
             const angle: number = info & 0x3;
-            const layer: number = LocShapes.layer(shape);
+            const layer: number = LocShape.of(shape).layer;
             let id: number;
             if (opcode === ServerProt.LOC_DEL) {
                 id = -1;
@@ -8643,7 +8643,7 @@ class Game extends Client {
                         otherShape = otherInfo & 0x1f;
                         otherAngle = otherInfo >> 6;
                     }
-                    loc = new LocTemporary(this.currentLevel, layer, x, z, 0, LocAngle.WEST, LocShape.WALL_STRAIGHT, otherId, otherAngle, otherShape);
+                    loc = new LocTemporary(this.currentLevel, layer, x, z, 0, LocAngle.WEST, LocShape.WALL_STRAIGHT.id, otherId, otherAngle, otherShape);
                     this.spawnedLocations.pushBack(loc);
                 }
                 if (loc) {
@@ -8657,7 +8657,7 @@ class Game extends Client {
             // LOC_ANIM
             const info: number = buf.g1;
             const shape: number = info >> 2;
-            const layer: number = LocShapes.layer(shape);
+            const layer: number = LocShape.of(shape).layer;
             const id: number = buf.g2;
             if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE && this.scene) {
                 let bitset: number = 0;
@@ -8755,7 +8755,7 @@ class Game extends Client {
             const info: number = buf.g1;
             const shape: number = info >> 2;
             const angle: number = info & 0x3;
-            const layer: number = LocShapes.layer(shape);
+            const layer: number = LocShape.of(shape).layer;
             const id: number = buf.g2;
             const start: number = buf.g2;
             const end: number = buf.g2;

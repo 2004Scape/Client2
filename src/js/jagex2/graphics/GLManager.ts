@@ -1,36 +1,36 @@
-import { Int32Array2d } from "../util/Arrays";
-import { canvas } from "./Canvas";
-import Draw2D from "./Draw2D";
-import Draw3D from "./Draw3D";
-import GLFloatBuffer from "./GLFloatBuffer";
-import GLIntBuffer from "./GLIntBuffer";
-import Model from "./Model";
+import {Int32Array2d} from '../util/Arrays';
+import {canvas} from './Canvas';
+import Draw2D from './Draw2D';
+import Draw3D from './Draw3D';
+import GLFloatBuffer from './GLFloatBuffer';
+import GLIntBuffer from './GLIntBuffer';
+import Model from './Model';
 
 export default class GLManager {
-    private static distances: Int32Array|null;
-    private static distanceFaceCount: string[]|null;
-    private static distanceToFaces: string[][]|null;
+    private static distances: Int32Array | null;
+    private static distanceFaceCount: string[] | null;
+    private static distanceToFaces: string[][] | null;
 
-    private static modelCanvasX: Float32Array|null;
-    private static modelCanvasY: Float32Array|null;
+    private static modelCanvasX: Float32Array | null;
+    private static modelCanvasY: Float32Array | null;
 
-    private static modelLocalX: Int32Array|null;
-    private static modelLocalY: Int32Array|null;
-    private static modelLocalZ: Int32Array|null;
+    private static modelLocalX: Int32Array | null;
+    private static modelLocalY: Int32Array | null;
+    private static modelLocalZ: Int32Array | null;
 
-    private static numOfPriority: Int32Array|null;
-    private static eq10: Int32Array|null;
-    private static eq11: Int32Array|null;
-    private static lt10: Int32Array|null;
-    private static orderedFaces: Int32Array2d|null;
+    private static numOfPriority: Int32Array | null;
+    private static eq10: Int32Array | null;
+    private static eq11: Int32Array | null;
+    private static lt10: Int32Array | null;
+    private static orderedFaces: Int32Array2d | null;
 
-    static initSortingBuffers() {
-        const MAX_VERTEX_COUNT = 6500;
-        const MAX_DIAMETER = 6000;
+    static initSortingBuffers(): void {
+        const MAX_VERTEX_COUNT: number = 6500;
+        const MAX_DIAMETER: number = 6000;
 
         this.distances = new Int32Array(MAX_VERTEX_COUNT);
         this.distanceFaceCount = new Array(MAX_DIAMETER);
-        this.distanceToFaces = new Array(MAX_DIAMETER).fill(null).map(() => new Array(512));
+        this.distanceToFaces = new Array(MAX_DIAMETER).fill(null).map((): string[] => new Array(512));
 
         this.modelCanvasX = new Float32Array(MAX_VERTEX_COUNT);
         this.modelCanvasY = new Float32Array(MAX_VERTEX_COUNT);
@@ -46,7 +46,7 @@ export default class GLManager {
         this.orderedFaces = new Int32Array2d(12, 2000);
     }
 
-    static releaseSortingBuffers() {
+    static releaseSortingBuffers(): void {
         this.distances = null;
         this.distanceFaceCount = null;
         this.distanceToFaces = null;
@@ -65,8 +65,20 @@ export default class GLManager {
         this.orderedFaces = null;
     }
 
-    static pushSortedModel(model: Model, yaw: number, sinEyePitch: number, cosEyePitch: number, sinEyeYaw: number, cosEyeYaw: number, relativeX: number, relativeY: number, relativeZ: number, bitset: number, vertexBuffer: GLIntBuffer, uvBuffer: GLFloatBuffer): number {
-        
+    static pushSortedModel(
+        model: Model,
+        yaw: number,
+        sinEyePitch: number,
+        cosEyePitch: number,
+        sinEyeYaw: number,
+        cosEyeYaw: number,
+        relativeX: number,
+        relativeY: number,
+        relativeZ: number,
+        bitset: number,
+        vertexBuffer: GLIntBuffer,
+        uvBuffer: GLFloatBuffer
+    ): number {
         const zPrime: number = (relativeZ * cosEyeYaw - relativeX * sinEyeYaw) >> 16;
         const midZ: number = (relativeY * sinEyePitch + zPrime * cosEyePitch) >> 16;
         const radiusCosEyePitch: number = (model.radius * cosEyePitch) >> 16;
@@ -138,23 +150,23 @@ export default class GLManager {
                 }
             }
         }
-        
+
         // vertex count
-        const vertexCount = model.vertexCount;
+        const vertexCount: number = model.vertexCount;
         // vertices on X, Y, Z
-        const verticesX = model.vertexX;
-        const verticesY = model.vertexY;
-        const verticesZ = model.vertexZ;
+        const verticesX: Int32Array = model.vertexX;
+        const verticesY: Int32Array = model.vertexY;
+        const verticesZ: Int32Array = model.vertexZ;
 
         // face count
-        const faceCount = model.faceCount;
+        const faceCount: number = model.faceCount;
         // faces
-        const faceVertexA = model.faceVertexA;
-        const faceVertexB = model.faceVertexB;
-        const faceVertexC = model.faceVertexC;
+        const faceVertexA: Int32Array = model.faceVertexA;
+        const faceVertexB: Int32Array = model.faceVertexB;
+        const faceVertexC: Int32Array = model.faceVertexC;
         //face color
-        const faceColor = model.faceColor;
-        const facePriority = model.facePriority;
+        const faceColor: Int32Array | null = model.faceColor;
+        const facePriority: Int32Array | null = model.facePriority;
 
         const zoom: number = 1;
 
@@ -186,8 +198,8 @@ export default class GLManager {
             z += relativeZ;
 
             this.modelLocalX![v] = x;
-			this.modelLocalY![v] = y;
-			this.modelLocalZ![v] = z;
+            this.modelLocalY![v] = y;
+            this.modelLocalZ![v] = z;
 
             temp = (z * sinEyeYaw + x * cosEyeYaw) >> 16;
             z = (z * cosEyeYaw - x * sinEyeYaw) >> 16;
@@ -222,7 +234,7 @@ export default class GLManager {
         } catch (err) {
             /* empty */
         }
-        
+
         return 0;
     }
 
@@ -255,7 +267,7 @@ export default class GLManager {
         const triangleB: number = indices2[face];
         const triangleC: number = indices3[face];
 
-        let color1: number = faceColors1[face];
+        const color1: number = faceColors1[face];
         let color2: number = faceColors2[face];
         let color3: number = faceColors3[face];
 
@@ -302,40 +314,35 @@ export default class GLManager {
         return 3;
     }
 
-    static packAlphaPriority(faceTextures:Int32Array, faceTransparencies:Int32Array, facePriorities:Int32Array, face:number):number {
-		let alpha = 0;
-		if (faceTransparencies != null && (faceTextures == null || faceTextures[face] == -1))
-		{
-			alpha = (faceTransparencies[face] & 0xFF) << 24;
-		}
-		let priority = 0;
-		if (facePriorities != null)
-		{
-			priority = (facePriorities[face] & 0xff) << 16;
-		}
-		return alpha | priority;
-	}
+    static packAlphaPriority(faceTextures: Int32Array, faceTransparencies: Int32Array, facePriorities: Int32Array, face: number): number {
+        let alpha: number = 0;
+        if (faceTransparencies != null && (faceTextures == null || faceTextures[face] == -1)) {
+            alpha = (faceTransparencies[face] & 0xff) << 24;
+        }
+        let priority: number = 0;
+        if (facePriorities != null) {
+            priority = (facePriorities[face] & 0xff) << 16;
+        }
+        return alpha | priority;
+    }
 
-	static interpolateHSL(hsl:number, hue2:any, sat2:any, lum2:any, lerp:any):number {
-		let hue:number = hsl >> 10 & 63;
-		let sat:number = hsl >> 7 & 7;
-		let lum:number = hsl & 127;
-		let var9:number = lerp & 255;
-		if (hue2 != -1)
-		{
-			hue += var9 * (hue2 - hue) >> 7;
-		}
+    static interpolateHSL(hsl: number, hue2: number, sat2: number, lum2: number, lerp: number): number {
+        let hue: number = (hsl >> 10) & 63;
+        let sat: number = (hsl >> 7) & 7;
+        let lum: number = hsl & 127;
+        const var9: number = lerp & 255;
+        if (hue2 != -1) {
+            hue += (var9 * (hue2 - hue)) >> 7;
+        }
 
-		if (sat2 != -1)
-		{
-			sat += var9 * (sat2 - sat) >> 7;
-		}
+        if (sat2 != -1) {
+            sat += (var9 * (sat2 - sat)) >> 7;
+        }
 
-		if (lum2 != -1)
-		{
-			lum += var9 * (lum2 - lum) >> 7;
-		}
+        if (lum2 != -1) {
+            lum += (var9 * (lum2 - lum)) >> 7;
+        }
 
-		return (hue << 10 | sat << 7 | lum) & 65535;
-	}
+        return ((hue << 10) | (sat << 7) | lum) & 65535;
+    }
 }

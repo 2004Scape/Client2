@@ -1,5 +1,3 @@
-import {arraycopy, sleep} from '../util/JsUtil';
-
 export type Socket = {
     host: string;
     port: number;
@@ -8,12 +6,12 @@ export type Socket = {
 export default class ClientStream {
     // constructor
     private readonly socket: WebSocket;
+    private readonly wsin: WebSocketReader;
+    private readonly wsout: WebSocketWriter;
 
     // runtime
-    private readonly queue: Int8Array[] = [];
-    private buffer: Int8Array | undefined = undefined;
-    private remaining: number = 0;
-    private offset: number = 0;
+    private closed: boolean = false;
+    private ioerror: boolean = false;
 
     static openSocket = async (socket: Socket): Promise<WebSocket> => {
         return await new Promise<WebSocket>((resolve, reject): void => {
@@ -22,7 +20,6 @@ export default class ClientStream {
             const host: string = socket.host.substring(socket.host.indexOf('//') + 2);
             const port: number = secured ? socket.port + 2 : socket.port + 1;
             const ws: WebSocket = new WebSocket(`${protocol}://${host}:${port}`, 'binary');
-            ws.binaryType = 'arraybuffer';
 
             ws.addEventListener('open', (): void => {
                 console.log('connection open!');
@@ -37,9 +34,10 @@ export default class ClientStream {
     };
 
     constructor(socket: WebSocket) {
-        socket.onmessage = this.onmessage;
         socket.onclose = this.onclose;
         socket.onerror = this.onerror;
+        this.wsin = new WebSocketReader(socket, 5000);
+        this.wsout = new WebSocketWriter(socket, 5000);
         this.socket = socket;
     }
 
@@ -52,99 +50,154 @@ export default class ClientStream {
     }
 
     get available(): number {
-        return this.remaining;
+        return this.closed ? 0 : this.wsin.available;
     }
 
-    write = (src: Uint8Array, len: number, off: number): void => {
-        if (this.socket.readyState !== WebSocket.OPEN) {
-            throw new Error('Socket is not able to write!');
-        }
-        const data: Uint8Array = new Uint8Array(len);
-        arraycopy(src, off, data, 0, len);
-        this.socket.send(data);
+    write = (src: Uint8Array, len: number): void => {
+        this.wsout.write(src, len);
     };
 
     read = async (): Promise<number> => {
-        if (this.socket.readyState !== WebSocket.OPEN && this.remaining < 1) {
-            throw new Error('Socket is not able to read!');
-        }
-
-        if (this.remaining < 1) {
-            await sleep(1);
-            return this.read();
-        }
-
-        if (!this.buffer) {
-            this.buffer = this.queue.shift();
-            if (this.buffer) {
-                this.offset = 0;
-            }
-        }
-
-        if (!this.buffer) {
-            return this.read();
-        }
-
-        const value: number = this.buffer[this.offset] & 0xff;
-        this.offset++;
-        this.remaining--;
-
-        if (this.offset === this.buffer.length) {
-            this.buffer = undefined;
-        }
-        return value;
+        return this.closed ? 0 : await this.wsin.read();
     };
 
     readBytes = async (dst: Uint8Array, off: number, len: number): Promise<void> => {
-        if (this.socket.readyState !== WebSocket.OPEN && this.remaining < 1) {
-            throw new Error('Socket is not able to read!');
-        }
-
-        if (len < 1) {
-            // check for 0 so it doesnt await for no reason
-            // (i.e close interface packet)
+        if (this.closed) {
             return;
         }
-
-        if (this.remaining < 1) {
-            await sleep(1); // TODO maybe not do this?
-            return this.readBytes(dst, off, len);
-        }
-
-        for (let index: number = 0; index < len; index++) {
-            dst[off + index] = await this.read();
+        while (len > 0) {
+            const read: Uint8Array = await this.wsin.readBytes(dst, off, len);
+            if (read.length <= 0) {
+                throw new Error('EOF');
+            }
+            off += read.length;
+            len -= read.length;
         }
     };
 
     close = (): void => {
-        if (this.socket.readyState !== WebSocket.OPEN) {
-            return;
-        }
+        this.closed = true;
         this.socket.close();
-    };
-
-    clear = (): void => {
-        if (this.socket.readyState === WebSocket.OPEN) {
-            this.socket.close();
+        this.wsin.close();
+        this.wsout.close();
+        console.log('connection close!');
+        if (this.ioerror) {
+            console.log('connection error!');
         }
-        this.queue.length = 0;
-        this.remaining = 0;
-        this.buffer = undefined;
-        this.offset = 0;
-    };
-
-    private onmessage = (event: MessageEvent): void => {
-        // console.log('connection message!');
-        const data: Int8Array = new Int8Array(event.data);
-        this.remaining += data.length;
-        this.queue.push(data);
     };
 
     private onclose = (event: CloseEvent): void => {
-        console.log('connection close!');
+        if (this.closed) {
+            return;
+        }
+        this.close();
     };
 
     private onerror = (event: Event): void => {
-        console.log('connection error!');
+        if (this.closed) {
+            return;
+        }
+        this.ioerror = true;
+        this.close();
+    };
+}
+
+class WebSocketWriter {
+    // constructor
+    private readonly socket: WebSocket;
+    private readonly limit: number;
+
+    private closed: boolean = false;
+    private ioerror: boolean = false;
+
+    constructor(socket: WebSocket, limit: number) {
+        this.socket = socket;
+        this.limit = limit;
+    }
+
+    write = (src: Uint8Array, len: number): void => {
+        if (this.closed) {
+            return;
+        }
+        if (this.ioerror) {
+            this.ioerror = false;
+            throw new Error('Error in writer thread');
+        }
+        if (len > this.limit || src.length > this.limit) {
+            throw new Error('buffer overflow');
+        }
+        try {
+            this.socket.send(src.subarray(0, len));
+        } catch (e) {
+            this.ioerror = true;
+        }
+    };
+
+    close = (): void => {
+        this.closed = true;
+    };
+}
+
+class WebSocketReader {
+    // constructor
+    private readonly limit: number;
+
+    // runtime
+    private buffer: number[] = [];
+    private callback: ((data: number[]) => void) | null = null;
+    private closed: boolean = false;
+
+    constructor(socket: WebSocket, limit: number) {
+        this.limit = limit;
+        socket.binaryType = 'arraybuffer';
+        socket.onmessage = this.onmessage;
+    }
+
+    private onmessage = (event: MessageEvent): void => {
+        if (this.closed) {
+            throw new Error('WebSocketReader is closed!');
+        }
+        const read: Uint8Array = new Uint8Array(event.data);
+        this.buffer.push(...read);
+        if (!this.callback) {
+            return;
+        }
+        this.callback(this.buffer);
+        this.callback = null;
+        // check for the overflow after the callback
+        if (this.buffer.length > this.limit) {
+            throw new Error('buffer overflow');
+        }
+    };
+
+    readBytes = async (dst: Uint8Array, off: number, length: number): Promise<Uint8Array> => {
+        if (this.closed) {
+            throw new Error('WebSocketReader is closed!');
+        }
+        while (this.buffer.length < length) {
+            await new Promise((resolve): ((value: PromiseLike<((data: number[]) => void) | null>) => void) => (this.callback = resolve));
+        }
+        while (length--) dst[off++] = this.buffer.shift()!;
+        return dst;
+    };
+
+    read = async (): Promise<number> => {
+        if (this.closed) {
+            throw new Error('WebSocketReader is closed!');
+        }
+        while (this.buffer.length < 1) {
+            await new Promise((resolve): ((value: PromiseLike<((data: number[]) => void) | null>) => void) => (this.callback = resolve));
+        }
+        return this.buffer.shift()!;
+    };
+
+    get available(): number {
+        return this.buffer.length;
+    }
+
+    close = (): void => {
+        this.callback = null;
+        this.buffer = [];
+        this.closed = true;
     };
 }

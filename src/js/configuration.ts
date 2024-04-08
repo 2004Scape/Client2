@@ -12,34 +12,43 @@ type WorldList = {
 };
 
 export async function setupConfiguration(): Promise<void> {
-    const hostname: string = window.location.hostname;
-    const protocol: string = window.location.protocol;
-    const secured: boolean = protocol.startsWith('https');
+    await world();
+    detail();
+    method();
+}
 
+// setup the world config.
+async function world(): Promise<void> {
     if (GameShell.getParameter('world').length === 0) {
         GameShell.setParameter('world', '1');
     }
+    if (window.location.hostname === 'localhost' && GameShell.getParameter('world') === '0') {
+        localConfiguration();
+    } else {
+        await liveConfiguration(window.location.protocol.startsWith('https'));
+    }
+}
 
+// setup the detail
+function detail(): void {
     if (GameShell.getParameter('detail').length === 0) {
         GameShell.setParameter('detail', 'high');
     }
-
-    if (GameShell.getParameter('method').length === 0) {
-        GameShell.setParameter('method', '0');
-    }
-
-    if (hostname === 'localhost' && GameShell.getParameter('world') === '0') {
-        localConfiguration();
-    } else {
-        await liveConfiguration(secured);
-    }
-
     if (GameShell.getParameter('detail') === 'low') {
         Client.setLowMemory();
     } else {
         Client.setHighMemory();
     }
 }
+
+// setup the method
+function method(): void {
+    if (GameShell.getParameter('method').length === 0) {
+        GameShell.setParameter('method', '0');
+    }
+}
+
+// ---
 
 function localConfiguration(): void {
     Client.serverAddress = 'http://localhost';
@@ -61,6 +70,7 @@ async function liveConfiguration(secured: boolean): Promise<void> {
     }
     Client.portOffset = world.portOffset;
     Client.members = world?.members === true;
+    GameShell.setParameter('world', world.id.toString(10));
 }
 
 async function getWorldInfo(secured: boolean, id: number, retries: number = 0): Promise<WorldList> {

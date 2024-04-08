@@ -1,65 +1,70 @@
 import LocLayer from './LocLayer';
 
-enum LocShape {
-    WALL_STRAIGHT = 0,
-    WALL_DIAGONAL_CORNER = 1,
-    WALL_L = 2,
-    WALL_SQUARE_CORNER = 3,
-    WALLDECOR_STRAIGHT_NOOFFSET = 4,
-    WALLDECOR_STRAIGHT_OFFSET = 5,
-    WALLDECOR_DIAGONAL_OFFSET = 6,
-    WALLDECOR_DIAGONAL_NOOFFSET = 7,
-    WALLDECOR_DIAGONAL_BOTH = 8,
-    WALL_DIAGONAL = 9,
-    CENTREPIECE_STRAIGHT = 10,
-    CENTREPIECE_DIAGONAL = 11,
-    ROOF_STRAIGHT = 12,
-    ROOF_DIAGONAL_WITH_ROOFEDGE = 13,
-    ROOF_DIAGONAL = 14,
-    ROOF_L_CONCAVE = 15,
-    ROOF_L_CONVEX = 16,
-    ROOF_FLAT = 17,
-    ROOFEDGE_STRAIGHT = 18,
-    ROOFEDGE_DIAGONAL_CORNER = 19,
-    ROOFEDGE_L = 20,
-    ROOFEDGE_SQUARE_CORNER = 21,
-    GROUND_DECOR = 22
-}
+export default class LocShape {
+    static readonly WALL_STRAIGHT: LocShape = new LocShape(0, LocLayer.WALL);
+    static readonly WALL_DIAGONAL_CORNER: LocShape = new LocShape(1, LocLayer.WALL);
+    static readonly WALL_L: LocShape = new LocShape(2, LocLayer.WALL);
+    static readonly WALL_SQUARE_CORNER: LocShape = new LocShape(3, LocLayer.WALL);
+    static readonly WALLDECOR_STRAIGHT_NOOFFSET: LocShape = new LocShape(4, LocLayer.WALL_DECOR);
+    static readonly WALLDECOR_STRAIGHT_OFFSET: LocShape = new LocShape(5, LocLayer.WALL_DECOR);
+    static readonly WALLDECOR_DIAGONAL_OFFSET: LocShape = new LocShape(6, LocLayer.WALL_DECOR);
+    static readonly WALLDECOR_DIAGONAL_NOOFFSET: LocShape = new LocShape(7, LocLayer.WALL_DECOR);
+    static readonly WALLDECOR_DIAGONAL_BOTH: LocShape = new LocShape(8, LocLayer.WALL_DECOR);
+    static readonly WALL_DIAGONAL: LocShape = new LocShape(9, LocLayer.GROUND);
+    static readonly CENTREPIECE_STRAIGHT: LocShape = new LocShape(10, LocLayer.GROUND);
+    static readonly CENTREPIECE_DIAGONAL: LocShape = new LocShape(11, LocLayer.GROUND);
+    static readonly ROOF_STRAIGHT: LocShape = new LocShape(12, LocLayer.GROUND);
+    static readonly ROOF_DIAGONAL_WITH_ROOFEDGE: LocShape = new LocShape(13, LocLayer.GROUND);
+    static readonly ROOF_DIAGONAL: LocShape = new LocShape(14, LocLayer.GROUND);
+    static readonly ROOF_L_CONCAVE: LocShape = new LocShape(15, LocLayer.GROUND);
+    static readonly ROOF_L_CONVEX: LocShape = new LocShape(16, LocLayer.GROUND);
+    static readonly ROOF_FLAT: LocShape = new LocShape(17, LocLayer.GROUND);
+    static readonly ROOFEDGE_STRAIGHT: LocShape = new LocShape(18, LocLayer.GROUND);
+    static readonly ROOFEDGE_DIAGONAL_CORNER: LocShape = new LocShape(19, LocLayer.GROUND);
+    static readonly ROOFEDGE_L: LocShape = new LocShape(20, LocLayer.GROUND);
+    static readonly ROOFEDGE_SQUARE_CORNER: LocShape = new LocShape(21, LocLayer.GROUND);
+    static readonly GROUND_DECOR: LocShape = new LocShape(22, LocLayer.GROUND_DECOR);
 
-export default LocShape;
+    static values(): LocShape[] {
+        return [
+            this.WALL_STRAIGHT,
+            this.WALL_DIAGONAL_CORNER,
+            this.ROOF_FLAT,
+            this.ROOF_L_CONCAVE,
+            this.WALL_L,
+            this.ROOF_DIAGONAL,
+            this.WALL_DIAGONAL,
+            this.WALL_SQUARE_CORNER,
+            this.GROUND_DECOR,
+            this.ROOF_STRAIGHT,
+            this.CENTREPIECE_DIAGONAL,
+            this.WALLDECOR_DIAGONAL_OFFSET,
+            this.ROOFEDGE_L,
+            this.CENTREPIECE_STRAIGHT,
+            this.WALLDECOR_STRAIGHT_OFFSET,
+            this.ROOF_DIAGONAL_WITH_ROOFEDGE,
+            this.WALLDECOR_DIAGONAL_NOOFFSET,
+            this.WALLDECOR_STRAIGHT_NOOFFSET,
+            this.ROOF_L_CONVEX,
+            this.WALLDECOR_DIAGONAL_BOTH,
+            this.ROOFEDGE_DIAGONAL_CORNER,
+            this.ROOFEDGE_SQUARE_CORNER,
+            this.ROOFEDGE_STRAIGHT
+        ];
+    }
 
-export class LocShapes {
-    static layer(shape: LocShape): LocLayer {
-        switch (shape) {
-            case LocShape.WALL_STRAIGHT:
-            case LocShape.WALL_DIAGONAL_CORNER:
-            case LocShape.WALL_L:
-            case LocShape.WALL_SQUARE_CORNER:
-                return LocLayer.WALL;
-            case LocShape.WALLDECOR_STRAIGHT_NOOFFSET:
-            case LocShape.WALLDECOR_STRAIGHT_OFFSET:
-            case LocShape.WALLDECOR_DIAGONAL_OFFSET:
-            case LocShape.WALLDECOR_DIAGONAL_NOOFFSET:
-            case LocShape.WALLDECOR_DIAGONAL_BOTH:
-                return LocLayer.WALL_DECOR;
-            case LocShape.WALL_DIAGONAL:
-            case LocShape.CENTREPIECE_STRAIGHT:
-            case LocShape.CENTREPIECE_DIAGONAL:
-            case LocShape.ROOF_STRAIGHT:
-            case LocShape.ROOF_DIAGONAL_WITH_ROOFEDGE:
-            case LocShape.ROOF_DIAGONAL:
-            case LocShape.ROOF_L_CONCAVE:
-            case LocShape.ROOF_L_CONVEX:
-            case LocShape.ROOF_FLAT:
-            case LocShape.ROOFEDGE_STRAIGHT:
-            case LocShape.ROOFEDGE_DIAGONAL_CORNER:
-            case LocShape.ROOFEDGE_L:
-            case LocShape.ROOFEDGE_SQUARE_CORNER:
-                return LocLayer.GROUND;
-            case LocShape.GROUND_DECOR:
-                return LocLayer.GROUND_DECOR;
-            default:
-                throw new Error('Invalid loc shape.');
+    static of(id: number): LocShape {
+        if (id >= 0 && id < this.values().length) {
+            return this.values()[id];
         }
+        throw Error('shape not found');
+    }
+
+    readonly id: number;
+    readonly layer: number;
+
+    private constructor(id: number, layer: number) {
+        this.id = id;
+        this.layer = layer;
     }
 }

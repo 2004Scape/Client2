@@ -191,7 +191,7 @@ export default class WordFilter {
         let end: number = fragmentsLength - 1;
 
         while (start <= end) {
-            const mid: number = Math.floor((start + end) / 2); // client does not floor here
+            const mid: number = ((start + end) / 2) | 0;
             if (value === fragments[mid]) {
                 return true;
             } else if (value < fragments[mid]) {
@@ -460,7 +460,7 @@ export default class WordFilter {
                     }
                     index++;
                     count++;
-                    if ((count * 100) / (index - startIndex) > 90) {
+                    if ((((count * 100) / (index - startIndex)) | 0) > 90) {
                         break;
                     }
                 }
@@ -650,7 +650,7 @@ export default class WordFilter {
         let end: number = combos.length - 1;
 
         while (start <= end) {
-            const mid: number = Math.floor((start + end) / 2); // client does not floor here
+            const mid: number = ((start + end) / 2) | 0;
             if (combos[mid][0] === currentIndex && combos[mid][1] === nextIndex) {
                 return true;
             } else if (currentIndex < combos[mid][0] || (currentIndex === combos[mid][0] && nextIndex < combos[mid][1])) {

@@ -31,29 +31,29 @@ export default class GLFloatBuffer {
     }
 
     ensureCapacity(size: number): void {
-        const capacity = this.buffer.length;
-        const position = this.buffer.length;
+        const capacity: number = this.buffer.length;
+        const position: number = this.buffer.length;
         if (capacity - position < size) {
-            let newCapacity = capacity;
+            let newCapacity: number = capacity;
             while (newCapacity - position < size) {
                 newCapacity *= 2;
             }
 
-            const newBuffer = new Float32Array(newCapacity);
+            const newBuffer: Float32Array = new Float32Array(newCapacity);
             newBuffer.set(this.buffer);
             this.buffer = newBuffer;
         }
     }
 
     remaining(): number {
-		return this.buffer.length - this.position;
-	}
+        return this.buffer.length - this.position;
+    }
 
     getBuffer(): Float32Array {
         return this.buffer;
     }
 
     getSize(): number {
-		return this.buffer.length;
-	}
+        return this.buffer.length;
+    }
 }

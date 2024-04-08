@@ -1,102 +1,100 @@
-enum ServerProt {
+export default class ServerProt {
     // interfaces
-    IF_OPENCHATMODAL = 14,
-    IF_OPENMAINSIDEMODAL = 28,
-    IF_CLOSE = 129, // NXT has "IF_CLOSESUB"
-    IF_OPENSIDEOVERLAY = 167,
-    IF_OPENMAINMODAL = 168,
-    IF_OPENSIDEMODAL = 195,
+    static readonly IF_OPENCHATMODAL: number = 14;
+    static readonly IF_OPENMAINSIDEMODAL: number = 28;
+    static readonly IF_CLOSE: number = 129; // NXT has "static readonly IF_CLOSESUB"
+    static readonly IF_OPENSIDEOVERLAY: number = 167;
+    static readonly IF_OPENMAINMODAL: number = 168;
+    static readonly IF_OPENSIDEMODAL: number = 195;
 
     // updating interfaces
-    IF_SETCOLOUR = 2, // NXT naming
-    IF_SETHIDE = 26, // NXT naming
-    IF_SETOBJECT = 46, // NXT naming
-    IF_SHOWSIDE = 84,
-    IF_SETMODEL = 87, // NXT naming
-    IF_SETRECOL = 103, // NXT naming
-    IF_SETANIM = 146, // NXT naming
-    IF_SETPLAYERHEAD = 197, // NXT naming
-    IF_SETTEXT = 201, // NXT naming
-    IF_SETNPCHEAD = 204, // NXT naming
-    IF_SETPOSITION = 209, // NXT naming
+    static readonly IF_SETCOLOUR: number = 2; // NXT naming
+    static readonly IF_SETHIDE: number = 26; // NXT naming
+    static readonly IF_SETOBJECT: number = 46; // NXT naming
+    static readonly IF_SHOWSIDE: number = 84;
+    static readonly IF_SETMODEL: number = 87; // NXT naming
+    static readonly IF_SETRECOL: number = 103; // NXT naming
+    static readonly IF_SETANIM: number = 146; // NXT naming
+    static readonly IF_SETPLAYERHEAD: number = 197; // NXT naming
+    static readonly IF_SETTEXT: number = 201; // NXT naming
+    static readonly IF_SETNPCHEAD: number = 204; // NXT naming
+    static readonly IF_SETPOSITION: number = 209; // NXT naming
 
     // tutorial area
-    TUTORIAL_FLASHSIDE = 126,
-    TUTORIAL_OPENCHAT = 185,
+    static readonly TUTORIAL_FLASHSIDE: number = 126;
+    static readonly TUTORIAL_OPENCHAT: number = 185;
 
     // inventory
-    UPDATE_INV_STOP_TRANSMIT = 15, // NXT naming
-    UPDATE_INV_FULL = 98, // NXT naming
-    UPDATE_INV_PARTIAL = 213, // NXT naming
+    static readonly UPDATE_INV_STOP_TRANSMIT: number = 15; // NXT naming
+    static readonly UPDATE_INV_FULL: number = 98; // NXT naming
+    static readonly UPDATE_INV_PARTIAL: number = 213; // NXT naming
 
     // camera control
-    CAM_LOOKAT = 3, // NXT naming
-    CAM_SHAKE = 13, // NXT naming
-    CAM_MOVETO = 74, // NXT naming
-    CAM_RESET = 239, // NXT naming
+    static readonly CAM_LOOKAT: number = 3; // NXT naming
+    static readonly CAM_SHAKE: number = 13; // NXT naming
+    static readonly CAM_MOVETO: number = 74; // NXT naming
+    static readonly CAM_RESET: number = 239; // NXT naming
 
     // entity updates
-    NPC_INFO = 1, // NXT naming
-    PLAYER_INFO = 184, // NXT naming
+    static readonly NPC_INFO: number = 1; // NXT naming
+    static readonly PLAYER_INFO: number = 184; // NXT naming
 
     // input tracking
-    FINISH_TRACKING = 133,
-    ENABLE_TRACKING = 226,
+    static readonly FINISH_TRACKING: number = 133;
+    static readonly ENABLE_TRACKING: number = 226;
 
     // social
-    MESSAGE_GAME = 4, // NXT naming
-    UPDATE_IGNORELIST = 21, // NXT naming
-    CHAT_FILTER_SETTINGS = 32, // NXT naming
-    MESSAGE_PRIVATE = 41, // NXT naming
-    UPDATE_FRIENDLIST = 152, // NXT naming
+    static readonly MESSAGE_GAME: number = 4; // NXT naming
+    static readonly UPDATE_IGNORELIST: number = 21; // NXT naming
+    static readonly CHAT_FILTER_SETTINGS: number = 32; // NXT naming
+    static readonly MESSAGE_PRIVATE: number = 41; // NXT naming
+    static readonly UPDATE_FRIENDLIST: number = 152; // NXT naming
 
     // misc
-    UNSET_MAP_FLAG = 19, // NXT has "SET_MAP_FLAG" but we cannot control the position
-    UPDATE_RUNWEIGHT = 22, // NXT naming
-    HINT_ARROW = 25, // NXT naming
-    UPDATE_REBOOT_TIMER = 43, // NXT naming
-    UPDATE_STAT = 44, // NXT naming
-    UPDATE_RUNENERGY = 68, // NXT naming
-    RESET_ANIMS = 136, // NXT naming
-    UPDATE_UID192 = 139, // NXT naming (not 100% certain if "uid192" means local player)
-    LAST_LOGIN_INFO = 140, // NXT naming
-    LOGOUT = 142, // NXT naming
-    P_COUNTDIALOG = 243, // named after runescript command + client resume_p_countdialog packet
-    SET_MULTIWAY = 254,
+    static readonly UNSET_MAP_FLAG: number = 19; // NXT has "SET_MAP_FLAG" but we cannot control the position
+    static readonly UPDATE_RUNWEIGHT: number = 22; // NXT naming
+    static readonly HINT_ARROW: number = 25; // NXT naming
+    static readonly UPDATE_REBOOT_TIMER: number = 43; // NXT naming
+    static readonly UPDATE_STAT: number = 44; // NXT naming
+    static readonly UPDATE_RUNENERGY: number = 68; // NXT naming
+    static readonly RESET_ANIMS: number = 136; // NXT naming
+    static readonly UPDATE_UID192: number = 139; // NXT naming (not 100% certain if "uid192" means local player)
+    static readonly LAST_LOGIN_INFO: number = 140; // NXT naming
+    static readonly LOGOUT: number = 142; // NXT naming
+    static readonly P_COUNTDIALOG: number = 243; // named after runescript command + client resume_p_countdialog packet
+    static readonly SET_MULTIWAY: number = 254;
 
     // maps
-    DATA_LOC_DONE = 20,
-    DATA_LAND_DONE = 80,
-    DATA_LAND = 132,
-    DATA_LOC = 220,
-    REBUILD_NORMAL = 237, // NXT naming (do we really need _normal if there's no region rebuild?)
+    static readonly DATA_LOC_DONE: number = 20;
+    static readonly DATA_LAND_DONE: number = 80;
+    static readonly DATA_LAND: number = 132;
+    static readonly DATA_LOC: number = 220;
+    static readonly REBUILD_NORMAL: number = 237; // NXT naming (do we really need _normal if there's no region rebuild?)
 
     // vars
-    VARP_SMALL = 150, // NXT naming
-    VARP_LARGE = 175, // NXT naming
-    RESET_CLIENT_VARCACHE = 193, // NXT naming
+    static readonly VARP_SMALL: number = 150; // NXT naming
+    static readonly VARP_LARGE: number = 175; // NXT naming
+    static readonly RESET_CLIENT_VARCACHE: number = 193; // NXT naming
 
     // audio
-    SYNTH_SOUND = 12, // NXT naming
-    MIDI_SONG = 54, // NXT naming
-    MIDI_JINGLE = 212, // NXT naming
+    static readonly SYNTH_SOUND: number = 12; // NXT naming
+    static readonly MIDI_SONG: number = 54; // NXT naming
+    static readonly MIDI_JINGLE: number = 212; // NXT naming
 
     // zones
-    UPDATE_ZONE_PARTIAL_FOLLOWS = 7, // NXT naming
-    UPDATE_ZONE_FULL_FOLLOWS = 135, // NXT naming
-    UPDATE_ZONE_PARTIAL_ENCLOSED = 162, // NXT naming
+    static readonly UPDATE_ZONE_PARTIAL_FOLLOWS: number = 7; // NXT naming
+    static readonly UPDATE_ZONE_FULL_FOLLOWS: number = 135; // NXT naming
+    static readonly UPDATE_ZONE_PARTIAL_ENCLOSED: number = 162; // NXT naming
 
     // zone protocol
-    LOC_MERGE = 23, // based on runescript command p_locmerge
-    LOC_ANIM = 42, // NXT naming
-    OBJ_DEL = 49, // NXT naming
-    OBJ_REVEAL = 50, // NXT naming
-    LOC_ADD_CHANGE = 59, // NXT naming
-    MAP_PROJANIM = 69, // NXT naming
-    LOC_DEL = 76, // NXT naming
-    OBJ_COUNT = 151, // NXT naming
-    MAP_ANIM = 191, // NXT naming
-    OBJ_ADD = 223 // NXT naming
+    static readonly LOC_MERGE: number = 23; // based on runescript command p_locmerge
+    static readonly LOC_ANIM: number = 42; // NXT naming
+    static readonly OBJ_DEL: number = 49; // NXT naming
+    static readonly OBJ_REVEAL: number = 50; // NXT naming
+    static readonly LOC_ADD_CHANGE: number = 59; // NXT naming
+    static readonly MAP_PROJANIM: number = 69; // NXT naming
+    static readonly LOC_DEL: number = 76; // NXT naming
+    static readonly OBJ_COUNT: number = 151; // NXT naming
+    static readonly MAP_ANIM: number = 191; // NXT naming
+    static readonly OBJ_ADD: number = 223; // NXT naming
 }
-
-export default ServerProt;
