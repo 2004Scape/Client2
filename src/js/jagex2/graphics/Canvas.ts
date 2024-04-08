@@ -5,5 +5,4 @@ export const jpegCanvas: HTMLCanvasElement = document.createElement('canvas');
 export const jpegImg: HTMLImageElement = document.createElement('img');
 export const jpeg2d: CanvasRenderingContext2D = jpegCanvas.getContext('2d', {willReadFrequently: true})!;
 export const glCanvas: HTMLCanvasElement = document.createElement('canvas');
-export const gl: WebGL2RenderingContext = 
-                canvas.getContext('webgl2',{willReadFrequently: true})! as WebGL2RenderingContext;
+export const gl: WebGL2RenderingContext = canvas.getContext('webgl2', {willReadFrequently: true})! as WebGL2RenderingContext;
