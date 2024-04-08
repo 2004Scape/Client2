@@ -1,3 +1,6 @@
+import Hashable from '../datastruct/Hashable';
+import LinkList from '../datastruct/LinkList';
+
 export type Socket = {
     host: string;
     port: number;
@@ -58,7 +61,7 @@ export default class ClientStream {
     };
 
     read = async (): Promise<number> => {
-        return this.closed ? 0 : await this.wsin.read();
+        return this.closed ? 0 : this.wsin.fastByte() ?? (await this.wsin.slowByte());
     };
 
     readBytes = async (dst: Uint8Array, off: number, len: number): Promise<void> => {
@@ -66,7 +69,7 @@ export default class ClientStream {
             return;
         }
         while (len > 0) {
-            const read: Uint8Array = await this.wsin.readBytes(dst, off, len);
+            const read: Uint8Array = this.wsin.fastBytes(dst, off, len) ?? (await this.wsin.slowBytes(dst, off, len));
             if (read.length <= 0) {
                 throw new Error('EOF');
             }
@@ -138,13 +141,38 @@ class WebSocketWriter {
     };
 }
 
+class WebSocketEvent extends Hashable {
+    private readonly bytes: Uint8Array;
+    private position: number;
+
+    constructor(bytes: Uint8Array) {
+        super();
+        this.bytes = bytes;
+        this.position = 0;
+    }
+
+    get available(): number {
+        return this.bytes.length - this.position;
+    }
+
+    get read(): number {
+        return this.bytes[this.position++];
+    }
+
+    get len(): number {
+        return this.bytes.length;
+    }
+}
+
 class WebSocketReader {
     // constructor
     private readonly limit: number;
 
     // runtime
-    private buffer: number[] = [];
-    private callback: ((data: number[]) => void) | null = null;
+    private queue: LinkList = new LinkList();
+    private event: WebSocketEvent | null = null;
+    private callback: ((data: WebSocketEvent | null) => void) | null = null;
+    private total: number = 0;
     private closed: boolean = false;
 
     constructor(socket: WebSocket, limit: number) {
@@ -153,51 +181,104 @@ class WebSocketReader {
         socket.onmessage = this.onmessage;
     }
 
-    private onmessage = (event: MessageEvent): void => {
+    get available(): number {
+        return this.total;
+    }
+
+    private onmessage = (e: MessageEvent): void => {
         if (this.closed) {
             throw new Error('WebSocketReader is closed!');
         }
-        const read: Uint8Array = new Uint8Array(event.data);
-        this.buffer.push(...read);
+        const event: WebSocketEvent = new WebSocketEvent(new Uint8Array(e.data));
+        if (this.event) {
+            this.queue.pushBack(event);
+        } else {
+            this.event = event;
+        }
+        this.total += event.len;
         if (!this.callback) {
             return;
         }
-        this.callback(this.buffer);
+        this.callback(this.event);
         this.callback = null;
         // check for the overflow after the callback
-        if (this.buffer.length > this.limit) {
+        if (this.total > this.limit) {
             throw new Error('buffer overflow');
         }
     };
 
-    readBytes = async (dst: Uint8Array, off: number, length: number): Promise<Uint8Array> => {
+    private readFastByte = (): number | null => {
+        if (this.event && this.event.available > 0) {
+            return this.event.read;
+        }
+        return null;
+    };
+
+    private readSlowByte = async (len: number): Promise<number> => {
+        this.event = this.queue.pollFront() as WebSocketEvent | null;
+        while (this.total < len) {
+            await new Promise((resolve): ((value: PromiseLike<((data: WebSocketEvent | null) => void) | null>) => void) => (this.callback = resolve));
+        }
+        return this.event ? this.event.read : this.readSlowByte(len);
+    };
+
+    fastBytes = (dst: Uint8Array, off: number, len: number): Uint8Array | null => {
         if (this.closed) {
             throw new Error('WebSocketReader is closed!');
         }
-        while (this.buffer.length < length) {
-            await new Promise((resolve): ((value: PromiseLike<((data: number[]) => void) | null>) => void) => (this.callback = resolve));
+        if (!(this.event && this.event.available >= len)) {
+            return null;
         }
-        while (length--) dst[off++] = this.buffer.shift()!;
+        while (len > 0) {
+            const fast: number | null = this.readFastByte();
+            if (fast === null) {
+                throw new Error('EOF - tried to read a fast byte when there was not enough immediate bytes.');
+            }
+            dst[off++] = fast;
+            this.total--;
+            len--;
+        }
         return dst;
     };
 
-    read = async (): Promise<number> => {
+    slowBytes = async (dst: Uint8Array, off: number, len: number): Promise<Uint8Array> => {
         if (this.closed) {
             throw new Error('WebSocketReader is closed!');
         }
-        while (this.buffer.length < 1) {
-            await new Promise((resolve): ((value: PromiseLike<((data: number[]) => void) | null>) => void) => (this.callback = resolve));
+        while (len > 0) {
+            dst[off++] = this.readFastByte() ?? (await this.readSlowByte(len));
+            this.total--;
+            len--;
         }
-        return this.buffer.shift()!;
+        return dst;
     };
 
-    get available(): number {
-        return this.buffer.length;
-    }
+    fastByte = (): number | null => {
+        if (this.closed) {
+            throw new Error('WebSocketReader is closed!');
+        }
+        const fast: number | null = this.readFastByte();
+        if (fast === null) {
+            return null;
+        }
+        this.total--;
+        return fast;
+    };
+
+    slowByte = async (): Promise<number> => {
+        if (this.closed) {
+            throw new Error('WebSocketReader is closed!');
+        }
+        const slow: number = await this.readSlowByte(1);
+        this.total--;
+        return slow;
+    };
 
     close = (): void => {
-        this.callback = null;
-        this.buffer = [];
         this.closed = true;
+        this.callback = null;
+        this.total = 0;
+        this.event = null;
+        this.queue.clear();
     };
 }
