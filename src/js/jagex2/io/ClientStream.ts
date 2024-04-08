@@ -1,5 +1,5 @@
-import Hashable from '../datastruct/Hashable';
 import LinkList from '../datastruct/LinkList';
+import Linkable from '../datastruct/Linkable';
 
 export type Socket = {
     host: string;
@@ -141,7 +141,7 @@ class WebSocketWriter {
     };
 }
 
-class WebSocketEvent extends Hashable {
+class WebSocketEvent extends Linkable {
     private readonly bytes: Uint8Array;
     private position: number;
 
