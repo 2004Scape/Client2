@@ -337,7 +337,6 @@ export default abstract class GameShell {
     // ----
 
     private onkeydown = (e: KeyboardEvent): void => {
-        console.log(e);
         const key: string = e.key;
 
         if (CANVAS_PREVENTED.includes(key)) {
