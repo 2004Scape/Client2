@@ -4272,7 +4272,7 @@ class Game extends Client {
         let topCost: number = -99999999;
         let topObj: ObjStackEntity | null = null;
 
-        for (let obj: ObjStackEntity | null = objStacks.peekFront() as ObjStackEntity | null; obj; obj = objStacks.prev() as ObjStackEntity | null) {
+        for (let obj: ObjStackEntity | null = objStacks.head() as ObjStackEntity | null; obj; obj = objStacks.next() as ObjStackEntity | null) {
             const type: ObjType = ObjType.get(obj.index);
             let cost: number = type.cost;
 
@@ -4290,13 +4290,13 @@ class Game extends Client {
             return; // custom
         }
 
-        objStacks.pushFront(topObj);
+        objStacks.addHead(topObj);
 
         let bottomObjId: number = -1;
         let middleObjId: number = -1;
         let bottomObjCount: number = 0;
         let middleObjCount: number = 0;
-        for (let obj: ObjStackEntity | null = objStacks.peekFront() as ObjStackEntity | null; obj; obj = objStacks.prev() as ObjStackEntity | null) {
+        for (let obj: ObjStackEntity | null = objStacks.head() as ObjStackEntity | null; obj; obj = objStacks.next() as ObjStackEntity | null) {
             if (obj.index !== topObj.index && bottomObjId === -1) {
                 bottomObjId = obj.index;
                 bottomObjCount = obj.count;
@@ -4766,7 +4766,7 @@ class Game extends Client {
                         }
                     }
                 }
-                for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
+                for (let loc: LocTemporary | null = this.spawnedLocations.head() as LocTemporary | null; loc; loc = this.spawnedLocations.next() as LocTemporary | null) {
                     loc.x -= dx;
                     loc.z -= dz;
                     if (loc.x < 0 || loc.z < 0 || loc.x >= CollisionMap.SIZE || loc.z >= CollisionMap.SIZE) {
@@ -5234,7 +5234,7 @@ class Game extends Client {
                         }
                     }
                 }
-                for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
+                for (let loc: LocTemporary | null = this.spawnedLocations.head() as LocTemporary | null; loc; loc = this.spawnedLocations.next() as LocTemporary | null) {
                     if (loc.x >= this.baseX && loc.x < this.baseX + 8 && loc.z >= this.baseZ && loc.z < this.baseZ + 8 && loc.plane === this.currentLevel) {
                         this.addLoc(loc.plane, loc.x, loc.z, loc.lastLocIndex, loc.lastAngle, loc.lastShape, loc.layer);
                         loc.unlink();
@@ -5715,7 +5715,7 @@ class Game extends Client {
 
             // NO_TIMEOUT
             this.out.p1isaac(ClientProt.NO_TIMEOUT);
-            for (let loc: LocEntity | null = this.locList.peekFront() as LocEntity | null; loc; loc = this.locList.prev() as LocEntity | null) {
+            for (let loc: LocEntity | null = this.locList.head() as LocEntity | null; loc; loc = this.locList.next() as LocEntity | null) {
                 if ((this.levelTileFlags && this.levelTileFlags[1][loc.heightmapNE][loc.heightmapNW] & 0x2) === 2) {
                     loc.heightmapSW--;
                     if (loc.heightmapSW < 0) {
@@ -5730,7 +5730,7 @@ class Game extends Client {
                 }
             }
 
-            for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
+            for (let loc: LocTemporary | null = this.spawnedLocations.head() as LocTemporary | null; loc; loc = this.spawnedLocations.next() as LocTemporary | null) {
                 this.addLoc(loc.plane, loc.x, loc.z, loc.locIndex, loc.angle, loc.shape, loc.layer);
             }
         } catch (e) {
@@ -6364,7 +6364,7 @@ class Game extends Client {
                     continue;
                 }
 
-                for (let obj: ObjStackEntity | null = objs.peekBack() as ObjStackEntity | null; obj; obj = objs.next() as ObjStackEntity | null) {
+                for (let obj: ObjStackEntity | null = objs.tail() as ObjStackEntity | null; obj; obj = objs.prev() as ObjStackEntity | null) {
                     const type: ObjType = ObjType.get(obj.index);
                     if (this.objSelected === 1) {
                         this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @lre@' + type.name;
@@ -7765,7 +7765,7 @@ class Game extends Client {
     };
 
     private pushProjectiles = (): void => {
-        for (let proj: ProjectileEntity | null = this.projectiles.peekFront() as ProjectileEntity | null; proj; proj = this.projectiles.prev() as ProjectileEntity | null) {
+        for (let proj: ProjectileEntity | null = this.projectiles.head() as ProjectileEntity | null; proj; proj = this.projectiles.next() as ProjectileEntity | null) {
             if (proj.level !== this.currentLevel || this.loopCycle > proj.lastCycle) {
                 proj.unlink();
             } else if (this.loopCycle >= proj.startCycle) {
@@ -7796,7 +7796,7 @@ class Game extends Client {
     };
 
     private pushSpotanims = (): void => {
-        for (let entity: SpotAnimEntity | null = this.spotanims.peekFront() as SpotAnimEntity | null; entity; entity = this.spotanims.prev() as SpotAnimEntity | null) {
+        for (let entity: SpotAnimEntity | null = this.spotanims.head() as SpotAnimEntity | null; entity; entity = this.spotanims.next() as SpotAnimEntity | null) {
             if (entity.level !== this.currentLevel || entity.seqComplete) {
                 entity.unlink();
             } else if (this.loopCycle >= entity.startCycle) {
@@ -7811,7 +7811,7 @@ class Game extends Client {
     };
 
     private pushLocs = (): void => {
-        for (let loc: LocEntity | null = this.locList.peekFront() as LocEntity | null; loc; loc = this.locList.prev() as LocEntity | null) {
+        for (let loc: LocEntity | null = this.locList.head() as LocEntity | null; loc; loc = this.locList.next() as LocEntity | null) {
             let append: boolean = false;
             loc.seqCycle += this.sceneDelta;
             if (loc.seqFrame === -1) {
@@ -7942,7 +7942,7 @@ class Game extends Client {
 
     private updateTemporaryLocs = (): void => {
         if (this.sceneState === 2) {
-            for (let loc: LocSpawned | null = this.temporaryLocs.peekFront() as LocSpawned | null; loc; loc = this.temporaryLocs.prev() as LocSpawned | null) {
+            for (let loc: LocSpawned | null = this.temporaryLocs.head() as LocSpawned | null; loc; loc = this.temporaryLocs.next() as LocSpawned | null) {
                 if (this.loopCycle >= loc.lastCycle) {
                     this.addLoc(loc.plane, loc.x, loc.z, loc.locIndex, loc.angle, loc.shape, loc.layer);
                     loc.unlink();
@@ -8620,7 +8620,7 @@ class Game extends Client {
             }
             if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
                 let loc: LocTemporary | null = null;
-                for (let next: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; next; next = this.spawnedLocations.prev() as LocTemporary | null) {
+                for (let next: LocTemporary | null = this.spawnedLocations.head() as LocTemporary | null; next; next = this.spawnedLocations.next() as LocTemporary | null) {
                     if (next.plane === this.currentLevel && next.x === x && next.z === z && next.layer === layer) {
                         loc = next;
                         break;
@@ -8647,7 +8647,7 @@ class Game extends Client {
                         otherAngle = otherInfo >> 6;
                     }
                     loc = new LocTemporary(this.currentLevel, layer, x, z, 0, LocAngle.WEST, LocShape.WALL_STRAIGHT.id, otherId, otherAngle, otherShape);
-                    this.spawnedLocations.pushBack(loc);
+                    this.spawnedLocations.addTail(loc);
                 }
                 if (loc) {
                     loc.locIndex = id;
@@ -8675,7 +8675,7 @@ class Game extends Client {
                 }
                 if (bitset !== 0) {
                     const loc: LocEntity = new LocEntity((bitset >> 14) & 0x7fff, this.currentLevel, layer, x, z, SeqType.instances[id], false);
-                    this.locList.pushBack(loc);
+                    this.locList.addTail(loc);
                 }
             }
         } else if (opcode === ServerProt.OBJ_ADD) {
@@ -8687,7 +8687,7 @@ class Game extends Client {
                 if (!this.levelObjStacks[this.currentLevel][x][z]) {
                     this.levelObjStacks[this.currentLevel][x][z] = new LinkList();
                 }
-                this.levelObjStacks[this.currentLevel][x][z]?.pushBack(obj);
+                this.levelObjStacks[this.currentLevel][x][z]?.addTail(obj);
                 this.sortObjStacks(x, z);
             }
         } else if (opcode === ServerProt.OBJ_DEL) {
@@ -8696,13 +8696,13 @@ class Game extends Client {
             if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
                 const list: LinkList | null = this.levelObjStacks[this.currentLevel][x][z];
                 if (list) {
-                    for (let next: ObjStackEntity | null = list.peekFront() as ObjStackEntity | null; next; next = list.prev() as ObjStackEntity | null) {
+                    for (let next: ObjStackEntity | null = list.head() as ObjStackEntity | null; next; next = list.next() as ObjStackEntity | null) {
                         if (next.index === (id & 0x7fff)) {
                             next.unlink();
                             break;
                         }
                     }
-                    if (!list.peekFront()) {
+                    if (!list.head()) {
                         this.levelObjStacks[this.currentLevel][x][z] = null;
                     }
                     this.sortObjStacks(x, z);
@@ -8727,7 +8727,7 @@ class Game extends Client {
                 dz = dz * 128 + 64;
                 const proj: ProjectileEntity = new ProjectileEntity(spotanim, this.currentLevel, x, this.getHeightmapY(this.currentLevel, x, z) - srcHeight, z, startDelay + this.loopCycle, endDelay + this.loopCycle, peak, arc, target, dstHeight);
                 proj.updateVelocity(dx, this.getHeightmapY(this.currentLevel, dx, dz) - dstHeight, dz, startDelay + this.loopCycle);
-                this.projectiles.pushBack(proj);
+                this.projectiles.addTail(proj);
             }
         } else if (opcode === ServerProt.MAP_ANIM) {
             // MAP_ANIM
@@ -8738,7 +8738,7 @@ class Game extends Client {
                 x = x * 128 + 64;
                 z = z * 128 + 64;
                 const spotanim: SpotAnimEntity = new SpotAnimEntity(id, this.currentLevel, x, z, this.getHeightmapY(this.currentLevel, x, z) - height, this.loopCycle, delay);
-                this.spotanims.pushBack(spotanim);
+                this.spotanims.addTail(spotanim);
             }
         } else if (opcode === ServerProt.OBJ_REVEAL) {
             // OBJ_REVEAL
@@ -8750,7 +8750,7 @@ class Game extends Client {
                 if (!this.levelObjStacks[this.currentLevel][x][z]) {
                     this.levelObjStacks[this.currentLevel][x][z] = new LinkList();
                 }
-                this.levelObjStacks[this.currentLevel][x][z]?.pushBack(obj);
+                this.levelObjStacks[this.currentLevel][x][z]?.addTail(obj);
                 this.sortObjStacks(x, z);
             }
         } else if (opcode === ServerProt.LOC_MERGE) {
@@ -8777,10 +8777,10 @@ class Game extends Client {
 
             if (player && this.levelHeightmap) {
                 const loc1: LocSpawned = new LocSpawned(this.currentLevel, layer, x, z, -1, angle, shape, start + this.loopCycle);
-                this.temporaryLocs.pushBack(loc1);
+                this.temporaryLocs.addTail(loc1);
 
                 const loc2: LocSpawned = new LocSpawned(this.currentLevel, layer, x, z, id, angle, shape, end + this.loopCycle);
-                this.temporaryLocs.pushBack(loc2);
+                this.temporaryLocs.addTail(loc2);
 
                 const y0: number = this.levelHeightmap[this.currentLevel][x][z];
                 const y1: number = this.levelHeightmap[this.currentLevel][x + 1][z];
@@ -8829,7 +8829,7 @@ class Game extends Client {
             if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
                 const list: LinkList | null = this.levelObjStacks[this.currentLevel][x][z];
                 if (list) {
-                    for (let next: ObjStackEntity | null = list.peekFront() as ObjStackEntity | null; next; next = list.prev() as ObjStackEntity | null) {
+                    for (let next: ObjStackEntity | null = list.head() as ObjStackEntity | null; next; next = list.next() as ObjStackEntity | null) {
                         if (next.index === (id & 0x7fff) && next.count === oldCount) {
                             next.count = newCount;
                             break;

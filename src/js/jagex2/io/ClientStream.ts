@@ -191,7 +191,7 @@ class WebSocketReader {
         }
         const event: WebSocketEvent = new WebSocketEvent(new Uint8Array(e.data));
         if (this.event) {
-            this.queue.pushBack(event);
+            this.queue.addTail(event);
         } else {
             this.event = event;
         }
@@ -215,7 +215,7 @@ class WebSocketReader {
     };
 
     private readSlowByte = async (len: number): Promise<number> => {
-        this.event = this.queue.pollFront() as WebSocketEvent | null;
+        this.event = this.queue.removeHead() as WebSocketEvent | null;
         while (this.total < len) {
             await new Promise((resolve): ((value: PromiseLike<((data: WebSocketEvent | null) => void) | null>) => void) => (this.callback = resolve));
         }

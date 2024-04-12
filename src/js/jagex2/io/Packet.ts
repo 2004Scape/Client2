@@ -79,13 +79,13 @@ export default class Packet extends Hashable {
         let cached: Packet | null = null;
         if (type === 0 && Packet.cacheMinCount > 0) {
             Packet.cacheMinCount--;
-            cached = Packet.cacheMin.pollFront() as Packet | null;
+            cached = Packet.cacheMin.removeHead() as Packet | null;
         } else if (type === 1 && Packet.cacheMidCount > 0) {
             Packet.cacheMidCount--;
-            cached = Packet.cacheMid.pollFront() as Packet | null;
+            cached = Packet.cacheMid.removeHead() as Packet | null;
         } else if (type === 2 && Packet.cacheMaxCount > 0) {
             Packet.cacheMaxCount--;
-            cached = Packet.cacheMax.pollFront() as Packet | null;
+            cached = Packet.cacheMax.removeHead() as Packet | null;
         }
 
         if (cached) {
@@ -104,13 +104,13 @@ export default class Packet extends Hashable {
     release = (): void => {
         this.pos = 0;
         if (this.data.length === 100 && Packet.cacheMinCount < 1000) {
-            Packet.cacheMin.pushBack(this);
+            Packet.cacheMin.addTail(this);
             Packet.cacheMinCount++;
         } else if (this.data.length === 5000 && Packet.cacheMidCount < 250) {
-            Packet.cacheMid.pushBack(this);
+            Packet.cacheMid.addTail(this);
             Packet.cacheMidCount++;
         } else if (this.data.length === 30000 && Packet.cacheMaxCount < 50) {
-            Packet.cacheMax.pushBack(this);
+            Packet.cacheMax.addTail(this);
             Packet.cacheMaxCount++;
         }
     };
