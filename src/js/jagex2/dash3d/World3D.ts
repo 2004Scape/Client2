@@ -1394,14 +1394,14 @@ export default class World3D {
     };
 
     private drawTile = (next: Tile, checkAdjacent: boolean, loopCycle: number): void => {
-        World3D.drawTileQueue.pushBack(next);
+        World3D.drawTileQueue.addTail(next);
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
             let tile: Tile | null;
 
             do {
-                tile = World3D.drawTileQueue.pollFront() as Tile | null;
+                tile = World3D.drawTileQueue.removeHead() as Tile | null;
 
                 if (!tile) {
                     return;
@@ -1619,28 +1619,28 @@ export default class World3D {
                     if (tileX < World3D.eyeTileX && (spans & 0x4) !== 0) {
                         const adjacent: Tile | null = tiles[tileX + 1][tileZ];
                         if (adjacent && adjacent.update) {
-                            World3D.drawTileQueue.pushBack(adjacent);
+                            World3D.drawTileQueue.addTail(adjacent);
                         }
                     }
 
                     if (tileZ < World3D.eyeTileZ && (spans & 0x2) !== 0) {
                         const adjacent: Tile | null = tiles[tileX][tileZ + 1];
                         if (adjacent && adjacent.update) {
-                            World3D.drawTileQueue.pushBack(adjacent);
+                            World3D.drawTileQueue.addTail(adjacent);
                         }
                     }
 
                     if (tileX > World3D.eyeTileX && (spans & 0x1) !== 0) {
                         const adjacent: Tile | null = tiles[tileX - 1][tileZ];
                         if (adjacent && adjacent.update) {
-                            World3D.drawTileQueue.pushBack(adjacent);
+                            World3D.drawTileQueue.addTail(adjacent);
                         }
                     }
 
                     if (tileZ > World3D.eyeTileZ && (spans & 0x8) !== 0) {
                         const adjacent: Tile | null = tiles[tileX][tileZ - 1];
                         if (adjacent && adjacent.update) {
-                            World3D.drawTileQueue.pushBack(adjacent);
+                            World3D.drawTileQueue.addTail(adjacent);
                         }
                     }
                 }
@@ -1786,9 +1786,9 @@ export default class World3D {
                                 }
 
                                 if (occupied.checkLocSpans !== 0) {
-                                    World3D.drawTileQueue.pushBack(occupied);
+                                    World3D.drawTileQueue.addTail(occupied);
                                 } else if ((x !== tileX || z !== tileZ) && occupied.update) {
-                                    World3D.drawTileQueue.pushBack(occupied);
+                                    World3D.drawTileQueue.addTail(occupied);
                                 }
                             }
                         }
@@ -1905,35 +1905,35 @@ export default class World3D {
             if (level < this.maxLevel - 1) {
                 const above: Tile | null = this.levelTiles[level + 1][tileX][tileZ];
                 if (above && above.update) {
-                    World3D.drawTileQueue.pushBack(above);
+                    World3D.drawTileQueue.addTail(above);
                 }
             }
 
             if (tileX < World3D.eyeTileX) {
                 const adjacent: Tile | null = tiles[tileX + 1][tileZ];
                 if (adjacent && adjacent.update) {
-                    World3D.drawTileQueue.pushBack(adjacent);
+                    World3D.drawTileQueue.addTail(adjacent);
                 }
             }
 
             if (tileZ < World3D.eyeTileZ) {
                 const adjacent: Tile | null = tiles[tileX][tileZ + 1];
                 if (adjacent && adjacent.update) {
-                    World3D.drawTileQueue.pushBack(adjacent);
+                    World3D.drawTileQueue.addTail(adjacent);
                 }
             }
 
             if (tileX > World3D.eyeTileX) {
                 const adjacent: Tile | null = tiles[tileX - 1][tileZ];
                 if (adjacent && adjacent.update) {
-                    World3D.drawTileQueue.pushBack(adjacent);
+                    World3D.drawTileQueue.addTail(adjacent);
                 }
             }
 
             if (tileZ > World3D.eyeTileZ) {
                 const adjacent: Tile | null = tiles[tileX][tileZ - 1];
                 if (adjacent && adjacent.update) {
-                    World3D.drawTileQueue.pushBack(adjacent);
+                    World3D.drawTileQueue.addTail(adjacent);
                 }
             }
         }
