@@ -946,7 +946,7 @@ export default class World3D {
         }
 
         const shape: number = overlay.shape;
-        const angle: number = overlay.rotation;
+        const angle: number = overlay.angle;
         const background: number = overlay.backgroundRgb;
         const foreground: number = overlay.foregroundRgb;
         const mask: Int8Array = World3D.MINIMAP_TILE_MASK[shape];

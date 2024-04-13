@@ -11,15 +11,16 @@ export default class PixFont extends Hashable {
     static readonly CHARCODESET: number[] = [];
 
     static {
-        const isCapacitor: boolean = navigator.userAgent.includes('Capacitor')
+        const isCapacitor: boolean = navigator.userAgent.includes('Capacitor');
 
         for (let i: number = 0; i < 256; i++) {
             let c: number = PixFont.CHARSET.indexOf(String.fromCharCode(i));
 
             // This fixes text mangling in Capacitor native builds (Android/IOS)
             if (isCapacitor)
-                if (c >= 63) { // "
-                    c--
+                if (c >= 63) {
+                    // "
+                    c--;
                 }
 
             if (c === -1) {
