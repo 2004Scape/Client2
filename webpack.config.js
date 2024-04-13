@@ -128,6 +128,7 @@ module.exports = () => {
                               'newBzip2State', // keeps renaming this to $S
                               'portOffset', // idk why but has to
                               'willReadFrequently', // terser removes this option from canvas
+                              'members', // terser messes this up
                               '__liftRecord5', // the rest is for vendor
                               '__lowerRecord5',
                               '__liftString',
