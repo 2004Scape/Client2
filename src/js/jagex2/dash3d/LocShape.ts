@@ -54,8 +54,12 @@ export default class LocShape {
     }
 
     static of(id: number): LocShape {
-        if (id >= 0 && id < this.values().length) {
-            return this.values()[id];
+        const values: LocShape[] = this.values();
+        for (let index: number = 0; index < values.length; index++) {
+            const shape: LocShape = this.values()[index];
+            if (shape.id === id) {
+                return shape;
+            }
         }
         throw Error('shape not found');
     }
