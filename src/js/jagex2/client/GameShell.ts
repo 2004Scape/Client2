@@ -346,52 +346,50 @@ export default abstract class GameShell {
 
         this.idleCycles = 0;
 
-        const mappedKey: {key: number; ch: number} = KEY_CODES[key];
+        const mappedKey: {code: number; ch: number} = KEY_CODES[key];
         if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
             console.warn(`Unhandled key: ${key}`);
             return;
         }
 
-        const code: number = mappedKey.key;
+        const code: number = mappedKey.code;
         let ch: number = mappedKey.ch;
 
         if (ch < 30) {
             ch = 0;
         }
 
-        if (code === 37) {
+        if (code === KEY_CODES['ArrowLeft'].code) {
             ch = 1;
-        } else if (code === 39) {
+        } else if (code === KEY_CODES['ArrowRight'].code) {
             ch = 2;
-        } else if (code === 38) {
+        } else if (code === KEY_CODES['ArrowUp'].code) {
             ch = 3;
-        } else if (code === 40) {
+        } else if (code === KEY_CODES['ArrowDown'].code) {
             ch = 4;
-        } else if (code === 17) {
+        } else if (code === KEY_CODES['Control'].code) {
             ch = 5;
-        } else if (code === 16) {
-            // SHIFT
+        } else if (code === KEY_CODES['Shift'].code) {
             ch = 6; // (custom)
-        } else if (code === 18) {
-            // ALT
+        } else if (code === KEY_CODES['Alt'].code) {
             ch = 7; // (custom)
-        } else if (code === 8) {
+        } else if (code === KEY_CODES['Backspace'].code) {
             ch = 8;
-        } else if (code === 127) {
+        } else if (code === KEY_CODES['Delete'].code) {
             ch = 8;
-        } else if (code === 9) {
+        } else if (code === KEY_CODES['Tab'].code) {
             ch = 9;
-        } else if (code === 10) {
+        } else if (code === KEY_CODES['Enter'].code) {
             ch = 10;
-        } else if (code >= 112 && code <= 123) {
-            ch = code + 1008 - 112;
-        } else if (code === 36) {
+        } else if (code >= KEY_CODES['F1'].code && code <= KEY_CODES['F12'].code) {
+            ch = code + 1008 - KEY_CODES['F1'].code;
+        } else if (code === KEY_CODES['Home'].code) {
             ch = 1000;
-        } else if (code === 35) {
+        } else if (code === KEY_CODES['End'].code) {
             ch = 1001;
-        } else if (code === 33) {
+        } else if (code === KEY_CODES['PageUp'].code) {
             ch = 1002;
-        } else if (code === 34) {
+        } else if (code === KEY_CODES['PageDown'].code) {
             ch = 1003;
         }
 
@@ -419,52 +417,50 @@ export default abstract class GameShell {
 
         this.idleCycles = 0;
 
-        const mappedKey: {key: number; ch: number} = KEY_CODES[key];
+        const mappedKey: {code: number; ch: number} = KEY_CODES[key];
         if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
             console.warn(`Unhandled key: ${key}`);
             return;
         }
 
-        const code: number = mappedKey.key;
+        const code: number = mappedKey.code;
         let ch: number = mappedKey.ch;
 
         if (ch < 30) {
             ch = 0;
         }
 
-        if (code === 37) {
+        if (code === KEY_CODES['ArrowLeft'].code) {
             ch = 1;
-        } else if (code === 39) {
+        } else if (code === KEY_CODES['ArrowRight'].code) {
             ch = 2;
-        } else if (code === 38) {
+        } else if (code === KEY_CODES['ArrowUp'].code) {
             ch = 3;
-        } else if (code === 40) {
+        } else if (code === KEY_CODES['ArrowDown'].code) {
             ch = 4;
-        } else if (code === 17) {
+        } else if (code === KEY_CODES['Control'].code) {
             ch = 5;
-        } else if (code === 16) {
-            // SHIFT
+        } else if (code === KEY_CODES['Shift'].code) {
             ch = 6; // (custom)
-        } else if (code === 18) {
-            // ALT
+        } else if (code === KEY_CODES['Alt'].code) {
             ch = 7; // (custom)
-        } else if (code === 8) {
+        } else if (code === KEY_CODES['Backspace'].code) {
             ch = 8;
-        } else if (code === 127) {
+        } else if (code === KEY_CODES['Delete'].code) {
             ch = 8;
-        } else if (code === 9) {
+        } else if (code === KEY_CODES['Tab'].code) {
             ch = 9;
-        } else if (code === 10) {
+        } else if (code === KEY_CODES['Enter'].code) {
             ch = 10;
-        } else if (code >= 112 && code <= 123) {
-            ch = code + 1008 - 112;
-        } else if (code === 36) {
+        } else if (code >= KEY_CODES['F1'].code && code <= KEY_CODES['F12'].code) {
+            ch = code + 1008 - KEY_CODES['F1'].code;
+        } else if (code === KEY_CODES['Home'].code) {
             ch = 1000;
-        } else if (code === 35) {
+        } else if (code === KEY_CODES['End'].code) {
             ch = 1001;
-        } else if (code === 33) {
+        } else if (code === KEY_CODES['PageUp'].code) {
             ch = 1002;
-        } else if (code === 34) {
+        } else if (code === KEY_CODES['PageDown'].code) {
             ch = 1003;
         }
 
