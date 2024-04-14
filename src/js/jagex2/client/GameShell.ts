@@ -467,13 +467,15 @@ export default abstract class GameShell {
 
     private onmousedown = (e: MouseEvent): void => {
         this.touching = false;
-        this.setMousePosition(e);
+        //Don't 'reset' position (This fixes right click in Android)
+        if (e.clientX > 0 || e.clientY > 0)
+            this.setMousePosition(e);
 
         this.idleCycles = 0;
         this.mouseClickX = this.mouseX;
         this.mouseClickY = this.mouseY;
 
-        if (this.isMobile) {
+        if (this.isMobile && !this.isCapacitor) {
             if (this.insideChatInputArea() || this.insideUsernameArea() || this.inPasswordArea()) {
                 this.mouseClickButton = 1;
                 this.mouseButton = 1;
@@ -744,6 +746,11 @@ export default abstract class GameShell {
 
     private get isAndroid(): boolean {
         const keywords: string[] = ['Android'];
+        return keywords.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
+    }
+
+    private get isCapacitor(): boolean {
+        const keywords: string[] = ['Capacitor'];
         return keywords.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
     }
 
