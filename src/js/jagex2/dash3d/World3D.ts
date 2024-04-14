@@ -20,7 +20,7 @@ import {Int32Array3d, TypedArray1d, TypedArray2d, TypedArray3d, TypedArray4d} fr
 export default class World3D {
     private static visibilityMatrix: boolean[][][][] = new TypedArray4d(8, 32, 51, 51, false);
     private static locBuffer: (Loc | null)[] = new TypedArray1d(100, null);
-    private static levelOccluderCount: Int32Array = new Int32Array(CollisionMap.LEVELS);
+    static levelOccluderCount: Int32Array = new Int32Array(CollisionMap.LEVELS);
     private static levelOccluders: (Occluder | null)[][] = new TypedArray2d(CollisionMap.LEVELS, 500, null);
     private static activeOccluders: (Occluder | null)[] = new TypedArray1d(500, null);
     private static drawTileQueue: LinkList = new LinkList();
@@ -50,7 +50,7 @@ export default class World3D {
     private static minDrawTileZ: number = 0;
     private static maxDrawTileZ: number = 0;
 
-    private static topLevel: number = 0;
+    static topLevel: number = 0;
     private static tilesRemaining: number = 0;
     private static takingInput: boolean = false;
 

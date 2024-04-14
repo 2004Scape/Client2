@@ -42,6 +42,7 @@ import SpotAnimType from './jagex2/config/SpotAnimType';
 import VarpType from './jagex2/config/VarpType';
 import SeqBase from './jagex2/graphics/SeqBase';
 import SeqFrame from './jagex2/graphics/SeqFrame';
+import Tile from './jagex2/dash3d/type/Tile';
 
 // noinspection JSSuspiciousNameCombination
 export abstract class Client extends GameShell {
@@ -53,26 +54,27 @@ export abstract class Client extends GameShell {
     static serverAddress: string = '';
     static httpAddress: string = '';
     static showDebug: boolean = false;
+    static lastTickFlag: boolean = false;
     static githubRepository: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
 
-    protected static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
-    protected static readonly modulus: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
+    static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
+    static readonly modulus: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
 
-    protected static updateCounter: number = 0;
-    protected static update2Counter: number = 0;
-    protected static sidebarInputCounter: number = 0;
-    protected static opHeld1Counter: number = 0;
-    protected static opLoc4Counter: number = 0;
-    protected static opNpc5Counter: number = 0;
-    protected static drawCounter: number = 0;
-    protected static opHeld4Counter: number = 0;
-    protected static opLoc5Counter: number = 0;
-    protected static opNpc3Counter: number = 0;
-    protected static opHeld9Counter: number = 0;
-    protected static opPlayer2Counter: number = 0;
-    protected static updatePlayersCounter: number = 0;
-    protected static ifButton5Counter: number = 0;
-    protected static updateLocCounter: number = 0;
+    static updateCounter: number = 0;
+    static update2Counter: number = 0;
+    static sidebarInputCounter: number = 0;
+    static opHeld1Counter: number = 0;
+    static opLoc4Counter: number = 0;
+    static opNpc5Counter: number = 0;
+    static drawCounter: number = 0;
+    static opHeld4Counter: number = 0;
+    static opLoc5Counter: number = 0;
+    static opNpc3Counter: number = 0;
+    static opHeld9Counter: number = 0;
+    static opPlayer2Counter: number = 0;
+    static updatePlayersCounter: number = 0;
+    static ifButton5Counter: number = 0;
+    static updateLocCounter: number = 0;
 
     static setHighMemory = (): void => {
         World3D.lowMemory = false;
@@ -477,6 +479,11 @@ export abstract class Client extends GameShell {
     protected midiCrc: number = 0;
     protected midiSize: number = 0;
     protected midiVolume: number = 192;
+
+    // debug
+    // alt+shift click to add a tile overlay
+    protected userTileMarkers: (Tile | null)[] = new TypedArray1d(16, null);
+    protected userTileMarkerIndex: number = 0;
 
     // ---- override functions
 

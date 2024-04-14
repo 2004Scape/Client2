@@ -369,6 +369,12 @@ export default abstract class GameShell {
             ch = 4;
         } else if (code === 17) {
             ch = 5;
+        } else if (code === 16) {
+            // SHIFT
+            ch = 6; // (custom)
+        } else if (code === 18) {
+            // ALT
+            ch = 7; // (custom)
         } else if (code === 8) {
             ch = 8;
         } else if (code === 127) {
@@ -436,6 +442,12 @@ export default abstract class GameShell {
             ch = 4;
         } else if (code === 17) {
             ch = 5;
+        } else if (code === 16) {
+            // SHIFT
+            ch = 6; // (custom)
+        } else if (code === 18) {
+            // ALT
+            ch = 7; // (custom)
         } else if (code === 8) {
             ch = 8;
         } else if (code === 127) {
@@ -468,8 +480,7 @@ export default abstract class GameShell {
     private onmousedown = (e: MouseEvent): void => {
         this.touching = false;
         //Don't 'reset' position (This fixes right click in Android)
-        if (e.clientX > 0 || e.clientY > 0)
-            this.setMousePosition(e);
+        if (e.clientX > 0 || e.clientY > 0) this.setMousePosition(e);
 
         this.idleCycles = 0;
         this.mouseClickX = this.mouseX;
