@@ -2132,7 +2132,7 @@ class Game extends Client {
         this.fontPlain11?.drawStringRight(x, y, `Occluders: ${World3D.levelOccluderCount[World3D.topLevel]} Active: ${World3D.activeOccluderCount}`, Colors.YELLOW, true);
         // this.fontPlain11?.drawRight(x, y, `Rate: ${this.deltime} ms`, Colors.YELLOW, true);
         y += 13;
-        if (Client.lastTickFlag) {
+        if (this.lastTickFlag) {
             this.fontPlain11?.drawStringRight(x, y, 'tock', Colors.YELLOW, true);
         } else {
             this.fontBold12?.drawStringRight(x, y, 'tick', Colors.YELLOW, true);
@@ -5781,7 +5781,7 @@ class Game extends Client {
                 return true;
             }
             if (this.packetType === ServerProt.PLAYER_INFO) {
-                Client.lastTickFlag = !Client.lastTickFlag; // custom
+                this.lastTickFlag = !this.lastTickFlag; // custom
                 // PLAYER_INFO
                 this.readPlayerInfo(this.in, this.packetSize);
                 if (this.sceneState === 1) {

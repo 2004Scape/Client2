@@ -54,7 +54,6 @@ export abstract class Client extends GameShell {
     static serverAddress: string = '';
     static httpAddress: string = '';
     static showDebug: boolean = false;
-    static lastTickFlag: boolean = false;
     static githubRepository: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
 
     static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
@@ -484,6 +483,7 @@ export abstract class Client extends GameShell {
     // alt+shift click to add a tile overlay
     protected userTileMarkers: (Tile | null)[] = new TypedArray1d(16, null);
     protected userTileMarkerIndex: number = 0;
+    protected lastTickFlag: boolean = false;
 
     // ---- override functions
 
