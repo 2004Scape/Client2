@@ -29,9 +29,12 @@ Create your account on the 2004scape website.
 
 ## Commands
 
-`::debug` Shows performance metrics (FPS, frame times).
+`::debug` Shows performance metrics (FPS, frame times and more).
 
 `::fps` Set a targeted FPS (ex. `::fps 30`)
+
+A developer can utilize the debug command for development purposes.
+![debugging](https://github.com/2004scape/Client2/assets/76214316/9cec6fb5-7a79-4d81-97ed-a96a5fecd85a)
 
 ---
 
