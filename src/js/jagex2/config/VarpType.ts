@@ -12,8 +12,7 @@ export default class VarpType extends ConfigType {
         const dat: Packet = new Packet(config.read('varp.dat'));
         this.count = dat.g2;
         for (let i: number = 0; i < this.count; i++) {
-            this.instances[i] = new VarpType();
-            this.instances[i].decodeType(i, dat);
+            this.instances[i] = new VarpType(i).decodeType(dat);
         }
     };
 
@@ -29,14 +28,14 @@ export default class VarpType extends ConfigType {
     code6: boolean = false;
     code8: boolean = false;
 
-    decode(index: number, code: number, dat: Packet): void {
+    decode = (code: number, dat: Packet): void => {
         if (code === 1) {
             this.code1 = dat.g1;
         } else if (code === 2) {
             this.code2 = dat.g1;
         } else if (code === 3) {
             this.hasCode3 = true;
-            VarpType.code3[VarpType.code3Count++] = index;
+            VarpType.code3[VarpType.code3Count++] = this.id;
         } else if (code === 4) {
             this.code4 = false;
         } else if (code === 5) {
@@ -52,5 +51,5 @@ export default class VarpType extends ConfigType {
         } else {
             throw new Error(`Error unrecognised config code: ${code}`);
         }
-    }
+    };
 }

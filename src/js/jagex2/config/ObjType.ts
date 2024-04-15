@@ -35,7 +35,7 @@ export default class ObjType extends ConfigType {
 
         this.cache = new TypedArray1d(10, null);
         for (let id: number = 0; id < 10; id++) {
-            this.cache[id] = new ObjType();
+            this.cache[id] = new ObjType(-1);
         }
     };
 
@@ -49,7 +49,7 @@ export default class ObjType extends ConfigType {
             if (!type) {
                 continue;
             }
-            if (type.index === id) {
+            if (type.id === id) {
                 return type;
             }
         }
@@ -57,9 +57,9 @@ export default class ObjType extends ConfigType {
         this.cachePos = (this.cachePos + 1) % 10;
         const obj: ObjType = this.cache[this.cachePos]!;
         this.dat.pos = this.offsets[id];
-        obj.index = id;
+        obj.id = id;
         obj.reset();
-        obj.decodeType(id, this.dat);
+        obj.decodeType(this.dat);
 
         if (obj.certtemplate !== -1) {
             obj.toCertificate();
@@ -194,7 +194,6 @@ export default class ObjType extends ConfigType {
 
     // ----
 
-    index: number = -1;
     model: number = 0;
     name: string | null = null;
     desc: string | null = null;
@@ -230,7 +229,7 @@ export default class ObjType extends ConfigType {
     certlink: number = -1;
     certtemplate: number = -1;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode = (code: number, dat: Packet): void => {
         if (code === 1) {
             this.model = dat.g2;
         } else if (code === 2) {
@@ -417,7 +416,7 @@ export default class ObjType extends ConfigType {
         }
 
         if (ObjType.modelCache) {
-            const model: Model | null = ObjType.modelCache.get(BigInt(this.index)) as Model | null;
+            const model: Model | null = ObjType.modelCache.get(BigInt(this.id)) as Model | null;
             if (model) {
                 return model;
             }
@@ -432,7 +431,7 @@ export default class ObjType extends ConfigType {
 
         model.calculateNormals(64, 768, -50, -10, -50, true);
         model.pickable = true;
-        ObjType.modelCache?.put(BigInt(this.index), model);
+        ObjType.modelCache?.put(BigInt(this.id), model);
         return model;
     };
 

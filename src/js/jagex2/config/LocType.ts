@@ -31,7 +31,7 @@ export default class LocType extends ConfigType {
 
         this.cache = new TypedArray1d(10, null);
         for (let id: number = 0; id < 10; id++) {
-            this.cache[id] = new LocType();
+            this.cache[id] = new LocType(-1);
         }
     };
 
@@ -45,7 +45,7 @@ export default class LocType extends ConfigType {
             if (!type) {
                 continue;
             }
-            if (type.index === id) {
+            if (type.id === id) {
                 return type;
             }
         }
@@ -53,9 +53,9 @@ export default class LocType extends ConfigType {
         this.cachePos = (this.cachePos + 1) % 10;
         const loc: LocType = this.cache[this.cachePos]!;
         this.dat.pos = this.offsets[id];
-        loc.index = id;
+        loc.id = id;
         loc.reset();
-        loc.decodeType(id, this.dat);
+        loc.decodeType(this.dat);
 
         if (!loc.shapes) {
             loc.shapes = new Int32Array(1);
@@ -81,7 +81,6 @@ export default class LocType extends ConfigType {
 
     // ----
 
-    index: number = -1;
     models: Int32Array | null = null;
     shapes: Int32Array | null = null;
     name: string | null = null;
@@ -116,7 +115,7 @@ export default class LocType extends ConfigType {
     zoff: number = 0;
     forcedecor: boolean = false;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode = (code: number, dat: Packet): void => {
         if (code === 1) {
             const count: number = dat.g1;
             this.models = new Int32Array(count);
@@ -225,7 +224,7 @@ export default class LocType extends ConfigType {
             return null;
         }
 
-        const bitset: bigint = BigInt(BigInt(this.index) << 6n) + BigInt(BigInt(shapeIndex) << 3n) + BigInt(angle) + BigInt((BigInt(transformId) + 1n) << 32n);
+        const bitset: bigint = BigInt(BigInt(this.id) << 6n) + BigInt(BigInt(shapeIndex) << 3n) + BigInt(angle) + BigInt((BigInt(transformId) + 1n) << 32n);
         /*if (reset) {
             bitset = 0L;
         }*/

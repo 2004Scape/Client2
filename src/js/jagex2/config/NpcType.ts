@@ -28,7 +28,7 @@ export default class NpcType extends ConfigType {
 
         this.cache = new TypedArray1d(20, null);
         for (let id: number = 0; id < 20; id++) {
-            this.cache[id] = new NpcType();
+            this.cache[id] = new NpcType(-1);
         }
     };
 
@@ -42,16 +42,15 @@ export default class NpcType extends ConfigType {
             if (!type) {
                 continue;
             }
-            if (type.index === id) {
+            if (type.id === id) {
                 return type;
             }
         }
 
         this.cachePos = (this.cachePos + 1) % 20;
-        const loc: NpcType = (this.cache[this.cachePos] = new NpcType());
+        const loc: NpcType = (this.cache[this.cachePos] = new NpcType(id));
         this.dat.pos = this.offsets[id];
-        loc.index = id;
-        loc.decodeType(id, this.dat);
+        loc.decodeType(this.dat);
         return loc;
     };
 
@@ -64,7 +63,6 @@ export default class NpcType extends ConfigType {
 
     // ----
 
-    index: number = -1;
     name: string | null = null;
     desc: string | null = null;
     size: number = 1;
@@ -76,7 +74,6 @@ export default class NpcType extends ConfigType {
     walkanim_b: number = -1;
     walkanim_r: number = -1;
     walkanim_l: number = -1;
-    hasalpha: boolean = false;
     recol_s: Uint16Array | null = null;
     recol_d: Uint16Array | null = null;
     ops: (string | null)[] | null = null;
@@ -88,7 +85,7 @@ export default class NpcType extends ConfigType {
     resizeh: number = 128;
     resizev: number = 128;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode = (code: number, dat: Packet): void => {
         if (code === 1) {
             const count: number = dat.g1;
             this.models = new Uint16Array(count);
@@ -159,7 +156,7 @@ export default class NpcType extends ConfigType {
         let tmp: Model | null = null;
         let model: Model | null = null;
         if (NpcType.modelCache) {
-            model = NpcType.modelCache.get(BigInt(this.index)) as Model | null;
+            model = NpcType.modelCache.get(BigInt(this.id)) as Model | null;
 
             if (!model && this.models) {
                 const models: (Model | null)[] = new TypedArray1d(this.models.length, null);
@@ -182,7 +179,7 @@ export default class NpcType extends ConfigType {
                 model?.createLabelReferences();
                 model?.calculateNormals(64, 850, -30, -50, -30, true);
                 if (model) {
-                    NpcType.modelCache.put(BigInt(this.index), model);
+                    NpcType.modelCache.put(BigInt(this.id), model);
                 }
             }
         }

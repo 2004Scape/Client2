@@ -1815,8 +1815,8 @@ class Game extends Client {
 
                     if (this.projectX > -1) {
                         for (let icon: number = 0; icon < 8; icon++) {
-                            if ((player.headicons & (0x1 << icon)) !== 0 && this.imageHeadicons[icon]) {
-                                this.imageHeadicons[icon]!.draw(this.projectX - 12, this.projectY - y);
+                            if ((player.headicons & (0x1 << icon)) !== 0) {
+                                this.imageHeadicons[icon]?.draw(this.projectX - 12, this.projectY - y);
                                 y -= 25;
                             }
                         }
@@ -1826,15 +1826,15 @@ class Game extends Client {
                 if (index >= 0 && this.hintType === 10 && this.hintPlayer === this.playerIds[index]) {
                     this.projectFromEntity(entity, entity.height + 15);
 
-                    if (this.projectX > -1 && this.imageHeadicons[7]) {
-                        this.imageHeadicons[7].draw(this.projectX - 12, this.projectY - y);
+                    if (this.projectX > -1) {
+                        this.imageHeadicons[7]?.draw(this.projectX - 12, this.projectY - y);
                     }
                 }
             } else if (this.hintType === 1 && this.hintNpc === this.npcIds[index - this.playerCount] && this.loopCycle % 20 < 10) {
                 this.projectFromEntity(entity, entity.height + 15);
 
-                if (this.projectX > -1 && this.imageHeadicons[2]) {
-                    this.imageHeadicons[2].draw(this.projectX - 12, this.projectY - 28);
+                if (this.projectX > -1) {
+                    this.imageHeadicons[2]?.draw(this.projectX - 12, this.projectY - 28);
                 }
             }
 
@@ -1879,8 +1879,8 @@ class Game extends Client {
             if (entity.combatCycle > this.loopCycle + 330) {
                 this.projectFromEntity(entity, (entity.height / 2) | 0);
 
-                if (this.projectX > -1 && this.imageHitmarks[entity.damageType]) {
-                    this.imageHitmarks[entity.damageType]!.draw(this.projectX - 12, this.projectY - 12);
+                if (this.projectX > -1) {
+                    this.imageHitmarks[entity.damageType]?.draw(this.projectX - 12, this.projectY - 12);
                     this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + 4, entity.damage.toString(), Colors.BLACK);
                     this.fontPlain11?.drawStringCenter(this.projectX - 1, this.projectY + 3, entity.damage.toString(), Colors.WHITE);
                 }
@@ -1991,7 +1991,7 @@ class Game extends Client {
                         }
 
                         if ((npc.lastMask & 0x20) === 0x20) {
-                            this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Change Type: ' + npc.type?.index ?? null, Colors.WHITE);
+                            this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Change Type: ' + npc.type?.id ?? null, Colors.WHITE);
                             offsetY -= 15;
                         }
 
@@ -2120,7 +2120,7 @@ class Game extends Client {
     private drawDebug = (): void => {
         // all of this is basically custom code
         const x: number = 507;
-        let y: number = 20;
+        let y: number = 13;
         this.fontPlain11?.drawStringRight(x, y, `FPS: ${this.fps}`, Colors.YELLOW, true);
         y += 13;
         this.fontPlain11?.drawStringRight(x, y, `Speed: ${this.ms.toFixed(4)} ms`, Colors.YELLOW, true);
@@ -4577,7 +4577,9 @@ class Game extends Client {
                 tileLevel = level + 1;
             }
 
-            World.addLoc(level, x, z, this.scene, this.levelHeightmap!, this.locList, this.levelCollisionMap[level]!, id, shape, angle, tileLevel); // wrapped in a try catch
+            if (this.levelHeightmap) {
+                World.addLoc(level, x, z, this.scene, this.levelHeightmap, this.locList, this.levelCollisionMap[level], id, shape, angle, tileLevel);
+            }
         }
     };
 
@@ -6239,7 +6241,7 @@ class Game extends Client {
                             if (child.id !== this.objSelectedInterface || slot !== this.objSelectedSlot) {
                                 this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @lre@' + obj.name;
                                 this.menuAction[this.menuSize] = 881;
-                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamA[this.menuSize] = obj.id;
                                 this.menuParamB[this.menuSize] = slot;
                                 this.menuParamC[this.menuSize] = child.id;
                                 this.menuSize++;
@@ -6248,7 +6250,7 @@ class Game extends Client {
                             if ((this.activeSpellFlags & 0x10) === 16) {
                                 this.menuOption[this.menuSize] = this.spellCaption + ' @lre@' + obj.name;
                                 this.menuAction[this.menuSize] = 391;
-                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamA[this.menuSize] = obj.id;
                                 this.menuParamB[this.menuSize] = slot;
                                 this.menuParamC[this.menuSize] = child.id;
                                 this.menuSize++;
@@ -6263,14 +6265,14 @@ class Game extends Client {
                                         } else if (op === 4) {
                                             this.menuAction[this.menuSize] = 347;
                                         }
-                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamA[this.menuSize] = obj.id;
                                         this.menuParamB[this.menuSize] = slot;
                                         this.menuParamC[this.menuSize] = child.id;
                                         this.menuSize++;
                                     } else if (op === 4) {
                                         this.menuOption[this.menuSize] = 'Drop @lre@' + obj.name;
                                         this.menuAction[this.menuSize] = 347;
-                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamA[this.menuSize] = obj.id;
                                         this.menuParamB[this.menuSize] = slot;
                                         this.menuParamC[this.menuSize] = child.id;
                                         this.menuSize++;
@@ -6281,7 +6283,7 @@ class Game extends Client {
                             if (child.usable) {
                                 this.menuOption[this.menuSize] = 'Use @lre@' + obj.name;
                                 this.menuAction[this.menuSize] = 188;
-                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamA[this.menuSize] = obj.id;
                                 this.menuParamB[this.menuSize] = slot;
                                 this.menuParamC[this.menuSize] = child.id;
                                 this.menuSize++;
@@ -6298,7 +6300,7 @@ class Game extends Client {
                                         } else if (op === 2) {
                                             this.menuAction[this.menuSize] = 422;
                                         }
-                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamA[this.menuSize] = obj.id;
                                         this.menuParamB[this.menuSize] = slot;
                                         this.menuParamC[this.menuSize] = child.id;
                                         this.menuSize++;
@@ -6321,7 +6323,7 @@ class Game extends Client {
                                         } else if (op === 4) {
                                             this.menuAction[this.menuSize] = 415;
                                         }
-                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamA[this.menuSize] = obj.id;
                                         this.menuParamB[this.menuSize] = slot;
                                         this.menuParamC[this.menuSize] = child.id;
                                         this.menuSize++;
@@ -6331,10 +6333,10 @@ class Game extends Client {
 
                             this.menuOption[this.menuSize] = 'Examine @lre@' + obj.name;
                             if (Client.showDebug) {
-                                this.menuOption[this.menuSize] += '@whi@ (' + obj.index + ')';
+                                this.menuOption[this.menuSize] += '@whi@ (' + obj.id + ')';
                             }
                             this.menuAction[this.menuSize] = 1773;
-                            this.menuParamA[this.menuSize] = obj.index;
+                            this.menuParamA[this.menuSize] = obj.id;
                             if (child.invSlotObjCount) {
                                 this.menuParamC[this.menuSize] = child.invSlotObjCount[slot];
                             }
@@ -6483,7 +6485,7 @@ class Game extends Client {
 
                     this.menuOption[this.menuSize] = 'Examine @cya@' + loc.name;
                     if (Client.showDebug) {
-                        this.menuOption[this.menuSize] += '@whi@ (' + loc.index + ')';
+                        this.menuOption[this.menuSize] += '@whi@ (' + loc.id + ')';
                     }
                     this.menuAction[this.menuSize] = 1175;
                     this.menuParamA[this.menuSize] = bitset;
@@ -6693,7 +6695,7 @@ class Game extends Client {
 
             this.menuOption[this.menuSize] = 'Examine @yel@' + tooltip;
             if (Client.showDebug) {
-                this.menuOption[this.menuSize] += '@whi@ (' + npc.index + ')';
+                this.menuOption[this.menuSize] += '@whi@ (' + npc.id + ')';
             }
             this.menuAction[this.menuSize] = 1607;
             this.menuParamA[this.menuSize] = a;

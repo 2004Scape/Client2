@@ -71,7 +71,7 @@ export default class World {
         return Number(((n1 * (n1 * n1 * 15731n + 789221n) + 1376312589n) & 0x7fffffffn) >> 19n) & 0xff;
     };
 
-    static addLoc = (level: number, x: number, z: number, scene: World3D | null, levelHeightmap: Int32Array[][], locs: LinkList, collision: CollisionMap, locId: number, shape: number, angle: number, trueLevel: number): void => {
+    static addLoc = (level: number, x: number, z: number, scene: World3D | null, levelHeightmap: Int32Array[][], locs: LinkList, collision: CollisionMap | null, locId: number, shape: number, angle: number, trueLevel: number): void => {
         const heightSW: number = levelHeightmap[trueLevel][x][z];
         const heightSE: number = levelHeightmap[trueLevel][x + 1][z];
         const heightNW: number = levelHeightmap[trueLevel][x + 1][z + 1];
@@ -92,7 +92,7 @@ export default class World {
             scene?.addGroundDecoration(loc.getModel(LocShape.GROUND_DECOR.id, angle, heightSW, heightSE, heightNW, heightNE, -1), level, x, z, y, bitset, info);
 
             if (loc.blockwalk && loc.active) {
-                collision.addFloor(x, z);
+                collision?.addFloor(x, z);
             }
 
             if (loc.anim !== -1) {
@@ -120,7 +120,7 @@ export default class World {
             }
 
             if (loc.blockwalk) {
-                collision.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
+                collision?.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -130,7 +130,7 @@ export default class World {
             scene?.addLoc(level, x, z, y, loc.getModel(shape, angle, heightSW, heightSE, heightNW, heightNE, -1), null, bitset, info, 1, 1, 0);
 
             if (loc.blockwalk) {
-                collision.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
+                collision?.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -140,7 +140,7 @@ export default class World {
             scene?.addWall(level, x, z, y, World.ROTATION_WALL_TYPE[angle], 0, loc.getModel(LocShape.WALL_STRAIGHT.id, angle, heightSW, heightSE, heightNW, heightNE, -1), null, bitset, info);
 
             if (loc.blockwalk) {
-                collision.addWall(x, z, shape, angle, loc.blockrange);
+                collision?.addWall(x, z, shape, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -150,7 +150,7 @@ export default class World {
             scene?.addWall(level, x, z, y, World.ROTATION_WALL_CORNER_TYPE[angle], 0, loc.getModel(LocShape.WALL_DIAGONAL_CORNER.id, angle, heightSW, heightSE, heightNW, heightNE, -1), null, bitset, info);
 
             if (loc.blockwalk) {
-                collision.addWall(x, z, shape, angle, loc.blockrange);
+                collision?.addWall(x, z, shape, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -173,7 +173,7 @@ export default class World {
             );
 
             if (loc.blockwalk) {
-                collision.addWall(x, z, shape, angle, loc.blockrange);
+                collision?.addWall(x, z, shape, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -183,7 +183,7 @@ export default class World {
             scene?.addWall(level, x, z, y, World.ROTATION_WALL_CORNER_TYPE[angle], 0, loc.getModel(LocShape.WALL_SQUARE_CORNER.id, angle, heightSW, heightSE, heightNW, heightNE, -1), null, bitset, info);
 
             if (loc.blockwalk) {
-                collision.addWall(x, z, shape, angle, loc.blockrange);
+                collision?.addWall(x, z, shape, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -193,7 +193,7 @@ export default class World {
             scene?.addLoc(level, x, z, y, loc.getModel(shape, angle, heightSW, heightSE, heightNW, heightNE, -1), null, bitset, info, 1, 1, 0);
 
             if (loc.blockwalk) {
-                collision.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
+                collision?.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -892,8 +892,8 @@ export default class World {
             if (!World.lowMemory || loc.active || loc.forcedecor) {
                 scene?.addGroundDecoration(loc.getModel(LocShape.GROUND_DECOR.id, angle, heightSW, heightSE, heightNW, heightNE, -1), level, x, z, y, bitset, info);
 
-                if (loc.blockwalk && loc.active && collision) {
-                    collision.addFloor(x, z);
+                if (loc.blockwalk && loc.active) {
+                    collision?.addFloor(x, z);
                 }
 
                 if (loc.anim !== -1) {
@@ -934,8 +934,8 @@ export default class World {
                 }
             }
 
-            if (loc.blockwalk && collision) {
-                collision.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
+            if (loc.blockwalk) {
+                collision?.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -948,8 +948,8 @@ export default class World {
                 this.levelOccludemap[level][x][z] |= 0x924;
             }
 
-            if (loc.blockwalk && collision) {
-                collision.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
+            if (loc.blockwalk) {
+                collision?.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -996,8 +996,8 @@ export default class World {
                 }
             }
 
-            if (loc.blockwalk && collision) {
-                collision.addWall(x, z, shape, angle, loc.blockrange);
+            if (loc.blockwalk) {
+                collision?.addWall(x, z, shape, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -1022,8 +1022,8 @@ export default class World {
                 }
             }
 
-            if (loc.blockwalk && collision) {
-                collision.addWall(x, z, shape, angle, loc.blockrange);
+            if (loc.blockwalk) {
+                collision?.addWall(x, z, shape, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -1061,8 +1061,8 @@ export default class World {
                 }
             }
 
-            if (loc.blockwalk && collision) {
-                collision.addWall(x, z, shape, angle, loc.blockrange);
+            if (loc.blockwalk) {
+                collision?.addWall(x, z, shape, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -1087,8 +1087,8 @@ export default class World {
                 }
             }
 
-            if (loc.blockwalk && collision) {
-                collision.addWall(x, z, shape, angle, loc.blockrange);
+            if (loc.blockwalk) {
+                collision?.addWall(x, z, shape, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {
@@ -1097,8 +1097,8 @@ export default class World {
         } else if (shape === LocShape.WALL_DIAGONAL.id) {
             scene?.addLoc(level, x, z, y, loc.getModel(shape, angle, heightSW, heightSE, heightNW, heightNE, -1), null, bitset, info, 1, 1, 0);
 
-            if (loc.blockwalk && collision) {
-                collision.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
+            if (loc.blockwalk) {
+                collision?.addLoc(x, z, loc.width, loc.length, angle, loc.blockrange);
             }
 
             if (loc.anim !== -1) {

@@ -56,7 +56,7 @@ export default class LocShape {
     static of(id: number): LocShape {
         const values: LocShape[] = this.values();
         for (let index: number = 0; index < values.length; index++) {
-            const shape: LocShape = this.values()[index];
+            const shape: LocShape = values[index];
             if (shape.id === id) {
                 return shape;
             }

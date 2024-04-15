@@ -10,8 +10,7 @@ export default class FloType extends ConfigType {
         const dat: Packet = new Packet(config.read('flo.dat'));
         this.count = dat.g2;
         for (let i: number = 0; i < this.count; i++) {
-            this.instances[i] = new FloType();
-            this.instances[i].decodeType(i, dat);
+            this.instances[i] = new FloType(i).decodeType(dat);
         }
     };
 
@@ -83,7 +82,7 @@ export default class FloType extends ConfigType {
     chroma: number = 0;
     hsl: number = 0;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode = (code: number, dat: Packet): void => {
         if (code === 1) {
             this.rgb = dat.g3;
             this.setColor(this.rgb);

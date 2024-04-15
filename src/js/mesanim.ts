@@ -39,7 +39,7 @@ class Mesanim extends Client {
     splitPages: string[][] = [];
     splitMesanimId: number = -1;
 
-    activeNpc: NpcType = new NpcType();
+    activeNpc: NpcType = new NpcType(-1);
     inputMesanimId: number = -1;
     mes: string = '';
 
