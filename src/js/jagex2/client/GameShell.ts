@@ -498,7 +498,7 @@ export default abstract class GameShell {
                 this.mouseButton = 1;
             }
         } else {
-            if (e.buttons == 2) {
+            if (e.buttons === 2) {
                 this.mouseClickButton = 2;
                 this.mouseButton = 2;
             } else {
@@ -778,7 +778,7 @@ export default abstract class GameShell {
         const chatInputAreaY2: number = chatInputAreaY1 + 33;
         return (
             this.ingame &&
-            this.getChatInterfaceId() == -1 &&
+            this.getChatInterfaceId() === -1 &&
             !this.isChatBackInputOpen() &&
             !this.isShowSocialInput() &&
             this.mouseX >= chatInputAreaX1 &&
@@ -812,7 +812,7 @@ export default abstract class GameShell {
         const usernameAreaY1: number = 262;
         const usernameAreaX2: number = usernameAreaX1 + 261;
         const usernameAreaY2: number = usernameAreaY1 + 17;
-        return !this.ingame && this.getTitleScreenState() == 2 && this.mouseX >= usernameAreaX1 && this.mouseX <= usernameAreaX2 && this.mouseY >= usernameAreaY1 && this.mouseY <= usernameAreaY2;
+        return !this.ingame && this.getTitleScreenState() === 2 && this.mouseX >= usernameAreaX1 && this.mouseX <= usernameAreaX2 && this.mouseY >= usernameAreaY1 && this.mouseY <= usernameAreaY2;
     };
 
     private inPasswordArea = (): boolean => {
@@ -821,27 +821,27 @@ export default abstract class GameShell {
         const passwordAreaY1: number = 279;
         const passwordAreaX2: number = passwordAreaX1 + 261;
         const passwordAreaY2: number = passwordAreaY1 + 17;
-        return !this.ingame && this.getTitleScreenState() == 2 && this.mouseX >= passwordAreaX1 && this.mouseX <= passwordAreaX2 && this.mouseY >= passwordAreaY1 && this.mouseY <= passwordAreaY2;
+        return !this.ingame && this.getTitleScreenState() === 2 && this.mouseX >= passwordAreaX1 && this.mouseX <= passwordAreaX2 && this.mouseY >= passwordAreaY1 && this.mouseY <= passwordAreaY2;
     };
 
     private rotate = (direction: number): void => {
-        if (direction == 0) {
+        if (direction === 0) {
             this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowRight', code: 'ArrowRight'}));
             this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowLeft', code: 'ArrowLeft'}));
-        } else if (direction == 1) {
+        } else if (direction === 1) {
             this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowDown', code: 'ArrowDown'}));
             this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowUp', code: 'ArrowUp'}));
-        } else if (direction == 2) {
+        } else if (direction === 2) {
             this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowLeft', code: 'ArrowLeft'}));
             this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowRight', code: 'ArrowRight'}));
-        } else if (direction == 3) {
+        } else if (direction === 3) {
             this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowUp', code: 'ArrowUp'}));
             this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowDown', code: 'ArrowDown'}));
         }
     };
 
     private isFullScreen = (): boolean => {
-        return document.fullscreenElement != null;
+        return document.fullscreenElement !== null;
     };
 
     private setMousePosition = (e: MouseEvent): void => {
