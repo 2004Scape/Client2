@@ -3773,13 +3773,13 @@ class Game extends Client {
             if (direction === 0) {
                 color--;
                 if (color < 0) {
-                    color = PlayerEntity.DESIGN_BODY_COLOR[part].length - 1;
+                    color = PlayerEntity.DESIGN_IDK_COLORS[part].length - 1;
                 }
             }
 
             if (direction === 1) {
                 color++;
-                if (color >= PlayerEntity.DESIGN_BODY_COLOR[part].length) {
+                if (color >= PlayerEntity.DESIGN_IDK_COLORS[part].length) {
                     color = 0;
                 }
             }

@@ -8,15 +8,99 @@ import ObjType from '../../config/ObjType';
 import Packet from '../../io/Packet';
 import JString from '../../datastruct/JString';
 import {TypedArray1d} from '../../util/Arrays';
+import Colors from '../../graphics/Colors';
 
 export default class PlayerEntity extends PathingEntity {
-    static readonly DESIGN_HAIR_COLOR: number[] = [9104, 10275, 7595, 3610, 7975, 8526, 918, 38802, 24466, 10145, 58654, 5027, 1457, 16565, 34991, 25486];
-    static readonly DESIGN_BODY_COLOR: number[][] = [
-        [6798, 107, 10283, 16, 4797, 7744, 5799, 4634, 33697, 22433, 2983, 54193],
-        [8741, 12, 64030, 43162, 7735, 8404, 1701, 38430, 24094, 10153, 56621, 4783, 1341, 16578, 35003, 25239],
-        [25238, 8742, 12, 64030, 43162, 7735, 8404, 1701, 38430, 24094, 10153, 56621, 4783, 1341, 16578, 35003],
-        [4626, 11146, 6439, 12, 4758, 10270],
-        [4550, 4537, 5681, 5673, 5790, 6806, 8076, 4574]
+    // prettier-ignore
+    static readonly TORSO_RECOLORS: number[] = [
+        Colors.BODY_RECOLOR_KHAKI,
+        Colors.BODY_RECOLOR_CHARCOAL,
+        Colors.BODY_RECOLOR_CRIMSON,
+        Colors.BODY_RECOLOR_NAVY,
+        Colors.BODY_RECOLOR_STRAW,
+        Colors.BODY_RECOLOR_WHITE,
+        Colors.BODY_RECOLOR_RED,
+        Colors.BODY_RECOLOR_BLUE,
+        Colors.BODY_RECOLOR_GREEN,
+        Colors.BODY_RECOLOR_YELLOW,
+        Colors.BODY_RECOLOR_PURPLE,
+        Colors.BODY_RECOLOR_ORANGE,
+        Colors.BODY_RECOLOR_ROSE,
+        Colors.BODY_RECOLOR_LIME,
+        Colors.BODY_RECOLOR_CYAN,
+        Colors.BODY_RECOLOR_EMERALD
+    ];
+
+    // prettier-ignore
+    static readonly DESIGN_IDK_COLORS: number[][] = [
+        [ // hair
+            Colors.HAIR_DARK_BROWN,
+            Colors.HAIR_WHITE,
+            Colors.HAIR_LIGHT_GREY,
+            Colors.HAIR_DARK_GREY,
+            Colors.HAIR_APRICOT,
+            Colors.HAIR_STRAW,
+            Colors.HAIR_LIGHT_BROWN,
+            Colors.HAIR_BROWN,
+            Colors.HAIR_TURQUOISE,
+            Colors.HAIR_GREEN,
+            Colors.HAIR_GINGER,
+            Colors.HAIR_MAGENTA
+        ],
+        [ // torso
+            Colors.BODY_KHAKI,
+            Colors.BODY_CHARCOAL,
+            Colors.BODY_CRIMSON,
+            Colors.BODY_NAVY,
+            Colors.BODY_STRAW,
+            Colors.BODY_WHITE,
+            Colors.BODY_RED,
+            Colors.BODY_BLUE,
+            Colors.BODY_GREEN,
+            Colors.BODY_YELLOW,
+            Colors.BODY_PURPLE,
+            Colors.BODY_ORANGE,
+            Colors.BODY_ROSE,
+            Colors.BODY_LIME,
+            Colors.BODY_CYAN,
+            Colors.BODY_EMERALD
+        ],
+        [ // legs
+            Colors.BODY_EMERALD - 1,
+            Colors.BODY_KHAKI + 1,
+            Colors.BODY_CHARCOAL,
+            Colors.BODY_CRIMSON,
+            Colors.BODY_NAVY,
+            Colors.BODY_STRAW,
+            Colors.BODY_WHITE,
+            Colors.BODY_RED,
+            Colors.BODY_BLUE,
+            Colors.BODY_GREEN,
+            Colors.BODY_YELLOW,
+            Colors.BODY_PURPLE,
+            Colors.BODY_ORANGE,
+            Colors.BODY_ROSE,
+            Colors.BODY_LIME,
+            Colors.BODY_CYAN
+        ],
+        [ // feet
+            Colors.FEET_BROWN,
+            Colors.FEET_KHAKI,
+            Colors.FEET_ASHEN,
+            Colors.FEET_DARK,
+            Colors.FEET_TERRACOTTA,
+            Colors.FEET_GREY
+        ],
+        [ // skin
+            Colors.SKIN_DARKER,
+            Colors.SKIN_DARKER_DARKER,
+            Colors.SKIN_DARKER_DARKER_DARKER,
+            Colors.SKIN_DARKER_DARKER_DARKER_DARKER,
+            Colors.SKIN_DARKER_DARKER_DARKER_DARKER_DARKER,
+            Colors.SKIN_DARKER_DARKER_DARKER_DARKER_DARKER_DARKER,
+            Colors.SKIN_DARKER_DARKER_DARKER_DARKER_DARKER_DARKER_DARKER,
+            Colors.SKIN
+        ]
     ];
 
     static modelCache: LruCache | null = new LruCache(200);
@@ -42,7 +126,7 @@ export default class PlayerEntity extends PathingEntity {
     maxTileZ: number = 0;
     lowMemory: boolean = false;
 
-    draw(loopCycle: number): Model | null {
+    draw = (loopCycle: number): Model | null => {
         if (!this.visible) {
             return null;
         }
@@ -114,7 +198,7 @@ export default class PlayerEntity extends PathingEntity {
 
         model.pickable = true;
         return model;
-    }
+    };
 
     isVisible = (): boolean => this.visible;
 
@@ -135,7 +219,7 @@ export default class PlayerEntity extends PathingEntity {
 
         for (let part: number = 0; part < 5; part++) {
             let color: number = buf.g1;
-            if (color < 0 || color >= PlayerEntity.DESIGN_BODY_COLOR[part].length) {
+            if (color < 0 || color >= PlayerEntity.DESIGN_IDK_COLORS[part].length) {
                 color = 0;
             }
             this.colors[part] = color;
@@ -228,9 +312,9 @@ export default class PlayerEntity extends PathingEntity {
             if (this.colors[part] === 0) {
                 continue;
             }
-            tmp.recolor(PlayerEntity.DESIGN_BODY_COLOR[part][0], PlayerEntity.DESIGN_BODY_COLOR[part][this.colors[part]]);
+            tmp.recolor(PlayerEntity.DESIGN_IDK_COLORS[part][0], PlayerEntity.DESIGN_IDK_COLORS[part][this.colors[part]]);
             if (part === 1) {
-                tmp.recolor(PlayerEntity.DESIGN_HAIR_COLOR[0], PlayerEntity.DESIGN_HAIR_COLOR[this.colors[part]]);
+                tmp.recolor(PlayerEntity.TORSO_RECOLORS[0], PlayerEntity.TORSO_RECOLORS[this.colors[part]]);
             }
         }
 
@@ -310,9 +394,9 @@ export default class PlayerEntity extends PathingEntity {
                 if (this.colors[part] === 0) {
                     continue;
                 }
-                model.recolor(PlayerEntity.DESIGN_BODY_COLOR[part][0], PlayerEntity.DESIGN_BODY_COLOR[part][this.colors[part]]);
+                model.recolor(PlayerEntity.DESIGN_IDK_COLORS[part][0], PlayerEntity.DESIGN_IDK_COLORS[part][this.colors[part]]);
                 if (part === 1) {
-                    model.recolor(PlayerEntity.DESIGN_HAIR_COLOR[0], PlayerEntity.DESIGN_HAIR_COLOR[this.colors[part]]);
+                    model.recolor(PlayerEntity.TORSO_RECOLORS[0], PlayerEntity.TORSO_RECOLORS[this.colors[part]]);
                 }
             }
 

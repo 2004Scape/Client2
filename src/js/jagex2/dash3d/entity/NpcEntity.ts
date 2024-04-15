@@ -7,7 +7,7 @@ import SeqType from '../../config/SeqType';
 export default class NpcEntity extends PathingEntity {
     type: NpcType | null = null;
 
-    draw = (): Model | null => {
+    draw = (_loopCycle: number): Model | null => {
         if (!this.type) {
             return null;
         }
