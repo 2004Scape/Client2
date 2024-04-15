@@ -722,7 +722,7 @@ export default class World {
     clearLandscape = (startX: number, startZ: number, endX: number, endZ: number): void => {
         let waterOverlay: number = 0;
         for (let i: number = 0; i < FloType.count; i++) {
-            if (FloType.instances[i].name?.toLowerCase() === 'water') {
+            if (FloType.instances[i].debugname?.toLowerCase() === 'water') {
                 waterOverlay = ((i + 1) << 24) >> 24;
                 break;
             }

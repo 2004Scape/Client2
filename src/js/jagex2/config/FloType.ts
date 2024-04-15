@@ -72,7 +72,6 @@ export default class FloType extends ConfigType {
     texture: number = -1;
     opcode3: boolean = false;
     occlude: boolean = true;
-    name: string | null = null;
 
     // runtime
     hue: number = 0;
@@ -93,7 +92,7 @@ export default class FloType extends ConfigType {
         } else if (code === 5) {
             this.occlude = false;
         } else if (code === 6) {
-            this.name = dat.gjstr;
+            this.debugname = dat.gjstr;
         } else {
             console.log('Error unrecognised config code: ', code);
         }
