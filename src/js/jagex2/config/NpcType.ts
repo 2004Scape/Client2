@@ -34,7 +34,7 @@ export default class NpcType extends ConfigType {
 
     static get = (id: number): NpcType => {
         if (!this.cache || !this.offsets || !this.dat) {
-            throw new Error('LocType not loaded!!!');
+            throw new Error('NpcType not loaded!!!');
         }
 
         for (let i: number = 0; i < 20; i++) {
