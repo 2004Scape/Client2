@@ -5,6 +5,7 @@
   "targets": {
     "release": {
       "outFile": "./src/js/vendor/bz2.wasm",
+      "textFile": "./assembly/bz2.wat",
       "sourceMap": false,
       "optimizeLevel": 3,
       "shrinkLevel": 0,
