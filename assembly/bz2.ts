@@ -264,7 +264,7 @@ function decompress(): void {
         let gPos: i32 = groupPos - 1;
         let zn: i32 = gMinlen;
         let zvec: i32;
-        let zj: u8;
+        let zj: u8 = 0;
         for (zvec = getBits(gMinlen); zvec > unchecked(gLimit[zn]); zvec = (zvec << 1) | zj) {
             zn++;
             zj = getBit();
