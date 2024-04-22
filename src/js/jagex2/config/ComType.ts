@@ -109,7 +109,7 @@ export default class ComType {
 
         dat.pos += 2; // const count = dat.g2;
 
-        while (dat.pos < dat.data.length) {
+        while (dat.pos < dat.length) {
             let id: number = dat.g2;
             if (id === 65535) {
                 layer = dat.g2;

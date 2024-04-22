@@ -53,7 +53,7 @@ export default class Pix8 extends Hashable {
             index.pos += 1;
         }
 
-        if (dat.pos > dat.data.length || index.pos > index.data.length) {
+        if (dat.pos > dat.length || index.pos > index.length) {
             throw new Error();
         }
 
