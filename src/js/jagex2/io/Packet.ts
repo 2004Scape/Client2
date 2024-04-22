@@ -101,7 +101,7 @@ export default class Packet extends Hashable {
         return new Packet(new Uint8Array(30000));
     };
 
-    release = (): void => {
+    release(): void {
         this.pos = 0;
         if (this.data.length === 100 && Packet.cacheMinCount < 1000) {
             Packet.cacheMin.addTail(this);
@@ -113,7 +113,7 @@ export default class Packet extends Hashable {
             Packet.cacheMax.addTail(this);
             Packet.cacheMaxCount++;
         }
-    };
+    }
 
     get g1(): number {
         return this.data[this.pos++];
@@ -167,81 +167,81 @@ export default class Packet extends Hashable {
         return str;
     }
 
-    gdata = (length: number, offset: number, dest: Uint8Array | Int8Array): void => {
+    gdata(length: number, offset: number, dest: Uint8Array | Int8Array): void {
         for (let i: number = offset; i < offset + length; i++) {
             dest[i] = this.data[this.pos++];
         }
-    };
+    }
 
-    p1isaac = (opcode: number): void => {
+    p1isaac(opcode: number): void {
         this.data[this.pos++] = (opcode + (this.random?.nextInt ?? 0)) & 0xff;
-    };
+    }
 
-    p1 = (value: number): void => {
+    p1(value: number): void {
         this.data[this.pos++] = value;
-    };
+    }
 
-    p2 = (value: number): void => {
+    p2(value: number): void {
         this.data[this.pos++] = value >>> 8;
         this.data[this.pos++] = value;
-    };
+    }
 
-    ip2 = (value: number): void => {
+    ip2(value: number): void {
         this.data[this.pos++] = value;
         this.data[this.pos++] = value >>> 8;
-    };
+    }
 
-    p3 = (value: number): void => {
+    p3(value: number): void {
         this.data[this.pos++] = value >>> 16;
         this.data[this.pos++] = value >>> 8;
         this.data[this.pos++] = value;
-    };
+    }
 
-    p4 = (value: number): void => {
+    p4(value: number): void {
         this.data[this.pos++] = value >>> 24;
         this.data[this.pos++] = value >>> 16;
         this.data[this.pos++] = value >>> 8;
         this.data[this.pos++] = value;
-    };
+    }
 
-    ip4 = (value: number): void => {
+    ip4(value: number): void {
         this.data[this.pos++] = value;
         this.data[this.pos++] = value >>> 8;
         this.data[this.pos++] = value >>> 16;
         this.data[this.pos++] = value >>> 24;
-    };
+    }
 
-    p8 = (value: bigint): void => {
+    p8(value: bigint): void {
         this.p4(Number(value >> 32n));
         this.p4(Number(value & 0xffffffffn));
-    };
+    }
 
-    pjstr = (str: string): void => {
+    pjstr(str: string): void {
         for (let i: number = 0; i < str.length; i++) {
             this.data[this.pos++] = str.charCodeAt(i);
         }
         this.data[this.pos++] = 10;
-    };
+    }
 
-    pdata = (src: Uint8Array, length: number, offset: number): void => {
+    pdata(src: Uint8Array, length: number, offset: number): void {
         for (let i: number = offset; i < offset + length; i++) {
             this.data[this.pos++] = src[i];
         }
-    };
+    }
 
-    psize1 = (size: number): void => {
+    psize1(size: number): void {
         this.data[this.pos - size - 1] = size;
-    };
+    }
 
-    bits = (): void => {
+    bits(): void {
         this.bitPos = this.pos * 8;
-    };
+    }
 
-    bytes = (): void => {
+    bytes(): void {
         this.pos = ((this.bitPos + 7) / 8) | 0;
-    };
+    }
 
-    gBit = (n: number): number => {
+    gBit(n: number): number {
         let bytePos: number = this.bitPos >>> 3;
         let remaining: number = 8 - (this.bitPos & 7);
         let value: number = 0;
@@ -259,9 +259,9 @@ export default class Packet extends Hashable {
         }
 
         return value;
-    };
+    }
 
-    rsaenc = (mod: bigint, exp: bigint): void => {
+    rsaenc(mod: bigint, exp: bigint): void {
         const temp: Uint8Array = new Uint8Array(this.pos);
         arraycopy(this.data, 0, temp, 0, this.pos);
 
@@ -272,5 +272,5 @@ export default class Packet extends Hashable {
         this.pos = 0;
         this.p1(rawEnc.length);
         this.pdata(rawEnc, rawEnc.length, 0);
-    };
+    }
 }

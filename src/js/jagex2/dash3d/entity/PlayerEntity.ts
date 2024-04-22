@@ -126,7 +126,7 @@ export default class PlayerEntity extends PathingEntity {
     maxTileZ: number = 0;
     lowMemory: boolean = false;
 
-    draw = (loopCycle: number): Model | null => {
+    draw(loopCycle: number): Model | null {
         if (!this.visible) {
             return null;
         }
@@ -198,11 +198,13 @@ export default class PlayerEntity extends PathingEntity {
 
         model.pickable = true;
         return model;
-    };
+    }
 
-    isVisible = (): boolean => this.visible;
+    isVisible(): boolean {
+        return this.visible;
+    }
 
-    read = (buf: Packet): void => {
+    read(buf: Packet): void {
         buf.pos = 0;
 
         this.gender = buf.g1;
@@ -283,9 +285,9 @@ export default class PlayerEntity extends PathingEntity {
         }
         this.appearanceHashcode <<= 0x1n;
         this.appearanceHashcode += BigInt(this.gender);
-    };
+    }
 
-    getHeadModel = (): Model | null => {
+    getHeadModel(): Model | null {
         if (!this.visible) {
             return null;
         }
@@ -319,9 +321,9 @@ export default class PlayerEntity extends PathingEntity {
         }
 
         return tmp;
-    };
+    }
 
-    private getSequencedModel = (): Model => {
+    private getSequencedModel(): Model {
         let hashCode: bigint = this.appearanceHashcode;
         let primaryTransformId: number = -1;
         let secondaryTransformId: number = -1;
@@ -420,5 +422,5 @@ export default class PlayerEntity extends PathingEntity {
         tmp.labelFaces = null;
         tmp.labelVertices = null;
         return tmp;
-    };
+    }
 }

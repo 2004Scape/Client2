@@ -32,7 +32,7 @@ export default class SpotAnimType extends ConfigType {
     ambient: number = 0;
     contrast: number = 0;
 
-    decode = (code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.model = dat.g2;
         } else if (code === 2) {
@@ -60,9 +60,9 @@ export default class SpotAnimType extends ConfigType {
         } else {
             throw new Error(`Unrecognized spotanim config code: ${code}`);
         }
-    };
+    }
 
-    getModel = (): Model => {
+    getModel(): Model {
         let model: Model | null = SpotAnimType.modelCache?.get(BigInt(this.id)) as Model | null;
         if (model) {
             return model;
@@ -75,5 +75,5 @@ export default class SpotAnimType extends ConfigType {
         }
         SpotAnimType.modelCache?.put(BigInt(this.id), model);
         return model;
-    };
+    }
 }

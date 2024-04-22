@@ -10,7 +10,7 @@ export abstract class ConfigType {
 
     abstract decode(code: number, dat: Packet): void;
 
-    decodeType = (dat: Packet): this => {
+    decodeType(dat: Packet): this {
         // eslint-disable-next-line no-constant-condition
         while (true) {
             const opcode: number = dat.g1;
@@ -20,5 +20,5 @@ export abstract class ConfigType {
             this.decode(opcode, dat);
         }
         return this;
-    };
+    }
 }

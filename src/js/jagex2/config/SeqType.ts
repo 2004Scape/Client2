@@ -43,7 +43,7 @@ export default class SeqType extends ConfigType {
     replaycount: number = 99;
     duration: number = 0;
 
-    decode = (code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.frameCount = dat.g1;
             this.frames = new Int16Array(this.frameCount);
@@ -93,5 +93,5 @@ export default class SeqType extends ConfigType {
         } else {
             throw new Error(`Unrecognized seq config code: ${code}`);
         }
-    };
+    }
 }

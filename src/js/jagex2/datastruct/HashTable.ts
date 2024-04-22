@@ -13,7 +13,7 @@ export default class HashTable {
         }
     }
 
-    get = (key: bigint): Linkable | null => {
+    get(key: bigint): Linkable | null {
         const start: Linkable = this.buckets[Number(key & BigInt(this.bucketCount - 1))];
         const next: Linkable | null = start.next;
         if (!next) {
@@ -30,9 +30,9 @@ export default class HashTable {
         }
 
         return null;
-    };
+    }
 
-    put = (key: bigint, value: Linkable): void => {
+    put(key: bigint, value: Linkable): void {
         if (value.prev) {
             value.unlink();
         }
@@ -45,5 +45,5 @@ export default class HashTable {
         }
         value.next.prev = value;
         value.key = key;
-    };
+    }
 }

@@ -56,15 +56,15 @@ export default class ClientStream {
         return this.closed ? 0 : this.wsin.available;
     }
 
-    write = (src: Uint8Array, len: number): void => {
+    write(src: Uint8Array, len: number): void {
         this.wsout.write(src, len);
-    };
+    }
 
-    read = async (): Promise<number> => {
+    async read(): Promise<number> {
         return this.closed ? 0 : this.wsin.fastByte() ?? (await this.wsin.slowByte());
-    };
+    }
 
-    readBytes = async (dst: Uint8Array, off: number, len: number): Promise<void> => {
+    async readBytes(dst: Uint8Array, off: number, len: number): Promise<void> {
         if (this.closed) {
             return;
         }
@@ -76,9 +76,9 @@ export default class ClientStream {
             off += read.length;
             len -= read.length;
         }
-    };
+    }
 
-    close = (): void => {
+    close(): void {
         this.closed = true;
         this.socket.close();
         this.wsin.close();
@@ -87,7 +87,7 @@ export default class ClientStream {
         if (this.ioerror) {
             console.log('connection error!');
         }
-    };
+    }
 
     private onclose = (event: CloseEvent): void => {
         if (this.closed) {
@@ -118,7 +118,7 @@ class WebSocketWriter {
         this.limit = limit;
     }
 
-    write = (src: Uint8Array, len: number): void => {
+    write(src: Uint8Array, len: number): void {
         if (this.closed) {
             return;
         }
@@ -134,11 +134,11 @@ class WebSocketWriter {
         } catch (e) {
             this.ioerror = true;
         }
-    };
+    }
 
-    close = (): void => {
+    close(): void {
         this.closed = true;
-    };
+    }
 }
 
 class WebSocketEvent extends Linkable {
@@ -207,22 +207,22 @@ class WebSocketReader {
         }
     };
 
-    private readFastByte = (): number | null => {
+    private readFastByte(): number | null {
         if (this.event && this.event.available > 0) {
             return this.event.read;
         }
         return null;
-    };
+    }
 
-    private readSlowByte = async (len: number): Promise<number> => {
+    private async readSlowByte(len: number): Promise<number> {
         this.event = this.queue.removeHead() as WebSocketEvent | null;
         while (this.total < len) {
             await new Promise((resolve): ((value: PromiseLike<((data: WebSocketEvent | null) => void) | null>) => void) => (this.callback = resolve));
         }
         return this.event ? this.event.read : this.readSlowByte(len);
-    };
+    }
 
-    fastBytes = (dst: Uint8Array, off: number, len: number): Uint8Array | null => {
+    fastBytes(dst: Uint8Array, off: number, len: number): Uint8Array | null {
         if (this.closed) {
             throw new Error('WebSocketReader is closed!');
         }
@@ -239,9 +239,9 @@ class WebSocketReader {
             len--;
         }
         return dst;
-    };
+    }
 
-    slowBytes = async (dst: Uint8Array, off: number, len: number): Promise<Uint8Array> => {
+    async slowBytes(dst: Uint8Array, off: number, len: number): Promise<Uint8Array> {
         if (this.closed) {
             throw new Error('WebSocketReader is closed!');
         }
@@ -251,9 +251,9 @@ class WebSocketReader {
             len--;
         }
         return dst;
-    };
+    }
 
-    fastByte = (): number | null => {
+    fastByte(): number | null {
         if (this.closed) {
             throw new Error('WebSocketReader is closed!');
         }
@@ -263,22 +263,22 @@ class WebSocketReader {
         }
         this.total--;
         return fast;
-    };
+    }
 
-    slowByte = async (): Promise<number> => {
+    async slowByte(): Promise<number> {
         if (this.closed) {
             throw new Error('WebSocketReader is closed!');
         }
         const slow: number = await this.readSlowByte(1);
         this.total--;
         return slow;
-    };
+    }
 
-    close = (): void => {
+    close(): void {
         this.closed = true;
         this.callback = null;
         this.total = 0;
         this.event = null;
         this.queue.clear();
-    };
+    }
 }

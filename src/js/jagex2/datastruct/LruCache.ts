@@ -16,15 +16,15 @@ export default class LruCache {
         this.history = new Stack();
     }
 
-    get = (key: bigint): Hashable | null => {
+    get(key: bigint): Hashable | null {
         const node: Hashable | null = this.hashtable.get(key) as Hashable | null;
         if (node) {
             this.history.push(node);
         }
         return node;
-    };
+    }
 
-    put = (key: bigint, value: Hashable): void => {
+    put(key: bigint, value: Hashable): void {
         if (this.available === 0) {
             const node: Hashable | null = this.history.pop();
             node?.unlink();
@@ -34,9 +34,9 @@ export default class LruCache {
         }
         this.hashtable.put(key, value);
         this.history.push(value);
-    };
+    }
 
-    clear = (): void => {
+    clear(): void {
         const node: Hashable | null = this.history.pop();
         if (!node) {
             this.available = this.capacity;
@@ -44,5 +44,5 @@ export default class LruCache {
         }
         node.unlink();
         node.uncache();
-    };
+    }
 }

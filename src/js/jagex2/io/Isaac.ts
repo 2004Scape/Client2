@@ -21,7 +21,7 @@ export default class Isaac {
         return this.rsl[this.count];
     }
 
-    private init = (): void => {
+    private init(): void {
         let a: number = 0x9e3779b9,
             b: number = 0x9e3779b9,
             c: number = 0x9e3779b9,
@@ -150,9 +150,9 @@ export default class Isaac {
 
         this.isaac();
         this.count = 256;
-    };
+    }
 
-    isaac = (): void => {
+    isaac(): void {
         this.c++;
         this.b += this.c;
 
@@ -176,5 +176,5 @@ export default class Isaac {
             this.mem[i] = y = this.mem[(x >>> 2) & 0xff] + this.a + this.b;
             this.rsl[i] = this.b = this.mem[((y >>> 8) >>> 2) & 0xff] + x;
         }
-    };
+    }
 }

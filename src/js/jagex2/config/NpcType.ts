@@ -85,7 +85,7 @@ export default class NpcType extends ConfigType {
     resizeh: number = 128;
     resizev: number = 128;
 
-    decode = (code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             const count: number = dat.g1;
             this.models = new Uint16Array(count);
@@ -150,9 +150,9 @@ export default class NpcType extends ConfigType {
         } else if (code === 98) {
             this.resizev = dat.g2;
         }
-    };
+    }
 
-    getSequencedModel = (primaryTransformId: number, secondaryTransformId: number, seqMask: Int32Array | null): Model | null => {
+    getSequencedModel(primaryTransformId: number, secondaryTransformId: number, seqMask: Int32Array | null): Model | null {
         let tmp: Model | null = null;
         let model: Model | null = null;
         if (NpcType.modelCache) {
@@ -207,9 +207,9 @@ export default class NpcType extends ConfigType {
         }
 
         return null;
-    };
+    }
 
-    getHeadModel = (): Model | null => {
+    getHeadModel(): Model | null {
         if (!this.heads) {
             return null;
         }
@@ -233,5 +233,5 @@ export default class NpcType extends ConfigType {
         }
 
         return model;
-    };
+    }
 }

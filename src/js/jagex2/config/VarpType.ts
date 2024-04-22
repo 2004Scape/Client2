@@ -27,7 +27,7 @@ export default class VarpType extends ConfigType {
     transmit: boolean = false;
     code8: boolean = false;
 
-    decode = (code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.scope = dat.g1;
         } else if (code === 2) {
@@ -50,5 +50,5 @@ export default class VarpType extends ConfigType {
         } else {
             throw new Error(`Error unrecognised config code: ${code}`);
         }
-    };
+    }
 }

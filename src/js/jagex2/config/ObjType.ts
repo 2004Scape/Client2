@@ -229,7 +229,7 @@ export default class ObjType extends ConfigType {
     certlink: number = -1;
     certtemplate: number = -1;
 
-    decode = (code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.model = dat.g2;
         } else if (code === 2) {
@@ -322,9 +322,9 @@ export default class ObjType extends ConfigType {
             this.countobj[code - 100] = dat.g2;
             this.countco[code - 100] = dat.g2;
         }
-    };
+    }
 
-    getWornModel = (gender: number): Model | null => {
+    getWornModel(gender: number): Model | null {
         let id1: number = this.manwear;
         if (gender === 1) {
             id1 = this.womanwear;
@@ -369,9 +369,9 @@ export default class ObjType extends ConfigType {
             }
         }
         return model;
-    };
+    }
 
-    getHeadModel = (gender: number): Model | null => {
+    getHeadModel(gender: number): Model | null {
         let head1: number = this.manhead;
         if (gender === 1) {
             head1 = this.womanhead;
@@ -399,9 +399,9 @@ export default class ObjType extends ConfigType {
             }
         }
         return model;
-    };
+    }
 
-    getInterfaceModel = (count: number): Model => {
+    getInterfaceModel(count: number): Model {
         if (this.countobj && this.countco && count > 1) {
             let id: number = -1;
             for (let i: number = 0; i < 10; i++) {
@@ -433,9 +433,9 @@ export default class ObjType extends ConfigType {
         model.pickable = true;
         ObjType.modelCache?.put(BigInt(this.id), model);
         return model;
-    };
+    }
 
-    private toCertificate = (): void => {
+    private toCertificate(): void {
         const template: ObjType = ObjType.get(this.certtemplate);
         this.model = template.model;
         this.zoom2d = template.zoom2d;
@@ -460,9 +460,9 @@ export default class ObjType extends ConfigType {
         this.desc = `Swap this note at any bank for ${article} ${link.name}.`;
 
         this.stackable = true;
-    };
+    }
 
-    private reset = (): void => {
+    private reset(): void {
         this.model = 0;
         this.name = null;
         this.desc = null;
@@ -497,5 +497,5 @@ export default class ObjType extends ConfigType {
         this.countco = null;
         this.certlink = -1;
         this.certtemplate = -1;
-    };
+    }
 }

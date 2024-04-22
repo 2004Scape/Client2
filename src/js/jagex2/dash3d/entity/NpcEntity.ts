@@ -7,7 +7,7 @@ import SeqType from '../../config/SeqType';
 export default class NpcEntity extends PathingEntity {
     type: NpcType | null = null;
 
-    draw = (_loopCycle: number): Model | null => {
+    draw(_loopCycle: number): Model | null {
         if (!this.type) {
             return null;
         }
@@ -44,11 +44,13 @@ export default class NpcEntity extends PathingEntity {
         }
 
         return tmp;
-    };
+    }
 
-    isVisible = (): boolean => this.type !== null;
+    isVisible(): boolean {
+        return this.type !== null;
+    }
 
-    private getSequencedModel = (): Model | null => {
+    private getSequencedModel(): Model | null {
         if (!this.type) {
             return null;
         }
@@ -81,5 +83,5 @@ export default class NpcEntity extends PathingEntity {
         }
         this.height = model.maxY;
         return model;
-    };
+    }
 }

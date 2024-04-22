@@ -89,7 +89,7 @@ export default class Pix8 extends Hashable {
         return image;
     };
 
-    draw = (x: number, y: number): void => {
+    draw(x: number, y: number): void {
         x |= 0;
         y |= 0;
 
@@ -135,9 +135,9 @@ export default class Pix8 extends Hashable {
         if (w > 0 && h > 0) {
             this.copyImage(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep);
         }
-    };
+    }
 
-    flipHorizontally = (): void => {
+    flipHorizontally(): void {
         const pixels: Int8Array = this.pixels;
         const width: number = this.width;
         const height: number = this.height;
@@ -153,9 +153,9 @@ export default class Pix8 extends Hashable {
                 pixels[off2] = tmp;
             }
         }
-    };
+    }
 
-    flipVertically = (): void => {
+    flipVertically(): void {
         const pixels: Int8Array = this.pixels;
         const width: number = this.width;
         const height: number = this.height;
@@ -170,9 +170,9 @@ export default class Pix8 extends Hashable {
                 pixels[off2] = tmp;
             }
         }
-    };
+    }
 
-    translate = (r: number, g: number, b: number): void => {
+    translate(r: number, g: number, b: number): void {
         for (let i: number = 0; i < this.palette.length; i++) {
             let red: number = (this.palette[i] >> 16) & 0xff;
             red += r;
@@ -200,9 +200,9 @@ export default class Pix8 extends Hashable {
 
             this.palette[i] = (red << 16) + (green << 8) + blue;
         }
-    };
+    }
 
-    shrink = (): void => {
+    shrink(): void {
         this.cropW |= 0;
         this.cropH |= 0;
         this.cropW /= 2;
@@ -222,9 +222,9 @@ export default class Pix8 extends Hashable {
         this.height = this.cropH;
         this.cropX = 0;
         this.cropY = 0;
-    };
+    }
 
-    crop = (): void => {
+    crop(): void {
         if (this.width === this.cropW && this.height === this.cropH) {
             return;
         }
@@ -241,9 +241,9 @@ export default class Pix8 extends Hashable {
         this.height = this.cropH;
         this.cropX = 0;
         this.cropY = 0;
-    };
+    }
 
-    private copyImage = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
+    private copyImage(w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void {
         const qw: number = -(w >> 2);
         w = -(w & 0x3);
 
@@ -290,5 +290,5 @@ export default class Pix8 extends Hashable {
             dstOff += dstStep;
             srcOff += srcStep;
         }
-    };
+    }
 }

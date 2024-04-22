@@ -63,7 +63,7 @@ export default abstract class PathingEntity extends Entity {
 
     abstract isVisible(): boolean;
 
-    move = (teleport: boolean, x: number, z: number): void => {
+    move(teleport: boolean, x: number, z: number): void {
         if (this.primarySeqId !== -1 && SeqType.instances[this.primarySeqId].priority <= 1) {
             this.primarySeqId = -1;
         }
@@ -96,9 +96,9 @@ export default abstract class PathingEntity extends Entity {
         this.pathTileZ[0] = z;
         this.x = this.pathTileX[0] * 128 + this.size * 64;
         this.z = this.pathTileZ[0] * 128 + this.size * 64;
-    };
+    }
 
-    step = (running: boolean, direction: number): void => {
+    step(running: boolean, direction: number): void {
         let nextX: number = this.pathTileX[0];
         let nextZ: number = this.pathTileZ[0];
 
@@ -141,5 +141,5 @@ export default abstract class PathingEntity extends Entity {
         this.pathTileX[0] = nextX;
         this.pathTileZ[0] = nextZ;
         this.pathRunning[0] = running;
-    };
+    }
 }

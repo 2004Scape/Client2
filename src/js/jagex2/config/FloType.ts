@@ -81,7 +81,7 @@ export default class FloType extends ConfigType {
     chroma: number = 0;
     hsl: number = 0;
 
-    decode = (code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.rgb = dat.g3;
             this.setColor(this.rgb);
@@ -96,9 +96,9 @@ export default class FloType extends ConfigType {
         } else {
             console.log('Error unrecognised config code: ', code);
         }
-    };
+    }
 
-    private setColor = (rgb: number): void => {
+    private setColor(rgb: number): void {
         const red: number = ((rgb >> 16) & 0xff) / 256.0;
         const green: number = ((rgb >> 8) & 0xff) / 256.0;
         const blue: number = (rgb & 0xff) / 256.0;
@@ -192,5 +192,5 @@ export default class FloType extends ConfigType {
         }
 
         this.hsl = FloType.hsl24to16(hue, saturation, lightness);
-    };
+    }
 }

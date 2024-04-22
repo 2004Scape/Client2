@@ -11,7 +11,7 @@ export default class Hashable extends Linkable {
         this.prevHashable = this;
     }
 
-    uncache = (): void => {
+    uncache(): void {
         if (!this.prevHashable || !this.nextHashable) {
             return;
         }
@@ -19,5 +19,5 @@ export default class Hashable extends Linkable {
         this.nextHashable.prevHashable = this.prevHashable;
         this.nextHashable = null;
         this.prevHashable = null;
-    };
+    }
 }

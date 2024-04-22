@@ -494,7 +494,7 @@ export default class ComType {
     seqFrame: number = 0;
     seqCycle: number = 0;
 
-    getModel = (primaryFrame: number, secondaryFrame: number, active: boolean): Model | null => {
+    getModel(primaryFrame: number, secondaryFrame: number, active: boolean): Model | null {
         let model: Model | null = this.model;
         if (active) {
             model = this.activeModel;
@@ -523,7 +523,7 @@ export default class ComType {
 
         tmp.calculateNormals(64, 768, -50, -10, -50, true);
         return tmp;
-    };
+    }
 
     getAbsoluteX(): number {
         if (this.layer === this.id) {

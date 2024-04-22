@@ -115,7 +115,7 @@ export default class LocType extends ConfigType {
     zoff: number = 0;
     forcedecor: boolean = false;
 
-    decode = (code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             const count: number = dat.g1;
             this.models = new Int32Array(count);
@@ -205,9 +205,9 @@ export default class LocType extends ConfigType {
         } else if (code === 73) {
             this.forcedecor = true;
         }
-    };
+    }
 
-    getModel = (shape: number, angle: number, heightmapSW: number, heightmapSE: number, heightmapNE: number, heightmapNW: number, transformId: number): Model | null => {
+    getModel(shape: number, angle: number, heightmapSW: number, heightmapSE: number, heightmapNE: number, heightmapNW: number, transformId: number): Model | null {
         if (!this.shapes) {
             return null;
         }
@@ -345,9 +345,9 @@ export default class LocType extends ConfigType {
         }
 
         return modified;
-    };
+    }
 
-    private reset = (): void => {
+    private reset(): void {
         this.models = null;
         this.shapes = null;
         this.name = null;
@@ -381,5 +381,5 @@ export default class LocType extends ConfigType {
         this.yoff = 0;
         this.zoff = 0;
         this.forcedecor = false;
-    };
+    }
 }
