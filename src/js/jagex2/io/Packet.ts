@@ -48,10 +48,10 @@ export default class Packet extends Hashable {
 
     // constructor
     private readonly view: DataView;
-    data: Uint8Array;
-    pos: number;
+    readonly data: Uint8Array;
 
     // runtime
+    pos: number = 0;
     bitPos: number = 0;
     random: Isaac | null = null;
 
@@ -66,7 +66,6 @@ export default class Packet extends Hashable {
             this.data = src;
         }
         this.view = new DataView(this.data.buffer);
-        this.pos = 0;
     }
 
     get length(): number {
@@ -105,13 +104,13 @@ export default class Packet extends Hashable {
 
     release(): void {
         this.pos = 0;
-        if (this.length === 100 && Packet.cacheMinCount < 1000) {
+        if (this.view.byteLength === 100 && Packet.cacheMinCount < 1000) {
             Packet.cacheMin.addTail(this);
             Packet.cacheMinCount++;
-        } else if (this.length === 5000 && Packet.cacheMidCount < 250) {
+        } else if (this.view.byteLength === 5000 && Packet.cacheMidCount < 250) {
             Packet.cacheMid.addTail(this);
             Packet.cacheMidCount++;
-        } else if (this.length === 30000 && Packet.cacheMaxCount < 50) {
+        } else if (this.view.byteLength === 30000 && Packet.cacheMaxCount < 50) {
             Packet.cacheMax.addTail(this);
             Packet.cacheMaxCount++;
         }
@@ -140,7 +139,9 @@ export default class Packet extends Hashable {
     }
 
     get g3(): number {
-        return (this.g1 << 16) | this.g2;
+        const result: number = (this.view.getUint8(this.pos++) << 16) | this.view.getUint16(this.pos);
+        this.pos += 2;
+        return result;
     }
 
     get g4(): number {
@@ -156,31 +157,35 @@ export default class Packet extends Hashable {
     }
 
     get gsmart(): number {
-        return this.peek < 0x80 ? this.g1 - 0x40 : this.g2 - 0xc000;
+        return this.view.getUint8(this.pos) < 0x80 ? this.g1 - 0x40 : this.g2 - 0xc000;
     }
 
     // signed
     get gsmarts(): number {
-        return this.peek < 0x80 ? this.g1 : this.g2 - 0x8000;
+        return this.view.getUint8(this.pos) < 0x80 ? this.g1 : this.g2 - 0x8000;
     }
 
     get gjstr(): string {
+        const view: DataView = this.view;
+        const length: number = view.byteLength;
         let str: string = '';
-        while (this.peek !== 10 && this.pos < this.length) {
-            str += String.fromCharCode(this.g1);
+        let b: number;
+        while ((b = view.getUint8(this.pos++)) !== 10 && this.pos < length) {
+            str += String.fromCharCode(b);
         }
-        this.pos++;
         return str;
     }
 
     gdata(length: number, offset: number, dest: Uint8Array | Int8Array): void {
-        for (let i: number = offset; i < offset + length; i++) {
-            dest[i] = this.g1;
+        const view: DataView = this.view;
+        const total: number = offset + length;
+        for (let i: number = offset; i < total; i++) {
+            dest[i] = view.getUint8(this.pos++);
         }
     }
 
     p1isaac(opcode: number): void {
-        this.p1((opcode + (this.random?.nextInt ?? 0)) & 0xff);
+        this.view.setUint8(this.pos++, (opcode + (this.random?.nextInt ?? 0)) & 0xff);
     }
 
     p1(value: number): void {
@@ -198,8 +203,9 @@ export default class Packet extends Hashable {
     }
 
     p3(value: number): void {
-        this.p1(value >> 16);
-        this.p2(value);
+        this.view.setUint8(this.pos++, value);
+        this.view.setUint16(this.pos, value);
+        this.pos += 2;
     }
 
     p4(value: number): void {
@@ -218,15 +224,19 @@ export default class Packet extends Hashable {
     }
 
     pjstr(str: string): void {
-        for (let i: number = 0; i < str.length; i++) {
-            this.p1(str.charCodeAt(i));
+        const view: DataView = this.view;
+        const length: number = str.length;
+        for (let i: number = 0; i < length; i++) {
+            view.setUint8(this.pos++, str.charCodeAt(i));
         }
-        this.p1(10);
+        view.setUint8(this.pos++, 10);
     }
 
     pdata(src: Uint8Array, length: number, offset: number): void {
-        for (let i: number = offset; i < offset + length; i++) {
-            this.p1(src[i]);
+        const view: DataView = this.view;
+        const total: number = offset + length;
+        for (let i: number = offset; i < total; i++) {
+            view.setUint8(this.pos++, src[i]);
         }
     }
 
@@ -276,9 +286,5 @@ export default class Packet extends Hashable {
         this.pos = 0;
         this.p1(rawEnc.length);
         this.pdata(rawEnc, rawEnc.length, 0);
-    }
-
-    private get peek(): number {
-        return this.view.getUint8(this.pos);
     }
 }
