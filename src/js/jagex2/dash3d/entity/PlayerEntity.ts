@@ -343,13 +343,13 @@ export default class PlayerEntity extends PathingEntity {
                 }
             }
 
-            if (seq.mainhand >= 0) {
-                rightHandValue = seq.mainhand;
+            if (seq.righthand >= 0) {
+                rightHandValue = seq.righthand;
                 hashCode += BigInt(rightHandValue - this.appearances[5]) << 8n;
             }
 
-            if (seq.offhand >= 0) {
-                leftHandValue = seq.offhand;
+            if (seq.lefthand >= 0) {
+                leftHandValue = seq.lefthand;
                 hashCode += BigInt(leftHandValue - this.appearances[3]) << 16n;
             }
         } else if (this.secondarySeqId >= 0) {
@@ -413,7 +413,7 @@ export default class PlayerEntity extends PathingEntity {
 
         const tmp: Model = Model.modelShareAlpha(model, true);
         if (primaryTransformId !== -1 && secondaryTransformId !== -1) {
-            tmp.applyTransforms(primaryTransformId, secondaryTransformId, SeqType.instances[this.primarySeqId].labelGroups);
+            tmp.applyTransforms(primaryTransformId, secondaryTransformId, SeqType.instances[this.primarySeqId].walkmerge);
         } else if (primaryTransformId !== -1) {
             tmp.applyTransform(primaryTransformId);
         }

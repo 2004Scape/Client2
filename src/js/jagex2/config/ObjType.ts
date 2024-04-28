@@ -68,8 +68,8 @@ export default class ObjType extends ConfigType {
         if (!this.membersWorld && obj.members) {
             obj.name = 'Members Object';
             obj.desc = "Login to a members' server to use this object.";
-            obj.ops = null;
-            obj.iops = null;
+            obj.op = null;
+            obj.iop = null;
         }
 
         return obj;
@@ -210,8 +210,8 @@ export default class ObjType extends ConfigType {
     stackable: boolean = false;
     cost: number = 1;
     members: boolean = false;
-    ops: (string | null)[] | null = null;
-    iops: (string | null)[] | null = null;
+    op: (string | null)[] | null = null;
+    iop: (string | null)[] | null = null;
     manwear: number = -1;
     manwear2: number = -1;
     manwearOffsetY: number = 0;
@@ -273,19 +273,19 @@ export default class ObjType extends ConfigType {
         } else if (code === 26) {
             this.womanwear2 = dat.g2;
         } else if (code >= 30 && code < 35) {
-            if (!this.ops) {
-                this.ops = new TypedArray1d(5, null);
+            if (!this.op) {
+                this.op = new TypedArray1d(5, null);
             }
 
-            this.ops[code - 30] = dat.gjstr;
-            if (this.ops[code - 30]?.toLowerCase() === 'hidden') {
-                this.ops[code - 30] = null;
+            this.op[code - 30] = dat.gjstr;
+            if (this.op[code - 30]?.toLowerCase() === 'hidden') {
+                this.op[code - 30] = null;
             }
         } else if (code >= 35 && code < 40) {
-            if (!this.iops) {
-                this.iops = new TypedArray1d(5, null);
+            if (!this.iop) {
+                this.iop = new TypedArray1d(5, null);
             }
-            this.iops[code - 35] = dat.gjstr;
+            this.iop[code - 35] = dat.gjstr;
         } else if (code === 40) {
             const count: number = dat.g1;
             this.recol_s = new Uint16Array(count);
@@ -479,8 +479,8 @@ export default class ObjType extends ConfigType {
         this.stackable = false;
         this.cost = 1;
         this.members = false;
-        this.ops = null;
-        this.iops = null;
+        this.op = null;
+        this.iop = null;
         this.manwear = -1;
         this.manwear2 = -1;
         this.manwearOffsetY = 0;

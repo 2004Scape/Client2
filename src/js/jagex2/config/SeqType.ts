@@ -35,11 +35,11 @@ export default class SeqType extends ConfigType {
     iframes: Int16Array | null = null;
     delay: Int16Array | null = null;
     replayoff: number = -1;
-    labelGroups: Int32Array | null = null;
+    walkmerge: Int32Array | null = null;
     stretches: boolean = false;
     priority: number = 5;
-    mainhand: number = -1;
-    offhand: number = -1;
+    righthand: number = -1;
+    lefthand: number = -1;
     replaycount: number = 99;
     duration: number = 0;
 
@@ -73,21 +73,23 @@ export default class SeqType extends ConfigType {
             this.replayoff = dat.g2;
         } else if (code === 3) {
             const count: number = dat.g1;
-            this.labelGroups = new Int32Array(count + 1);
+            this.walkmerge = new Int32Array(count + 1);
 
             for (let i: number = 0; i < count; i++) {
-                this.labelGroups[i] = dat.g1;
+                this.walkmerge[i] = dat.g1;
             }
 
-            this.labelGroups[count] = 9999999;
+            this.walkmerge[count] = 9999999;
         } else if (code === 4) {
             this.stretches = true;
         } else if (code === 5) {
             this.priority = dat.g1;
         } else if (code === 6) {
-            this.mainhand = dat.g2;
+            // later RS (think RS3) this becomes mainhand
+            this.righthand = dat.g2;
         } else if (code === 7) {
-            this.offhand = dat.g2;
+            // later RS (think RS3) this becomes offhand
+            this.lefthand = dat.g2;
         } else if (code === 8) {
             this.replaycount = dat.g1;
         } else {

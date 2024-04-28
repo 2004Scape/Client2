@@ -59,21 +59,22 @@ export abstract class Client extends GameShell {
     static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
     static readonly modulus: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
 
-    static updateCounter: number = 0;
-    static update2Counter: number = 0;
-    static sidebarInputCounter: number = 0;
-    static opHeld1Counter: number = 0;
-    static opLoc4Counter: number = 0;
-    static opNpc5Counter: number = 0;
-    static drawCounter: number = 0;
-    static opHeld4Counter: number = 0;
-    static opLoc5Counter: number = 0;
-    static opNpc3Counter: number = 0;
-    static opHeld9Counter: number = 0;
-    static opPlayer2Counter: number = 0;
-    static updatePlayersCounter: number = 0;
-    static ifButton5Counter: number = 0;
-    static updateLocCounter: number = 0;
+    static cyclelogic1: number = 0;
+    static cyclelogic2: number = 0;
+    static cyclelogic3: number = 0;
+    static cyclelogic4: number = 0;
+    static cyclelogic5: number = 0;
+    static cyclelogic6: number = 0;
+
+    static oplogic1: number = 0;
+    static oplogic2: number = 0;
+    static oplogic3: number = 0;
+    static oplogic4: number = 0;
+    static oplogic5: number = 0;
+    static oplogic6: number = 0;
+    static oplogic7: number = 0;
+    static oplogic8: number = 0;
+    static oplogic9: number = 0;
 
     static setHighMemory = (): void => {
         World3D.lowMemory = false;

@@ -210,7 +210,7 @@ export default class World {
             if (scene) {
                 const width: number = scene.getWallBitset(level, x, z);
                 if (width > 0) {
-                    offset = LocType.get((width >> 14) & 0x7fff).walloff;
+                    offset = LocType.get((width >> 14) & 0x7fff).wallwidth;
                 }
             }
 
@@ -1004,8 +1004,8 @@ export default class World {
                 locs.addTail(new LocEntity(locId, level, 0, x, z, SeqType.instances[loc.anim], true));
             }
 
-            if (loc.walloff !== 16) {
-                scene?.setWallDecorationOffset(level, x, z, loc.walloff);
+            if (loc.wallwidth !== 16) {
+                scene?.setWallDecorationOffset(level, x, z, loc.wallwidth);
             }
         } else if (shape === LocShape.WALL_DIAGONAL_CORNER.id) {
             scene?.addWall(level, x, z, y, World.ROTATION_WALL_CORNER_TYPE[angle], 0, loc.getModel(LocShape.WALL_DIAGONAL_CORNER.id, angle, heightSW, heightSE, heightNW, heightNE, -1), null, bitset, info);
@@ -1069,8 +1069,8 @@ export default class World {
                 locs.addTail(new LocEntity(locId, level, 0, x, z, SeqType.instances[loc.anim], true));
             }
 
-            if (loc.walloff !== 16) {
-                scene?.setWallDecorationOffset(level, x, z, loc.walloff);
+            if (loc.wallwidth !== 16) {
+                scene?.setWallDecorationOffset(level, x, z, loc.wallwidth);
             }
         } else if (shape === LocShape.WALL_SQUARE_CORNER.id) {
             scene?.addWall(level, x, z, y, World.ROTATION_WALL_CORNER_TYPE[angle], 0, loc.getModel(LocShape.WALL_SQUARE_CORNER.id, angle, heightSW, heightSE, heightNW, heightNE, -1), null, bitset, info);
@@ -1115,7 +1115,7 @@ export default class World {
             if (scene) {
                 const width: number = scene.getWallBitset(level, x, z);
                 if (width > 0) {
-                    offset = LocType.get((width >> 14) & 0x7fff).walloff;
+                    offset = LocType.get((width >> 14) & 0x7fff).wallwidth;
                 }
             }
 

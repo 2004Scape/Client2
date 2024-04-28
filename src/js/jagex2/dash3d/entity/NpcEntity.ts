@@ -65,7 +65,7 @@ export default class NpcEntity extends PathingEntity {
                         secondaryTransformId = secondFrames[this.secondarySeqFrame];
                     }
                 }
-                return this.type.getSequencedModel(primaryTransformId, secondaryTransformId, SeqType.instances[this.primarySeqId].labelGroups);
+                return this.type.getSequencedModel(primaryTransformId, secondaryTransformId, SeqType.instances[this.primarySeqId].walkmerge);
             }
         }
 

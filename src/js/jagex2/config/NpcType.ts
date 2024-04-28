@@ -76,11 +76,11 @@ export default class NpcType extends ConfigType {
     walkanim_l: number = -1;
     recol_s: Uint16Array | null = null;
     recol_d: Uint16Array | null = null;
-    ops: (string | null)[] | null = null;
-    code90: number = -1;
-    code91: number = -1;
-    code92: number = -1;
-    visonmap: boolean = true;
+    op: (string | null)[] | null = null;
+    resizex: number = -1;
+    resizey: number = -1;
+    resizez: number = -1;
+    minimap: boolean = true;
     vislevel: number = -1;
     resizeh: number = 128;
     resizev: number = 128;
@@ -111,13 +111,13 @@ export default class NpcType extends ConfigType {
             this.walkanim_r = dat.g2;
             this.walkanim_l = dat.g2;
         } else if (code >= 30 && code < 40) {
-            if (!this.ops) {
-                this.ops = new TypedArray1d(5, null);
+            if (!this.op) {
+                this.op = new TypedArray1d(5, null);
             }
 
-            this.ops[code - 30] = dat.gjstr;
-            if (this.ops[code - 30]?.toLowerCase() === 'hidden') {
-                this.ops[code - 30] = null;
+            this.op[code - 30] = dat.gjstr;
+            if (this.op[code - 30]?.toLowerCase() === 'hidden') {
+                this.op[code - 30] = null;
             }
         } else if (code === 40) {
             const count: number = dat.g1;
@@ -136,13 +136,13 @@ export default class NpcType extends ConfigType {
                 this.heads[i] = dat.g2;
             }
         } else if (code === 90) {
-            this.code90 = dat.g2;
+            this.resizex = dat.g2;
         } else if (code === 91) {
-            this.code91 = dat.g2;
+            this.resizey = dat.g2;
         } else if (code === 92) {
-            this.code92 = dat.g2;
+            this.resizez = dat.g2;
         } else if (code === 93) {
-            this.visonmap = false;
+            this.minimap = false;
         } else if (code === 95) {
             this.vislevel = dat.g2;
         } else if (code === 97) {

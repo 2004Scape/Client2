@@ -64,7 +64,7 @@ export default class LocType extends ConfigType {
         if (loc.active2 === -1 && loc.shapes) {
             loc.active = loc.shapes.length > 0 && loc.shapes[0] === LocShape.CENTREPIECE_STRAIGHT.id;
 
-            if (loc.ops) {
+            if (loc.op) {
                 loc.active = true;
             }
         }
@@ -98,10 +98,10 @@ export default class LocType extends ConfigType {
     occlude: boolean = false;
     anim: number = -1;
     disposeAlpha: boolean = false;
-    walloff: number = 16;
+    wallwidth: number = 16;
     ambient: number = 0;
     contrast: number = 0;
-    ops: (string | null)[] | null = null;
+    op: (string | null)[] | null = null;
     mapfunction: number = -1;
     mapscene: number = -1;
     mirror: boolean = false;
@@ -110,9 +110,9 @@ export default class LocType extends ConfigType {
     resizey: number = 128;
     resizez: number = 128;
     forceapproach: number = 0;
-    xoff: number = 0;
-    yoff: number = 0;
-    zoff: number = 0;
+    offsetx: number = 0;
+    offsety: number = 0;
+    offsetz: number = 0;
     forcedecor: boolean = false;
 
     decode(code: number, dat: Packet): void {
@@ -157,19 +157,19 @@ export default class LocType extends ConfigType {
         } else if (code === 25) {
             this.disposeAlpha = true;
         } else if (code === 28) {
-            this.walloff = dat.g1;
+            this.wallwidth = dat.g1;
         } else if (code === 29) {
             this.ambient = dat.g1b;
         } else if (code === 39) {
             this.contrast = dat.g1b;
         } else if (code >= 30 && code < 39) {
-            if (!this.ops) {
-                this.ops = new TypedArray1d(5, null);
+            if (!this.op) {
+                this.op = new TypedArray1d(5, null);
             }
 
-            this.ops[code - 30] = dat.gjstr;
-            if (this.ops[code - 30]?.toLowerCase() === 'hidden') {
-                this.ops[code - 30] = null;
+            this.op[code - 30] = dat.gjstr;
+            if (this.op[code - 30]?.toLowerCase() === 'hidden') {
+                this.op[code - 30] = null;
             }
         } else if (code === 40) {
             const count: number = dat.g1;
@@ -197,11 +197,11 @@ export default class LocType extends ConfigType {
         } else if (code === 69) {
             this.forceapproach = dat.g1;
         } else if (code === 70) {
-            this.xoff = dat.g2b;
+            this.offsetx = dat.g2b;
         } else if (code === 71) {
-            this.yoff = dat.g2b;
+            this.offsety = dat.g2b;
         } else if (code === 72) {
-            this.zoff = dat.g2b;
+            this.offsetz = dat.g2b;
         } else if (code === 73) {
             this.forcedecor = true;
         }
@@ -287,7 +287,7 @@ export default class LocType extends ConfigType {
         }
 
         const scaled: boolean = this.resizex !== 128 || this.resizey !== 128 || this.resizez !== 128;
-        const translated: boolean = this.xoff !== 0 || this.yoff !== 0 || this.zoff !== 0;
+        const translated: boolean = this.offsetx !== 0 || this.offsety !== 0 || this.offsetz !== 0;
 
         let modified: Model = Model.modelShareColored(model, !this.recol_s, !this.disposeAlpha, angle === LocAngle.WEST && transformId === -1 && !scaled && !translated);
         if (transformId !== -1) {
@@ -312,7 +312,7 @@ export default class LocType extends ConfigType {
         }
 
         if (translated) {
-            modified.translate(this.yoff, this.xoff, this.zoff);
+            modified.translate(this.offsety, this.offsetx, this.offsetz);
         }
 
         modified.calculateNormals((this.ambient & 0xff) + 64, (this.contrast & 0xff) * 5 + 768, -50, -10, -50, !this.sharelight);
@@ -364,10 +364,10 @@ export default class LocType extends ConfigType {
         this.sharelight = false;
         this.occlude = false;
         this.anim = -1;
-        this.walloff = 16;
+        this.wallwidth = 16;
         this.ambient = 0;
         this.contrast = 0;
-        this.ops = null;
+        this.op = null;
         this.disposeAlpha = false;
         this.mapfunction = -1;
         this.mapscene = -1;
@@ -377,9 +377,9 @@ export default class LocType extends ConfigType {
         this.resizey = 128;
         this.resizez = 128;
         this.forceapproach = 0;
-        this.xoff = 0;
-        this.yoff = 0;
-        this.zoff = 0;
+        this.offsetx = 0;
+        this.offsety = 0;
+        this.offsetz = 0;
         this.forcedecor = false;
     }
 }

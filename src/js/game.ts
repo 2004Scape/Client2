@@ -949,15 +949,15 @@ class Game extends Client {
                 for (let i: number = 0; i < 5; i++) {
                     this.designColors[i] = 0;
                 }
-                Client.opLoc4Counter = 0;
-                Client.opNpc3Counter = 0;
-                Client.opHeld4Counter = 0;
-                Client.opNpc5Counter = 0;
-                Client.opHeld1Counter = 0;
-                Client.opLoc5Counter = 0;
-                Client.ifButton5Counter = 0;
-                Client.opPlayer2Counter = 0;
-                Client.opHeld9Counter = 0;
+                Client.oplogic1 = 0;
+                Client.oplogic2 = 0;
+                Client.oplogic3 = 0;
+                Client.oplogic4 = 0;
+                Client.oplogic5 = 0;
+                Client.oplogic6 = 0;
+                Client.oplogic7 = 0;
+                Client.oplogic8 = 0;
+                Client.oplogic9 = 0;
                 this.prepareGameScreen();
                 return;
             }
@@ -1215,9 +1215,9 @@ class Game extends Client {
                 }
             }
 
-            Client.updateCounter++;
-            if (Client.updateCounter > 127) {
-                Client.updateCounter = 0;
+            Client.cyclelogic3++;
+            if (Client.cyclelogic3 > 127) {
+                Client.cyclelogic3 = 0;
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC3);
                 this.out.p3(4991788);
             }
@@ -1332,9 +1332,9 @@ class Game extends Client {
                 this.minimapZoomModifier = -1;
             }
 
-            Client.update2Counter++;
-            if (Client.update2Counter > 110) {
-                Client.update2Counter = 0;
+            Client.cyclelogic4++;
+            if (Client.cyclelogic4 > 110) {
+                Client.cyclelogic4 = 0;
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC4);
                 this.out.p4(0);
             }
@@ -1649,9 +1649,9 @@ class Game extends Client {
                 this.orbitCamera(this.orbitCameraX, this.getHeightmapY(this.currentLevel, this.localPlayer.x, this.localPlayer.z) - 50, this.orbitCameraZ, yaw, pitch, pitch * 3 + 600);
             }
 
-            Client.drawCounter++;
-            if (Client.drawCounter > 1802) {
-                Client.drawCounter = 0;
+            Client.cyclelogic2++;
+            if (Client.cyclelogic2 > 1802) {
+                Client.cyclelogic2 = 0;
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC2);
                 this.out.p1(0);
                 const start: number = this.out.pos;
@@ -2487,7 +2487,7 @@ class Game extends Client {
 
         for (let i: number = 0; i < this.npcCount; i++) {
             const npc: NpcEntity | null = this.npcs[this.npcIds[i]];
-            if (npc && npc.isVisible() && npc.type && npc.type.visonmap) {
+            if (npc && npc.isVisible() && npc.type && npc.type.minimap) {
                 anchorX = ((npc.x / 32) | 0) - ((this.localPlayer.x / 32) | 0);
                 anchorY = ((npc.z / 32) | 0) - ((this.localPlayer.z / 32) | 0);
                 this.drawOnMinimap(anchorY, this.imageMapdot1, anchorX);
@@ -3088,10 +3088,10 @@ class Game extends Client {
         } else if (action === 405 || action === 38 || action === 422 || action === 478 || action === 347) {
             if (action === 478) {
                 if ((b & 0x3) === 0) {
-                    Client.opHeld1Counter++;
+                    Client.oplogic5++;
                 }
 
-                if (Client.opHeld1Counter >= 90) {
+                if (Client.oplogic5 >= 90) {
                     // ANTICHEAT_OPLOGIC5
                     this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC5);
                 }
@@ -3105,8 +3105,8 @@ class Game extends Client {
                 // OPHELD3
                 this.out.p1isaac(ClientProt.OPHELD3);
             } else if (action === 405) {
-                Client.opHeld4Counter += a;
-                if (Client.opHeld4Counter >= 97) {
+                Client.oplogic3 += a;
+                if (Client.oplogic3 >= 97) {
                     // ANTICHEAT_OPLOGIC3
                     this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC3);
                     this.out.p3(14953816);
@@ -3149,10 +3149,10 @@ class Game extends Client {
                     this.out.p1isaac(ClientProt.OPNPC2);
                 } else if (action === 6) {
                     if ((a & 0x3) === 0) {
-                        Client.opNpc3Counter++;
+                        Client.oplogic2++;
                     }
 
-                    if (Client.opNpc3Counter >= 124) {
+                    if (Client.oplogic2 >= 124) {
                         // ANTICHEAT_OPLOGIC2
                         this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC2);
                         this.out.p4(0);
@@ -3168,10 +3168,10 @@ class Game extends Client {
                     this.out.p1isaac(ClientProt.OPNPC1);
                 } else if (action === 245) {
                     if ((a & 0x3) === 0) {
-                        Client.opNpc5Counter++;
+                        Client.oplogic4++;
                     }
 
-                    if (Client.opNpc5Counter >= 85) {
+                    if (Client.oplogic4 >= 85) {
                         // ANTICHEAT_OPLOGIC4
                         this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC4);
                         this.out.p2(39596);
@@ -3327,8 +3327,8 @@ class Game extends Client {
                     // OPPLAYER1
                     this.out.p1isaac(ClientProt.OPPLAYER1);
                 } else if (action === 151) {
-                    Client.opPlayer2Counter++;
-                    if (Client.opPlayer2Counter >= 90) {
+                    Client.oplogic8++;
+                    if (Client.oplogic8 >= 90) {
                         // ANTICHEAT_OPLOGIC8
                         this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC8);
                         this.out.p2(31114);
@@ -3484,10 +3484,10 @@ class Game extends Client {
                 this.out.p1isaac(ClientProt.INV_BUTTON3);
             } else if (action === 415) {
                 if ((c & 0x3) === 0) {
-                    Client.ifButton5Counter++;
+                    Client.oplogic7++;
                 }
 
-                if (Client.ifButton5Counter >= 55) {
+                if (Client.oplogic7 >= 55) {
                     // ANTICHEAT_OPLOGIC7
                     this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC7);
                     this.out.p4(0);
@@ -3500,10 +3500,10 @@ class Game extends Client {
                 this.out.p1isaac(ClientProt.INV_BUTTON1);
             } else if (action === 892) {
                 if ((b & 0x3) === 0) {
-                    Client.opHeld9Counter++;
+                    Client.oplogic9++;
                 }
 
-                if (Client.opHeld9Counter >= 130) {
+                if (Client.oplogic9 >= 130) {
                     // ANTICHEAT_OPLOGIC9
                     this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC9);
                     this.out.p1(177);
@@ -3534,10 +3534,10 @@ class Game extends Client {
             }
         } else if (action === 581) {
             if ((a & 0x3) === 0) {
-                Client.opLoc4Counter++;
+                Client.oplogic1++;
             }
 
-            if (Client.opLoc4Counter >= 99) {
+            if (Client.oplogic1 >= 99) {
                 // ANTICHEAT_OPLOGIC1
                 this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC1);
                 this.out.p4(0);
@@ -3564,8 +3564,8 @@ class Game extends Client {
                 this.out.p2(this.activeSpellId);
             }
         } else if (action === 1501) {
-            Client.opLoc5Counter += this.sceneBaseTileZ;
-            if (Client.opLoc5Counter >= 92) {
+            Client.oplogic6 += this.sceneBaseTileZ;
+            if (Client.oplogic6 >= 92) {
                 // ANTICHEAT_OPLOGIC6
                 this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC6);
                 this.out.p4(0);
@@ -3951,9 +3951,9 @@ class Game extends Client {
                 this.redrawSideicons = true;
             }
 
-            Client.sidebarInputCounter++;
-            if (Client.sidebarInputCounter > 150) {
-                Client.sidebarInputCounter = 0;
+            Client.cyclelogic1++;
+            if (Client.cyclelogic1 > 150) {
+                Client.cyclelogic1 = 0;
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC1);
                 this.out.p1(43);
             }
@@ -6258,8 +6258,8 @@ class Game extends Client {
                         } else {
                             if (child.interactable) {
                                 for (let op: number = 4; op >= 3; op--) {
-                                    if (obj.iops && obj.iops[op]) {
-                                        this.menuOption[this.menuSize] = obj.iops[op] + ' @lre@' + obj.name;
+                                    if (obj.iop && obj.iop[op]) {
+                                        this.menuOption[this.menuSize] = obj.iop[op] + ' @lre@' + obj.name;
                                         if (op === 3) {
                                             this.menuAction[this.menuSize] = 478;
                                         } else if (op === 4) {
@@ -6289,10 +6289,10 @@ class Game extends Client {
                                 this.menuSize++;
                             }
 
-                            if (child.interactable && obj.iops) {
+                            if (child.interactable && obj.iop) {
                                 for (let op: number = 2; op >= 0; op--) {
-                                    if (obj.iops[op]) {
-                                        this.menuOption[this.menuSize] = obj.iops[op] + ' @lre@' + obj.name;
+                                    if (obj.iop[op]) {
+                                        this.menuOption[this.menuSize] = obj.iop[op] + ' @lre@' + obj.name;
                                         if (op === 0) {
                                             this.menuAction[this.menuSize] = 405;
                                         } else if (op === 1) {
@@ -6451,10 +6451,10 @@ class Game extends Client {
                     this.menuParamC[this.menuSize] = z;
                     this.menuSize++;
                 } else if (this.spellSelected !== 1) {
-                    if (loc.ops) {
+                    if (loc.op) {
                         for (let op: number = 4; op >= 0; op--) {
-                            if (loc.ops[op]) {
-                                this.menuOption[this.menuSize] = loc.ops[op] + ' @cya@' + loc.name;
+                            if (loc.op[op]) {
+                                this.menuOption[this.menuSize] = loc.op[op] + ' @cya@' + loc.name;
                                 if (op === 0) {
                                     this.menuAction[this.menuSize] = 285;
                                 }
@@ -6561,8 +6561,8 @@ class Game extends Client {
                         this.menuSize++;
                     } else if (this.spellSelected !== 1) {
                         for (let op: number = 4; op >= 0; op--) {
-                            if (type.ops && type.ops[op]) {
-                                this.menuOption[this.menuSize] = type.ops[op] + ' @lre@' + type.name;
+                            if (type.op && type.op[op]) {
+                                this.menuOption[this.menuSize] = type.op[op] + ' @lre@' + type.name;
                                 if (op === 0) {
                                     this.menuAction[this.menuSize] = 224;
                                 }
@@ -6638,10 +6638,10 @@ class Game extends Client {
             this.menuSize++;
         } else if (this.spellSelected !== 1) {
             let type: number;
-            if (npc.ops) {
+            if (npc.op) {
                 for (type = 4; type >= 0; type--) {
-                    if (npc.ops[type] && npc.ops[type]?.toLowerCase() !== 'attack') {
-                        this.menuOption[this.menuSize] = npc.ops[type] + ' @yel@' + tooltip;
+                    if (npc.op[type] && npc.op[type]?.toLowerCase() !== 'attack') {
+                        this.menuOption[this.menuSize] = npc.op[type] + ' @yel@' + tooltip;
 
                         if (type === 0) {
                             this.menuAction[this.menuSize] = 728;
@@ -6663,15 +6663,15 @@ class Game extends Client {
                 }
             }
 
-            if (npc.ops) {
+            if (npc.op) {
                 for (type = 4; type >= 0; type--) {
-                    if (npc.ops[type] && npc.ops[type]?.toLowerCase() === 'attack') {
+                    if (npc.op[type] && npc.op[type]?.toLowerCase() === 'attack') {
                         let action: number = 0;
                         if (this.localPlayer && npc.vislevel > this.localPlayer.combatLevel) {
                             action = 2000;
                         }
 
-                        this.menuOption[this.menuSize] = npc.ops[type] + ' @yel@' + tooltip;
+                        this.menuOption[this.menuSize] = npc.op[type] + ' @yel@' + tooltip;
 
                         if (type === 0) {
                             this.menuAction[this.menuSize] = action + 728;
@@ -7824,9 +7824,9 @@ class Game extends Client {
             }
         }
 
-        Client.updatePlayersCounter++;
-        if (Client.updatePlayersCounter > 1406) {
-            Client.updatePlayersCounter = 0;
+        Client.cyclelogic6++;
+        if (Client.cyclelogic6 > 1406) {
+            Client.cyclelogic6 = 0;
             // ANTICHEAT_CYCLELOGIC6
             this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC6);
             this.out.p1(0);
@@ -8157,9 +8157,9 @@ class Game extends Client {
                 }
             }
 
-            Client.updateLocCounter++;
-            if (Client.updateLocCounter > 85) {
-                Client.updateLocCounter = 0;
+            Client.cyclelogic5++;
+            if (Client.cyclelogic5 > 85) {
+                Client.cyclelogic5 = 0;
                 // ANTICHEAT_CYCLELOGIC5
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC5);
             }
@@ -8365,7 +8365,7 @@ class Game extends Client {
 
         if (entity.primarySeqId !== -1 && entity.primarySeqDelay === 0) {
             const seq: SeqType = SeqType.instances[entity.primarySeqId];
-            if (!seq.labelGroups) {
+            if (!seq.walkmerge) {
                 entity.seqTrigger++;
                 return;
             }
