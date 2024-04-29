@@ -209,7 +209,7 @@ export default class Packet extends Hashable {
     }
 
     p4(value: number): void {
-        this.view.setUint32(this.pos, value);
+        this.view.setInt32(this.pos, value);
         this.pos += 4;
     }
 
