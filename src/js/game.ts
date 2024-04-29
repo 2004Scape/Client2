@@ -63,6 +63,7 @@ import SeqFrame from './jagex2/graphics/SeqFrame';
 import FloType from './jagex2/config/FloType';
 import {setupConfiguration} from './configuration';
 import Tile from './jagex2/dash3d/type/Tile';
+import DirectionFlag from './jagex2/dash3d/DirectionFlag';
 
 // noinspection JSSuspiciousNameCombination
 class Game extends Client {
@@ -7199,15 +7200,15 @@ class Game extends Client {
                 this.bfsStepZ[length++] = z;
             }
 
-            if ((next & 0x2) !== 0) {
+            if ((next & DirectionFlag.EAST) !== 0) {
                 x++;
-            } else if ((next & 0x8) !== 0) {
+            } else if ((next & DirectionFlag.WEST) !== 0) {
                 x--;
             }
 
-            if ((next & 0x1) !== 0) {
+            if ((next & DirectionFlag.NORTH) !== 0) {
                 z++;
-            } else if ((next & 0x4) !== 0) {
+            } else if ((next & DirectionFlag.SOUTH) !== 0) {
                 z--;
             }
 
