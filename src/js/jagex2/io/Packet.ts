@@ -203,7 +203,7 @@ export default class Packet extends Hashable {
     }
 
     p3(value: number): void {
-        this.view.setUint8(this.pos++, value);
+        this.view.setUint8(this.pos++, value >> 16);
         this.view.setUint16(this.pos, value);
         this.pos += 2;
     }
