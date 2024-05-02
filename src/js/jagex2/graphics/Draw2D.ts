@@ -176,6 +176,84 @@ export default class Draw2D extends Hashable {
         }
     };
 
+    static fillRectAlpha(x: number, y: number, width: number, height: number, rgb: number, alpha: number): void {
+        if (x < this.left) {
+            width -= this.left - x;
+            x = this.left;
+        }
+
+        if (y < this.top) {
+            height -= this.top - y;
+            y = this.top;
+        }
+
+        if (x + width > this.right) {
+            width = this.right - x;
+        }
+
+        if (y + height > this.bottom) {
+            height = this.bottom - y;
+        }
+
+        const invAlpha: number = 256 - alpha;
+        const r0: number = ((rgb >> 16) & 0xff) * alpha;
+        const g0: number = ((rgb >> 8) & 0xff) * alpha;
+        const b0: number = (rgb & 0xff) * alpha;
+        const step: number = this.width2d - width;
+        let offset: number = x + y * this.width2d;
+        for (let i: number = 0; i < height; i++) {
+            for (let j: number = -width; j < 0; j++) {
+                const r1: number = ((this.pixels[offset] >> 16) & 0xff) * invAlpha;
+                const g1: number = ((this.pixels[offset] >> 8) & 0xff) * invAlpha;
+                const b1: number = (this.pixels[offset] & 0xff) * invAlpha;
+                const color: number = (((r0 + r1) >> 8) << 16) + (((g0 + g1) >> 8) << 8) + ((b0 + b1) >> 8);
+                this.pixels[offset++] = color;
+            }
+            offset += step;
+        }
+    }
+
+    static fillCircle(xCenter: number, yCenter: number, yRadius: number, rgb: number, alpha: number): void {
+        const invAlpha: number = 256 - alpha;
+        const r0: number = ((rgb >> 16) & 0xff) * alpha;
+        const g0: number = ((rgb >> 8) & 0xff) * alpha;
+        const b0: number = (rgb & 0xff) * alpha;
+
+        let yStart: number = yCenter - yRadius;
+        if (yStart < 0) {
+            yStart = 0;
+        }
+
+        let yEnd: number = yCenter + yRadius;
+        if (yEnd >= this.height2d) {
+            yEnd = this.height2d - 1;
+        }
+
+        for (let y: number = yStart; y <= yEnd; y++) {
+            const midpoint: number = y - yCenter;
+            const xRadius: number = Math.sqrt(yRadius * yRadius - midpoint * midpoint) | 0;
+
+            let xStart: number = xCenter - xRadius;
+            if (xStart < 0) {
+                xStart = 0;
+            }
+
+            let xEnd: number = xCenter + xRadius;
+            if (xEnd >= this.width2d) {
+                xEnd = this.width2d - 1;
+            }
+
+            let offset: number = xStart + y * this.width2d;
+            for (let x: number = xStart; x <= xEnd; x++) {
+                const r1: number = ((this.pixels[offset] >> 16) & 0xff) * invAlpha;
+                const g1: number = ((this.pixels[offset] >> 8) & 0xff) * invAlpha;
+                const b1: number = (this.pixels[offset] & 0xff) * invAlpha;
+                const color: number = (((r0 + r1) >> 8) << 16) + (((g0 + g1) >> 8) << 8) + ((b0 + b1) >> 8);
+                this.pixels[offset++] = color;
+            }
+        }
+    }
+
     static setPixel = (x: number, y: number, color: number): void => {
         if (x < this.left || x >= this.right || y < this.top || y >= this.bottom) {
             return;

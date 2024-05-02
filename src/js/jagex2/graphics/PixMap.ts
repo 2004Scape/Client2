@@ -28,9 +28,9 @@ export default class PixMap {
         Draw2D.bind(this.pixels, this.width, this.height);
     }
 
-    draw(width: number, height: number): void {
+    draw(x: number, y: number): void {
         this.#setPixels();
-        this.ctx.putImageData(this.image, width, height);
+        this.ctx.putImageData(this.image, x, y);
     }
 
     #setPixels(): void {
