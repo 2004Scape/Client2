@@ -73,6 +73,8 @@ class MapView extends GameShell {
     lastOffsetX: number = -1;
     lastOffsetZ: number = -1;
 
+    shouldClearEmptyTiles: boolean = false
+
     readonly keyNames: string[] = [
         'General Store',
         'Sword Shop',
@@ -244,6 +246,8 @@ class MapView extends GameShell {
 
         this.floormapColors = new TypedArray2d(this.sizeX, this.sizeZ, 0);
         this.averageUnderlayColors();
+        if (this.shouldClearEmptyTiles)
+            this.clearEmptyTiles();
 
         this.imageOverview = new Pix24(this.imageOverviewWidth, this.imageOverviewHeight);
         this.imageOverview.bind();
@@ -608,6 +612,16 @@ class MapView extends GameShell {
 
         this.b12?.drawStringCenter(xPad + widthPad / 2 + 1, yPad + heightPad / 2 + 1 + 4, str, 0);
         this.b12?.drawStringCenter(xPad + widthPad / 2, yPad + heightPad / 2 + 4, str, 0xffffff);
+    }
+
+    clearEmptyTiles(): void {
+        for (let x: number = 0; x < this.sizeX; x++ ) {
+            for (let z: number = 0; z < this.sizeZ; z++ ) {
+                if (this.underlayTiles[x][z] == 0 && this.overlayTiles[x][z] == 0) {
+                    this.floormapColors[x][z] = 0
+                }
+            }
+        }
     }
 
     averageUnderlayColors(): void {
