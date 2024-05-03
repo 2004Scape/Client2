@@ -33,6 +33,7 @@ export default abstract class GameShell {
     protected redrawScreen: boolean = true;
     protected resizeToFit: boolean = false;
     protected tfps: number = 50; // custom
+    protected hasFocus: boolean = true; // mapview applet
 
     protected ingame: boolean = false;
 
@@ -524,18 +525,28 @@ export default abstract class GameShell {
 
     private onmouseenter = (e: MouseEvent): void => {
         this.setMousePosition(e);
-        if (!InputTracking.enabled) {
-            return;
+
+        if (InputTracking.enabled) {
+            InputTracking.mouseEntered();
         }
-        InputTracking.mouseEntered();
     };
 
     private onmouseleave = (e: MouseEvent): void => {
         this.setMousePosition(e);
-        if (!InputTracking.enabled) {
-            return;
+
+        // mapview applet
+        this.idleCycles = 0;
+        this.mouseX = -1;
+        this.mouseY = -1;
+
+        // custom (prevent mouse click from being stuck)
+        this.mouseButton = 0;
+        this.mouseClickX = -1;
+        this.mouseClickY = -1;
+
+        if (InputTracking.enabled) {
+            InputTracking.mouseExited();
         }
-        InputTracking.mouseExited();
     };
 
     private onmousemove = (e: MouseEvent): void => {
@@ -548,6 +559,7 @@ export default abstract class GameShell {
     };
 
     private onfocus = (e: FocusEvent): void => {
+        this.hasFocus = true; // mapview applet
         this.redrawScreen = true;
         this.refresh();
 
@@ -557,6 +569,8 @@ export default abstract class GameShell {
     };
 
     private onblur = (e: FocusEvent): void => {
+        this.hasFocus = false; // mapview applet
+
         if (InputTracking.enabled) {
             InputTracking.focusLost();
         }

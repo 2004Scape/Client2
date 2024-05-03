@@ -56,6 +56,7 @@ export abstract class Client extends GameShell {
     static showDebug: boolean = false;
     static githubRepository: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
 
+    // original keys:
     static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
     static readonly modulus: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
 

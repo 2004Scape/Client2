@@ -80,7 +80,7 @@ class Sounds extends Client {
 
         sounds.innerHTML = '';
 
-        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/pack/sound.pack`);
+        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/src/pack/sound.pack`);
 
         const search: HTMLInputElement = document.createElement('input');
         search.type = 'search';

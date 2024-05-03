@@ -91,6 +91,7 @@ async function getWorldInfo(secured: boolean, id: number, retries: number = 0): 
         region: 'Local Development',
         address: 'http://localhost',
         portOffset: 0,
+        members: true,
         players: 0
     });
     const world: WorldList | undefined = worldlist.find((x): boolean => x.id === id);

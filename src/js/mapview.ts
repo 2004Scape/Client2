@@ -6,7 +6,7 @@ import Bzip from './vendor/bzip';
 
 import Jagfile from './jagex2/io/Jagfile';
 
-import {downloadUrl} from './jagex2/util/JsUtil';
+import {downloadUrl, sleep} from './jagex2/util/JsUtil';
 import Packet from './jagex2/io/Packet';
 import {setupConfiguration} from './configuration';
 import GameShell from './jagex2/client/GameShell';
@@ -15,8 +15,24 @@ import Pix8 from './jagex2/graphics/Pix8';
 import Pix24 from './jagex2/graphics/Pix24';
 import PixFont from './jagex2/graphics/PixFont';
 import Draw2D from './jagex2/graphics/Draw2D';
+import Database from './jagex2/io/Database';
+import {Client} from './client';
 
 class MapView extends GameShell {
+    static readonly shouldDrawBorders: boolean = false;
+    static readonly shouldDrawLabels: boolean = true;
+
+    db: Database | null = null;
+
+    // overworld
+    readonly startX: number = 3200;
+    readonly startZ: number = 3200;
+    readonly sizeX: number = 20 << 6;
+    readonly sizeZ: number = 21 << 6;
+    readonly originX: number = 35 << 6;
+    readonly originZ: number = 43 << 6;
+
+    readonly maxLabelCount: number = 1000;
     labelCount: number = 0;
     labelText: string[] = [];
     labelX: number[] = [];
@@ -35,8 +51,16 @@ class MapView extends GameShell {
     locMapscenes: number[][] = [];
     locMapfunction: number[][] = [];
 
+    objTiles: boolean[][] = [];
+
+    npcTiles: boolean[][] = [];
+
     imageMapscene: Pix8[] = [];
     imageMapfunction: Pix24[] = [];
+    imageMapdot0: Pix24 | null = null;
+    imageMapdot1: Pix24 | null = null;
+    imageMapdot2: Pix24 | null = null;
+    imageMapdot3: Pix24 | null = null;
 
     b12: PixFont | null = null;
 
@@ -47,7 +71,7 @@ class MapView extends GameShell {
     lastMouseClickX: number = -1;
     lastMouseClickY: number = -1;
     lastOffsetX: number = -1;
-    lastOffsetY: number = -1;
+    lastOffsetZ: number = -1;
 
     readonly keyNames: string[] = [
         'General Store',
@@ -122,29 +146,31 @@ class MapView extends GameShell {
 
     imageOverview: Pix24 | null = null;
     imageOverviewHeight: number = 200;
-    imageOverviewWidth: number = ((this.imageOverviewHeight * 1280) / 1216) | 0;
+    imageOverviewWidth: number = ((this.imageOverviewHeight * this.sizeX) / this.sizeZ) | 0;
     overviewX: number = 635 - this.imageOverviewWidth - 5;
     overviewY: number = 503 - this.imageOverviewHeight - 20;
     showOverview: boolean = false;
 
-    colorInactiveBorderTL: number = 0x887755;
-    colorInactive: number = 0x776644;
-    colorInactiveBorderBR: number = 0x665533;
-    colorActiveBorderTL: number = 0xaa0000;
-    colorActive: number = 0x990000;
-    colorActiveBorderBR: number = 0x880000;
+    readonly colorInactiveBorderTL: number = 0x887755;
+    readonly colorInactive: number = 0x776644;
+    readonly colorInactiveBorderBR: number = 0x665533;
+    readonly colorActiveBorderTL: number = 0xaa0000;
+    readonly colorActive: number = 0x990000;
+    readonly colorActiveBorderBR: number = 0x880000;
 
-    zoomX: number = 4;
-    zoomY: number = 4;
+    zoom: number = 4;
+    targetZoom: number = 4;
 
-    offsetX: number = 896;
-    offsetY: number = 832;
+    offsetX: number = this.startX - this.originX;
+    offsetZ: number = this.originZ + this.sizeZ - this.startZ;
 
     load = async (): Promise<void> => {
         await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
-        const worldmap: Jagfile = new Jagfile(await downloadUrl('/worldmap.jag'));
+        this.db = new Database(await Database.openDatabase());
 
-        this.showProgress(100, 'Please wait... Rendering Map');
+        const worldmap: Jagfile = await this.loadWorldmap();
+
+        await this.showProgress(100, 'Please wait... Rendering Map');
 
         const labelData: Packet = new Packet(worldmap.read('labels.dat'));
         this.labelCount = labelData.g2;
@@ -163,19 +189,27 @@ class MapView extends GameShell {
         }
 
         const underlayData: Packet = new Packet(worldmap.read('underlay.dat'));
-        this.underlayTiles = new TypedArray2d(1280, 1216, 0);
+        this.underlayTiles = new TypedArray2d(this.sizeX, this.sizeZ, 0);
         this.readUnderlayData(underlayData);
 
         const overlayData: Packet = new Packet(worldmap.read('overlay.dat'));
-        this.overlayTiles = new TypedArray2d(1280, 1216, 0);
-        this.overlayInfo = new TypedArray2d(1280, 1216, 0);
+        this.overlayTiles = new TypedArray2d(this.sizeX, this.sizeZ, 0);
+        this.overlayInfo = new TypedArray2d(this.sizeX, this.sizeZ, 0);
         this.readOverlayData(overlayData);
 
         const locData: Packet = new Packet(worldmap.read('loc.dat'));
-        this.locWalls = new TypedArray2d(1280, 1216, 0);
-        this.locMapscenes = new TypedArray2d(1280, 1216, 0);
-        this.locMapfunction = new TypedArray2d(1280, 1216, 0);
+        this.locWalls = new TypedArray2d(this.sizeX, this.sizeZ, 0);
+        this.locMapscenes = new TypedArray2d(this.sizeX, this.sizeZ, 0);
+        this.locMapfunction = new TypedArray2d(this.sizeX, this.sizeZ, 0);
         this.readLocData(locData);
+
+        const objData: Packet = new Packet(worldmap.read('obj.dat'));
+        this.objTiles = new TypedArray2d(this.sizeX, this.sizeZ, false);
+        this.readObjData(objData);
+
+        const npcData: Packet = new Packet(worldmap.read('npc.dat'));
+        this.npcTiles = new TypedArray2d(this.sizeX, this.sizeZ, false);
+        this.readNpcData(npcData);
 
         try {
             for (let i: number = 0; i < 50; i++) {
@@ -193,6 +227,11 @@ class MapView extends GameShell {
             // empty
         }
 
+        this.imageMapdot0 = Pix24.fromArchive(worldmap, 'mapdots', 0);
+        this.imageMapdot1 = Pix24.fromArchive(worldmap, 'mapdots', 1);
+        this.imageMapdot2 = Pix24.fromArchive(worldmap, 'mapdots', 2);
+        this.imageMapdot3 = Pix24.fromArchive(worldmap, 'mapdots', 3);
+
         this.b12 = PixFont.fromArchive(worldmap, 'b12');
         // this.f11 = new WorldmapFont(11, true, this);
         // this.f12 = new WorldmapFont(12, true, this);
@@ -203,12 +242,12 @@ class MapView extends GameShell {
         // this.f26 = new WorldmapFont(26, true, this);
         // this.f30 = new WorldmapFont(30, true, this);
 
-        this.floormapColors = new TypedArray2d(1280, 1216, 0);
+        this.floormapColors = new TypedArray2d(this.sizeX, this.sizeZ, 0);
         this.averageUnderlayColors();
 
         this.imageOverview = new Pix24(this.imageOverviewWidth, this.imageOverviewHeight);
         this.imageOverview.bind();
-        this.drawMap(0, 0, 1280, 1216, 0, 0, this.imageOverviewWidth, this.imageOverviewHeight);
+        this.drawMap(0, 0, this.sizeX, this.sizeZ, 0, 0, this.imageOverviewWidth, this.imageOverviewHeight);
         Draw2D.drawRect(0, 0, this.imageOverviewWidth, this.imageOverviewHeight, 0);
         Draw2D.drawRect(1, 1, this.imageOverviewWidth - 2, this.imageOverviewHeight - 2, this.colorInactiveBorderTL);
 
@@ -222,36 +261,36 @@ class MapView extends GameShell {
 
             Draw2D.clear();
 
-            const left: number = this.offsetX - ((635.0 / this.zoomX) | 0);
-            const top: number = this.offsetY - ((503.0 / this.zoomX) | 0);
-            const right: number = this.offsetX + ((635.0 / this.zoomX) | 0);
-            const bottom: number = this.offsetY + ((503.0 / this.zoomX) | 0);
+            const left: number = this.offsetX - ((635.0 / this.zoom) | 0);
+            const top: number = this.offsetZ - ((503.0 / this.zoom) | 0);
+            const right: number = this.offsetX + ((635.0 / this.zoom) | 0);
+            const bottom: number = this.offsetZ + ((503.0 / this.zoom) | 0);
             this.drawMap(left, top, right, bottom, 0, 0, 635, 503);
 
             if (this.showOverview) {
                 this.imageOverview?.blitOpaque(this.overviewX, this.overviewY);
 
                 Draw2D.fillRectAlpha(
-                    (this.overviewX + (this.imageOverviewWidth * left) / 1280) | 0,
-                    (this.overviewY + (this.imageOverviewHeight * top) / 1216) | 0,
-                    (((right - left) * this.imageOverviewWidth) / 1280) | 0,
-                    (((bottom - top) * this.imageOverviewHeight) / 1216) | 0,
+                    (this.overviewX + (this.imageOverviewWidth * left) / this.sizeX) | 0,
+                    (this.overviewY + (this.imageOverviewHeight * top) / this.sizeZ) | 0,
+                    (((right - left) * this.imageOverviewWidth) / this.sizeX) | 0,
+                    (((bottom - top) * this.imageOverviewHeight) / this.sizeZ) | 0,
                     0xff0000,
                     0x80
                 );
                 Draw2D.drawRect(
-                    (this.overviewX + (this.imageOverviewWidth * left) / 1280) | 0,
-                    (this.overviewY + (this.imageOverviewHeight * top) / 1216) | 0,
-                    (((right - left) * this.imageOverviewWidth) / 1280) | 0,
-                    (((bottom - top) * this.imageOverviewHeight) / 1216) | 0,
+                    (this.overviewX + (this.imageOverviewWidth * left) / this.sizeX) | 0,
+                    (this.overviewY + (this.imageOverviewHeight * top) / this.sizeZ) | 0,
+                    (((right - left) * this.imageOverviewWidth) / this.sizeX) | 0,
+                    (((bottom - top) * this.imageOverviewHeight) / this.sizeZ) | 0,
                     0xff0000
                 );
 
                 if (this.flashTimer > 0 && this.flashTimer % 10 < 5) {
                     for (let i: number = 0; i < this.activeMapFunctionCount; i++) {
                         if (this.activeMapFunctions[i] == this.currentKey) {
-                            const x: number = (this.overviewX + (this.imageOverviewWidth * this.activeMapFunctionX[i]) / 1280) | 0;
-                            const y: number = (this.overviewY + (this.imageOverviewHeight * this.activeMapFunctionZ[i]) / 1216) | 0;
+                            const x: number = (this.overviewX + (this.imageOverviewWidth * this.activeMapFunctionX[i]) / this.sizeX) | 0;
+                            const y: number = (this.overviewY + (this.imageOverviewHeight * this.activeMapFunctionZ[i]) / this.sizeZ) | 0;
                             Draw2D.fillCircle(x, y, 2, 0xffff00, 256);
                         }
                     }
@@ -291,25 +330,25 @@ class MapView extends GameShell {
             this.drawString(this.overviewX, this.overviewY + this.imageOverviewHeight, this.imageOverviewWidth, 18, this.colorInactiveBorderTL, this.colorInactive, this.colorInactiveBorderBR, 'Overview');
             this.drawString(this.keyX, this.keyY + this.keyHeight, this.keyWidth, 18, this.colorInactiveBorderTL, this.colorInactive, this.colorInactiveBorderBR, 'Key');
 
-            if (this.zoomY == 3.0) {
+            if (this.targetZoom == 3.0) {
                 this.drawString(170, 471, 50, 30, this.colorActiveBorderTL, this.colorActive, this.colorActiveBorderBR, '37%');
             } else {
                 this.drawString(170, 471, 50, 30, this.colorInactiveBorderTL, this.colorInactive, this.colorInactiveBorderBR, '37%');
             }
 
-            if (this.zoomY == 4.0) {
+            if (this.targetZoom == 4.0) {
                 this.drawString(230, 471, 50, 30, this.colorActiveBorderTL, this.colorActive, this.colorActiveBorderBR, '50%');
             } else {
                 this.drawString(230, 471, 50, 30, this.colorInactiveBorderTL, this.colorInactive, this.colorInactiveBorderBR, '50%');
             }
 
-            if (this.zoomY == 6.0) {
+            if (this.targetZoom == 6.0) {
                 this.drawString(290, 471, 50, 30, this.colorActiveBorderTL, this.colorActive, this.colorActiveBorderBR, '75%');
             } else {
                 this.drawString(290, 471, 50, 30, this.colorInactiveBorderTL, this.colorInactive, this.colorInactiveBorderBR, '75%');
             }
 
-            if (this.zoomY == 8.0) {
+            if (this.targetZoom == 8.0) {
                 this.drawString(350, 471, 50, 30, this.colorActiveBorderTL, this.colorActive, this.colorActiveBorderBR, '100%');
             } else {
                 this.drawString(350, 471, 50, 30, this.colorInactiveBorderTL, this.colorInactive, this.colorInactiveBorderBR, '100%');
@@ -329,20 +368,19 @@ class MapView extends GameShell {
 
     update = async (): Promise<void> => {
         if (this.actionKey[1] == 1) {
-            this.offsetX = (this.offsetX - 16.0 / this.zoomX) | 0;
+            this.offsetX = (this.offsetX - 16.0 / this.zoom) | 0;
             this.redraw = true;
         }
         if (this.actionKey[2] == 1) {
-            this.offsetX = (this.offsetX + 16.0 / this.zoomX) | 0;
+            this.offsetX = (this.offsetX + 16.0 / this.zoom) | 0;
             this.redraw = true;
         }
-
         if (this.actionKey[3] == 1) {
-            this.offsetY = (this.offsetY - 16.0 / this.zoomX) | 0;
+            this.offsetZ = (this.offsetZ - 16.0 / this.zoom) | 0;
             this.redraw = true;
         }
         if (this.actionKey[4] == 1) {
-            this.offsetY = (this.offsetY + 16.0 / this.zoomX) | 0;
+            this.offsetZ = (this.offsetZ + 16.0 / this.zoom) | 0;
             this.redraw = true;
         }
 
@@ -351,16 +389,16 @@ class MapView extends GameShell {
             key = this.pollKey();
 
             if (key == 49) {
-                this.zoomY = 3.0;
+                this.targetZoom = 3.0;
                 this.redraw = true;
             } else if (key == 50) {
-                this.zoomY = 4.0;
+                this.targetZoom = 4.0;
                 this.redraw = true;
             } else if (key == 51) {
-                this.zoomY = 6.0;
+                this.targetZoom = 6.0;
                 this.redraw = true;
             } else if (key == 52) {
-                this.zoomY = 8.0;
+                this.targetZoom = 8.0;
                 this.redraw = true;
             } else if (key == 107 || key == 75) {
                 this.showKey = !this.showKey;
@@ -368,6 +406,8 @@ class MapView extends GameShell {
             } else if (key == 111 || key == 79) {
                 this.showOverview = !this.showOverview;
                 this.redraw = true;
+            } else if (key == 101) {
+                // todo: export as png and prompt user to download file
             }
         }
 
@@ -375,19 +415,19 @@ class MapView extends GameShell {
             this.lastMouseClickX = this.mouseClickX;
             this.lastMouseClickY = this.mouseClickY;
             this.lastOffsetX = this.offsetX;
-            this.lastOffsetY = this.offsetY;
+            this.lastOffsetZ = this.offsetZ;
 
             if (this.mouseClickX > 170 && this.mouseClickX < 220 && this.mouseClickY > 471 && this.mouseClickY < 503) {
-                this.zoomY = 3.0;
+                this.targetZoom = 3.0;
                 this.lastMouseClickX = -1;
             } else if (this.mouseClickX > 230 && this.mouseClickX < 280 && this.mouseClickY > 471 && this.mouseClickY < 503) {
-                this.zoomY = 4.0;
+                this.targetZoom = 4.0;
                 this.lastMouseClickX = -1;
             } else if (this.mouseClickX > 290 && this.mouseClickX < 340 && this.mouseClickY > 471 && this.mouseClickY < 503) {
-                this.zoomY = 6.0;
+                this.targetZoom = 6.0;
                 this.lastMouseClickX = -1;
             } else if (this.mouseClickX > 350 && this.mouseClickX < 400 && this.mouseClickY > 471 && this.mouseClickY < 503) {
-                this.zoomY = 8.0;
+                this.targetZoom = 8.0;
                 this.lastMouseClickX = -1;
             } else if (this.mouseClickX > this.keyX && this.mouseClickY > this.keyY + this.keyHeight && this.mouseClickX < this.keyX + this.keyWidth && this.mouseClickY < 503) {
                 this.showKey = !this.showKey;
@@ -449,32 +489,32 @@ class MapView extends GameShell {
             }
 
             if (mouseClickX > this.overviewX && mouseClickY > this.overviewY && mouseClickX < this.overviewX + this.imageOverviewWidth && mouseClickY < this.overviewY + this.imageOverviewHeight) {
-                this.offsetX = (((mouseClickX - this.overviewX) * 1280) / this.imageOverviewWidth) | 0;
-                this.offsetY = (((mouseClickY - this.overviewY) * 1216) / this.imageOverviewHeight) | 0;
+                this.offsetX = (((mouseClickX - this.overviewX) * this.sizeX) / this.imageOverviewWidth) | 0;
+                this.offsetZ = (((mouseClickY - this.overviewY) * this.sizeZ) / this.imageOverviewHeight) | 0;
                 this.lastMouseClickX = -1;
                 this.redraw = true;
             }
         }
 
         if (this.mouseButton == 1 && this.lastMouseClickX != -1) {
-            this.offsetX = this.lastOffsetX + ((((this.lastMouseClickX - this.mouseX) * 2.0) / this.zoomY) | 0);
-            this.offsetY = this.lastOffsetY + ((((this.lastMouseClickY - this.mouseY) * 2.0) / this.zoomY) | 0);
+            this.offsetX = this.lastOffsetX + ((((this.lastMouseClickX - this.mouseX) * 2.0) / this.targetZoom) | 0);
+            this.offsetZ = this.lastOffsetZ + ((((this.lastMouseClickY - this.mouseY) * 2.0) / this.targetZoom) | 0);
             this.redraw = true;
         }
 
-        if (this.zoomX < this.zoomY) {
+        if (this.zoom < this.targetZoom) {
             this.redraw = true;
-            this.zoomX += this.zoomX / 30.0;
-            if (this.zoomX > this.zoomY) {
-                this.zoomX = this.zoomY;
+            this.zoom += this.zoom / 30.0;
+            if (this.zoom > this.targetZoom) {
+                this.zoom = this.targetZoom;
             }
         }
 
-        if (this.zoomX > this.zoomY) {
+        if (this.zoom > this.targetZoom) {
             this.redraw = true;
-            this.zoomX -= this.zoomX / 30.0;
-            if (this.zoomX < this.zoomY) {
-                this.zoomX = this.zoomY;
+            this.zoom -= this.zoom / 30.0;
+            if (this.zoom < this.targetZoom) {
+                this.zoom = this.targetZoom;
             }
         }
 
@@ -493,23 +533,57 @@ class MapView extends GameShell {
             this.flashTimer--;
         }
 
-        const left: number = this.offsetX - 635.0 / this.zoomX;
-        const top: number = this.offsetY - 503.0 / this.zoomX;
-        const right: number = this.offsetX + 635.0 / this.zoomX;
-        const bottom: number = this.offsetY + 503.0 / this.zoomX;
+        const left: number = this.offsetX - ((635.0 / this.zoom) | 0);
+        const top: number = this.offsetZ - ((503.0 / this.zoom) | 0);
+        const right: number = this.offsetX + ((635.0 / this.zoom) | 0);
+        const bottom: number = this.offsetZ + ((503.0 / this.zoom) | 0);
         if (left < 48) {
-            this.offsetX = ((635.0 / this.zoomX) | 0) + 48;
+            this.offsetX = ((635.0 / this.zoom) | 0) + 48;
         }
         if (top < 48) {
-            this.offsetY = ((503.0 / this.zoomX) | 0) + 48;
+            this.offsetZ = ((503.0 / this.zoom) | 0) + 48;
         }
-        if (right > 1232) {
-            this.offsetX = 1232 - ((635.0 / this.zoomX) | 0);
+        if (right > this.sizeX - 48) {
+            this.offsetX = this.sizeX - 48 - ((635.0 / this.zoom) | 0);
         }
-        if (bottom > 1168) {
-            this.offsetY = 1168 - ((503.0 / this.zoomX) | 0);
+        if (bottom > this.sizeZ - 48) {
+            this.offsetZ = this.sizeZ - 48 - ((503.0 / this.zoom) | 0);
         }
     };
+
+    // ----
+
+    // todo: SHA check and redownload
+    async loadWorldmap(): Promise<Jagfile> {
+        let data: Int8Array | undefined = await this.db?.cacheload('worldmap.dat');
+        if (data) {
+            return new Jagfile(data);
+        }
+
+        let retry: number = 5;
+        while (!data) {
+            await this.showProgress(0, 'Requesting map');
+
+            try {
+                console.log(`${Client.httpAddress}/worldmap.jag`);
+                data = await downloadUrl(`${Client.httpAddress}/worldmap.jag`);
+            } catch (e) {
+                data = undefined;
+                for (let i: number = retry; i > 0; i--) {
+                    await this.showProgress(0, `Error loading - Will retry in ${i} secs.`);
+                    await sleep(1000);
+                }
+
+                retry *= 2;
+                if (retry > 60) {
+                    retry = 60;
+                }
+            }
+        }
+
+        await this.db?.cachesave('worldmap.dat', data);
+        return new Jagfile(data);
+    }
 
     // ----
 
@@ -537,8 +611,8 @@ class MapView extends GameShell {
     }
 
     averageUnderlayColors(): void {
-        const maxX: number = 1280;
-        const maxZ: number = 1216;
+        const maxX: number = this.sizeX;
+        const maxZ: number = this.sizeZ;
 
         const average: number[] = new TypedArray1d(maxZ, 0);
 
@@ -572,12 +646,12 @@ class MapView extends GameShell {
 
     readUnderlayData(data: Packet): void {
         while (data.available > 0) {
-            const mx: number = data.g1 * 64 - 2304;
-            const mz: number = data.g1 * 64 - 2816;
+            const mx: number = data.g1 * 64 - this.originX;
+            const mz: number = data.g1 * 64 - this.originZ;
 
-            if (mx > 0 && mz > 0 && mx + 64 < 1280 && mz + 64 < 1216) {
+            if (mx > 0 && mz > 0 && mx + 64 < this.sizeX && mz + 64 < this.sizeZ) {
                 for (let x: number = 0; x < 64; x++) {
-                    let zIndex: number = 1216 - mz - 1;
+                    let zIndex: number = this.sizeZ - mz - 1;
 
                     for (let z: number = -64; z < 0; z++) {
                         this.underlayTiles[mx + x][zIndex--] = data.g1;
@@ -591,12 +665,12 @@ class MapView extends GameShell {
 
     readOverlayData(data: Packet): void {
         while (data.available > 0) {
-            const mx: number = data.g1 * 64 - 2304;
-            const mz: number = data.g1 * 64 - 2816;
+            const mx: number = data.g1 * 64 - this.originX;
+            const mz: number = data.g1 * 64 - this.originZ;
 
-            if (mx > 0 && mz > 0 && mx + 64 < 1280 && mz + 64 < 1216) {
+            if (mx > 0 && mz > 0 && mx + 64 < this.sizeX && mz + 64 < this.sizeZ) {
                 for (let x: number = 0; x < 64; x++) {
-                    let zIndex: number = 1216 - mz - 1;
+                    let zIndex: number = this.sizeZ - mz - 1;
 
                     for (let z: number = -64; z < 0; z++) {
                         const opcode: number = data.g1;
@@ -621,12 +695,12 @@ class MapView extends GameShell {
 
     readLocData(data: Packet): void {
         while (data.available > 0) {
-            const mx: number = data.g1 * 64 - 2304;
-            const mz: number = data.g1 * 64 - 2816;
+            const mx: number = data.g1 * 64 - this.originX;
+            const mz: number = data.g1 * 64 - this.originZ;
 
-            if (mx > 0 && mz > 0 && mx + 64 < 1280 && mz + 64 < 1216) {
+            if (mx > 0 && mz > 0 && mx + 64 < this.sizeX && mz + 64 < this.sizeZ) {
                 for (let x: number = 0; x < 64; x++) {
-                    let zIndex: number = 1216 - mz - 1;
+                    let zIndex: number = this.sizeZ - mz - 1;
 
                     for (let z: number = -64; z < 0; z++) {
                         // eslint-disable-next-line no-constant-condition
@@ -661,6 +735,44 @@ class MapView extends GameShell {
                         } while (opcode != 0);
                     }
                 }
+            }
+        }
+    }
+
+    readObjData(data: Packet): void {
+        while (data.available > 0) {
+            const mx: number = data.g1 * 64 - this.originX;
+            const mz: number = data.g1 * 64 - this.originZ;
+
+            if (mx > 0 && mz > 0 && mx + 64 < this.sizeX && mz + 64 < this.sizeZ) {
+                for (let x: number = 0; x < 64; x++) {
+                    let zIndex: number = this.sizeZ - mz - 1;
+
+                    for (let z: number = -64; z < 0; z++) {
+                        this.objTiles[x + mx][zIndex--] = data.g1 == 1;
+                    }
+                }
+            } else {
+                data.pos += 4096;
+            }
+        }
+    }
+
+    readNpcData(data: Packet): void {
+        while (data.available > 0) {
+            const mx: number = data.g1 * 64 - this.originX;
+            const mz: number = data.g1 * 64 - this.originZ;
+
+            if (mx > 0 && mz > 0 && mx + 64 < this.sizeX && mz + 64 < this.sizeZ) {
+                for (let x: number = 0; x < 64; x++) {
+                    let zIndex: number = this.sizeZ - mz - 1;
+
+                    for (let z: number = -64; z < 0; z++) {
+                        this.npcTiles[x + mx][zIndex--] = data.g1 == 1;
+                    }
+                }
+            } else {
+                data.pos += 4096;
             }
         }
     }
@@ -731,8 +843,8 @@ class MapView extends GameShell {
     drawMap(left: number, top: number, right: number, bottom: number, widthOffset: number, heightOffset: number, width: number, height: number): void {
         const visibleX: number = right - left;
         const visibleY: number = bottom - top;
-        const widthRatio: number = ((width - widthOffset) << 16) / visibleX;
-        const heightRatio: number = ((height - heightOffset) << 16) / visibleY;
+        const widthRatio: number = (((width - widthOffset) << 16) / visibleX) | 0;
+        const heightRatio: number = (((height - heightOffset) << 16) / visibleY) | 0;
 
         for (let x: number = 0; x < visibleX; x++) {
             let startX: number = (widthRatio * x) >> 16;
@@ -815,9 +927,14 @@ class MapView extends GameShell {
                     }
 
                     let rgb: number = 0xcccccc;
-                    if ((wall >= 5 && wall <= 8) || (wall >= 13 && wall <= 16) || (wall >= 21 && wall <= 24) || wall == 27 || wall == 28) {
+                    if ((wall >= 5 && wall <= 8) || (wall >= 13 && wall <= 16) || (wall >= 21 && wall <= 24)) {
                         rgb = 0xcc0000;
                         wall -= 4;
+                    }
+                    if (wall == 27 || wall == 28) {
+                        // bugfix: drawing diagonal doors
+                        rgb = 0xcc0000;
+                        wall -= 2;
                     }
 
                     if (wall == 1) {
@@ -874,6 +991,62 @@ class MapView extends GameShell {
             }
         }
 
+        for (let x: number = 0; x < visibleX; x++) {
+            let startX: number = (widthRatio * x) >> 16;
+            let endX: number = (widthRatio * (x + 1)) >> 16;
+            const lengthX: number = endX - startX;
+            if (lengthX <= 0) {
+                continue;
+            }
+
+            startX += widthOffset;
+            endX += widthOffset;
+
+            for (let y: number = 0; y < visibleY; y++) {
+                let startY: number = (heightRatio * y) >> 16;
+                let endY: number = (heightRatio * (y + 1)) >> 16;
+                const lengthY: number = endY - startY;
+                if (lengthY <= 0) {
+                    continue;
+                }
+
+                startY += heightOffset;
+                endY += heightOffset;
+
+                if (this.objTiles[x + left][y + top]) {
+                    this.imageMapdot0?.draw(startX, startY);
+                }
+            }
+        }
+
+        for (let x: number = 0; x < visibleX; x++) {
+            let startX: number = (widthRatio * x) >> 16;
+            let endX: number = (widthRatio * (x + 1)) >> 16;
+            const lengthX: number = endX - startX;
+            if (lengthX <= 0) {
+                continue;
+            }
+
+            startX += widthOffset;
+            endX += widthOffset;
+
+            for (let y: number = 0; y < visibleY; y++) {
+                let startY: number = (heightRatio * y) >> 16;
+                let endY: number = (heightRatio * (y + 1)) >> 16;
+                const lengthY: number = endY - startY;
+                if (lengthY <= 0) {
+                    continue;
+                }
+
+                startY += heightOffset;
+                endY += heightOffset;
+
+                if (this.npcTiles[x + left][y + top]) {
+                    this.imageMapdot1?.draw(startX, startY);
+                }
+            }
+        }
+
         for (let i: number = 0; i < visibleMapFunctionCount; i++) {
             this.imageMapfunction[this.visibleMapFunctions[i]].draw(this.visibleMapFunctionsX[i] - 7, this.visibleMapFunctionsY[i] - 7);
         }
@@ -886,6 +1059,35 @@ class MapView extends GameShell {
                     if (this.flashTimer % 10 < 5) {
                         Draw2D.fillCircle(this.visibleMapFunctionsX[i], this.visibleMapFunctionsY[i], 15, 0xffff00, 128);
                         Draw2D.fillCircle(this.visibleMapFunctionsX[i], this.visibleMapFunctionsY[i], 7, 0xffffff, 256);
+                    }
+                }
+            }
+        }
+
+        if (this.zoom == this.targetZoom && MapView.shouldDrawLabels) {
+            // todo: port WorldmapFont
+        }
+
+        if (MapView.shouldDrawBorders) {
+            for (let mx: number = this.originX / 64; mx < (this.originX + this.sizeX) / 64; mx++) {
+                for (let mz: number = this.originZ / 64; mz < (this.originZ + this.sizeZ) / 64; mz++) {
+                    let x: number = mx * 64;
+                    let z: number = mz * 64;
+                    x -= this.originX;
+                    z = this.originZ + this.sizeZ - z;
+
+                    const drawLeft: number = (widthOffset + ((width - widthOffset) * (x - left)) / (right - left)) | 0;
+                    const drawTop: number = (heightOffset + ((height - heightOffset) * (z - 64 - top)) / (bottom - top)) | 0;
+                    const drawRight: number = (widthOffset + ((width - widthOffset) * (x + 64 - left)) / (right - left)) | 0;
+                    const drawBottom: number = (heightOffset + ((height - heightOffset) * (z - top)) / (bottom - top)) | 0;
+
+                    Draw2D.drawRect(drawLeft, drawTop, 0xffffff, drawRight - drawLeft, drawBottom - drawTop);
+                    this.b12?.drawStringRight(drawRight - 5, drawBottom - 5, mx + '_' + mz, 0xffffff, false);
+
+                    if (mx == 33 && mz >= 71 && mz <= 73) {
+                        this.b12?.drawStringCenter((drawRight + drawLeft) / 2, (drawBottom + drawTop) / 2, 'u_pass', 0xff0000);
+                    } else if (mx >= 32 && mx <= 34 && mz >= 70 && mz <= 74) {
+                        this.b12?.drawStringCenter((drawRight + drawLeft) / 2, (drawBottom + drawTop) / 2, 'u_pass', 0xffff00);
                     }
                 }
             }

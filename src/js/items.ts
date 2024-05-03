@@ -110,7 +110,7 @@ class Items extends Client {
 
         items.innerHTML = '';
 
-        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/pack/obj.pack`);
+        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/src/pack/obj.pack`);
 
         const command: HTMLInputElement = document.createElement('input');
         command.type = 'text';

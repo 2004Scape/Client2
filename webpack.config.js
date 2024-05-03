@@ -12,7 +12,8 @@ const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader
 const pages = [
     'index', 'playground', 'viewer', 'mesanim', 'items', 'sounds',
     'interface-editor',
-    'JagEd'
+    'JagEd',
+    'mapview'
 ];
 const htmlPlugins = pages.map(name => {
     return new HtmlWebpackPlugin({
@@ -31,7 +32,8 @@ const config = {
         items: './src/js/items.ts',
         sounds: './src/js/sounds.ts',
         ['interface-editor']: './src/js/interface-editor.ts',
-        JagEd: './src/js/JagEd.ts'
+        JagEd: './src/js/JagEd.ts',
+        mapview: './src/js/mapview.ts'
     },
 
     plugins: [

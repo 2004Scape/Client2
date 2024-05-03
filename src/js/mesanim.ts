@@ -97,9 +97,9 @@ class Mesanim extends Client {
             const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
             const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
-            // this.packfiles[1] = await this.loadPack(`${Viewer.REPO}/data/pack/npc.pack`);
-            // this.packfiles[2] = await this.loadPack(`${Viewer.REPO}/data/pack/mesanim.pack`);
-            // this.packfiles[3] = await this.loadPack(`${Viewer.REPO}/data/pack/seq.pack`);
+            // this.packfiles[1] = await this.loadPack(`${Viewer.REPO}/data/src/pack/npc.pack`);
+            // this.packfiles[2] = await this.loadPack(`${Viewer.REPO}/data/src/pack/mesanim.pack`);
+            // this.packfiles[3] = await this.loadPack(`${Viewer.REPO}/data/src/pack/seq.pack`);
 
             const mesanim: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/server/mesanim.dat`)));
 
@@ -220,7 +220,7 @@ class Mesanim extends Client {
     //
 
     async populateNpcSelector(): Promise<void> {
-        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/pack/npc.pack`);
+        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/src/pack/npc.pack`);
 
         const npcs: HTMLSelectElement | null = document.querySelector('#npcs');
         if (!npcs) {
