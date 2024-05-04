@@ -9,18 +9,23 @@ export function arraycopy(src: Int32Array | Uint8Array, srcPos: number, dst: Int
 export function bytesToBigInt(bytes: Uint8Array): bigint {
     let result: bigint = 0n;
     for (let index: number = 0; index < bytes.length; index++) {
-        result = (result << 8n) + BigInt(bytes[index]);
+        result = (result << 8n) | BigInt(bytes[index]);
     }
     return result;
 }
 
 export function bigIntToBytes(bigInt: bigint): Uint8Array {
-    const byteArray: number[] = [];
+    const bytes: number[] = [];
     while (bigInt > 0n) {
-        byteArray.unshift(Number(bigInt & 255n));
+        bytes.unshift(Number(bigInt & 0xffn));
         bigInt >>= 8n;
     }
-    return new Uint8Array(byteArray);
+
+    if (bytes[0] & 0x80) {
+        bytes.unshift(0);
+    }
+
+    return new Uint8Array(bytes);
 }
 
 export function bigIntModPow(base: bigint, exponent: bigint, modulus: bigint): bigint {
