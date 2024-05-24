@@ -2373,7 +2373,10 @@ class Game extends Client {
         } else if (this.chatInterfaceId !== -1) {
             this.drawInterface(ComType.instances[this.chatInterfaceId], 0, 0, 0);
         } else if (this.stickyChatInterfaceId === -1) {
-            const font: PixFont | null = this.fontPlain12;
+            let font: PixFont | null = this.fontPlain12;
+            if (Client.chatEra === 0) {
+                font = this.fontQuill8;
+            }
             let line: number = 0;
             Draw2D.setBounds(0, 0, 463, 77);
             for (let i: number = 0; i < 100; i++) {
@@ -2442,8 +2445,17 @@ class Game extends Client {
                 this.chatScrollHeight = 78;
             }
             this.drawScrollbar(463, 0, this.chatScrollHeight - this.chatScrollOffset - 77, this.chatScrollHeight, 77);
-            font?.drawString(4, 90, JString.formatName(this.username) + ':', Colors.BLACK);
-            font?.drawString(font.stringWidth(this.username + ': ') + 6, 90, this.chatTyped + '*', Colors.BLUE);
+            if (Client.chatEra == 0) {
+                // 186-194?
+                font?.drawString(3, 90, this.chatTyped + '*', Colors.BLACK);
+            } else if (Client.chatEra == 1) {
+                // <204
+                font?.drawString(3, 90, this.chatTyped + '*', Colors.BLUE);
+            } else {
+                // 204+
+                font?.drawString(4, 90, JString.formatName(this.username) + ':', Colors.BLACK);
+                font?.drawString(font.stringWidth(this.username + ': ') + 6, 90, this.chatTyped + '*', Colors.BLUE);
+            }
             Draw2D.drawHorizontalLine(0, 77, Colors.BLACK, 479);
         } else {
             this.drawInterface(ComType.instances[this.stickyChatInterfaceId], 0, 0, 0);
@@ -4092,6 +4104,8 @@ class Game extends Client {
                                 }
                             } else if (this.chatTyped === '::debug') {
                                 Client.showDebug = !Client.showDebug;
+                            } else if (this.chatTyped === '::chat') {
+                                Client.chatEra = (Client.chatEra + 1) % 3;
                             } else if (this.chatTyped.startsWith('::fps ')) {
                                 try {
                                     this.setTargetedFramerate(parseInt(this.chatTyped.substring(6), 10));
