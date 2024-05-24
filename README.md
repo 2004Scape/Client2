@@ -31,6 +31,8 @@ Create your account on the 2004scape website.
 
 `::debug` Shows performance metrics (FPS, frame times and more).
 
+`::chat` Changes between 3 different chat font eras.
+
 `::fps` Set a targeted FPS (ex. `::fps 30`)
 
 A developer can utilize the debug command for development purposes.
