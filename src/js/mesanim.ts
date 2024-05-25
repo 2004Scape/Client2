@@ -546,5 +546,5 @@ new Mesanim().run().then((): void => {});
 
 // prevent space from scrolling page
 window.onkeydown = function (e): boolean {
-    return !(e.key === ' ' && e.target === document.body);
+    return !(e.key === ' ' && (e.target === document.body || e.target === canvas));
 };
