@@ -499,7 +499,7 @@ export default abstract class GameShell {
                 this.mouseButton = 1;
             }
         } else {
-            if (e.buttons === 2) {
+            if (e.button === 2) {
                 this.mouseClickButton = 2;
                 this.mouseButton = 2;
             } else {
