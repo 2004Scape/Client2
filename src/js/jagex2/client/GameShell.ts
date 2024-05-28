@@ -356,6 +356,14 @@ export default abstract class GameShell {
         const code: number = mappedKey.code;
         let ch: number = mappedKey.ch;
 
+        if (e.ctrlKey) {
+            if (ch >= 65 && ch <= 90) {
+                ch -= 64;
+            } else if (ch >= 97 && ch <= 122) {
+                ch -= 96;
+            }
+        }
+
         if (ch < 30) {
             ch = 0;
         }
