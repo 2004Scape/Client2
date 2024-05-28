@@ -357,10 +357,10 @@ export default abstract class GameShell {
         let ch: number = mappedKey.ch;
 
         if (e.ctrlKey) {
-            if (ch >= 65 && ch <= 90) {
-                ch -= 64;
-            } else if (ch >= 97 && ch <= 122) {
-                ch -= 96;
+            if (ch >= 'A'.charCodeAt(0) && ch <= 'Z'.charCodeAt(0)) {
+                ch -= 'A'.charCodeAt(0) - 1;
+            } else if (ch >= 'a'.charCodeAt(0) && ch <= 'z'.charCodeAt(0)) {
+                ch -= 'a'.charCodeAt(0) - 1;
             }
         }
 
