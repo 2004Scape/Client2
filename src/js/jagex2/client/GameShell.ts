@@ -357,7 +357,7 @@ export default abstract class GameShell {
         let ch: number = mappedKey.ch;
 
         if (e.ctrlKey) {
-            if (ch >= 'A'.charCodeAt(0) && ch <= 'Z'.charCodeAt(0)) {
+            if ((ch >= 'A'.charCodeAt(0) && ch <= ']'.charCodeAt(0)) || ch == '_'.charCodeAt(0)) {
                 ch -= 'A'.charCodeAt(0) - 1;
             } else if (ch >= 'a'.charCodeAt(0) && ch <= 'z'.charCodeAt(0)) {
                 ch -= 'a'.charCodeAt(0) - 1;
