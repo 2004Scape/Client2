@@ -8,13 +8,13 @@ import NpcType from './jagex2/config/NpcType';
 import IdkType from './jagex2/config/IdkType';
 import SpotAnimType from './jagex2/config/SpotAnimType';
 import VarpType from './jagex2/config/VarpType';
-import ComType from './jagex2/config/ComType';
+import Component from './jagex2/config/Component';
 
 import Draw3D from './jagex2/graphics/Draw3D';
 import PixFont from './jagex2/graphics/PixFont';
 import Model from './jagex2/graphics/Model';
-import SeqBase from './jagex2/graphics/SeqBase';
-import SeqFrame from './jagex2/graphics/SeqFrame';
+import AnimBase from './jagex2/graphics/AnimBase';
+import AnimFrame from './jagex2/graphics/AnimFrame';
 
 import Jagfile from './jagex2/io/Jagfile';
 
@@ -36,8 +36,8 @@ class InterfaceEditor extends Client {
         super(false);
     }
 
-    activeInterface: ComType | null = null;
-    activeComponent: ComType | null = null;
+    activeInterface: Component | null = null;
+    activeComponent: Component | null = null;
     stickyComponent: boolean = false;
     movingComponent: boolean = false;
     movingRelativeX: number = 0;
@@ -83,8 +83,8 @@ class InterfaceEditor extends Client {
 
             await this.showProgress(83, 'Unpacking models');
             Model.unpack(models);
-            SeqBase.unpack(models);
-            SeqFrame.unpack(models);
+            AnimBase.unpack(models);
+            AnimFrame.unpack(models);
 
             await this.showProgress(86, 'Unpacking config');
             SeqType.unpack(config);
@@ -100,7 +100,7 @@ class InterfaceEditor extends Client {
             Wave.unpack(sounds);
 
             await this.showProgress(92, 'Unpacking interfaces');
-            ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+            Component.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
             await this.showProgress(97, 'Preparing game engine');
             WordFilter.unpack(wordenc);
@@ -111,7 +111,7 @@ class InterfaceEditor extends Client {
             this.drawArea?.bind();
             Draw3D.init2D();
 
-            this.activeInterface = ComType.instances[0];
+            this.activeInterface = Component.instances[0];
         } catch (err) {
             this.errorLoading = true;
             console.error(err);
@@ -251,7 +251,7 @@ class InterfaceEditor extends Client {
         }
     };
 
-    simulateClientInput = (com: ComType, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): void => {
+    simulateClientInput = (com: Component, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): void => {
         if (com.type !== 0 || !com.childId || !com.childX || !com.childY || mouseX < x || mouseY < y || mouseX > x + com.width || mouseY > y + com.height) {
             return;
         }
@@ -260,7 +260,7 @@ class InterfaceEditor extends Client {
         for (let i: number = 0; i < children; i++) {
             let childX: number = com.childX[i] + x;
             let childY: number = com.childY[i] + y - scrollPosition;
-            const child: ComType = ComType.instances[com.childId[i]];
+            const child: Component = Component.instances[com.childId[i]];
 
             childX += child.x;
             childY += child.y;
@@ -278,31 +278,31 @@ class InterfaceEditor extends Client {
             } else if (mouseX >= childX && mouseY >= childY && mouseX < childX + child.width && mouseY < childY + child.height) {
                 if (child.buttonType !== 0 && child.option && child.option.length) {
                     this.tooltip = child.option;
-                } else if (child.buttonType === ComType.BUTTON_CLOSE) {
+                } else if (child.buttonType === Component.BUTTON_CLOSE) {
                     this.tooltip = 'Close';
                 }
             }
         }
     };
 
-    getActiveComponent = (com: ComType, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): ComType | null => {
+    getActiveComponent = (com: Component, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): Component | null => {
         if (com.type !== 0 || !com.childId || !com.childX || !com.childY || mouseX < x || mouseY < y || mouseX > x + com.width || mouseY > y + com.height) {
             return null;
         }
 
-        let active: ComType | null = null;
+        let active: Component | null = null;
 
         const children: number = com.childId.length;
         for (let i: number = 0; i < children; i++) {
             let childX: number = com.childX[i] + x;
             let childY: number = com.childY[i] + y - scrollPosition;
-            const child: ComType = ComType.instances[com.childId[i]];
+            const child: Component = Component.instances[com.childId[i]];
 
             childX += child.x;
             childY += child.y;
 
             if (child.type === 0) {
-                const childActive: ComType | null = this.getActiveComponent(child, mouseX, mouseY, childX, childY, child.scrollPosition);
+                const childActive: Component | null = this.getActiveComponent(child, mouseX, mouseY, childX, childY, child.scrollPosition);
 
                 if (childActive) {
                     active = childActive;

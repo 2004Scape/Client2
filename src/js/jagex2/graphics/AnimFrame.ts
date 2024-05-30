@@ -1,9 +1,9 @@
 import Jagfile from '../io/Jagfile';
-import SeqBase from './SeqBase';
+import AnimBase from './AnimBase';
 import Packet from '../io/Packet';
 
-export default class SeqFrame {
-    static instances: SeqFrame[] = [];
+export default class AnimFrame {
+    static instances: AnimFrame[] = [];
 
     static unpack = (models: Jagfile): void => {
         const head: Packet = new Packet(models.read('frame_head.dat'));
@@ -21,11 +21,11 @@ export default class SeqFrame {
 
         for (let i: number = 0; i < total; i++) {
             const id: number = head.g2;
-            const frame: SeqFrame = (this.instances[id] = new SeqFrame());
+            const frame: AnimFrame = (this.instances[id] = new AnimFrame());
             frame.delay = del.g1;
 
             const baseId: number = head.g2;
-            const base: SeqBase = SeqBase.instances[baseId];
+            const base: AnimBase = AnimBase.instances[baseId];
             frame.base = base;
 
             const groupCount: number = head.g1;
@@ -100,7 +100,7 @@ export default class SeqFrame {
     // ----
 
     delay: number = 0;
-    base: SeqBase | null = null;
+    base: AnimBase | null = null;
     length: number = 0;
     bases: Int32Array | null = null;
     x: Int32Array | null = null;

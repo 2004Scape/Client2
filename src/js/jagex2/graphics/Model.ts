@@ -3,8 +3,8 @@ import Packet from '../io/Packet';
 
 import Draw2D from './Draw2D';
 import Draw3D from './Draw3D';
-import SeqFrame from './SeqFrame';
-import SeqBase from './SeqBase';
+import AnimFrame from './AnimFrame';
+import AnimBase from './AnimBase';
 
 import Hashable from '../datastruct/Hashable';
 import {Int32Array2d, TypedArray1d} from '../util/Arrays';
@@ -1669,9 +1669,9 @@ export default class Model extends Hashable {
         if (!mask || secondaryId === -1) {
             this.applyTransform(primaryId);
         } else {
-            const primary: SeqFrame = SeqFrame.instances[primaryId];
-            const secondary: SeqFrame = SeqFrame.instances[secondaryId];
-            const skeleton: SeqBase | null = primary.base;
+            const primary: AnimFrame = AnimFrame.instances[primaryId];
+            const secondary: AnimFrame = AnimFrame.instances[secondaryId];
+            const skeleton: AnimBase | null = primary.base;
 
             Model.baseX = 0;
             Model.baseY = 0;
@@ -1718,12 +1718,12 @@ export default class Model extends Hashable {
     }
 
     applyTransform(id: number): void {
-        if (!this.labelVertices || id === -1 || !SeqFrame.instances[id]) {
+        if (!this.labelVertices || id === -1 || !AnimFrame.instances[id]) {
             return;
         }
 
-        const transform: SeqFrame = SeqFrame.instances[id];
-        const skeleton: SeqBase | null = transform.base;
+        const transform: AnimFrame = AnimFrame.instances[id];
+        const skeleton: AnimBase | null = transform.base;
 
         Model.baseX = 0;
         Model.baseY = 0;

@@ -5,7 +5,7 @@ import NpcType from './jagex2/config/NpcType';
 import IdkType from './jagex2/config/IdkType';
 import SpotAnimType from './jagex2/config/SpotAnimType';
 import VarpType from './jagex2/config/VarpType';
-import ComType from './jagex2/config/ComType';
+import Component from './jagex2/config/Component';
 
 import PixMap from './jagex2/graphics/PixMap';
 import Draw2D from './jagex2/graphics/Draw2D';
@@ -58,8 +58,8 @@ import {playMidi, playWave, setMidiVolume, setWaveVolume, stopMidi} from './jage
 import {arraycopy, downloadUrl, sleep} from './jagex2/util/JsUtil';
 import {Int32Array3d, TypedArray1d, Uint8Array3d} from './jagex2/util/Arrays';
 import {Client} from './client';
-import SeqBase from './jagex2/graphics/SeqBase';
-import SeqFrame from './jagex2/graphics/SeqFrame';
+import AnimBase from './jagex2/graphics/AnimBase';
+import AnimFrame from './jagex2/graphics/AnimFrame';
 import FloType from './jagex2/config/FloType';
 import {setupConfiguration} from './configuration';
 import Tile from './jagex2/dash3d/type/Tile';
@@ -248,8 +248,8 @@ class Game extends Client {
 
             await this.showProgress(83, 'Unpacking models');
             Model.unpack(models);
-            SeqBase.unpack(models);
-            SeqFrame.unpack(models);
+            AnimBase.unpack(models);
+            AnimFrame.unpack(models);
 
             await this.showProgress(86, 'Unpacking config');
             SeqType.unpack(config);
@@ -267,7 +267,7 @@ class Game extends Client {
             }
 
             await this.showProgress(92, 'Unpacking interfaces');
-            ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+            Component.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
             await this.showProgress(97, 'Preparing game engine');
             for (let y: number = 0; y < 33; y++) {
@@ -1188,7 +1188,7 @@ class Game extends Client {
                         this.hoveredSlotParentId = -1;
                         this.handleInput();
                         if (this.hoveredSlotParentId === this.objDragInterfaceId && this.hoveredSlot !== this.objDragSlot) {
-                            const com: ComType = ComType.instances[this.objDragInterfaceId];
+                            const com: Component = Component.instances[this.objDragInterfaceId];
                             if (com.invSlotObjId) {
                                 const obj: number = com.invSlotObjId[this.hoveredSlot];
                                 com.invSlotObjId[this.hoveredSlot] = com.invSlotObjId[this.objDragSlot];
@@ -2186,7 +2186,7 @@ class Game extends Client {
 
         if (this.viewportInterfaceId !== -1) {
             this.updateInterfaceAnimation(this.viewportInterfaceId, this.sceneDelta);
-            this.drawInterface(ComType.instances[this.viewportInterfaceId], 0, 0, 0);
+            this.drawInterface(Component.instances[this.viewportInterfaceId], 0, 0, 0);
         }
 
         this.drawWildyLevel();
@@ -2341,9 +2341,9 @@ class Game extends Client {
         }
         this.imageInvback?.draw(0, 0);
         if (this.sidebarInterfaceId !== -1) {
-            this.drawInterface(ComType.instances[this.sidebarInterfaceId], 0, 0, 0);
+            this.drawInterface(Component.instances[this.sidebarInterfaceId], 0, 0, 0);
         } else if (this.tabInterfaceId[this.selectedTab] !== -1) {
-            this.drawInterface(ComType.instances[this.tabInterfaceId[this.selectedTab]], 0, 0, 0);
+            this.drawInterface(Component.instances[this.tabInterfaceId[this.selectedTab]], 0, 0, 0);
         }
         if (this.menuVisible && this.menuArea === 1) {
             this.drawMenu();
@@ -2371,7 +2371,7 @@ class Game extends Client {
             this.fontBold12?.drawStringCenter(239, 40, this.modalMessage, Colors.BLACK);
             this.fontBold12?.drawStringCenter(239, 60, 'Click to continue', Colors.DARKBLUE);
         } else if (this.chatInterfaceId !== -1) {
-            this.drawInterface(ComType.instances[this.chatInterfaceId], 0, 0, 0);
+            this.drawInterface(Component.instances[this.chatInterfaceId], 0, 0, 0);
         } else if (this.stickyChatInterfaceId === -1) {
             let font: PixFont | null = this.fontPlain12;
             if (Client.chatEra === 0) {
@@ -2458,7 +2458,7 @@ class Game extends Client {
             }
             Draw2D.drawHorizontalLine(0, 77, Colors.BLACK, 479);
         } else {
-            this.drawInterface(ComType.instances[this.stickyChatInterfaceId], 0, 0, 0);
+            this.drawInterface(Component.instances[this.stickyChatInterfaceId], 0, 0, 0);
         }
         if (this.menuVisible && this.menuArea === 2) {
             this.drawMenu();
@@ -2951,7 +2951,7 @@ class Game extends Client {
                 if (action === 602 || action === 596 || action === 22 || action === 892 || action === 415 || action === 405 || action === 38 || action === 422 || action === 478 || action === 347 || action === 188) {
                     const slot: number = this.menuParamB[this.menuSize - 1];
                     const comId: number = this.menuParamC[this.menuSize - 1];
-                    const com: ComType = ComType.instances[comId];
+                    const com: Component = Component.instances[comId];
 
                     if (com.draggable) {
                         this.objGrabThreshold = false;
@@ -2962,11 +2962,11 @@ class Game extends Client {
                         this.objGrabX = this.mouseClickX;
                         this.objGrabY = this.mouseClickY;
 
-                        if (ComType.instances[comId].layer === this.viewportInterfaceId) {
+                        if (Component.instances[comId].layer === this.viewportInterfaceId) {
                             this.objDragArea = 1;
                         }
 
-                        if (ComType.instances[comId].layer === this.chatInterfaceId) {
+                        if (Component.instances[comId].layer === this.chatInterfaceId) {
                             this.objDragArea = 3;
                         }
 
@@ -3141,11 +3141,11 @@ class Game extends Client {
             this.selectedItem = b;
             this.selectedArea = 2;
 
-            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+            if (Component.instances[c].layer === this.viewportInterfaceId) {
                 this.selectedArea = 1;
             }
 
-            if (ComType.instances[c].layer === this.chatInterfaceId) {
+            if (Component.instances[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
         } else if (action === 728 || action === 542 || action === 6 || action === 963 || action === 245) {
@@ -3249,11 +3249,11 @@ class Game extends Client {
             this.selectedItem = b;
             this.selectedArea = 2;
 
-            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+            if (Component.instances[c].layer === this.viewportInterfaceId) {
                 this.selectedArea = 1;
             }
 
-            if (ComType.instances[c].layer === this.chatInterfaceId) {
+            if (Component.instances[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
         } else if (action === 391) {
@@ -3269,11 +3269,11 @@ class Game extends Client {
             this.selectedItem = b;
             this.selectedArea = 2;
 
-            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+            if (Component.instances[c].layer === this.viewportInterfaceId) {
                 this.selectedArea = 1;
             }
 
-            if (ComType.instances[c].layer === this.chatInterfaceId) {
+            if (Component.instances[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
         } else if (action === 660) {
@@ -3455,7 +3455,7 @@ class Game extends Client {
             // OPLOC2
             this.interactWithLoc(ClientProt.OPLOC2, b, c, a);
         } else if (action === 930) {
-            const com: ComType = ComType.instances[c];
+            const com: Component = Component.instances[c];
             this.spellSelected = 1;
             this.activeSpellId = c;
             this.activeSpellFlags = com.actionTarget;
@@ -3480,7 +3480,7 @@ class Game extends Client {
 
             return;
         } else if (action === 951) {
-            const com: ComType = ComType.instances[c];
+            const com: Component = Component.instances[c];
             let notify: boolean = true;
 
             if (com.clientCode > 0) {
@@ -3539,11 +3539,11 @@ class Game extends Client {
             this.selectedItem = b;
             this.selectedArea = 2;
 
-            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+            if (Component.instances[c].layer === this.viewportInterfaceId) {
                 this.selectedArea = 1;
             }
 
-            if (ComType.instances[c].layer === this.chatInterfaceId) {
+            if (Component.instances[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
         } else if (action === 581) {
@@ -3606,7 +3606,7 @@ class Game extends Client {
             this.out.p1isaac(ClientProt.IF_BUTTON);
             this.out.p2(c);
 
-            const com: ComType = ComType.instances[c];
+            const com: Component = Component.instances[c];
             if (com.scripts && com.scripts[0] && com.scripts[0][0] === 5) {
                 const varp: number = com.scripts[0][1];
                 if (com.scriptOperand && this.varps[varp] !== com.scriptOperand[0]) {
@@ -3626,9 +3626,9 @@ class Game extends Client {
                 this.reportAbuseInput = option.substring(tag + 5).trim();
                 this.reportAbuseMuteOption = false;
 
-                for (let i: number = 0; i < ComType.instances.length; i++) {
-                    if (ComType.instances[i] && ComType.instances[i].clientCode === ComType.CC_REPORT_INPUT) {
-                        this.reportAbuseInterfaceID = this.viewportInterfaceId = ComType.instances[i].layer;
+                for (let i: number = 0; i < Component.instances.length; i++) {
+                    if (Component.instances[i] && Component.instances[i].clientCode === Component.CC_REPORT_INPUT) {
+                        this.reportAbuseInterfaceID = this.viewportInterfaceId = Component.instances[i].layer;
                         break;
                     }
                 }
@@ -3658,7 +3658,7 @@ class Game extends Client {
             this.out.p1isaac(ClientProt.IF_BUTTON);
             this.out.p2(c);
 
-            const com: ComType = ComType.instances[c];
+            const com: Component = Component.instances[c];
             if (com.scripts && com.scripts[0] && com.scripts[0][0] === 5) {
                 const varp: number = com.scripts[0][1];
                 this.varps[varp] = 1 - this.varps[varp];
@@ -3703,9 +3703,9 @@ class Game extends Client {
         this.spellSelected = 0;
     };
 
-    private handleInterfaceAction = (com: ComType): boolean => {
+    private handleInterfaceAction = (com: Component): boolean => {
         const clientCode: number = com.clientCode;
-        if (clientCode === ComType.CC_ADD_FRIEND) {
+        if (clientCode === Component.CC_ADD_FRIEND) {
             this.redrawChatback = true;
             this.chatbackInputOpen = false;
             this.showSocialInput = true;
@@ -3714,7 +3714,7 @@ class Game extends Client {
             this.socialMessage = 'Enter name of friend to add to list';
         }
 
-        if (clientCode === ComType.CC_DEL_FRIEND) {
+        if (clientCode === Component.CC_DEL_FRIEND) {
             this.redrawChatback = true;
             this.chatbackInputOpen = false;
             this.showSocialInput = true;
@@ -3723,12 +3723,12 @@ class Game extends Client {
             this.socialMessage = 'Enter name of friend to delete from list';
         }
 
-        if (clientCode === ComType.CC_LOGOUT) {
+        if (clientCode === Component.CC_LOGOUT) {
             this.idleTimeout = 250;
             return true;
         }
 
-        if (clientCode === ComType.CC_ADD_IGNORE) {
+        if (clientCode === Component.CC_ADD_IGNORE) {
             this.redrawChatback = true;
             this.chatbackInputOpen = false;
             this.showSocialInput = true;
@@ -3737,7 +3737,7 @@ class Game extends Client {
             this.socialMessage = 'Enter name of player to add to list';
         }
 
-        if (clientCode === ComType.CC_DEL_IGNORE) {
+        if (clientCode === Component.CC_DEL_IGNORE) {
             this.redrawChatback = true;
             this.chatbackInputOpen = false;
             this.showSocialInput = true;
@@ -3747,7 +3747,7 @@ class Game extends Client {
         }
 
         // physical parts
-        if (clientCode >= ComType.CC_CHANGE_HEAD_L && clientCode <= ComType.CC_CHANGE_FEET_R) {
+        if (clientCode >= Component.CC_CHANGE_HEAD_L && clientCode <= Component.CC_CHANGE_FEET_R) {
             const part: number = ((clientCode - 300) / 2) | 0;
             const direction: number = clientCode & 0x1;
             let kit: number = this.designIdentikits[part];
@@ -3779,7 +3779,7 @@ class Game extends Client {
         }
 
         // recoloring parts
-        if (clientCode >= ComType.CC_RECOLOUR_HAIR_L && clientCode <= ComType.CC_RECOLOUR_SKIN_R) {
+        if (clientCode >= Component.CC_RECOLOUR_HAIR_L && clientCode <= Component.CC_RECOLOUR_SKIN_R) {
             const part: number = ((clientCode - 314) / 2) | 0;
             const direction: number = clientCode & 0x1;
             let color: number = this.designColors[part];
@@ -3802,17 +3802,17 @@ class Game extends Client {
             this.updateDesignModel = true;
         }
 
-        if (clientCode === ComType.CC_SWITCH_TO_MALE && !this.designGenderMale) {
+        if (clientCode === Component.CC_SWITCH_TO_MALE && !this.designGenderMale) {
             this.designGenderMale = true;
             this.validateCharacterDesign();
         }
 
-        if (clientCode === ComType.CC_SWITCH_TO_FEMALE && this.designGenderMale) {
+        if (clientCode === Component.CC_SWITCH_TO_FEMALE && this.designGenderMale) {
             this.designGenderMale = false;
             this.validateCharacterDesign();
         }
 
-        if (clientCode === ComType.CC_ACCEPT_DESIGN) {
+        if (clientCode === Component.CC_ACCEPT_DESIGN) {
             this.out.p1isaac(ClientProt.IF_PLAYERDESIGN);
             this.out.p1(this.designGenderMale ? 0 : 1);
             for (let i: number = 0; i < 7; i++) {
@@ -3824,12 +3824,12 @@ class Game extends Client {
             return true;
         }
 
-        if (clientCode === ComType.CC_MOD_MUTE) {
+        if (clientCode === Component.CC_MOD_MUTE) {
             this.reportAbuseMuteOption = !this.reportAbuseMuteOption;
         }
 
         // reportabuse rules options
-        if (clientCode >= ComType.CC_REPORT_RULE1 && clientCode <= ComType.CC_REPORT_RULE12) {
+        if (clientCode >= Component.CC_REPORT_RULE1 && clientCode <= Component.CC_REPORT_RULE12) {
             this.closeInterfaces();
 
             if (this.reportAbuseInput.length > 0) {
@@ -4248,9 +4248,9 @@ class Game extends Client {
                 this.reportAbuseInput = '';
                 this.reportAbuseMuteOption = false;
 
-                for (let i: number = 0; i < ComType.instances.length; i++) {
-                    if (ComType.instances[i] && ComType.instances[i].clientCode === 600) {
-                        this.reportAbuseInterfaceID = this.viewportInterfaceId = ComType.instances[i].layer;
+                for (let i: number = 0; i < Component.instances.length; i++) {
+                    if (Component.instances[i] && Component.instances[i].clientCode === 600) {
+                        this.reportAbuseInterfaceID = this.viewportInterfaceId = Component.instances[i].layer;
                         return;
                     }
                 }
@@ -4258,7 +4258,7 @@ class Game extends Client {
         }
     };
 
-    private handleScrollInput = (mouseX: number, mouseY: number, scrollableHeight: number, height: number, redraw: boolean, left: number, top: number, component: ComType): void => {
+    private handleScrollInput = (mouseX: number, mouseY: number, scrollableHeight: number, height: number, redraw: boolean, left: number, top: number, component: Component): void => {
         if (this.scrollGrabbed) {
             this.scrollInputPadding = 32;
         } else {
@@ -4975,7 +4975,7 @@ class Game extends Client {
             }
             if (this.packetType === ServerProt.IF_SETPLAYERHEAD) {
                 // IF_SETPLAYERHEAD
-                ComType.instances[this.in.g2].model = this.localPlayer?.getHeadModel() || null;
+                Component.instances[this.in.g2].model = this.localPlayer?.getHeadModel() || null;
                 this.packetType = -1;
                 return true;
             }
@@ -5130,7 +5130,7 @@ class Game extends Client {
             if (this.packetType === ServerProt.IF_SETANIM) {
                 // IF_SETANIM
                 const com: number = this.in.g2;
-                ComType.instances[com].anim = this.in.g2;
+                Component.instances[com].anim = this.in.g2;
                 this.packetType = -1;
                 return true;
             }
@@ -5189,7 +5189,7 @@ class Game extends Client {
                 // UPDATE_INV_FULL
                 this.redrawSidebar = true;
                 const com: number = this.in.g2;
-                const inv: ComType = ComType.instances[com];
+                const inv: Component = Component.instances[com];
                 const size: number = this.in.g1;
                 if (inv.invSlotObjId && inv.invSlotObjCount) {
                     for (let i: number = 0; i < size; i++) {
@@ -5232,7 +5232,7 @@ class Game extends Client {
             }
             if (this.packetType === ServerProt.UPDATE_INV_STOP_TRANSMIT) {
                 // UPDATE_INV_STOP_TRANSMIT
-                const inv: ComType = ComType.instances[this.in.g2];
+                const inv: Component = Component.instances[this.in.g2];
                 if (inv.invSlotObjId) {
                     for (let i: number = 0; i < inv.invSlotObjId.length; i++) {
                         inv.invSlotObjId[i] = -1;
@@ -5257,9 +5257,9 @@ class Game extends Client {
                     }
                     this.reportAbuseInput = '';
                     this.reportAbuseMuteOption = false;
-                    for (let i: number = 0; i < ComType.instances.length; i++) {
-                        if (ComType.instances[i] && ComType.instances[i].clientCode === contentType) {
-                            this.viewportInterfaceId = ComType.instances[i].layer;
+                    for (let i: number = 0; i < Component.instances.length; i++) {
+                        if (Component.instances[i] && Component.instances[i].clientCode === contentType) {
+                            this.viewportInterfaceId = Component.instances[i].layer;
                             break;
                         }
                     }
@@ -5319,7 +5319,7 @@ class Game extends Client {
                 const com: number = this.in.g2;
                 const npcId: number = this.in.g2;
                 const npc: NpcType = NpcType.get(npcId);
-                ComType.instances[com].model = npc.getHeadModel();
+                Component.instances[com].model = npc.getHeadModel();
                 this.packetType = -1;
                 return true;
             }
@@ -5335,7 +5335,7 @@ class Game extends Client {
                 const com: number = this.in.g2;
                 const src: number = this.in.g2;
                 const dst: number = this.in.g2;
-                const inter: ComType = ComType.instances[com];
+                const inter: Component = Component.instances[com];
                 const model: Model | null = inter.model;
                 model?.recolor(src, dst);
                 this.packetType = -1;
@@ -5392,7 +5392,7 @@ class Game extends Client {
                 const com: number = this.in.g2;
                 const x: number = this.in.g2b;
                 const z: number = this.in.g2b;
-                const inter: ComType = ComType.instances[com];
+                const inter: Component = Component.instances[com];
                 inter.x = x;
                 inter.y = z;
                 this.packetType = -1;
@@ -5515,7 +5515,7 @@ class Game extends Client {
                 // IF_SETMODEL
                 const com: number = this.in.g2;
                 const model: number = this.in.g2;
-                ComType.instances[com].model = Model.model(model);
+                Component.instances[com].model = Model.model(model);
                 this.packetType = -1;
                 return true;
             }
@@ -5613,10 +5613,10 @@ class Game extends Client {
                 const objId: number = this.in.g2;
                 const zoom: number = this.in.g2;
                 const obj: ObjType = ObjType.get(objId);
-                ComType.instances[com].model = obj.getInterfaceModel(50);
-                ComType.instances[com].xan = obj.xan2d;
-                ComType.instances[com].yan = obj.yan2d;
-                ComType.instances[com].zoom = ((obj.zoom2d * 100) / zoom) | 0;
+                Component.instances[com].model = obj.getInterfaceModel(50);
+                Component.instances[com].xan = obj.xan2d;
+                Component.instances[com].yan = obj.yan2d;
+                Component.instances[com].zoom = ((obj.zoom2d * 100) / zoom) | 0;
                 this.packetType = -1;
                 return true;
             }
@@ -5649,7 +5649,7 @@ class Game extends Client {
                 const r: number = (color >> 10) & 0x1f;
                 const g: number = (color >> 5) & 0x1f;
                 const b: number = color & 0x1f;
-                ComType.instances[com].colour = (r << 19) + (g << 11) + (b << 3);
+                Component.instances[com].colour = (r << 19) + (g << 11) + (b << 3);
                 this.packetType = -1;
                 return true;
             }
@@ -5675,7 +5675,7 @@ class Game extends Client {
             if (this.packetType === ServerProt.IF_SETHIDE) {
                 // IF_SETHIDE
                 const com: number = this.in.g2;
-                ComType.instances[com].hide = this.in.g1 === 1;
+                Component.instances[com].hide = this.in.g1 === 1;
                 this.packetType = -1;
                 return true;
             }
@@ -5720,8 +5720,8 @@ class Game extends Client {
             if (this.packetType === ServerProt.IF_SETTEXT) {
                 // IF_SETTEXT
                 const com: number = this.in.g2;
-                ComType.instances[com].text = this.in.gjstr;
-                if (ComType.instances[com].layer === this.tabInterfaceId[this.selectedTab]) {
+                Component.instances[com].text = this.in.gjstr;
+                if (Component.instances[com].layer === this.tabInterfaceId[this.selectedTab]) {
                     this.redrawSidebar = true;
                 }
                 this.packetType = -1;
@@ -5782,7 +5782,7 @@ class Game extends Client {
                 // UPDATE_INV_PARTIAL
                 this.redrawSidebar = true;
                 const com: number = this.in.g2;
-                const inv: ComType = ComType.instances[com];
+                const inv: Component = Component.instances[com];
                 while (this.in.pos < this.packetSize) {
                     const slot: number = this.in.g1;
                     const id: number = this.in.g2;
@@ -5934,12 +5934,12 @@ class Game extends Client {
     };
 
     private resetInterfaceAnimation = (id: number): void => {
-        const parent: ComType = ComType.instances[id];
+        const parent: Component = Component.instances[id];
         if (!parent.childId) {
             return;
         }
         for (let i: number = 0; i < parent.childId.length && parent.childId[i] !== -1; i++) {
-            const child: ComType = ComType.instances[parent.childId[i]];
+            const child: Component = Component.instances[parent.childId[i]];
             if (child.type === 1) {
                 this.resetInterfaceAnimation(child.id);
             }
@@ -6197,7 +6197,7 @@ class Game extends Client {
         }
     };
 
-    private handleInterfaceInput = (com: ComType, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): void => {
+    private handleInterfaceInput = (com: Component, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): void => {
         if (com.type !== 0 || !com.childId || com.hide || mouseX < x || mouseY < y || mouseX > x + com.width || mouseY > y + com.height || !com.childX || !com.childY) {
             return;
         }
@@ -6206,7 +6206,7 @@ class Game extends Client {
         for (let i: number = 0; i < children; i++) {
             let childX: number = com.childX[i] + x;
             let childY: number = com.childY[i] + y - scrollPosition;
-            const child: ComType = ComType.instances[com.childId[i]];
+            const child: Component = Component.instances[com.childId[i]];
 
             childX += child.x;
             childY += child.y;
@@ -6363,7 +6363,7 @@ class Game extends Client {
                     }
                 }
             } else if (mouseX >= childX && mouseY >= childY && mouseX < childX + child.width && mouseY < childY + child.height) {
-                if (child.buttonType === ComType.BUTTON_OK) {
+                if (child.buttonType === Component.BUTTON_OK) {
                     let override: boolean = false;
                     if (child.clientCode !== 0) {
                         override = this.handleSocialMenuOption(child);
@@ -6375,7 +6375,7 @@ class Game extends Client {
                         this.menuParamC[this.menuSize] = child.id;
                         this.menuSize++;
                     }
-                } else if (child.buttonType === ComType.BUTTON_TARGET && this.spellSelected === 0) {
+                } else if (child.buttonType === Component.BUTTON_TARGET && this.spellSelected === 0) {
                     let prefix: string | null = child.actionVerb;
                     if (prefix && prefix.indexOf(' ') !== -1) {
                         prefix = prefix.substring(0, prefix.indexOf(' '));
@@ -6385,22 +6385,22 @@ class Game extends Client {
                     this.menuAction[this.menuSize] = 930;
                     this.menuParamC[this.menuSize] = child.id;
                     this.menuSize++;
-                } else if (child.buttonType === ComType.BUTTON_CLOSE) {
+                } else if (child.buttonType === Component.BUTTON_CLOSE) {
                     this.menuOption[this.menuSize] = 'Close';
                     this.menuAction[this.menuSize] = 947;
                     this.menuParamC[this.menuSize] = child.id;
                     this.menuSize++;
-                } else if (child.buttonType === ComType.BUTTON_TOGGLE && child.option) {
+                } else if (child.buttonType === Component.BUTTON_TOGGLE && child.option) {
                     this.menuOption[this.menuSize] = child.option;
                     this.menuAction[this.menuSize] = 465;
                     this.menuParamC[this.menuSize] = child.id;
                     this.menuSize++;
-                } else if (child.buttonType === ComType.BUTTON_SELECT && child.option) {
+                } else if (child.buttonType === Component.BUTTON_SELECT && child.option) {
                     this.menuOption[this.menuSize] = child.option;
                     this.menuAction[this.menuSize] = 960;
                     this.menuParamC[this.menuSize] = child.id;
                     this.menuSize++;
-                } else if (child.buttonType === ComType.BUTTON_CONTINUE && !this.pressedContinueOption && child.option) {
+                } else if (child.buttonType === Component.BUTTON_CONTINUE && !this.pressedContinueOption && child.option) {
                     this.menuOption[this.menuSize] = child.option;
                     this.menuAction[this.menuSize] = 44;
                     this.menuParamC[this.menuSize] = child.id;
@@ -6410,11 +6410,11 @@ class Game extends Client {
         }
     };
 
-    private handleSocialMenuOption = (component: ComType): boolean => {
+    private handleSocialMenuOption = (component: Component): boolean => {
         let type: number = component.clientCode;
-        if (type >= ComType.CC_FRIENDS_START && type <= ComType.CC_FRIENDS_UPDATE_END) {
-            if (type >= ComType.CC_FRIENDS_UPDATE_START) {
-                type -= ComType.CC_FRIENDS_UPDATE_START;
+        if (type >= Component.CC_FRIENDS_START && type <= Component.CC_FRIENDS_UPDATE_END) {
+            if (type >= Component.CC_FRIENDS_UPDATE_START) {
+                type -= Component.CC_FRIENDS_UPDATE_START;
             } else {
                 type--;
             }
@@ -6425,7 +6425,7 @@ class Game extends Client {
             this.menuAction[this.menuSize] = 679;
             this.menuSize++;
             return true;
-        } else if (type >= ComType.CC_IGNORES_START && type <= ComType.CC_IGNORES_END) {
+        } else if (type >= Component.CC_IGNORES_START && type <= Component.CC_IGNORES_END) {
             this.menuOption[this.menuSize] = 'Remove @whi@' + component.text;
             this.menuAction[this.menuSize] = 556;
             this.menuSize++;
@@ -6844,7 +6844,7 @@ class Game extends Client {
                 if (this.viewportInterfaceId === -1) {
                     this.handleViewportOptions();
                 } else {
-                    this.handleInterfaceInput(ComType.instances[this.viewportInterfaceId], this.mouseX, this.mouseY, 8, 11, 0);
+                    this.handleInterfaceInput(Component.instances[this.viewportInterfaceId], this.mouseX, this.mouseY, 8, 11, 0);
                 }
             }
 
@@ -6857,9 +6857,9 @@ class Game extends Client {
             // the sidebar/tabs area
             if (this.mouseX > 562 && this.mouseY > 231 && this.mouseX < 752 && this.mouseY < 492) {
                 if (this.sidebarInterfaceId !== -1) {
-                    this.handleInterfaceInput(ComType.instances[this.sidebarInterfaceId], this.mouseX, this.mouseY, 562, 231, 0);
+                    this.handleInterfaceInput(Component.instances[this.sidebarInterfaceId], this.mouseX, this.mouseY, 562, 231, 0);
                 } else if (this.tabInterfaceId[this.selectedTab] !== -1) {
-                    this.handleInterfaceInput(ComType.instances[this.tabInterfaceId[this.selectedTab]], this.mouseX, this.mouseY, 562, 231, 0);
+                    this.handleInterfaceInput(Component.instances[this.tabInterfaceId[this.selectedTab]], this.mouseX, this.mouseY, 562, 231, 0);
                 }
             }
 
@@ -6875,7 +6875,7 @@ class Game extends Client {
                 if (this.chatInterfaceId === -1) {
                     this.handleChatMouseInput(this.mouseX - 22, this.mouseY - 375);
                 } else {
-                    this.handleInterfaceInput(ComType.instances[this.chatInterfaceId], this.mouseX, this.mouseY, 22, 375, 0);
+                    this.handleInterfaceInput(Component.instances[this.chatInterfaceId], this.mouseX, this.mouseY, 22, 375, 0);
                 }
             }
 

@@ -11,16 +11,16 @@ import {TypedArray1d} from '../../util/Arrays';
 import Colors from '../../graphics/Colors';
 
 export default class PlayerEntity extends PathingEntity {
-    static APPEARANCE: number = 0x1;
-    static ANIM: number = 0x2;
-    static FACE_ENTITY: number = 0x4;
-    static SAY: number = 0x8;
-    static DAMAGE: number = 0x10;
-    static FACE_COORD: number = 0x20;
-    static CHAT: number = 0x40;
-    static BIG_UPDATE: number = 0x80;
-    static SPOTANIM: number = 0x100;
-    static EXACT_MOVE: number = 0x200;
+    static readonly APPEARANCE: number = 0x1;
+    static readonly ANIM: number = 0x2;
+    static readonly FACE_ENTITY: number = 0x4;
+    static readonly SAY: number = 0x8;
+    static readonly DAMAGE: number = 0x10;
+    static readonly FACE_COORD: number = 0x20;
+    static readonly CHAT: number = 0x40;
+    static readonly BIG_UPDATE: number = 0x80;
+    static readonly SPOTANIM: number = 0x100;
+    static readonly EXACT_MOVE: number = 0x200;
 
     // prettier-ignore
     static readonly TORSO_RECOLORS: number[] = [

@@ -1,7 +1,7 @@
 import Jagfile from '../io/Jagfile';
 import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
-import SeqFrame from '../graphics/SeqFrame';
+import AnimFrame from '../graphics/AnimFrame';
 
 export default class SeqType extends ConfigType {
     static count: number = 0;
@@ -60,7 +60,7 @@ export default class SeqType extends ConfigType {
 
                 this.delay[i] = dat.g2;
                 if (this.delay[i] === 0) {
-                    this.delay[i] = SeqFrame.instances[this.frames[i]].delay;
+                    this.delay[i] = AnimFrame.instances[this.frames[i]].delay;
                 }
 
                 if (this.delay[i] === 0) {

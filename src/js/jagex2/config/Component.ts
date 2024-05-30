@@ -8,8 +8,8 @@ import JString from '../datastruct/JString';
 import {TypedArray1d} from '../util/Arrays';
 import Draw2D from '../graphics/Draw2D';
 
-export default class ComType {
-    static instances: ComType[] = [];
+export default class Component {
+    static instances: Component[] = [];
     static imageCache: LruCache | null = null;
     static modelCache: LruCache | null = null;
 
@@ -116,7 +116,7 @@ export default class ComType {
                 id = dat.g2;
             }
 
-            const com: ComType = (this.instances[id] = new ComType());
+            const com: Component = (this.instances[id] = new Component());
             com.id = id;
             com.layer = layer;
             com.type = dat.g1;
@@ -158,7 +158,7 @@ export default class ComType {
                 }
             }
 
-            if (com.type === ComType.TYPE_LAYER) {
+            if (com.type === Component.TYPE_LAYER) {
                 com.scroll = dat.g2;
                 com.hide = dat.g1 === 1;
 
@@ -174,11 +174,11 @@ export default class ComType {
                 }
             }
 
-            if (com.type === ComType.TYPE_UNUSED) {
+            if (com.type === Component.TYPE_UNUSED) {
                 dat.pos += 3;
             }
 
-            if (com.type === ComType.TYPE_INV) {
+            if (com.type === Component.TYPE_INV) {
                 com.invSlotObjId = new Int32Array(com.width * com.height);
                 com.invSlotObjCount = new Int32Array(com.width * com.height);
 
@@ -216,11 +216,11 @@ export default class ComType {
                 }
             }
 
-            if (com.type === ComType.TYPE_RECT) {
+            if (com.type === Component.TYPE_RECT) {
                 com.fill = dat.g1 === 1;
             }
 
-            if (com.type === ComType.TYPE_TEXT || com.type === ComType.TYPE_UNUSED) {
+            if (com.type === Component.TYPE_TEXT || com.type === Component.TYPE_UNUSED) {
                 com.center = dat.g1 === 1;
                 const fontId: number = dat.g1;
                 if (fonts) {
@@ -229,21 +229,21 @@ export default class ComType {
                 com.shadowed = dat.g1 === 1;
             }
 
-            if (com.type === ComType.TYPE_TEXT) {
+            if (com.type === Component.TYPE_TEXT) {
                 com.text = dat.gjstr;
                 com.activeText = dat.gjstr;
             }
 
-            if (com.type === ComType.TYPE_UNUSED || com.type === ComType.TYPE_RECT || com.type === ComType.TYPE_TEXT) {
+            if (com.type === Component.TYPE_UNUSED || com.type === Component.TYPE_RECT || com.type === Component.TYPE_TEXT) {
                 com.colour = dat.g4;
             }
 
-            if (com.type === ComType.TYPE_RECT || com.type === ComType.TYPE_TEXT) {
+            if (com.type === Component.TYPE_RECT || com.type === Component.TYPE_TEXT) {
                 com.activeColour = dat.g4;
                 com.overColour = dat.g4;
             }
 
-            if (com.type === ComType.TYPE_GRAPHIC) {
+            if (com.type === Component.TYPE_GRAPHIC) {
                 const graphic: string = dat.gjstr;
                 if (graphic.length > 0) {
                     const index: number = graphic.lastIndexOf(',');
@@ -258,7 +258,7 @@ export default class ComType {
                 }
             }
 
-            if (com.type === ComType.TYPE_MODEL) {
+            if (com.type === Component.TYPE_MODEL) {
                 const model: number = dat.g1;
                 if (model !== 0) {
                     com.model = this.getModel(((model - 1) << 8) + dat.g1);
@@ -288,7 +288,7 @@ export default class ComType {
                 com.yan = dat.g2;
             }
 
-            if (com.type === ComType.TYPE_INV_TEXT) {
+            if (com.type === Component.TYPE_INV_TEXT) {
                 com.invSlotObjId = new Int32Array(com.width * com.height);
                 com.invSlotObjCount = new Int32Array(com.width * com.height);
 
@@ -315,23 +315,23 @@ export default class ComType {
                 }
             }
 
-            if (com.buttonType === ComType.BUTTON_TARGET || com.type === ComType.TYPE_INV) {
+            if (com.buttonType === Component.BUTTON_TARGET || com.type === Component.TYPE_INV) {
                 com.actionVerb = dat.gjstr;
                 com.action = dat.gjstr;
                 com.actionTarget = dat.g2;
             }
 
-            if (com.buttonType === ComType.BUTTON_OK || com.buttonType === ComType.BUTTON_TOGGLE || com.buttonType === ComType.BUTTON_SELECT || com.buttonType === ComType.BUTTON_CONTINUE) {
+            if (com.buttonType === Component.BUTTON_OK || com.buttonType === Component.BUTTON_TOGGLE || com.buttonType === Component.BUTTON_SELECT || com.buttonType === Component.BUTTON_CONTINUE) {
                 com.option = dat.gjstr;
 
                 if (com.option.length === 0) {
-                    if (com.buttonType === ComType.BUTTON_OK) {
+                    if (com.buttonType === Component.BUTTON_OK) {
                         com.option = 'Ok';
-                    } else if (com.buttonType === ComType.BUTTON_TOGGLE) {
+                    } else if (com.buttonType === Component.BUTTON_TOGGLE) {
                         com.option = 'Select';
-                    } else if (com.buttonType === ComType.BUTTON_SELECT) {
+                    } else if (com.buttonType === Component.BUTTON_SELECT) {
                         com.option = 'Select';
-                    } else if (com.buttonType === ComType.BUTTON_CONTINUE) {
+                    } else if (com.buttonType === Component.BUTTON_CONTINUE) {
                         com.option = 'Continue';
                     }
                 }
@@ -530,7 +530,7 @@ export default class ComType {
             return this.x;
         }
 
-        let parent: ComType = ComType.instances[this.layer];
+        let parent: Component = Component.instances[this.layer];
         if (!parent.childId || !parent.childX || !parent.childY) {
             return this.x;
         }
@@ -542,7 +542,7 @@ export default class ComType {
 
         let x: number = parent.childX[childIndex];
         while (parent.layer !== parent.id) {
-            const grandParent: ComType = ComType.instances[parent.layer];
+            const grandParent: Component = Component.instances[parent.layer];
             if (grandParent.childId && grandParent.childX && grandParent.childY) {
                 childIndex = grandParent.childId.indexOf(parent.id);
                 if (childIndex !== -1) {
@@ -560,7 +560,7 @@ export default class ComType {
             return this.y;
         }
 
-        let parent: ComType = ComType.instances[this.layer];
+        let parent: Component = Component.instances[this.layer];
         if (!parent.childId || !parent.childX || !parent.childY) {
             return this.y;
         }
@@ -572,7 +572,7 @@ export default class ComType {
 
         let y: number = parent.childY[childIndex];
         while (parent.layer !== parent.id) {
-            const grandParent: ComType = ComType.instances[parent.layer];
+            const grandParent: Component = Component.instances[parent.layer];
             if (grandParent.childId && grandParent.childX && grandParent.childY) {
                 childIndex = grandParent.childId.indexOf(parent.id);
                 if (childIndex !== -1) {
@@ -599,7 +599,7 @@ export default class ComType {
         this.x = 0;
         this.y = 0;
 
-        const parent: ComType = ComType.instances[this.layer];
+        const parent: Component = Component.instances[this.layer];
 
         if (parent.childId && parent.childX && parent.childY) {
             const childIndex: number = parent.childId.indexOf(this.id);
@@ -616,7 +616,7 @@ export default class ComType {
             return;
         }
 
-        const parent: ComType = ComType.instances[this.layer];
+        const parent: Component = Component.instances[this.layer];
 
         if (parent.childId && parent.childX && parent.childY) {
             const childIndex: number = parent.childId.indexOf(this.id);
