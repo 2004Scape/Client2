@@ -2139,7 +2139,7 @@ class Game extends Client {
         y += 13;
         this.fontPlain11?.drawStringRight(x, y, `Occluders: ${World3D.levelOccluderCount[World3D.topLevel]} Active: ${World3D.activeOccluderCount}`, Colors.YELLOW, true);
         y += 13;
-        this.fontPlain11?.drawStringRight(x, y, 'Local Pos: ' + this.localPlayer?.x ?? -1 + ', ' + this.localPlayer?.z ?? -1 + ', ' + this.localPlayer?.y ?? -1, Colors.YELLOW, true);
+        this.fontPlain11?.drawStringRight(x, y, 'Local Pos: ' + (this.localPlayer?.x ?? -1) + ', ' + (this.localPlayer?.z ?? -1) + ', ' + (this.localPlayer?.y ?? -1), Colors.YELLOW, true);
         y += 13;
         this.fontPlain11?.drawStringRight(x, y, 'Camera Pos: ' + this.cameraX + ', ' + this.cameraZ + ', ' + this.cameraY, Colors.YELLOW, true);
         y += 13;
