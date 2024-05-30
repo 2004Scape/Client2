@@ -55,6 +55,7 @@ export abstract class Client extends GameShell {
     static httpAddress: string = '';
     static showDebug: boolean = false;
     static chatEra: number = 2; // 0 - early beta, 1 - late beta, 2 - launch
+    static cameraEditor: boolean = false;
     static githubRepository: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
 
     // original keys:

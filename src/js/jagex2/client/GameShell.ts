@@ -322,7 +322,7 @@ export default abstract class GameShell {
         for (let index: number = 0; index < length; index++) {
             ft += this.frameTime[index];
         }
-        const ms: number = ft / length;
+        const ms: number = (ft / length) * 1000;
         if (ms > this.slowestMS) {
             this.slowestMS = ms;
         }

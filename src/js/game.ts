@@ -1256,7 +1256,11 @@ class Game extends Client {
             }
 
             if (this.sceneState === 2) {
-                this.updateOrbitCamera();
+                if (Client.cameraEditor) {
+                    this.updateCameraEditor();
+                } else {
+                    this.updateOrbitCamera();
+                }
             }
             if (this.sceneState === 2 && this.cutscene) {
                 this.applyCutscene();
@@ -2123,21 +2127,50 @@ class Game extends Client {
         // all of this is basically custom code
         const x: number = 507;
         let y: number = 13;
-        this.fontPlain11?.drawStringRight(x, y, `FPS: ${this.fps}`, Colors.YELLOW, true);
-        y += 13;
-        this.fontPlain11?.drawStringRight(x, y, `Speed: ${this.ms.toFixed(4)} ms`, Colors.YELLOW, true);
-        y += 13;
-        this.fontPlain11?.drawStringRight(x, y, `Average: ${this.msAvg.toFixed(4)} ms`, Colors.YELLOW, true);
-        y += 13;
-        this.fontPlain11?.drawStringRight(x, y, `Slowest: ${this.slowestMS.toFixed(4)} ms`, Colors.YELLOW, true);
-        y += 13;
-        this.fontPlain11?.drawStringRight(x, y, `Occluders: ${World3D.levelOccluderCount[World3D.topLevel]} Active: ${World3D.activeOccluderCount}`, Colors.YELLOW, true);
-        // this.fontPlain11?.drawRight(x, y, `Rate: ${this.deltime} ms`, Colors.YELLOW, true);
-        y += 13;
         if (this.lastTickFlag) {
             this.fontPlain11?.drawStringRight(x, y, 'tock', Colors.YELLOW, true);
         } else {
             this.fontBold12?.drawStringRight(x, y, 'tick', Colors.YELLOW, true);
+        }
+        y += 13;
+        this.fontPlain11?.drawStringRight(x, y, `Fps: ${this.fps}, ${this.deltime} ms`, Colors.YELLOW, true);
+        y += 13;
+        this.fontPlain11?.drawStringRight(x, y, `Draw: ${this.ms.toFixed(1)}, Avg: ${this.msAvg.toFixed(1)}, Slow: ${this.slowestMS.toFixed(1)} ms`, Colors.YELLOW, true);
+        y += 13;
+        this.fontPlain11?.drawStringRight(x, y, `Occluders: ${World3D.levelOccluderCount[World3D.topLevel]} Active: ${World3D.activeOccluderCount}`, Colors.YELLOW, true);
+        y += 13;
+        this.fontPlain11?.drawStringRight(x, y, 'Local Pos: ' + this.localPlayer?.x ?? -1 + ', ' + this.localPlayer?.z ?? -1 + ', ' + this.localPlayer?.y ?? -1, Colors.YELLOW, true);
+        y += 13;
+        this.fontPlain11?.drawStringRight(x, y, 'Camera Pos: ' + this.cameraX + ', ' + this.cameraZ + ', ' + this.cameraY, Colors.YELLOW, true);
+        y += 13;
+        this.fontPlain11?.drawStringRight(x, y, 'Camera Angle: ' + this.cameraYaw + ', ' + this.cameraPitch, Colors.YELLOW, true);
+        y += 13;
+        this.fontPlain11?.drawStringRight(
+            x,
+            y,
+            'Cutscene Source: ' + this.cutsceneSrcLocalTileX + ', ' + this.cutsceneSrcLocalTileZ + ' ' + this.cutsceneSrcHeight + '; ' + this.cutsceneMoveSpeed + ', ' + this.cutsceneMoveAcceleration,
+            Colors.YELLOW,
+            true
+        );
+        y += 13;
+        this.fontPlain11?.drawStringRight(
+            x,
+            y,
+            'Cutscene Destination: ' + this.cutsceneDstLocalTileX + ', ' + this.cutsceneDstLocalTileZ + ' ' + this.cutsceneDstHeight + '; ' + this.cutsceneRotateSpeed + ', ' + this.cutsceneRotateAcceleration,
+            Colors.YELLOW,
+            true
+        );
+        if (Client.cameraEditor) {
+            y += 13;
+            this.fontPlain11?.drawStringRight(x, y, 'Instructions:', Colors.YELLOW, true);
+            y += 13;
+            this.fontPlain11?.drawStringRight(x, y, '- Arrows to move Camera', Colors.YELLOW, true);
+            y += 13;
+            this.fontPlain11?.drawStringRight(x, y, '- Shift to control Source or Dest', Colors.YELLOW, true);
+            y += 13;
+            this.fontPlain11?.drawStringRight(x, y, '- Alt to control Height', Colors.YELLOW, true);
+            y += 13;
+            this.fontPlain11?.drawStringRight(x, y, '- Ctrl to control Modifier', Colors.YELLOW, true);
         }
     };
 
@@ -2173,6 +2206,112 @@ class Game extends Client {
         Draw2D.drawLine(x1, y1, x3, y3, color);
         Draw2D.drawLine(x2, y2, x3, y3, color);
     };
+
+    updateCameraEditor(): void {
+        // holding ctrl
+        const modifier: number = this.actionKey[5] == 1 ? 2 : 1;
+
+        if (this.actionKey[6] == 1) {
+            // holding shift
+            if (this.actionKey[1] == 1) {
+                // left
+                this.cutsceneDstLocalTileX -= modifier;
+                if (this.cutsceneDstLocalTileX < 1) {
+                    this.cutsceneDstLocalTileX = 1;
+                }
+            } else if (this.actionKey[2] == 1) {
+                // right
+                this.cutsceneDstLocalTileX += modifier;
+                if (this.cutsceneDstLocalTileX > 102) {
+                    this.cutsceneDstLocalTileX = 102;
+                }
+            }
+
+            if (this.actionKey[3] == 1) {
+                // up
+                if (this.actionKey[7] == 1) {
+                    // holding alt
+                    this.cutsceneDstHeight += 2 * modifier;
+                } else {
+                    this.cutsceneDstLocalTileZ += 1;
+                    if (this.cutsceneDstLocalTileZ > 102) {
+                        this.cutsceneDstLocalTileZ = 102;
+                    }
+                }
+            } else if (this.actionKey[4] == 1) {
+                // down
+                if (this.actionKey[7] == 1) {
+                    // holding alt
+                    this.cutsceneDstHeight -= 2 * modifier;
+                } else {
+                    this.cutsceneDstLocalTileZ -= 1;
+                    if (this.cutsceneDstLocalTileZ < 1) {
+                        this.cutsceneDstLocalTileZ = 1;
+                    }
+                }
+            }
+        } else {
+            if (this.actionKey[1] == 1) {
+                // left
+                this.cutsceneSrcLocalTileX -= modifier;
+                if (this.cutsceneSrcLocalTileX < 1) {
+                    this.cutsceneSrcLocalTileX = 1;
+                }
+            } else if (this.actionKey[2] == 1) {
+                // right
+                this.cutsceneSrcLocalTileX += modifier;
+                if (this.cutsceneSrcLocalTileX > 102) {
+                    this.cutsceneSrcLocalTileX = 102;
+                }
+            }
+
+            if (this.actionKey[3] == 1) {
+                // up
+                if (this.actionKey[7] == 1) {
+                    // holding alt
+                    this.cutsceneSrcHeight += 2 * modifier;
+                } else {
+                    this.cutsceneSrcLocalTileZ += modifier;
+                    if (this.cutsceneSrcLocalTileZ > 102) {
+                        this.cutsceneSrcLocalTileZ = 102;
+                    }
+                }
+            } else if (this.actionKey[4] == 1) {
+                // down
+                if (this.actionKey[7] == 1) {
+                    // holding alt
+                    this.cutsceneSrcHeight -= 2 * modifier;
+                } else {
+                    this.cutsceneSrcLocalTileZ -= modifier;
+                    if (this.cutsceneSrcLocalTileZ < 1) {
+                        this.cutsceneSrcLocalTileZ = 1;
+                    }
+                }
+            }
+        }
+
+        this.cameraX = this.cutsceneSrcLocalTileX * 128 + 64;
+        this.cameraZ = this.cutsceneSrcLocalTileZ * 128 + 64;
+        this.cameraY = this.getHeightmapY(this.currentLevel, this.cutsceneSrcLocalTileX, this.cutsceneSrcLocalTileZ) - this.cutsceneSrcHeight;
+
+        const sceneX: number = this.cutsceneDstLocalTileX * 128 + 64;
+        const sceneZ: number = this.cutsceneDstLocalTileZ * 128 + 64;
+        const sceneY: number = this.getHeightmapY(this.currentLevel, this.cutsceneDstLocalTileX, this.cutsceneDstLocalTileZ) - this.cutsceneDstHeight;
+        const deltaX: number = sceneX - this.cameraX;
+        const deltaY: number = sceneY - this.cameraY;
+        const deltaZ: number = sceneZ - this.cameraZ;
+        const distance: number = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ) | 0;
+
+        this.cameraPitch = ((Math.atan2(deltaY, distance) * 325.949) | 0) & 0x7ff;
+        this.cameraYaw = ((Math.atan2(deltaX, deltaZ) * -325.949) | 0) & 0x7ff;
+        if (this.cameraPitch < 128) {
+            this.cameraPitch = 128;
+        }
+
+        if (this.cameraPitch > 383) {
+            this.cameraPitch = 383;
+        }
+    }
 
     private draw3DEntityElements = (): void => {
         this.drawPrivateMessages();
@@ -4111,6 +4250,35 @@ class Game extends Client {
                                     this.setTargetedFramerate(parseInt(this.chatTyped.substring(6), 10));
                                 } catch (e) {
                                     /* empty */
+                                }
+                            } else if (this.chatTyped.startsWith('::camera')) {
+                                Client.cameraEditor = !Client.cameraEditor;
+                                this.cutscene = Client.cameraEditor;
+                                this.cutsceneDstLocalTileX = 52;
+                                this.cutsceneDstLocalTileZ = 52;
+                                this.cutsceneSrcLocalTileX = 52;
+                                this.cutsceneSrcLocalTileZ = 52;
+                                this.cutsceneSrcHeight = 1000;
+                                this.cutsceneDstHeight = 1000;
+                            } else if (this.chatTyped.startsWith('::camsrc ')) {
+                                const args: string[] = this.chatTyped.split(' ');
+                                if (args.length === 3) {
+                                    this.cutsceneSrcLocalTileX = parseInt(args[1], 10);
+                                    this.cutsceneSrcLocalTileZ = parseInt(args[2], 10);
+                                } else if (args.length === 4) {
+                                    this.cutsceneSrcLocalTileX = parseInt(args[1], 10);
+                                    this.cutsceneSrcLocalTileZ = parseInt(args[2], 10);
+                                    this.cutsceneSrcHeight = parseInt(args[3], 10);
+                                }
+                            } else if (this.chatTyped.startsWith('::camdst ')) {
+                                const args: string[] = this.chatTyped.split(' ');
+                                if (args.length === 3) {
+                                    this.cutsceneDstLocalTileX = parseInt(args[1], 10);
+                                    this.cutsceneDstLocalTileZ = parseInt(args[2], 10);
+                                } else if (args.length === 4) {
+                                    this.cutsceneDstLocalTileX = parseInt(args[1], 10);
+                                    this.cutsceneDstLocalTileZ = parseInt(args[2], 10);
+                                    this.cutsceneDstHeight = parseInt(args[3], 10);
                                 }
                             }
 
