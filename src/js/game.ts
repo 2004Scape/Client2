@@ -1908,17 +1908,17 @@ class Game extends Client {
                     offsetY -= 15;
 
                     if (player.lastMask !== -1 && this.loopCycle - player.lastMaskCycle < 30) {
-                        if ((player.lastMask & 0x1) === 0x1) {
+                        if ((player.lastMask & PlayerEntity.APPEARANCE) === PlayerEntity.APPEARANCE) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Appearance Update', Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((player.lastMask & 0x2) === 0x2) {
+                        if ((player.lastMask & PlayerEntity.ANIM) === PlayerEntity.ANIM) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Play Seq: ' + player.primarySeqId, Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((player.lastMask & 0x4) === 0x4) {
+                        if ((player.lastMask & PlayerEntity.FACE_ENTITY) === PlayerEntity.FACE_ENTITY) {
                             let target: number = player.targetId;
                             if (target > 32767) {
                                 target -= 32768;
@@ -1927,32 +1927,32 @@ class Game extends Client {
                             offsetY -= 15;
                         }
 
-                        if ((player.lastMask & 0x8) === 0x8) {
+                        if ((player.lastMask & PlayerEntity.SAY) === PlayerEntity.SAY) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Say', Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((player.lastMask & 0x10) === 0x10) {
+                        if ((player.lastMask & PlayerEntity.DAMAGE) === PlayerEntity.DAMAGE) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Hit: Type ' + player.damageType + ' Amount ' + player.damage + ' HP ' + player.health + '/' + player.totalHealth, Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((player.lastMask & 0x20) === 0x20) {
+                        if ((player.lastMask & PlayerEntity.FACE_COORD) === PlayerEntity.FACE_COORD) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Face Coord: ' + player.lastFaceX / 2 + ' ' + player.lastFaceZ / 2, Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((player.lastMask & 0x40) === 0x40) {
+                        if ((player.lastMask & PlayerEntity.CHAT) === PlayerEntity.CHAT) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Chat', Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((player.lastMask & 0x100) === 0x100) {
+                        if ((player.lastMask & PlayerEntity.SPOTANIM) === PlayerEntity.SPOTANIM) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Play Spotanim: ' + player.spotanimId, Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((player.lastMask & 0x200) === 0x200) {
+                        if ((player.lastMask & PlayerEntity.EXACT_MOVE) === PlayerEntity.EXACT_MOVE) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Exact Move', Colors.WHITE);
                             offsetY -= 15;
                         }
@@ -1968,12 +1968,12 @@ class Game extends Client {
                     offsetY -= 15;
 
                     if (npc.lastMask !== -1 && this.loopCycle - npc.lastMaskCycle < 30) {
-                        if ((npc.lastMask & 0x2) === 0x2) {
+                        if ((npc.lastMask & NpcEntity.ANIM) === NpcEntity.ANIM) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Play Seq: ' + npc.primarySeqId, Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((npc.lastMask & 0x4) === 0x4) {
+                        if ((npc.lastMask & NpcEntity.FACE_ENTITY) === NpcEntity.FACE_ENTITY) {
                             let target: number = npc.targetId;
                             if (target > 32767) {
                                 target -= 32768;
@@ -1982,27 +1982,27 @@ class Game extends Client {
                             offsetY -= 15;
                         }
 
-                        if ((npc.lastMask & 0x8) === 0x8) {
+                        if ((npc.lastMask & NpcEntity.SAY) === NpcEntity.SAY) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Say', Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((npc.lastMask & 0x10) === 0x10) {
+                        if ((npc.lastMask & NpcEntity.DAMAGE) === NpcEntity.DAMAGE) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Hit: Type ' + npc.damageType + ' Amount ' + npc.damage + ' HP ' + npc.health + '/' + npc.totalHealth, Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((npc.lastMask & 0x20) === 0x20) {
+                        if ((npc.lastMask & NpcEntity.CHANGE_TYPE) === NpcEntity.CHANGE_TYPE) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Change Type: ' + npc.type?.id ?? null, Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((npc.lastMask & 0x40) === 0x40) {
+                        if ((npc.lastMask & NpcEntity.SPOTANIM) === NpcEntity.SPOTANIM) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Play Spotanim: ' + npc.spotanimId, Colors.WHITE);
                             offsetY -= 15;
                         }
 
-                        if ((npc.lastMask & 0x80) === 0x80) {
+                        if ((npc.lastMask & NpcEntity.FACE_COORD) === NpcEntity.FACE_COORD) {
                             this.fontPlain11?.drawStringCenter(this.projectX, this.projectY + offsetY, 'Face Coord: ' + npc.lastFaceX / 2 + ' ' + npc.lastFaceZ / 2, Colors.WHITE);
                             offsetY -= 15;
                         }
@@ -5398,8 +5398,8 @@ class Game extends Client {
                 this.packetType = -1;
                 return true;
             }
-            if (this.packetType === ServerProt.CAM_LOOKAT) {
-                // CAM_LOOKAT
+            if (this.packetType === ServerProt.CAM_MOVETO) {
+                // CAM_MOVETO
                 this.cutscene = true;
                 this.cutsceneSrcLocalTileX = this.in.g1;
                 this.cutsceneSrcLocalTileZ = this.in.g1;
@@ -5535,8 +5535,8 @@ class Game extends Client {
                 this.packetType = -1;
                 return true;
             }
-            if (this.packetType === ServerProt.CAM_MOVETO) {
-                // CAM_MOVETO
+            if (this.packetType === ServerProt.CAM_LOOKAT) {
+                // CAM_LOOKAT
                 this.cutscene = true;
                 this.cutsceneDstLocalTileX = this.in.g1;
                 this.cutsceneDstLocalTileZ = this.in.g1;
@@ -7478,7 +7478,7 @@ class Game extends Client {
                 continue; // its fine cos buffer gets out of pos and throws error which is ok
             }
             let mask: number = buf.g1;
-            if ((mask & 0x80) === 128) {
+            if ((mask & PlayerEntity.BIG_UPDATE) === PlayerEntity.BIG_UPDATE) {
                 mask += buf.g1 << 8;
             }
             this.readPlayerUpdatesBlocks(player, index, mask, buf);
@@ -7489,7 +7489,7 @@ class Game extends Client {
         player.lastMask = mask;
         player.lastMaskCycle = this.loopCycle;
 
-        if ((mask & 0x1) === 1) {
+        if ((mask & PlayerEntity.APPEARANCE) === PlayerEntity.APPEARANCE) {
             const length: number = buf.g1;
             const data: Uint8Array = new Uint8Array(length);
             const appearance: Packet = new Packet(data);
@@ -7497,7 +7497,7 @@ class Game extends Client {
             this.playerAppearanceBuffer[index] = appearance;
             player.read(appearance);
         }
-        if ((mask & 0x2) === 2) {
+        if ((mask & PlayerEntity.ANIM) === PlayerEntity.ANIM) {
             let seqId: number = buf.g2;
             if (seqId === 65535) {
                 seqId = -1;
@@ -7514,13 +7514,13 @@ class Game extends Client {
                 player.primarySeqLoop = 0;
             }
         }
-        if ((mask & 0x4) === 4) {
+        if ((mask & PlayerEntity.FACE_ENTITY) === PlayerEntity.FACE_ENTITY) {
             player.targetId = buf.g2;
             if (player.targetId === 65535) {
                 player.targetId = -1;
             }
         }
-        if ((mask & 0x8) === 8) {
+        if ((mask & PlayerEntity.SAY) === PlayerEntity.SAY) {
             player.chat = buf.gjstr;
             player.chatColor = 0;
             player.chatStyle = 0;
@@ -7529,20 +7529,20 @@ class Game extends Client {
                 this.addMessage(2, player.chat, player.name);
             }
         }
-        if ((mask & 0x10) === 16) {
+        if ((mask & PlayerEntity.DAMAGE) === PlayerEntity.DAMAGE) {
             player.damage = buf.g1;
             player.damageType = buf.g1;
             player.combatCycle = this.loopCycle + 400;
             player.health = buf.g1;
             player.totalHealth = buf.g1;
         }
-        if ((mask & 0x20) === 32) {
+        if ((mask & PlayerEntity.FACE_COORD) === PlayerEntity.FACE_COORD) {
             player.targetTileX = buf.g2;
             player.targetTileZ = buf.g2;
             player.lastFaceX = player.targetTileX;
             player.lastFaceZ = player.targetTileZ;
         }
-        if ((mask & 0x40) === 64) {
+        if ((mask & PlayerEntity.CHAT) === PlayerEntity.CHAT) {
             const colorEffect: number = buf.g2;
             const type: number = buf.g1;
             const length: number = buf.g1;
@@ -7578,7 +7578,7 @@ class Game extends Client {
             }
             buf.pos = start + length;
         }
-        if ((mask & 0x100) === 256) {
+        if ((mask & PlayerEntity.SPOTANIM) === PlayerEntity.SPOTANIM) {
             player.spotanimId = buf.g2;
             const heightDelay: number = buf.g4;
             player.spotanimOffset = heightDelay >> 16;
@@ -7592,7 +7592,7 @@ class Game extends Client {
                 player.spotanimId = -1;
             }
         }
-        if ((mask & 0x200) === 512) {
+        if ((mask & PlayerEntity.EXACT_MOVE) === PlayerEntity.EXACT_MOVE) {
             player.forceMoveStartSceneTileX = buf.g1;
             player.forceMoveStartSceneTileZ = buf.g1;
             player.forceMoveEndSceneTileX = buf.g1;
@@ -7760,7 +7760,7 @@ class Game extends Client {
             npc.lastMask = mask;
             npc.lastMaskCycle = this.loopCycle;
 
-            if ((mask & 0x2) === 2) {
+            if ((mask & NpcEntity.ANIM) === NpcEntity.ANIM) {
                 let seqId: number = buf.g2;
                 if (seqId === 65535) {
                     seqId = -1;
@@ -7777,24 +7777,24 @@ class Game extends Client {
                     npc.primarySeqLoop = 0;
                 }
             }
-            if ((mask & 0x4) === 4) {
+            if ((mask & NpcEntity.FACE_ENTITY) === NpcEntity.FACE_ENTITY) {
                 npc.targetId = buf.g2;
                 if (npc.targetId === 65535) {
                     npc.targetId = -1;
                 }
             }
-            if ((mask & 0x8) === 8) {
+            if ((mask & NpcEntity.SAY) === NpcEntity.SAY) {
                 npc.chat = buf.gjstr;
                 npc.chatTimer = 100;
             }
-            if ((mask & 0x10) === 16) {
+            if ((mask & NpcEntity.DAMAGE) === NpcEntity.DAMAGE) {
                 npc.damage = buf.g1;
                 npc.damageType = buf.g1;
                 npc.combatCycle = this.loopCycle + 400;
                 npc.health = buf.g1;
                 npc.totalHealth = buf.g1;
             }
-            if ((mask & 0x20) === 32) {
+            if ((mask & NpcEntity.CHANGE_TYPE) === NpcEntity.CHANGE_TYPE) {
                 npc.type = NpcType.get(buf.g2);
                 npc.seqWalkId = npc.type.walkanim;
                 npc.seqTurnAroundId = npc.type.walkanim_b;
@@ -7802,7 +7802,7 @@ class Game extends Client {
                 npc.seqTurnRightId = npc.type.walkanim_l;
                 npc.seqStandId = npc.type.readyanim;
             }
-            if ((mask & 0x40) === 64) {
+            if ((mask & NpcEntity.SPOTANIM) === NpcEntity.SPOTANIM) {
                 npc.spotanimId = buf.g2;
                 const info: number = buf.g4;
                 npc.spotanimOffset = info >> 16;
@@ -7816,7 +7816,7 @@ class Game extends Client {
                     npc.spotanimId = -1;
                 }
             }
-            if ((mask & 0x80) === 128) {
+            if ((mask & NpcEntity.FACE_COORD) === NpcEntity.FACE_COORD) {
                 npc.targetTileX = buf.g2;
                 npc.targetTileZ = buf.g2;
                 npc.lastFaceX = npc.targetTileX;

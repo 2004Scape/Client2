@@ -5,6 +5,14 @@ import SpotAnimType from '../../config/SpotAnimType';
 import SeqType from '../../config/SeqType';
 
 export default class NpcEntity extends PathingEntity {
+    static ANIM: number = 0x2;
+    static FACE_ENTITY: number = 0x4;
+    static SAY: number = 0x8;
+    static DAMAGE: number = 0x10;
+    static CHANGE_TYPE: number = 0x20;
+    static SPOTANIM: number = 0x40;
+    static FACE_COORD: number = 0x80;
+
     type: NpcType | null = null;
 
     draw(_loopCycle: number): Model | null {
