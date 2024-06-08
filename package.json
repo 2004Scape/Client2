@@ -44,11 +44,12 @@
     "dev": "npm run asc && webpack-dev-server --hot",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "format": "prettier src/**/*.{js,ts} --write",
+    "format": "prettier src/js/**/*.{js,ts} --write",
     "prepare": "husky install",
     "test": "npm run asc && jest",
     "asc": "asc --target release --optimizeLevel 3 --converge",
-    "local": "npm run build:dev && npx serve public"
+    "local": "npm run build:dev && npx serve public",
+    "prod": "npm run build && npx http-server -c-1"
   },
   "repository": {
     "type": "git",
@@ -66,7 +67,7 @@
     }
   },
   "lint-staged": {
-    "src/**/*.{js,ts}": [
+    "src/js/**/*.{js,ts}": [
       "npm run format",
       "npm run lint:fix"
     ]

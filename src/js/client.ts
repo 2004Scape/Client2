@@ -43,6 +43,9 @@ import VarpType from './jagex2/config/VarpType';
 import AnimBase from './jagex2/graphics/AnimBase';
 import AnimFrame from './jagex2/graphics/AnimFrame';
 import Tile from './jagex2/dash3d/type/Tile';
+import ClientWorkerStream from './jagex2/io/ClientWorkerStream';
+import {downloadURL} from './jagex2/util/SaveUtil';
+import {Host, Peer} from './jagex2/io/RTCDataChannels';
 
 // noinspection JSSuspiciousNameCombination
 export abstract class Client extends GameShell {
@@ -105,7 +108,7 @@ export abstract class Client extends GameShell {
     protected db: Database | null = null;
     protected loopCycle: number = 0;
     protected archiveChecksums: number[] = [];
-    protected stream: ClientStream | null = null;
+    protected stream: ClientStream | ClientWorkerStream | null = null;
     protected in: Packet = Packet.alloc(1);
     protected out: Packet = Packet.alloc(1);
     protected loginout: Packet = Packet.alloc(1);
@@ -483,6 +486,11 @@ export abstract class Client extends GameShell {
     protected midiSize: number = 0;
     protected midiVolume: number = 192;
 
+    // webworker + webrtc
+    protected worker: Worker | undefined = undefined;
+    protected host: Host | null = null;
+    protected peer: Peer | null = null;
+
     // debug
     // alt+shift click to add a tile overlay
     protected userTileMarkers: (Tile | null)[] = new TypedArray1d(16, null);
@@ -707,6 +715,82 @@ export abstract class Client extends GameShell {
         this.imageFlamesRight = null;
     };
 
+    protected setDataChannel = (): Worker | undefined => {
+        if (!this.peer || !this.peer.dc) {
+            return;
+        }
+
+        const dc: RTCDataChannel = this.peer?.dc;
+
+        const worker: Worker = {
+            onmessage: (e: MessageEvent): void => {
+                (this.stream as ClientWorkerStream).wwin.onmessage(e);
+            },
+
+            postMessage: (e: MessageEvent): void => {
+                if (dc && dc.readyState === 'open') {
+                    dc.send(JSON.stringify(e));
+                }
+            },
+            onerror: null,
+            onmessageerror: null,
+            terminate: (): void => {
+                throw new Error();
+            },
+            addEventListener: (): void => {
+                throw new Error();
+            },
+            removeEventListener: (): void => {
+                throw new Error();
+            },
+            dispatchEvent: (): boolean => {
+                throw new Error();
+            }
+        };
+
+        dc.onmessage = (e: MessageEvent): void => {
+            if (worker.onmessage) worker.onmessage(e);
+        };
+
+        return worker;
+    };
+
+    protected onmessage = (e: MessageEvent): void => {
+        switch (e.data.type) {
+            case 'save':
+                downloadURL(e.data.value, e.data.path.split('/').pop().split('\\').pop());
+                URL.revokeObjectURL(e.data.value);
+                return;
+            case 'close':
+                this.worker?.postMessage({type: 'close', id: e.data.id});
+                return;
+        }
+
+        if (this.stream && (this.stream as ClientWorkerStream).uniqueId === e.data.id) {
+            (this.stream as ClientWorkerStream).wwin.onmessage(e.data);
+        } else {
+            this.host?.postMessage(e);
+        }
+    };
+
+    protected exchangeSDP = async (): Promise<void> => {
+        if (+Client.getParameter('world') === 999) {
+            if (this.host) {
+                await this.host.setupPeerConnection();
+            }
+        } else if (+Client.getParameter('world') === 998) {
+            if (this.peer) {
+                let offer: string | null;
+                try {
+                    while ((offer = prompt('Paste offer here, answer will be copied to clipboard')) === null);
+                    await this.peer.handleOffer(offer);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+    };
+
     protected loadArchive = async (filename: string, displayName: string, crc: number, progress: number): Promise<Jagfile> => {
         let retry: number = 5;
         let data: Int8Array | undefined = await this.db?.cacheload(filename);
@@ -722,7 +806,11 @@ export abstract class Client extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                data = await downloadUrl(`${Client.httpAddress}/${filename}${crc}`);
+                if (+Client.getParameter('world') < 998) {
+                    data = await downloadUrl(`${Client.httpAddress}/${filename}${crc}`);
+                } else {
+                    data = await downloadUrl(`data/pack/client/${filename}`);
+                }
             } catch (e) {
                 data = undefined;
                 for (let i: number = retry; i > 0; i--) {
@@ -747,7 +835,11 @@ export abstract class Client extends GameShell {
 
         if (!data) {
             try {
-                data = await downloadUrl(`${Client.httpAddress}/${name}_${crc}.mid`);
+                if (+Client.getParameter('world') < 998) {
+                    data = await downloadUrl(`${Client.httpAddress}/${name}_${crc}.mid`);
+                } else {
+                    data = await downloadUrl(`data/pack/client/songs/${name}.mid`);
+                }
                 if (length !== data.length) {
                     data = data.slice(0, length);
                 }

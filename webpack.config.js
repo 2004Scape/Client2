@@ -10,10 +10,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
 
 const pages = [
-    'index', 'playground', 'viewer', 'mesanim', 'items', 'sounds',
-    'interface-editor',
-    'JagEd',
-    'mapview'
+    'index',
+    'playground', 'viewer', 'mesanim', 'items', 'sounds',
+    'interface-editor', 'JagEd', 'mapview'
 ];
 const htmlPlugins = pages.map(name => {
     return new HtmlWebpackPlugin({
@@ -48,7 +47,10 @@ const config = {
         }),
         new CopyPlugin({
             patterns: [
-                { from: path.resolve(__dirname, 'src', 'public') },
+                {
+                    from: path.resolve(__dirname, 'src', 'public'),
+                    globOptions: { ignore: [path.resolve(__dirname, 'src', 'public', 'data', 'src')] },
+                },
                 { from: path.resolve(__dirname, 'src', 'js', 'vendor', 'bz2.wasm') },
             ],
         })
@@ -122,6 +124,9 @@ module.exports = () => {
               minify: TerserPlugin.terserMinify,
               parallel: true,
               terserOptions: {
+                  module: true,
+                  mangle: true,
+                  /*
                   mangle: {
                       properties: {
                           keep_quoted: true, // needed for tinymidipcm.mjs
@@ -397,6 +402,7 @@ module.exports = () => {
                       quote_style: 3, // original
                       keep_quoted_props: true // needed for tinymidipcm.mjs
                   }
+                  */
               }
           })
         );

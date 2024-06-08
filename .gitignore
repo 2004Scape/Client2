@@ -8,3 +8,12 @@ bz2.js
 bz2.wasm
 
 !/test/resources/*
+
+/src/public/data/players
+/src/public/data/src
+
+# comment lines and provide files below to host webworker on github
+
+/src/public/data/*
+/src/public/LoginThread.js
+/src/public/worker.js
