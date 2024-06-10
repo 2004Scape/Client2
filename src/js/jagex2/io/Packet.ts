@@ -65,7 +65,7 @@ export default class Packet extends Hashable {
         } else {
             this.data = src;
         }
-        this.view = new DataView(this.data.buffer);
+        this.view = new DataView(this.data.buffer, this.data.byteOffset, this.data.byteLength);
     }
 
     get length(): number {
