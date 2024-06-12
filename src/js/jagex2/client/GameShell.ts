@@ -2,7 +2,7 @@ import PixMap from '../graphics/PixMap';
 import Draw3D from '../graphics/Draw3D';
 
 import {sleep} from '../util/JsUtil';
-import {CANVAS_PREVENTED, KEY_CODES} from './KeyCodes';
+import {CanvasEnabledKeys, KeyCodes} from './KeyCodes';
 import InputTracking from './InputTracking';
 import {canvas, canvas2d} from '../graphics/Canvas';
 
@@ -340,21 +340,16 @@ export default abstract class GameShell {
     private onkeydown = (e: KeyboardEvent): void => {
         const key: string = e.key;
 
-        if (CANVAS_PREVENTED.includes(key)) {
-            // prevent canvas from using tab and other blacklisted keys. no function in 225?
-            e.preventDefault();
-        }
-
         this.idleCycles = 0;
 
-        const mappedKey: {code: number; ch: number} = KEY_CODES[key];
-        if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
+        const keyCode: {code: number; ch: number} = KeyCodes[key];
+        if (!keyCode || (e.code.length === 0 && !e.isTrusted)) {
             console.warn(`Unhandled key: ${key}`);
             return;
         }
 
-        const code: number = mappedKey.code;
-        let ch: number = mappedKey.ch;
+        const code: number = keyCode.code;
+        let ch: number = keyCode.ch;
 
         if (e.ctrlKey) {
             if ((ch >= 'A'.charCodeAt(0) && ch <= ']'.charCodeAt(0)) || ch == '_'.charCodeAt(0)) {
@@ -368,37 +363,37 @@ export default abstract class GameShell {
             ch = 0;
         }
 
-        if (code === KEY_CODES['ArrowLeft'].code) {
+        if (code === KeyCodes['ArrowLeft'].code) {
             ch = 1;
-        } else if (code === KEY_CODES['ArrowRight'].code) {
+        } else if (code === KeyCodes['ArrowRight'].code) {
             ch = 2;
-        } else if (code === KEY_CODES['ArrowUp'].code) {
+        } else if (code === KeyCodes['ArrowUp'].code) {
             ch = 3;
-        } else if (code === KEY_CODES['ArrowDown'].code) {
+        } else if (code === KeyCodes['ArrowDown'].code) {
             ch = 4;
-        } else if (code === KEY_CODES['Control'].code) {
+        } else if (code === KeyCodes['Control'].code) {
             ch = 5;
-        } else if (code === KEY_CODES['Shift'].code) {
+        } else if (code === KeyCodes['Shift'].code) {
             ch = 6; // (custom)
-        } else if (code === KEY_CODES['Alt'].code) {
+        } else if (code === KeyCodes['Alt'].code) {
             ch = 7; // (custom)
-        } else if (code === KEY_CODES['Backspace'].code) {
+        } else if (code === KeyCodes['Backspace'].code) {
             ch = 8;
-        } else if (code === KEY_CODES['Delete'].code) {
+        } else if (code === KeyCodes['Delete'].code) {
             ch = 8;
-        } else if (code === KEY_CODES['Tab'].code) {
+        } else if (code === KeyCodes['Tab'].code) {
             ch = 9;
-        } else if (code === KEY_CODES['Enter'].code) {
+        } else if (code === KeyCodes['Enter'].code) {
             ch = 10;
-        } else if (code >= KEY_CODES['F1'].code && code <= KEY_CODES['F12'].code) {
-            ch = code + 1008 - KEY_CODES['F1'].code;
-        } else if (code === KEY_CODES['Home'].code) {
+        } else if (code >= KeyCodes['F1'].code && code <= KeyCodes['F12'].code) {
+            ch = code + 1008 - KeyCodes['F1'].code;
+        } else if (code === KeyCodes['Home'].code) {
             ch = 1000;
-        } else if (code === KEY_CODES['End'].code) {
+        } else if (code === KeyCodes['End'].code) {
             ch = 1001;
-        } else if (code === KEY_CODES['PageUp'].code) {
+        } else if (code === KeyCodes['PageUp'].code) {
             ch = 1002;
-        } else if (code === KEY_CODES['PageDown'].code) {
+        } else if (code === KeyCodes['PageDown'].code) {
             ch = 1003;
         }
 
@@ -414,62 +409,61 @@ export default abstract class GameShell {
         if (InputTracking.enabled) {
             InputTracking.keyPressed(ch);
         }
+
+        if (!CanvasEnabledKeys.includes(key)) {
+            e.preventDefault();
+        }
     };
 
     private onkeyup = (e: KeyboardEvent): void => {
         const key: string = e.key;
 
-        if (CANVAS_PREVENTED.includes(key)) {
-            // prevent canvas from using tab and other blacklisted keys. no function in 225?
-            e.preventDefault();
-        }
-
         this.idleCycles = 0;
 
-        const mappedKey: {code: number; ch: number} = KEY_CODES[key];
-        if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
+        const keyCode: {code: number; ch: number} = KeyCodes[key];
+        if (!keyCode || (e.code.length === 0 && !e.isTrusted)) {
             console.warn(`Unhandled key: ${key}`);
             return;
         }
 
-        const code: number = mappedKey.code;
-        let ch: number = mappedKey.ch;
+        const code: number = keyCode.code;
+        let ch: number = keyCode.ch;
 
         if (ch < 30) {
             ch = 0;
         }
 
-        if (code === KEY_CODES['ArrowLeft'].code) {
+        if (code === KeyCodes['ArrowLeft'].code) {
             ch = 1;
-        } else if (code === KEY_CODES['ArrowRight'].code) {
+        } else if (code === KeyCodes['ArrowRight'].code) {
             ch = 2;
-        } else if (code === KEY_CODES['ArrowUp'].code) {
+        } else if (code === KeyCodes['ArrowUp'].code) {
             ch = 3;
-        } else if (code === KEY_CODES['ArrowDown'].code) {
+        } else if (code === KeyCodes['ArrowDown'].code) {
             ch = 4;
-        } else if (code === KEY_CODES['Control'].code) {
+        } else if (code === KeyCodes['Control'].code) {
             ch = 5;
-        } else if (code === KEY_CODES['Shift'].code) {
+        } else if (code === KeyCodes['Shift'].code) {
             ch = 6; // (custom)
-        } else if (code === KEY_CODES['Alt'].code) {
+        } else if (code === KeyCodes['Alt'].code) {
             ch = 7; // (custom)
-        } else if (code === KEY_CODES['Backspace'].code) {
+        } else if (code === KeyCodes['Backspace'].code) {
             ch = 8;
-        } else if (code === KEY_CODES['Delete'].code) {
+        } else if (code === KeyCodes['Delete'].code) {
             ch = 8;
-        } else if (code === KEY_CODES['Tab'].code) {
+        } else if (code === KeyCodes['Tab'].code) {
             ch = 9;
-        } else if (code === KEY_CODES['Enter'].code) {
+        } else if (code === KeyCodes['Enter'].code) {
             ch = 10;
-        } else if (code >= KEY_CODES['F1'].code && code <= KEY_CODES['F12'].code) {
-            ch = code + 1008 - KEY_CODES['F1'].code;
-        } else if (code === KEY_CODES['Home'].code) {
+        } else if (code >= KeyCodes['F1'].code && code <= KeyCodes['F12'].code) {
+            ch = code + 1008 - KeyCodes['F1'].code;
+        } else if (code === KeyCodes['Home'].code) {
             ch = 1000;
-        } else if (code === KEY_CODES['End'].code) {
+        } else if (code === KeyCodes['End'].code) {
             ch = 1001;
-        } else if (code === KEY_CODES['PageUp'].code) {
+        } else if (code === KeyCodes['PageUp'].code) {
             ch = 1002;
-        } else if (code === KEY_CODES['PageDown'].code) {
+        } else if (code === KeyCodes['PageDown'].code) {
             ch = 1003;
         }
 
@@ -479,6 +473,10 @@ export default abstract class GameShell {
 
         if (InputTracking.enabled) {
             InputTracking.keyReleased(ch);
+        }
+
+        if (!CanvasEnabledKeys.includes(key)) {
+            e.preventDefault();
         }
     };
 

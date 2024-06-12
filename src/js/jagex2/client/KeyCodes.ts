@@ -5,8 +5,10 @@ export type JavaKeyCodes = {
     };
 };
 
+export const CanvasEnabledKeys: string[] = ['F11', 'F12'];
+
 // prettier-ignore
-export const KEY_CODES: JavaKeyCodes = {
+export const KeyCodes: JavaKeyCodes = {
     'Backspace': {code: 8, ch: 8},
     'Enter': {code: 10, ch: 10},
     'Shift': {code: 16, ch: 65535},
@@ -142,5 +144,3 @@ export const KEY_CODES: JavaKeyCodes = {
     'Y': {code: 89, ch: 89},
     'Z': {code: 90, ch: 90}
 };
-
-export const CANVAS_PREVENTED: string[] = ['Tab', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
