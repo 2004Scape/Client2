@@ -3438,7 +3438,7 @@ class Game extends Client {
                 this.pressedContinueOption = true;
             }
         } else if (action === 1773) {
-            // loc examine
+            // inv obj examine
             const obj: ObjType = ObjType.get(a);
             let examine: string;
 
