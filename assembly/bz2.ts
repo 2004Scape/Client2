@@ -1,36 +1,24 @@
 // https://gist.github.com/ultraviolet-jordan/2ded15754aee4fa82caacb0c7c77d866
 
+@final
 class BZip2State {
-    // generated from 1 << i, except for 32
-    // prettier-ignore
-    static readonly MASKS: StaticArray<i32> = [
-        0x00000000, 0x00000001, 0x00000003, 0x00000007,
-        0x0000000f, 0x0000001f, 0x0000003f, 0x0000007f,
-        0x000000ff, 0x000001ff, 0x000003ff, 0x000007ff,
-        0x00000fff, 0x00001fff, 0x00003fff, 0x00007fff,
-        0x0000ffff, 0x0001ffff, 0x0003ffff, 0x0007ffff,
-        0x000fffff, 0x001fffff, 0x003fffff, 0x007fffff,
-        0x00ffffff, 0x01ffffff, 0x03ffffff, 0x07ffffff,
-        0x0fffffff, 0x1fffffff, 0x3fffffff, -0x80000000
-    ];
-
-    static readonly MTFA_SIZE: i16 = 4096;
-    static readonly MTFL_SIZE: i8 = 16;
-    static readonly BZ_MAX_ALPHA_SIZE: i16 = 258;
-    static readonly BZ_MAX_CODE_LEN: i8 = 23;
+    @inline static readonly MTFA_SIZE: i16 = 4096;
+    @inline static readonly MTFL_SIZE: i8 = 16;
+    @inline static readonly BZ_MAX_ALPHA_SIZE: i16 = 258;
+    @inline static readonly BZ_MAX_CODE_LEN: i8 = 23;
     // static readonly anInt732: i32 = 1; // TODO
-    static readonly BZ_N_GROUPS: i8 = 6;
-    static readonly BZ_G_SIZE: i8 = 50;
-    static readonly BZ_MAX_SELECTORS: i16 = 18002; // (2 + (900000 / BZip2State.BZ_G_SIZE));
+    @inline static readonly BZ_N_GROUPS: i8 = 6;
+    @inline static readonly BZ_G_SIZE: i8 = 50;
+    @inline static readonly BZ_MAX_SELECTORS: i16 = 18002; // (2 + (900000 / BZip2State.BZ_G_SIZE));
     // static readonly anInt735: i32 = 4; // TODO
 
-    static readonly BZ_RUNA: i8 = 0;
-    static readonly BZ_RUNB: i8 = 1;
+    @inline static readonly BZ_RUNA: i8 = 0;
+    @inline static readonly BZ_RUNB: i8 = 1;
 
     static tt: StaticArray<i32> = new StaticArray<i32>(100_000);
 
-    stream: Int8Array = new Int8Array(0);
-    decompressed: Int8Array = new Int8Array(0);
+    stream: StaticArray<i8> = new StaticArray(0);
+    decompressed: StaticArray<i8> = new StaticArray(0);
     next_in: i32 = 0;
     avail_in: i32 = 0;
     total_in_lo32: i32 = 0;
@@ -70,14 +58,12 @@ class BZip2State {
     readonly minLens: StaticArray<i32> = new StaticArray<i32>(BZip2State.BZ_N_GROUPS);
 }
 
-export function newBzip2State(): BZip2State {
-    return new BZip2State();
-}
+const state: BZip2State = new BZip2State();
 
-export function read(length: i32, stream: Int8Array, avail_in: i32, next_in: i32, state: BZip2State): Int8Array {
+export function read(length: i32, stream: StaticArray<i8>, avail_in: i32, next_in: i32): StaticArray<i8> {
     state.stream = stream;
     state.next_in = next_in;
-    state.decompressed = new Int8Array(length);
+    state.decompressed = new StaticArray(length);
     state.next_out = 0;
     state.avail_in = avail_in;
     state.avail_out = length;
@@ -88,12 +74,12 @@ export function read(length: i32, stream: Int8Array, avail_in: i32, next_in: i32
     state.total_out_lo32 = 0;
     state.total_out_hi32 = 0;
     state.currBlockNo = 0;
-    decompress(state);
+    decompress();
     // return length - state.avail_out;
     return state.decompressed;
 }
 
-function decompress(state: BZip2State): void {
+function decompress(): void {
     let gMinlen: i32 = 0;
     let gLimit: StaticArray<i32> = [];
     let gBase: StaticArray<i32> = [];
@@ -106,43 +92,43 @@ function decompress(state: BZip2State): void {
 
     let reading: bool = true;
     while (reading) {
-        let uc: u8 = getByte(state);
+        let uc: u8 = getByte();
         if (uc === 0x17) {
             // 23
             return;
         }
 
         // uc checks originally broke the loop and returned an error in libbzip2
-        uc = getByte(state);
-        uc = getByte(state);
-        uc = getByte(state);
-        uc = getByte(state);
-        uc = getByte(state);
+        uc = getByte();
+        uc = getByte();
+        uc = getByte();
+        uc = getByte();
+        uc = getByte();
 
         state.currBlockNo++;
 
-        uc = getByte(state);
-        uc = getByte(state);
-        uc = getByte(state);
-        uc = getByte(state);
+        uc = getByte();
+        uc = getByte();
+        uc = getByte();
+        uc = getByte();
 
-        uc = getBit(state);
+        uc = getBit();
         state.blockRandomized = uc !== 0;
         if (state.blockRandomized) {
             // console.log('PANIC! RANDOMISED BLOCK!');
         }
 
         state.origPtr = 0;
-        uc = getByte(state);
+        uc = getByte();
         state.origPtr = (state.origPtr << 8) | (uc & 0xff);
-        uc = getByte(state);
+        uc = getByte();
         state.origPtr = (state.origPtr << 8) | (uc & 0xff);
-        uc = getByte(state);
+        uc = getByte();
         state.origPtr = (state.origPtr << 8) | (uc & 0xff);
 
         // Receive the mapping table
         for (let i: i32 = 0; i < 16; i++) {
-            uc = getBit(state);
+            uc = getBit();
             unchecked((state.inUse16[i] = uc === 1));
         }
 
@@ -153,23 +139,23 @@ function decompress(state: BZip2State): void {
         for (let i: i32 = 0; i < 16; i++) {
             if (unchecked(state.inUse16[i])) {
                 for (let j: i32 = 0; j < 16; j++) {
-                    uc = getBit(state);
+                    uc = getBit();
                     if (uc === 1) {
                         unchecked((state.inUse[i * 16 + j] = true));
                     }
                 }
             }
         }
-        makeMaps(state);
+        makeMaps();
         const alphaSize: i32 = state.nInUse + 2;
 
-        const nGroups: i32 = getBits(3, state);
-        const nSelectors: i32 = getBits(15, state);
+        const nGroups: i32 = getBits(3);
+        const nSelectors: i32 = getBits(15);
         for (let i: i32 = 0; i < nSelectors; i++) {
             let j: i32 = 0;
             // eslint-disable-next-line no-constant-condition
             while (true) {
-                uc = getBit(state);
+                uc = getBit();
                 if (uc === 0) {
                     break;
                 }
@@ -198,17 +184,17 @@ function decompress(state: BZip2State): void {
 
         // Now the coding tables
         for (let t: i32 = 0; t < nGroups; t++) {
-            let curr: i32 = getBits(5, state);
+            let curr: i32 = getBits(5);
 
             for (let i: i32 = 0; i < alphaSize; i++) {
                 // eslint-disable-next-line no-constant-condition
                 while (true) {
-                    uc = getBit(state);
+                    uc = getBit();
                     if (uc === 0) {
                         break;
                     }
 
-                    uc = getBit(state);
+                    uc = getBit();
                     if (uc === 0) {
                         curr++;
                     } else {
@@ -278,10 +264,10 @@ function decompress(state: BZip2State): void {
         let gPos: i32 = groupPos - 1;
         let zn: i32 = gMinlen;
         let zvec: i32;
-        let zj: u8;
-        for (zvec = getBits(gMinlen, state); zvec > unchecked(gLimit[zn]); zvec = (zvec << 1) | zj) {
+        let zj: u8 = 0;
+        for (zvec = getBits(gMinlen); zvec > unchecked(gLimit[zn]); zvec = (zvec << 1) | zj) {
             zn++;
-            zj = getBit(state);
+            zj = getBit();
         }
 
         let nextSym: i32 = unchecked(gPerm[zvec - unchecked(gBase[zn])]);
@@ -310,9 +296,9 @@ function decompress(state: BZip2State): void {
 
                     gPos--;
                     zn = gMinlen;
-                    for (zvec = getBits(gMinlen, state); zvec > unchecked(gLimit[zn]); zvec = (zvec << 1) | zj) {
+                    for (zvec = getBits(gMinlen); zvec > unchecked(gLimit[zn]); zvec = (zvec << 1) | zj) {
                         zn++;
-                        zj = getBit(state);
+                        zj = getBit();
                     }
 
                     nextSym = unchecked(gPerm[zvec - unchecked(gBase[zn])]);
@@ -407,9 +393,9 @@ function decompress(state: BZip2State): void {
 
                 gPos--;
                 zn = gMinlen;
-                for (zvec = getBits(gMinlen, state); zvec > unchecked(gLimit[zn]); zvec = (zvec << 1) | zj) {
+                for (zvec = getBits(gMinlen); zvec > unchecked(gLimit[zn]); zvec = (zvec << 1) | zj) {
                     zn++;
-                    zj = getBit(state);
+                    zj = getBit();
                 }
                 nextSym = unchecked(gPerm[zvec - unchecked(gBase[zn])]);
             }
@@ -448,12 +434,13 @@ function decompress(state: BZip2State): void {
         state.c_nblock_used++;
 
         state.save_nblock = nblock;
-        finish(state);
+        finish();
         reading = state.c_nblock_used === state.save_nblock + 1 && state.state_out_len === 0;
     }
 }
 
-function getBits(n: i32, state: BZip2State): i32 {
+// macro: GET_BITS
+function getBits(n: i32): i32 {
     while (state.bsLive < n) {
         state.bsBuff = (state.bsBuff << 8) | (unchecked(state.stream[state.next_in]) & 0xff);
         state.bsLive += 8;
@@ -465,20 +452,23 @@ function getBits(n: i32, state: BZip2State): i32 {
         }
     }
 
-    const value: i32 = (state.bsBuff >> (state.bsLive - n)) & unchecked(BZip2State.MASKS[n]);
+    const value: i32 = state.bsBuff >> state.bsLive - n & (1 << n) - 1;
     state.bsLive -= n;
     return value;
 }
 
-function getBit(state: BZip2State): u8 {
-    return <u8>getBits(1, state);
+// macro: GET_BIT
+function getBit(): u8 {
+    return <u8>getBits(1);
 }
 
-function getByte(state: BZip2State): u8 {
-    return <u8>getBits(8, state);
+// macro: GET_UCHAR
+function getByte(): u8 {
+    return <u8>getBits(8);
 }
 
-function makeMaps(state: BZip2State): void {
+// makeMaps_d
+function makeMaps(): void {
     state.nInUse = 0;
 
     for (let i: i32 = 0; i < 256; i++) {
@@ -489,6 +479,7 @@ function makeMaps(state: BZip2State): void {
     }
 }
 
+// BZ2_hbCreateDecodeTables
 function createDecodeTables(limit: StaticArray<i32>, base: StaticArray<i32>, perm: StaticArray<i32>, length: StaticArray<u8>, minLen: i32, maxLen: i32, alphaSize: i32): void {
     let pp: i32 = 0;
 
@@ -530,14 +521,14 @@ function createDecodeTables(limit: StaticArray<i32>, base: StaticArray<i32>, per
 }
 
 // unRLE_obuf_to_output_FAST
-function finish(state: BZip2State): void {
+function finish(): void {
     let c_state_out_ch: u8 = <u8>state.state_out_ch;
     let c_state_out_len: i32 = state.state_out_len;
     let c_nblock_used: i32 = state.c_nblock_used;
     let c_k0: i32 = state.k0;
     const c_tt: StaticArray<i32> = BZip2State.tt;
     let c_tPos: i32 = state.tPos;
-    const cs_decompressed: Int8Array = state.decompressed;
+    const cs_decompressed: StaticArray<i8> = state.decompressed;
     let cs_next_out: i32 = state.next_out;
     let cs_avail_out: i32 = state.avail_out;
     const avail_out_INIT: i32 = cs_avail_out;

@@ -10,8 +10,7 @@ export default class FloType extends ConfigType {
         const dat: Packet = new Packet(config.read('flo.dat'));
         this.count = dat.g2;
         for (let i: number = 0; i < this.count; i++) {
-            this.instances[i] = new FloType();
-            this.instances[i].decodeType(i, dat);
+            this.instances[i] = new FloType(i).decodeType(dat);
         }
     };
 
@@ -73,7 +72,6 @@ export default class FloType extends ConfigType {
     texture: number = -1;
     opcode3: boolean = false;
     occlude: boolean = true;
-    name: string | null = null;
 
     // runtime
     hue: number = 0;
@@ -83,7 +81,7 @@ export default class FloType extends ConfigType {
     chroma: number = 0;
     hsl: number = 0;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.rgb = dat.g3;
             this.setColor(this.rgb);
@@ -94,13 +92,13 @@ export default class FloType extends ConfigType {
         } else if (code === 5) {
             this.occlude = false;
         } else if (code === 6) {
-            this.name = dat.gjstr;
+            this.debugname = dat.gjstr;
         } else {
             console.log('Error unrecognised config code: ', code);
         }
-    };
+    }
 
-    private setColor = (rgb: number): void => {
+    private setColor(rgb: number): void {
         const red: number = ((rgb >> 16) & 0xff) / 256.0;
         const green: number = ((rgb >> 8) & 0xff) / 256.0;
         const blue: number = (rgb & 0xff) / 256.0;
@@ -194,5 +192,5 @@ export default class FloType extends ConfigType {
         }
 
         this.hsl = FloType.hsl24to16(hue, saturation, lightness);
-    };
+    }
 }

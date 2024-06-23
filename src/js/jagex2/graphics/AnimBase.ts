@@ -2,8 +2,8 @@ import Jagfile from '../io/Jagfile';
 import Packet from '../io/Packet';
 import {TypedArray1d} from '../util/Arrays';
 
-export default class SeqBase {
-    static instances: SeqBase[] = [];
+export default class AnimBase {
+    static instances: AnimBase[] = [];
 
     static unpack = (models: Jagfile): void => {
         const head: Packet = new Packet(models.read('base_head.dat'));
@@ -32,7 +32,7 @@ export default class SeqBase {
                 groupLabels[j] = labels;
             }
 
-            this.instances[id] = new SeqBase();
+            this.instances[id] = new AnimBase();
             this.instances[id].length = length;
             this.instances[id].types = transformTypes;
             this.instances[id].labels = groupLabels;

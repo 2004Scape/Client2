@@ -2,7 +2,7 @@ import PixMap from '../graphics/PixMap';
 import Draw3D from '../graphics/Draw3D';
 
 import {sleep} from '../util/JsUtil';
-import {CANVAS_PREVENTED, KEY_CODES} from './KeyCodes';
+import {CanvasEnabledKeys, KeyCodes} from './KeyCodes';
 import InputTracking from './InputTracking';
 import {canvas, canvas2d} from '../graphics/Canvas';
 import DrawGL from '../graphics/DrawGL';
@@ -35,6 +35,7 @@ export default abstract class GameShell {
     protected redrawScreen: boolean = true;
     protected resizeToFit: boolean = false;
     protected tfps: number = 50; // custom
+    protected hasFocus: boolean = true; // mapview applet
 
     protected ingame: boolean = false;
 
@@ -328,7 +329,7 @@ export default abstract class GameShell {
         for (let index: number = 0; index < length; index++) {
             ft += this.frameTime[index];
         }
-        const ms: number = ft / length;
+        const ms: number = (ft / length) * 1000;
         if (ms > this.slowestMS) {
             this.slowestMS = ms;
         }
@@ -344,56 +345,62 @@ export default abstract class GameShell {
     // ----
 
     private onkeydown = (e: KeyboardEvent): void => {
-        console.log(e);
         const key: string = e.key;
-
-        if (CANVAS_PREVENTED.includes(key)) {
-            // prevent canvas from using tab and other blacklisted keys. no function in 225?
-            e.preventDefault();
-        }
 
         this.idleCycles = 0;
 
-        const mappedKey: {key: number; ch: number} = KEY_CODES[key];
-        if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
+        const keyCode: {code: number; ch: number} = KeyCodes[key];
+        if (!keyCode || (e.code.length === 0 && !e.isTrusted)) {
             console.warn(`Unhandled key: ${key}`);
             return;
         }
 
-        const code: number = mappedKey.key;
-        let ch: number = mappedKey.ch;
+        const code: number = keyCode.code;
+        let ch: number = keyCode.ch;
+
+        if (e.ctrlKey) {
+            if ((ch >= 'A'.charCodeAt(0) && ch <= ']'.charCodeAt(0)) || ch == '_'.charCodeAt(0)) {
+                ch -= 'A'.charCodeAt(0) - 1;
+            } else if (ch >= 'a'.charCodeAt(0) && ch <= 'z'.charCodeAt(0)) {
+                ch -= 'a'.charCodeAt(0) - 1;
+            }
+        }
 
         if (ch < 30) {
             ch = 0;
         }
 
-        if (code === 37) {
+        if (code === KeyCodes['ArrowLeft'].code) {
             ch = 1;
-        } else if (code === 39) {
+        } else if (code === KeyCodes['ArrowRight'].code) {
             ch = 2;
-        } else if (code === 38) {
+        } else if (code === KeyCodes['ArrowUp'].code) {
             ch = 3;
-        } else if (code === 40) {
+        } else if (code === KeyCodes['ArrowDown'].code) {
             ch = 4;
-        } else if (code === 17) {
+        } else if (code === KeyCodes['Control'].code) {
             ch = 5;
-        } else if (code === 8) {
+        } else if (code === KeyCodes['Shift'].code) {
+            ch = 6; // (custom)
+        } else if (code === KeyCodes['Alt'].code) {
+            ch = 7; // (custom)
+        } else if (code === KeyCodes['Backspace'].code) {
             ch = 8;
-        } else if (code === 127) {
+        } else if (code === KeyCodes['Delete'].code) {
             ch = 8;
-        } else if (code === 9) {
+        } else if (code === KeyCodes['Tab'].code) {
             ch = 9;
-        } else if (code === 10) {
+        } else if (code === KeyCodes['Enter'].code) {
             ch = 10;
-        } else if (code >= 112 && code <= 123) {
-            ch = code + 1008 - 112;
-        } else if (code === 36) {
+        } else if (code >= KeyCodes['F1'].code && code <= KeyCodes['F12'].code) {
+            ch = code + 1008 - KeyCodes['F1'].code;
+        } else if (code === KeyCodes['Home'].code) {
             ch = 1000;
-        } else if (code === 35) {
+        } else if (code === KeyCodes['End'].code) {
             ch = 1001;
-        } else if (code === 33) {
+        } else if (code === KeyCodes['PageUp'].code) {
             ch = 1002;
-        } else if (code === 34) {
+        } else if (code === KeyCodes['PageDown'].code) {
             ch = 1003;
         }
 
@@ -409,58 +416,61 @@ export default abstract class GameShell {
         if (InputTracking.enabled) {
             InputTracking.keyPressed(ch);
         }
+
+        if (!CanvasEnabledKeys.includes(key)) {
+            e.preventDefault();
+        }
     };
 
     private onkeyup = (e: KeyboardEvent): void => {
         const key: string = e.key;
 
-        if (CANVAS_PREVENTED.includes(key)) {
-            // prevent canvas from using tab and other blacklisted keys. no function in 225?
-            e.preventDefault();
-        }
-
         this.idleCycles = 0;
 
-        const mappedKey: {key: number; ch: number} = KEY_CODES[key];
-        if (!mappedKey || (e.code.length === 0 && !e.isTrusted)) {
+        const keyCode: {code: number; ch: number} = KeyCodes[key];
+        if (!keyCode || (e.code.length === 0 && !e.isTrusted)) {
             console.warn(`Unhandled key: ${key}`);
             return;
         }
 
-        const code: number = mappedKey.key;
-        let ch: number = mappedKey.ch;
+        const code: number = keyCode.code;
+        let ch: number = keyCode.ch;
 
         if (ch < 30) {
             ch = 0;
         }
 
-        if (code === 37) {
+        if (code === KeyCodes['ArrowLeft'].code) {
             ch = 1;
-        } else if (code === 39) {
+        } else if (code === KeyCodes['ArrowRight'].code) {
             ch = 2;
-        } else if (code === 38) {
+        } else if (code === KeyCodes['ArrowUp'].code) {
             ch = 3;
-        } else if (code === 40) {
+        } else if (code === KeyCodes['ArrowDown'].code) {
             ch = 4;
-        } else if (code === 17) {
+        } else if (code === KeyCodes['Control'].code) {
             ch = 5;
-        } else if (code === 8) {
+        } else if (code === KeyCodes['Shift'].code) {
+            ch = 6; // (custom)
+        } else if (code === KeyCodes['Alt'].code) {
+            ch = 7; // (custom)
+        } else if (code === KeyCodes['Backspace'].code) {
             ch = 8;
-        } else if (code === 127) {
+        } else if (code === KeyCodes['Delete'].code) {
             ch = 8;
-        } else if (code === 9) {
+        } else if (code === KeyCodes['Tab'].code) {
             ch = 9;
-        } else if (code === 10) {
+        } else if (code === KeyCodes['Enter'].code) {
             ch = 10;
-        } else if (code >= 112 && code <= 123) {
-            ch = code + 1008 - 112;
-        } else if (code === 36) {
+        } else if (code >= KeyCodes['F1'].code && code <= KeyCodes['F12'].code) {
+            ch = code + 1008 - KeyCodes['F1'].code;
+        } else if (code === KeyCodes['Home'].code) {
             ch = 1000;
-        } else if (code === 35) {
+        } else if (code === KeyCodes['End'].code) {
             ch = 1001;
-        } else if (code === 33) {
+        } else if (code === KeyCodes['PageUp'].code) {
             ch = 1002;
-        } else if (code === 34) {
+        } else if (code === KeyCodes['PageDown'].code) {
             ch = 1003;
         }
 
@@ -471,17 +481,22 @@ export default abstract class GameShell {
         if (InputTracking.enabled) {
             InputTracking.keyReleased(ch);
         }
+
+        if (!CanvasEnabledKeys.includes(key)) {
+            e.preventDefault();
+        }
     };
 
     private onmousedown = (e: MouseEvent): void => {
         this.touching = false;
-        this.setMousePosition(e);
+        //Don't 'reset' position (This fixes right click in Android)
+        if (e.clientX > 0 || e.clientY > 0) this.setMousePosition(e);
 
         this.idleCycles = 0;
         this.mouseClickX = this.mouseX;
         this.mouseClickY = this.mouseY;
 
-        if (this.isMobile) {
+        if (this.isMobile && !this.isCapacitor) {
             if (this.insideChatInputArea() || this.insideUsernameArea() || this.inPasswordArea()) {
                 this.mouseClickButton = 1;
                 this.mouseButton = 1;
@@ -497,7 +512,7 @@ export default abstract class GameShell {
                 this.mouseButton = 1;
             }
         } else {
-            if (e.buttons == 2) {
+            if (e.button === 2) {
                 this.mouseClickButton = 2;
                 this.mouseButton = 2;
             } else {
@@ -523,18 +538,28 @@ export default abstract class GameShell {
 
     private onmouseenter = (e: MouseEvent): void => {
         this.setMousePosition(e);
-        if (!InputTracking.enabled) {
-            return;
+
+        if (InputTracking.enabled) {
+            InputTracking.mouseEntered();
         }
-        InputTracking.mouseEntered();
     };
 
     private onmouseleave = (e: MouseEvent): void => {
         this.setMousePosition(e);
-        if (!InputTracking.enabled) {
-            return;
+
+        // mapview applet
+        this.idleCycles = 0;
+        this.mouseX = -1;
+        this.mouseY = -1;
+
+        // custom (prevent mouse click from being stuck)
+        this.mouseButton = 0;
+        this.mouseClickX = -1;
+        this.mouseClickY = -1;
+
+        if (InputTracking.enabled) {
+            InputTracking.mouseExited();
         }
-        InputTracking.mouseExited();
     };
 
     private onmousemove = (e: MouseEvent): void => {
@@ -547,6 +572,7 @@ export default abstract class GameShell {
     };
 
     private onfocus = (e: FocusEvent): void => {
+        this.hasFocus = true; // mapview applet
         this.redrawScreen = true;
         this.refresh();
 
@@ -556,6 +582,8 @@ export default abstract class GameShell {
     };
 
     private onblur = (e: FocusEvent): void => {
+        this.hasFocus = false; // mapview applet
+
         if (InputTracking.enabled) {
             InputTracking.focusLost();
         }
@@ -755,6 +783,11 @@ export default abstract class GameShell {
         return keywords.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
     }
 
+    private get isCapacitor(): boolean {
+        const keywords: string[] = ['Capacitor'];
+        return keywords.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
+    }
+
     private insideViewportArea = (): boolean => {
         // 512 x 334
         const viewportAreaX1: number = 8;
@@ -772,7 +805,7 @@ export default abstract class GameShell {
         const chatInputAreaY2: number = chatInputAreaY1 + 33;
         return (
             this.ingame &&
-            this.getChatInterfaceId() == -1 &&
+            this.getChatInterfaceId() === -1 &&
             !this.isChatBackInputOpen() &&
             !this.isShowSocialInput() &&
             this.mouseX >= chatInputAreaX1 &&
@@ -806,7 +839,7 @@ export default abstract class GameShell {
         const usernameAreaY1: number = 262;
         const usernameAreaX2: number = usernameAreaX1 + 261;
         const usernameAreaY2: number = usernameAreaY1 + 17;
-        return !this.ingame && this.getTitleScreenState() == 2 && this.mouseX >= usernameAreaX1 && this.mouseX <= usernameAreaX2 && this.mouseY >= usernameAreaY1 && this.mouseY <= usernameAreaY2;
+        return !this.ingame && this.getTitleScreenState() === 2 && this.mouseX >= usernameAreaX1 && this.mouseX <= usernameAreaX2 && this.mouseY >= usernameAreaY1 && this.mouseY <= usernameAreaY2;
     };
 
     private inPasswordArea = (): boolean => {
@@ -815,27 +848,27 @@ export default abstract class GameShell {
         const passwordAreaY1: number = 279;
         const passwordAreaX2: number = passwordAreaX1 + 261;
         const passwordAreaY2: number = passwordAreaY1 + 17;
-        return !this.ingame && this.getTitleScreenState() == 2 && this.mouseX >= passwordAreaX1 && this.mouseX <= passwordAreaX2 && this.mouseY >= passwordAreaY1 && this.mouseY <= passwordAreaY2;
+        return !this.ingame && this.getTitleScreenState() === 2 && this.mouseX >= passwordAreaX1 && this.mouseX <= passwordAreaX2 && this.mouseY >= passwordAreaY1 && this.mouseY <= passwordAreaY2;
     };
 
     private rotate = (direction: number): void => {
-        if (direction == 0) {
+        if (direction === 0) {
             this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowRight', code: 'ArrowRight'}));
             this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowLeft', code: 'ArrowLeft'}));
-        } else if (direction == 1) {
+        } else if (direction === 1) {
             this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowDown', code: 'ArrowDown'}));
             this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowUp', code: 'ArrowUp'}));
-        } else if (direction == 2) {
+        } else if (direction === 2) {
             this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowLeft', code: 'ArrowLeft'}));
             this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowRight', code: 'ArrowRight'}));
-        } else if (direction == 3) {
+        } else if (direction === 3) {
             this.onkeyup(new KeyboardEvent('keyup', {key: 'ArrowUp', code: 'ArrowUp'}));
             this.onkeydown(new KeyboardEvent('keydown', {key: 'ArrowDown', code: 'ArrowDown'}));
         }
     };
 
     private isFullScreen = (): boolean => {
-        return document.fullscreenElement != null;
+        return document.fullscreenElement !== null;
     };
 
     private setMousePosition = (e: MouseEvent): void => {

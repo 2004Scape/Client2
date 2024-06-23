@@ -59,7 +59,7 @@ export default class TileOverlay {
     readonly triangleTextureIds: Int32Array | null;
     readonly flat: boolean;
     readonly shape: number;
-    readonly rotation: number;
+    readonly angle: number;
     readonly backgroundRgb: number;
     readonly foregroundRgb: number;
 
@@ -86,7 +86,7 @@ export default class TileOverlay {
     ) {
         this.flat = !(southwestY !== southeastY || southwestY !== northeastY || southwestY !== northwestY);
         this.shape = shape;
-        this.rotation = angle;
+        this.angle = angle;
         this.backgroundRgb = backgroundRgb;
         this.foregroundRgb = foregroundRgb;
 

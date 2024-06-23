@@ -9,10 +9,8 @@ export default class MesAnimType extends ConfigType {
 
     static unpack = (dat: Packet): void => {
         this.count = dat.g2;
-
         for (let i: number = 0; i < this.count; i++) {
-            this.instances[i] = new MesAnimType();
-            this.instances[i].decodeType(i, dat);
+            this.instances[i] = new MesAnimType(i).decodeType(dat);
         }
     };
 
@@ -20,7 +18,7 @@ export default class MesAnimType extends ConfigType {
 
     len: Int32Array = new Int32Array(4).fill(-1);
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code >= 1 && code < 5) {
             this.len[code - 1] = dat.g2;
         } else if (code === 250) {
@@ -28,5 +26,5 @@ export default class MesAnimType extends ConfigType {
         } else {
             throw new Error(`Unrecognized mesanim config code: ${code}`);
         }
-    };
+    }
 }

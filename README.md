@@ -1,8 +1,14 @@
-# Client2
+<div align="center">
 
-This project is a comprehensive source port of our [Client refactor](https://github.com/2004scape/Client) from Java to TypeScript.
+<h1>2004Scape Client2 - May 18, 2004</h1>
 
-Click [here](https://github.com/2004scape/Client2/tree/gh-pages) to view the current deployment summary. 🚀
+[Website](https://2004scape.org) | [Discord](https://discord.2004scape.org) | [Rune-Server](https://www.rune-server.ee/runescape-development/rs2-server/projects/701698-lost-city-225-emulation.html)
+
+**status: completely ported**
+
+**The client code was source ported to TypeScript by us.**  
+**Jagex has never had any source code leaks.**
+</div>
 
 ## Site Index
 
@@ -29,9 +35,14 @@ Create your account on the 2004scape website.
 
 ## Commands
 
-`::debug` Shows performance metrics (FPS, frame times).
+`::debug` Shows performance metrics (FPS, frame times and more).
+
+`::chat` Changes between 3 different chat font eras.
 
 `::fps` Set a targeted FPS (ex. `::fps 30`)
+
+A developer can utilize the debug command for development purposes.
+![debugging](https://github.com/2004scape/Client2/assets/76214316/9cec6fb5-7a79-4d81-97ed-a96a5fecd85a)
 
 ---
 

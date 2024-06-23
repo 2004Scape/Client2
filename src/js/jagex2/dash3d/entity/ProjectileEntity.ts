@@ -46,7 +46,7 @@ export default class ProjectileEntity extends Entity {
         this.offsetY = offsetY;
     }
 
-    updateVelocity = (dstX: number, dstY: number, dstZ: number, cycle: number): void => {
+    updateVelocity(dstX: number, dstY: number, dstZ: number, cycle: number): void {
         if (!this.mobile) {
             const dx: number = dstX - this.srcX;
             const dz: number = dstZ - this.srcZ;
@@ -65,9 +65,9 @@ export default class ProjectileEntity extends Entity {
             this.velocityY = -this.velocity * Math.tan(this.peakPitch * 0.02454369);
         }
         this.accelerationY = ((dstY - this.y - this.velocityY * dt) * 2.0) / (dt * dt);
-    };
+    }
 
-    update = (delta: number): void => {
+    update(delta: number): void {
         this.mobile = true;
         this.x += this.velocityX * delta;
         this.z += this.velocityZ * delta;
@@ -87,9 +87,9 @@ export default class ProjectileEntity extends Entity {
                 this.seqFrame = 0;
             }
         }
-    };
+    }
 
-    draw = (): Model | null => {
+    draw(): Model | null {
         const tmp: Model = this.spotanim.getModel();
         const model: Model = Model.modelShareColored(tmp, true, !this.spotanim.disposeAlpha, false);
 
@@ -107,5 +107,5 @@ export default class ProjectileEntity extends Entity {
         model.rotateX(this.pitch);
         model.calculateNormals(64 + this.spotanim.ambient, 850 + this.spotanim.contrast, -30, -50, -30, true);
         return model;
-    };
+    }
 }

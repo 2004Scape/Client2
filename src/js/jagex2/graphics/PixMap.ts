@@ -21,22 +21,22 @@ export default class PixMap {
         this.bind();
     }
 
-    clear = (): void => {
+    clear(): void {
         this.pixels.fill(0);
-    };
+    }
 
-    bind = (): void => {
+    bind(): void {
         Draw2D.bind(this.pixels, this.width, this.height);
-    };
+    }
 
-    draw = (width: number, height: number): void => {
+    draw(x: number, y: number): void {
         this.#setPixels();
         if (!DrawGL.GL_ENABLED)
             // if not using WebGL
-            this.ctx.putImageData(this.image, width, height);
-    };
+            this.ctx.putImageData(this.image, x, y);
+    }
 
-    #setPixels = (): void => {
+    #setPixels(): void {
         const length: number = this.pixels.length;
         const pixels: Int32Array = this.pixels;
         const paint: Uint32Array = this.paint;
@@ -44,5 +44,5 @@ export default class PixMap {
             const pixel: number = pixels[i];
             paint[i] = ((pixel >> 16) & 0xff) | (((pixel >> 8) & 0xff) << 8) | ((pixel & 0xff) << 16) | 0xff000000;
         }
-    };
+    }
 }

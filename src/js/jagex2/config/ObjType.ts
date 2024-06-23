@@ -35,7 +35,7 @@ export default class ObjType extends ConfigType {
 
         this.cache = new TypedArray1d(10, null);
         for (let id: number = 0; id < 10; id++) {
-            this.cache[id] = new ObjType();
+            this.cache[id] = new ObjType(-1);
         }
     };
 
@@ -49,7 +49,7 @@ export default class ObjType extends ConfigType {
             if (!type) {
                 continue;
             }
-            if (type.index === id) {
+            if (type.id === id) {
                 return type;
             }
         }
@@ -57,9 +57,9 @@ export default class ObjType extends ConfigType {
         this.cachePos = (this.cachePos + 1) % 10;
         const obj: ObjType = this.cache[this.cachePos]!;
         this.dat.pos = this.offsets[id];
-        obj.index = id;
+        obj.id = id;
         obj.reset();
-        obj.decodeType(id, this.dat);
+        obj.decodeType(this.dat);
 
         if (obj.certtemplate !== -1) {
             obj.toCertificate();
@@ -68,8 +68,8 @@ export default class ObjType extends ConfigType {
         if (!this.membersWorld && obj.members) {
             obj.name = 'Members Object';
             obj.desc = "Login to a members' server to use this object.";
-            obj.ops = null;
-            obj.iops = null;
+            obj.op = null;
+            obj.iop = null;
         }
 
         return obj;
@@ -194,7 +194,6 @@ export default class ObjType extends ConfigType {
 
     // ----
 
-    index: number = -1;
     model: number = 0;
     name: string | null = null;
     desc: string | null = null;
@@ -211,8 +210,8 @@ export default class ObjType extends ConfigType {
     stackable: boolean = false;
     cost: number = 1;
     members: boolean = false;
-    ops: (string | null)[] | null = null;
-    iops: (string | null)[] | null = null;
+    op: (string | null)[] | null = null;
+    iop: (string | null)[] | null = null;
     manwear: number = -1;
     manwear2: number = -1;
     manwearOffsetY: number = 0;
@@ -230,7 +229,7 @@ export default class ObjType extends ConfigType {
     certlink: number = -1;
     certtemplate: number = -1;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.model = dat.g2;
         } else if (code === 2) {
@@ -274,19 +273,19 @@ export default class ObjType extends ConfigType {
         } else if (code === 26) {
             this.womanwear2 = dat.g2;
         } else if (code >= 30 && code < 35) {
-            if (!this.ops) {
-                this.ops = new TypedArray1d(5, null);
+            if (!this.op) {
+                this.op = new TypedArray1d(5, null);
             }
 
-            this.ops[code - 30] = dat.gjstr;
-            if (this.ops[code - 30]?.toLowerCase() === 'hidden') {
-                this.ops[code - 30] = null;
+            this.op[code - 30] = dat.gjstr;
+            if (this.op[code - 30]?.toLowerCase() === 'hidden') {
+                this.op[code - 30] = null;
             }
         } else if (code >= 35 && code < 40) {
-            if (!this.iops) {
-                this.iops = new TypedArray1d(5, null);
+            if (!this.iop) {
+                this.iop = new TypedArray1d(5, null);
             }
-            this.iops[code - 35] = dat.gjstr;
+            this.iop[code - 35] = dat.gjstr;
         } else if (code === 40) {
             const count: number = dat.g1;
             this.recol_s = new Uint16Array(count);
@@ -323,9 +322,9 @@ export default class ObjType extends ConfigType {
             this.countobj[code - 100] = dat.g2;
             this.countco[code - 100] = dat.g2;
         }
-    };
+    }
 
-    getWornModel = (gender: number): Model | null => {
+    getWornModel(gender: number): Model | null {
         let id1: number = this.manwear;
         if (gender === 1) {
             id1 = this.womanwear;
@@ -370,9 +369,9 @@ export default class ObjType extends ConfigType {
             }
         }
         return model;
-    };
+    }
 
-    getHeadModel = (gender: number): Model | null => {
+    getHeadModel(gender: number): Model | null {
         let head1: number = this.manhead;
         if (gender === 1) {
             head1 = this.womanhead;
@@ -400,9 +399,9 @@ export default class ObjType extends ConfigType {
             }
         }
         return model;
-    };
+    }
 
-    getInterfaceModel = (count: number): Model => {
+    getInterfaceModel(count: number): Model {
         if (this.countobj && this.countco && count > 1) {
             let id: number = -1;
             for (let i: number = 0; i < 10; i++) {
@@ -417,7 +416,7 @@ export default class ObjType extends ConfigType {
         }
 
         if (ObjType.modelCache) {
-            const model: Model | null = ObjType.modelCache.get(BigInt(this.index)) as Model | null;
+            const model: Model | null = ObjType.modelCache.get(BigInt(this.id)) as Model | null;
             if (model) {
                 return model;
             }
@@ -432,11 +431,11 @@ export default class ObjType extends ConfigType {
 
         model.calculateNormals(64, 768, -50, -10, -50, true);
         model.pickable = true;
-        ObjType.modelCache?.put(BigInt(this.index), model);
+        ObjType.modelCache?.put(BigInt(this.id), model);
         return model;
-    };
+    }
 
-    private toCertificate = (): void => {
+    private toCertificate(): void {
         const template: ObjType = ObjType.get(this.certtemplate);
         this.model = template.model;
         this.zoom2d = template.zoom2d;
@@ -461,9 +460,9 @@ export default class ObjType extends ConfigType {
         this.desc = `Swap this note at any bank for ${article} ${link.name}.`;
 
         this.stackable = true;
-    };
+    }
 
-    private reset = (): void => {
+    private reset(): void {
         this.model = 0;
         this.name = null;
         this.desc = null;
@@ -480,8 +479,8 @@ export default class ObjType extends ConfigType {
         this.stackable = false;
         this.cost = 1;
         this.members = false;
-        this.ops = null;
-        this.iops = null;
+        this.op = null;
+        this.iop = null;
         this.manwear = -1;
         this.manwear2 = -1;
         this.manwearOffsetY = 0;
@@ -498,5 +497,5 @@ export default class ObjType extends ConfigType {
         this.countco = null;
         this.certlink = -1;
         this.certtemplate = -1;
-    };
+    }
 }

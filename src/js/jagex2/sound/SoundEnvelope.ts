@@ -14,7 +14,7 @@ export default class SoundEnvelope {
     private amplitude: number = 0;
     private ticks: number = 0;
 
-    read = (dat: Packet): void => {
+    read(dat: Packet): void {
         this.form = dat.g1;
         this.start = dat.g4;
         this.end = dat.g4;
@@ -26,17 +26,17 @@ export default class SoundEnvelope {
             this.shapeDelta[i] = dat.g2;
             this.shapePeak[i] = dat.g2;
         }
-    };
+    }
 
-    reset = (): void => {
+    reset(): void {
         this.threshold = 0;
         this.position = 0;
         this.delta = 0;
         this.amplitude = 0;
         this.ticks = 0;
-    };
+    }
 
-    evaluate = (delta: number): number => {
+    evaluate(delta: number): number {
         if (this.ticks >= this.threshold && this.shapePeak && this.shapeDelta) {
             this.amplitude = this.shapePeak[this.position++] << 15;
 
@@ -53,5 +53,5 @@ export default class SoundEnvelope {
         this.amplitude += this.delta;
         this.ticks++;
         return (this.amplitude - this.delta) >> 15;
-    };
+    }
 }

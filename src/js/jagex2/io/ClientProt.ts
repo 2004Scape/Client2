@@ -1,9 +1,9 @@
 export default class ClientProt {
     static readonly REBUILD_GETMAPS: number = 150; // index: 4
 
-    static readonly IDLE_TIMER: number = 70; // index: 6
+    static readonly NO_TIMEOUT: number = 108; // index: 6 - NXT naming
 
-    static readonly NO_TIMEOUT: number = 108; // index: 30 - NXT naming
+    static readonly IDLE_TIMER: number = 70; // index: 30
 
     static readonly EVENT_TRACKING: number = 81; // index: 34
     static readonly EVENT_CAMERA_POSITION: number = 189; // index: 35 - NXT naming

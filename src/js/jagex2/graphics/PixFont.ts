@@ -11,8 +11,17 @@ export default class PixFont extends Hashable {
     static readonly CHARCODESET: number[] = [];
 
     static {
+        const isCapacitor: boolean = navigator.userAgent.includes('Capacitor');
+
         for (let i: number = 0; i < 256; i++) {
             let c: number = PixFont.CHARSET.indexOf(String.fromCharCode(i));
+
+            // This fixes text mangling in Capacitor native builds (Android/IOS)
+            if (isCapacitor)
+                if (c >= 63) {
+                    // "
+                    c--;
+                }
 
             if (c === -1) {
                 c = 74; // space
@@ -110,7 +119,7 @@ export default class PixFont extends Hashable {
         return font;
     };
 
-    drawString = (x: number, y: number, str: string | null, color: number): void => {
+    drawString(x: number, y: number, str: string | null, color: number): void {
         if (!str) {
             return;
         }
@@ -129,9 +138,9 @@ export default class PixFont extends Hashable {
 
             x += this.charAdvance[c];
         }
-    };
+    }
 
-    drawStringTaggable = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
+    drawStringTaggable(x: number, y: number, str: string, color: number, shadowed: boolean): void {
         x |= 0;
         y |= 0;
 
@@ -154,9 +163,9 @@ export default class PixFont extends Hashable {
                 x += this.charAdvance[c];
             }
         }
-    };
+    }
 
-    stringWidth = (str: string | null): number => {
+    stringWidth(str: string | null): number {
         if (!str) {
             return 0;
         }
@@ -172,16 +181,16 @@ export default class PixFont extends Hashable {
         }
 
         return w;
-    };
+    }
 
-    drawStringTaggableCenter = (x: number, y: number, str: string, color: number, shadowed: boolean): void => {
+    drawStringTaggableCenter(x: number, y: number, str: string, color: number, shadowed: boolean): void {
         x |= 0;
         y |= 0;
 
         this.drawStringTaggable(x - this.stringWidth(str) / 2, y, str, color, shadowed);
-    };
+    }
 
-    drawStringCenter = (x: number, y: number, str: string | null, color: number): void => {
+    drawStringCenter(x: number, y: number, str: string | null, color: number): void {
         if (!str) {
             return;
         }
@@ -190,9 +199,9 @@ export default class PixFont extends Hashable {
         y |= 0;
 
         this.drawString(x - this.stringWidth(str) / 2, y, str, color);
-    };
+    }
 
-    drawStringTooltip = (x: number, y: number, str: string, color: number, shadowed: boolean, seed: number): void => {
+    drawStringTooltip(x: number, y: number, str: string, color: number, shadowed: boolean, seed: number): void {
         x |= 0;
         y |= 0;
 
@@ -220,9 +229,9 @@ export default class PixFont extends Hashable {
                 }
             }
         }
-    };
+    }
 
-    drawStringRight = (x: number, y: number, str: string, color: number, shadowed: boolean = true): void => {
+    drawStringRight(x: number, y: number, str: string, color: number, shadowed: boolean = true): void {
         x |= 0;
         y |= 0;
 
@@ -230,9 +239,9 @@ export default class PixFont extends Hashable {
             this.drawString(x - this.stringWidth(str) + 1, y + 1, str, Colors.BLACK);
         }
         this.drawString(x - this.stringWidth(str), y, str, color);
-    };
+    }
 
-    drawCenteredWave = (x: number, y: number, str: string | null, color: number, phase: number): void => {
+    drawCenteredWave(x: number, y: number, str: string | null, color: number, phase: number): void {
         if (!str) {
             return;
         }
@@ -252,9 +261,9 @@ export default class PixFont extends Hashable {
 
             x += this.charAdvance[c];
         }
-    };
+    }
 
-    drawChar = (data: Int8Array, x: number, y: number, w: number, h: number, color: number): void => {
+    drawChar(data: Int8Array, x: number, y: number, w: number, h: number, color: number): void {
         x |= 0;
         y |= 0;
         w |= 0;
@@ -298,9 +307,9 @@ export default class PixFont extends Hashable {
         if (w > 0 && h > 0) {
             this.drawMask(w, h, data, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep, color);
         }
-    };
+    }
 
-    drawCharAlpha = (x: number, y: number, w: number, h: number, color: number, alpha: number, mask: Int8Array): void => {
+    drawCharAlpha(x: number, y: number, w: number, h: number, color: number, alpha: number, mask: Int8Array): void {
         x |= 0;
         y |= 0;
         w |= 0;
@@ -344,9 +353,9 @@ export default class PixFont extends Hashable {
         if (w > 0 && h > 0) {
             this.drawMaskAlpha(w, h, Draw2D.pixels, dstOff, dstStep, mask, srcOff, srcStep, color, alpha);
         }
-    };
+    }
 
-    private drawMask = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, rgb: number): void => {
+    private drawMask(w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number, rgb: number): void {
         w |= 0;
         h |= 0;
 
@@ -391,9 +400,9 @@ export default class PixFont extends Hashable {
             dstOff += dstStep;
             srcOff += srcStep;
         }
-    };
+    }
 
-    private drawMaskAlpha = (w: number, h: number, dst: Int32Array, dstOff: number, dstStep: number, mask: Int8Array, maskOff: number, maskStep: number, color: number, alpha: number): void => {
+    private drawMaskAlpha(w: number, h: number, dst: Int32Array, dstOff: number, dstStep: number, mask: Int8Array, maskOff: number, maskStep: number, color: number, alpha: number): void {
         w |= 0;
         h |= 0;
 
@@ -413,9 +422,9 @@ export default class PixFont extends Hashable {
             dstOff += dstStep;
             maskOff += maskStep;
         }
-    };
+    }
 
-    evaluateTag = (tag: string): number => {
+    evaluateTag(tag: string): number {
         if (tag === 'red') {
             return Colors.RED;
         } else if (tag === 'gre') {
@@ -453,7 +462,7 @@ export default class PixFont extends Hashable {
         } else {
             return Colors.BLACK;
         }
-    };
+    }
 
     //
 

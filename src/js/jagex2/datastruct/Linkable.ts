@@ -1,21 +1,21 @@
 export default class Linkable {
-    id: bigint;
-    prev: Linkable | null;
+    key: bigint;
     next: Linkable | null;
+    prev: Linkable | null;
 
     constructor() {
-        this.id = 0n;
-        this.prev = this;
+        this.key = 0n;
         this.next = this;
+        this.prev = this;
     }
 
-    unlink = (): void => {
-        if (!this.next || !this.prev) {
+    unlink(): void {
+        if (!this.prev || !this.next) {
             return;
         }
-        this.next.prev = this.prev;
         this.prev.next = this.next;
-        this.prev = null;
+        this.next.prev = this.prev;
         this.next = null;
-    };
+        this.prev = null;
+    }
 }

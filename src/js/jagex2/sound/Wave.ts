@@ -42,7 +42,7 @@ export default class Wave {
         return track?.getWave(loopCount) ?? null;
     };
 
-    read = (dat: Packet): void => {
+    read(dat: Packet): void {
         for (let tone: number = 0; tone < 10; tone++) {
             if (dat.g1 !== 0) {
                 dat.pos--;
@@ -52,9 +52,9 @@ export default class Wave {
         }
         this.loopBegin = dat.g2;
         this.loopEnd = dat.g2;
-    };
+    }
 
-    trim = (): number => {
+    trim(): number {
         let start: number = 9999999;
         for (let tone: number = 0; tone < 10; tone++) {
             if (this.tones[tone] && ((this.tones[tone]!.start / 20) | 0) < start) {
@@ -82,9 +82,9 @@ export default class Wave {
         }
 
         return start;
-    };
+    }
 
-    getWave = (loopCount: number): Packet | null => {
+    getWave(loopCount: number): Packet | null {
         const length: number = this.generate(loopCount);
         Wave.waveBuffer!.pos = 0;
         Wave.waveBuffer?.p4(0x52494646); // "RIFF" ChunkID
@@ -102,9 +102,9 @@ export default class Wave {
         Wave.waveBuffer?.ip4(length);
         Wave.waveBuffer!.pos += length;
         return Wave.waveBuffer;
-    };
+    }
 
-    private generate = (loopCount: number): number => {
+    private generate(loopCount: number): number {
         let duration: number = 0;
         for (let tone: number = 0; tone < 10; tone++) {
             if (this.tones[tone] && this.tones[tone]!.length + this.tones[tone]!.start > duration) {
@@ -171,5 +171,5 @@ export default class Wave {
         }
 
         return totalSampleCount;
-    };
+    }
 }

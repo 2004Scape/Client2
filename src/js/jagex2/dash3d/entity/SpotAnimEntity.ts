@@ -26,7 +26,7 @@ export default class SpotAnimEntity extends Entity {
         this.startCycle = cycle + delay;
     }
 
-    update = (delta: number): void => {
+    update(delta: number): void {
         if (!this.type.seq || !this.type.seq.delay) {
             return;
         }
@@ -39,9 +39,9 @@ export default class SpotAnimEntity extends Entity {
                 this.seqComplete = true;
             }
         }
-    };
+    }
 
-    draw = (): Model => {
+    draw(): Model {
         const tmp: Model = this.type.getModel();
         const model: Model = Model.modelShareColored(tmp, true, !this.type.disposeAlpha, false);
         if (!this.seqComplete && this.type.seq && this.type.seq.frames) {
@@ -70,5 +70,5 @@ export default class SpotAnimEntity extends Entity {
 
         model.calculateNormals(64 + this.type.ambient, 850 + this.type.contrast, -30, -50, -30, true);
         return model;
-    };
+    }
 }

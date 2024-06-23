@@ -7,7 +7,7 @@ export default class Stack {
         this.head = new Hashable();
     }
 
-    push = (node: Hashable): void => {
+    push(node: Hashable): void {
         if (node.prevHashable) {
             node.uncache();
         }
@@ -17,9 +17,9 @@ export default class Stack {
             node.prevHashable.nextHashable = node;
         }
         node.nextHashable.prevHashable = node;
-    };
+    }
 
-    pop = (): Hashable | null => {
+    pop(): Hashable | null {
         const node: Hashable | null = this.head.nextHashable;
         if (node === this.head) {
             return null;
@@ -27,5 +27,5 @@ export default class Stack {
             node?.uncache();
             return node;
         }
-    };
+    }
 }

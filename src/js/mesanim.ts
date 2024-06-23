@@ -8,15 +8,15 @@ import NpcType from './jagex2/config/NpcType';
 import IdkType from './jagex2/config/IdkType';
 import SpotAnimType from './jagex2/config/SpotAnimType';
 import VarpType from './jagex2/config/VarpType';
-import ComType from './jagex2/config/ComType';
+import Component from './jagex2/config/Component';
 import MesAnimType from './jagex2/config/MesAnimType';
 
 import Draw2D from './jagex2/graphics/Draw2D';
 import Draw3D from './jagex2/graphics/Draw3D';
 import PixFont from './jagex2/graphics/PixFont';
 import Model from './jagex2/graphics/Model';
-import SeqBase from './jagex2/graphics/SeqBase';
-import SeqFrame from './jagex2/graphics/SeqFrame';
+import AnimBase from './jagex2/graphics/AnimBase';
+import AnimFrame from './jagex2/graphics/AnimFrame';
 
 import Jagfile from './jagex2/io/Jagfile';
 
@@ -39,7 +39,7 @@ class Mesanim extends Client {
     splitPages: string[][] = [];
     splitMesanimId: number = -1;
 
-    activeNpc: NpcType = new NpcType();
+    activeNpc: NpcType = new NpcType(-1);
     inputMesanimId: number = -1;
     mes: string = '';
 
@@ -97,9 +97,9 @@ class Mesanim extends Client {
             const wordenc: Jagfile = await this.loadArchive('wordenc', 'chat system', this.archiveChecksums[7], 65);
             const sounds: Jagfile = await this.loadArchive('sounds', 'sound effects', this.archiveChecksums[8], 70);
 
-            // this.packfiles[1] = await this.loadPack(`${Viewer.REPO}/data/pack/npc.pack`);
-            // this.packfiles[2] = await this.loadPack(`${Viewer.REPO}/data/pack/mesanim.pack`);
-            // this.packfiles[3] = await this.loadPack(`${Viewer.REPO}/data/pack/seq.pack`);
+            // this.packfiles[1] = await this.loadPack(`${Viewer.REPO}/data/src/pack/npc.pack`);
+            // this.packfiles[2] = await this.loadPack(`${Viewer.REPO}/data/src/pack/mesanim.pack`);
+            // this.packfiles[3] = await this.loadPack(`${Viewer.REPO}/data/src/pack/seq.pack`);
 
             const mesanim: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/server/mesanim.dat`)));
 
@@ -113,8 +113,8 @@ class Mesanim extends Client {
 
             await this.showProgress(83, 'Unpacking models');
             Model.unpack(models);
-            SeqBase.unpack(models);
-            SeqFrame.unpack(models);
+            AnimBase.unpack(models);
+            AnimFrame.unpack(models);
 
             await this.showProgress(86, 'Unpacking config');
             SeqType.unpack(config);
@@ -134,7 +134,7 @@ class Mesanim extends Client {
             Wave.unpack(sounds);
 
             await this.showProgress(92, 'Unpacking interfaces');
-            ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+            Component.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
             await this.showProgress(97, 'Preparing game engine');
             WordFilter.unpack(wordenc);
@@ -220,7 +220,7 @@ class Mesanim extends Client {
     //
 
     async populateNpcSelector(): Promise<void> {
-        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/pack/npc.pack`);
+        this.packfiles[1] = await this.loadPack(`${Client.githubRepository}/data/src/pack/npc.pack`);
 
         const npcs: HTMLSelectElement | null = document.querySelector('#npcs');
         if (!npcs) {
@@ -402,7 +402,7 @@ class Mesanim extends Client {
         this.imageChatback?.draw(0, 0);
         this.updateInterfaceAnimation(this.chatInterfaceId, 1);
         try {
-            this.drawInterface(ComType.instances[this.chatInterfaceId], 0, 0, 0);
+            this.drawInterface(Component.instances[this.chatInterfaceId], 0, 0, 0);
         } catch (err) {
             console.error(err);
         }
@@ -490,53 +490,53 @@ class Mesanim extends Client {
         } else if (lines === 1) {
             this.chatInterfaceId = 4882;
 
-            ComType.instances[4883].model = npc.getHeadModel();
-            ComType.instances[4883].anim = this.splitGetAnim(page);
-            ComType.instances[4883].seqFrame = 0;
-            ComType.instances[4883].seqCycle = 0;
+            Component.instances[4883].model = npc.getHeadModel();
+            Component.instances[4883].anim = this.splitGetAnim(page);
+            Component.instances[4883].seqFrame = 0;
+            Component.instances[4883].seqCycle = 0;
 
-            ComType.instances[4884].text = npc.name;
+            Component.instances[4884].text = npc.name;
 
-            ComType.instances[4885].text = this.splitGet(page, 0);
+            Component.instances[4885].text = this.splitGet(page, 0);
         } else if (lines === 2) {
             this.chatInterfaceId = 4887;
 
-            ComType.instances[4888].model = npc.getHeadModel();
-            ComType.instances[4888].anim = this.splitGetAnim(page);
-            ComType.instances[4888].seqFrame = 0;
-            ComType.instances[4888].seqCycle = 0;
+            Component.instances[4888].model = npc.getHeadModel();
+            Component.instances[4888].anim = this.splitGetAnim(page);
+            Component.instances[4888].seqFrame = 0;
+            Component.instances[4888].seqCycle = 0;
 
-            ComType.instances[4889].text = npc.name;
+            Component.instances[4889].text = npc.name;
 
-            ComType.instances[4890].text = this.splitGet(page, 0);
-            ComType.instances[4891].text = this.splitGet(page, 1);
+            Component.instances[4890].text = this.splitGet(page, 0);
+            Component.instances[4891].text = this.splitGet(page, 1);
         } else if (lines === 3) {
             this.chatInterfaceId = 4893;
 
-            ComType.instances[4894].model = npc.getHeadModel();
-            ComType.instances[4894].anim = this.splitGetAnim(page);
-            ComType.instances[4894].seqFrame = 0;
-            ComType.instances[4894].seqCycle = 0;
+            Component.instances[4894].model = npc.getHeadModel();
+            Component.instances[4894].anim = this.splitGetAnim(page);
+            Component.instances[4894].seqFrame = 0;
+            Component.instances[4894].seqCycle = 0;
 
-            ComType.instances[4895].text = npc.name;
+            Component.instances[4895].text = npc.name;
 
-            ComType.instances[4896].text = this.splitGet(page, 0);
-            ComType.instances[4897].text = this.splitGet(page, 1);
-            ComType.instances[4898].text = this.splitGet(page, 2);
+            Component.instances[4896].text = this.splitGet(page, 0);
+            Component.instances[4897].text = this.splitGet(page, 1);
+            Component.instances[4898].text = this.splitGet(page, 2);
         } else if (lines === 4) {
             this.chatInterfaceId = 4900;
 
-            ComType.instances[4901].model = npc.getHeadModel();
-            ComType.instances[4901].anim = this.splitGetAnim(page);
-            ComType.instances[4901].seqFrame = 0;
-            ComType.instances[4901].seqCycle = 0;
+            Component.instances[4901].model = npc.getHeadModel();
+            Component.instances[4901].anim = this.splitGetAnim(page);
+            Component.instances[4901].seqFrame = 0;
+            Component.instances[4901].seqCycle = 0;
 
-            ComType.instances[4902].text = npc.name;
+            Component.instances[4902].text = npc.name;
 
-            ComType.instances[4903].text = this.splitGet(page, 0);
-            ComType.instances[4904].text = this.splitGet(page, 1);
-            ComType.instances[4905].text = this.splitGet(page, 2);
-            ComType.instances[4906].text = this.splitGet(page, 3);
+            Component.instances[4903].text = this.splitGet(page, 0);
+            Component.instances[4904].text = this.splitGet(page, 1);
+            Component.instances[4905].text = this.splitGet(page, 2);
+            Component.instances[4906].text = this.splitGet(page, 3);
         }
     }
 }
@@ -546,5 +546,5 @@ new Mesanim().run().then((): void => {});
 
 // prevent space from scrolling page
 window.onkeydown = function (e): boolean {
-    return !(e.key === ' ' && e.target === document.body);
+    return !(e.key === ' ' && (e.target === document.body || e.target === canvas));
 };

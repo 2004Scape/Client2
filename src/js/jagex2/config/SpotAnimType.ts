@@ -14,15 +14,12 @@ export default class SpotAnimType extends ConfigType {
         const dat: Packet = new Packet(config.read('spotanim.dat'));
         this.count = dat.g2;
         for (let i: number = 0; i < this.count; i++) {
-            this.instances[i] = new SpotAnimType();
-            this.instances[i].index = i;
-            this.instances[i].decodeType(i, dat);
+            this.instances[i] = new SpotAnimType(i).decodeType(dat);
         }
     };
 
     // ----
 
-    index: number = 0;
     model: number = 0;
     anim: number = -1;
     seq: SeqType | null = null;
@@ -35,7 +32,7 @@ export default class SpotAnimType extends ConfigType {
     ambient: number = 0;
     contrast: number = 0;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.model = dat.g2;
         } else if (code === 2) {
@@ -63,10 +60,10 @@ export default class SpotAnimType extends ConfigType {
         } else {
             throw new Error(`Unrecognized spotanim config code: ${code}`);
         }
-    };
+    }
 
-    getModel = (): Model => {
-        let model: Model | null = SpotAnimType.modelCache?.get(BigInt(this.index)) as Model | null;
+    getModel(): Model {
+        let model: Model | null = SpotAnimType.modelCache?.get(BigInt(this.id)) as Model | null;
         if (model) {
             return model;
         }
@@ -76,7 +73,7 @@ export default class SpotAnimType extends ConfigType {
                 model.recolor(this.recol_s[i], this.recol_d[i]);
             }
         }
-        SpotAnimType.modelCache?.put(BigInt(this.index), model);
+        SpotAnimType.modelCache?.put(BigInt(this.id), model);
         return model;
-    };
+    }
 }
