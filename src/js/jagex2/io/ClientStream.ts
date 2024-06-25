@@ -218,7 +218,12 @@ class WebSocketReader {
     private async readSlowByte(len: number): Promise<number> {
         this.event = this.queue.removeHead() as WebSocketEvent | null;
         while (this.total < len) {
-            await Promise.race([new Promise((resolve): ((value: PromiseLike<((data: WebSocketEvent | null) => void) | null>) => void) => (this.callback = resolve)), sleep(500)]);
+            await Promise.race([
+                new Promise((resolve): ((value: PromiseLike<((data: WebSocketEvent | null) => void) | null>) => void) => (this.callback = resolve)),
+                sleep(2000).then((): void => {
+                    throw new Error('WebSocketReader timed out or closed while reading.');
+                })
+            ]);
         }
         return this.event ? this.event.read : this.readSlowByte(len);
     }
