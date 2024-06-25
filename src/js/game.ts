@@ -7816,7 +7816,7 @@ class Game extends Client {
         }
 
         if (count > this.npcCount) {
-            throw new Error(`eek! ${this.username} Too many npc!`);
+            throw new Error(`eek! ${this.username} Too many npcs`);
         }
 
         this.npcCount = 0;
