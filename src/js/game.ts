@@ -3438,7 +3438,7 @@ class Game extends Client {
                 this.pressedContinueOption = true;
             }
         } else if (action === 1773) {
-            // loc examine
+            // inv obj examine
             const obj: ObjType = ObjType.get(a);
             let examine: string;
 
@@ -7816,7 +7816,7 @@ class Game extends Client {
         }
 
         if (count > this.npcCount) {
-            throw new Error(`eek! ${this.username} Too many npc!`);
+            throw new Error(`eek! ${this.username} Too many npcs`);
         }
 
         this.npcCount = 0;
