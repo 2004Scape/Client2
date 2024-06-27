@@ -28,13 +28,13 @@ export default class NpcType extends ConfigType {
 
         this.cache = new TypedArray1d(20, null);
         for (let id: number = 0; id < 20; id++) {
-            this.cache[id] = new NpcType();
+            this.cache[id] = new NpcType(-1);
         }
     };
 
     static get = (id: number): NpcType => {
         if (!this.cache || !this.offsets || !this.dat) {
-            throw new Error('LocType not loaded!!!');
+            throw new Error('NpcType not loaded!!!');
         }
 
         for (let i: number = 0; i < 20; i++) {
@@ -42,16 +42,15 @@ export default class NpcType extends ConfigType {
             if (!type) {
                 continue;
             }
-            if (type.index === id) {
+            if (type.id === id) {
                 return type;
             }
         }
 
         this.cachePos = (this.cachePos + 1) % 20;
-        const loc: NpcType = (this.cache[this.cachePos] = new NpcType());
+        const loc: NpcType = (this.cache[this.cachePos] = new NpcType(id));
         this.dat.pos = this.offsets[id];
-        loc.index = id;
-        loc.decodeType(id, this.dat);
+        loc.decodeType(this.dat);
         return loc;
     };
 
@@ -64,7 +63,6 @@ export default class NpcType extends ConfigType {
 
     // ----
 
-    index: number = -1;
     name: string | null = null;
     desc: string | null = null;
     size: number = 1;
@@ -76,19 +74,18 @@ export default class NpcType extends ConfigType {
     walkanim_b: number = -1;
     walkanim_r: number = -1;
     walkanim_l: number = -1;
-    hasalpha: boolean = false;
     recol_s: Uint16Array | null = null;
     recol_d: Uint16Array | null = null;
-    ops: (string | null)[] | null = null;
-    code90: number = -1;
-    code91: number = -1;
-    code92: number = -1;
-    visonmap: boolean = true;
+    op: (string | null)[] | null = null;
+    resizex: number = -1;
+    resizey: number = -1;
+    resizez: number = -1;
+    minimap: boolean = true;
     vislevel: number = -1;
     resizeh: number = 128;
     resizev: number = 128;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             const count: number = dat.g1;
             this.models = new Uint16Array(count);
@@ -114,13 +111,13 @@ export default class NpcType extends ConfigType {
             this.walkanim_r = dat.g2;
             this.walkanim_l = dat.g2;
         } else if (code >= 30 && code < 40) {
-            if (!this.ops) {
-                this.ops = new TypedArray1d(5, null);
+            if (!this.op) {
+                this.op = new TypedArray1d(5, null);
             }
 
-            this.ops[code - 30] = dat.gjstr;
-            if (this.ops[code - 30]?.toLowerCase() === 'hidden') {
-                this.ops[code - 30] = null;
+            this.op[code - 30] = dat.gjstr;
+            if (this.op[code - 30]?.toLowerCase() === 'hidden') {
+                this.op[code - 30] = null;
             }
         } else if (code === 40) {
             const count: number = dat.g1;
@@ -139,13 +136,13 @@ export default class NpcType extends ConfigType {
                 this.heads[i] = dat.g2;
             }
         } else if (code === 90) {
-            this.code90 = dat.g2;
+            this.resizex = dat.g2;
         } else if (code === 91) {
-            this.code91 = dat.g2;
+            this.resizey = dat.g2;
         } else if (code === 92) {
-            this.code92 = dat.g2;
+            this.resizez = dat.g2;
         } else if (code === 93) {
-            this.visonmap = false;
+            this.minimap = false;
         } else if (code === 95) {
             this.vislevel = dat.g2;
         } else if (code === 97) {
@@ -153,13 +150,13 @@ export default class NpcType extends ConfigType {
         } else if (code === 98) {
             this.resizev = dat.g2;
         }
-    };
+    }
 
-    getSequencedModel = (primaryTransformId: number, secondaryTransformId: number, seqMask: Int32Array | null): Model | null => {
+    getSequencedModel(primaryTransformId: number, secondaryTransformId: number, seqMask: Int32Array | null): Model | null {
         let tmp: Model | null = null;
         let model: Model | null = null;
         if (NpcType.modelCache) {
-            model = NpcType.modelCache.get(BigInt(this.index)) as Model | null;
+            model = NpcType.modelCache.get(BigInt(this.id)) as Model | null;
 
             if (!model && this.models) {
                 const models: (Model | null)[] = new TypedArray1d(this.models.length, null);
@@ -182,7 +179,7 @@ export default class NpcType extends ConfigType {
                 model?.createLabelReferences();
                 model?.calculateNormals(64, 850, -30, -50, -30, true);
                 if (model) {
-                    NpcType.modelCache.put(BigInt(this.index), model);
+                    NpcType.modelCache.put(BigInt(this.id), model);
                 }
             }
         }
@@ -210,9 +207,9 @@ export default class NpcType extends ConfigType {
         }
 
         return null;
-    };
+    }
 
-    getHeadModel = (): Model | null => {
+    getHeadModel(): Model | null {
         if (!this.heads) {
             return null;
         }
@@ -236,5 +233,5 @@ export default class NpcType extends ConfigType {
         }
 
         return model;
-    };
+    }
 }

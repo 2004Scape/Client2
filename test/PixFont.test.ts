@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import * as fs from 'fs';
 import Jagfile from '../src/js/jagex2/io/Jagfile';
 import Bzip from '../src/js/vendor/bzip';

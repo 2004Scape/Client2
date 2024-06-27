@@ -30,9 +30,9 @@ export default class ServerProt {
     static readonly UPDATE_INV_PARTIAL: number = 213; // NXT naming
 
     // camera control
-    static readonly CAM_LOOKAT: number = 3; // NXT naming
+    static readonly CAM_LOOKAT: number = 74; // NXT naming
     static readonly CAM_SHAKE: number = 13; // NXT naming
-    static readonly CAM_MOVETO: number = 74; // NXT naming
+    static readonly CAM_MOVETO: number = 3; // NXT naming
     static readonly CAM_RESET: number = 239; // NXT naming
 
     // entity updates

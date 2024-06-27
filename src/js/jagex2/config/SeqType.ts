@@ -1,7 +1,7 @@
 import Jagfile from '../io/Jagfile';
 import {ConfigType} from './ConfigType';
 import Packet from '../io/Packet';
-import SeqFrame from '../graphics/SeqFrame';
+import AnimFrame from '../graphics/AnimFrame';
 
 export default class SeqType extends ConfigType {
     static count: number = 0;
@@ -11,21 +11,20 @@ export default class SeqType extends ConfigType {
         const dat: Packet = new Packet(config.read('seq.dat'));
         this.count = dat.g2;
         for (let i: number = 0; i < this.count; i++) {
-            this.instances[i] = new SeqType();
-            this.instances[i].decodeType(i, dat);
+            const seq: SeqType = new SeqType(i).decodeType(dat);
+            if (seq.frameCount === 0) {
+                seq.frameCount = 1;
 
-            if (this.instances[i].frameCount === 0) {
-                this.instances[i].frameCount = 1;
+                seq.frames = new Int16Array(1);
+                seq.frames[0] = -1;
 
-                this.instances[i].frames = new Int16Array(1);
-                this.instances[i].frames![0] = -1;
+                seq.iframes = new Int16Array(1);
+                seq.iframes[0] = -1;
 
-                this.instances[i].iframes = new Int16Array(1);
-                this.instances[i].iframes![0] = -1;
-
-                this.instances[i].delay = new Int16Array(1);
-                this.instances[i].delay![0] = -1;
+                seq.delay = new Int16Array(1);
+                seq.delay[0] = -1;
             }
+            this.instances[i] = seq;
         }
     };
 
@@ -36,15 +35,15 @@ export default class SeqType extends ConfigType {
     iframes: Int16Array | null = null;
     delay: Int16Array | null = null;
     replayoff: number = -1;
-    labelGroups: Int32Array | null = null;
+    walkmerge: Int32Array | null = null;
     stretches: boolean = false;
     priority: number = 5;
-    mainhand: number = -1;
-    offhand: number = -1;
+    righthand: number = -1;
+    lefthand: number = -1;
     replaycount: number = 99;
     duration: number = 0;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.frameCount = dat.g1;
             this.frames = new Int16Array(this.frameCount);
@@ -61,7 +60,7 @@ export default class SeqType extends ConfigType {
 
                 this.delay[i] = dat.g2;
                 if (this.delay[i] === 0) {
-                    this.delay[i] = SeqFrame.instances[this.frames[i]].delay;
+                    this.delay[i] = AnimFrame.instances[this.frames[i]].delay;
                 }
 
                 if (this.delay[i] === 0) {
@@ -74,25 +73,27 @@ export default class SeqType extends ConfigType {
             this.replayoff = dat.g2;
         } else if (code === 3) {
             const count: number = dat.g1;
-            this.labelGroups = new Int32Array(count + 1);
+            this.walkmerge = new Int32Array(count + 1);
 
             for (let i: number = 0; i < count; i++) {
-                this.labelGroups[i] = dat.g1;
+                this.walkmerge[i] = dat.g1;
             }
 
-            this.labelGroups[count] = 9999999;
+            this.walkmerge[count] = 9999999;
         } else if (code === 4) {
             this.stretches = true;
         } else if (code === 5) {
             this.priority = dat.g1;
         } else if (code === 6) {
-            this.mainhand = dat.g2;
+            // later RS (think RS3) this becomes mainhand
+            this.righthand = dat.g2;
         } else if (code === 7) {
-            this.offhand = dat.g2;
+            // later RS (think RS3) this becomes offhand
+            this.lefthand = dat.g2;
         } else if (code === 8) {
             this.replaycount = dat.g1;
         } else {
             throw new Error(`Unrecognized seq config code: ${code}`);
         }
-    };
+    }
 }

@@ -1,4 +1,4 @@
-import {arraycopy, bigIntModPow, bigIntToBytes, bytesToBigInt} from '../util/JsUtil';
+import {bigIntModPow, bigIntToBytes, bytesToBigInt} from '../util/JsUtil';
 import Isaac from './Isaac';
 import LinkList from '../datastruct/LinkList';
 import Hashable from '../datastruct/Hashable';
@@ -47,10 +47,11 @@ export default class Packet extends Hashable {
     };
 
     // constructor
+    private readonly view: DataView;
     readonly data: Uint8Array;
-    pos: number;
 
     // runtime
+    pos: number = 0;
     bitPos: number = 0;
     random: Isaac | null = null;
 
@@ -64,28 +65,28 @@ export default class Packet extends Hashable {
         } else {
             this.data = src;
         }
-        this.pos = 0;
+        this.view = new DataView(this.data.buffer, this.data.byteOffset, this.data.byteLength);
     }
 
     get length(): number {
-        return this.data.length;
+        return this.view.byteLength;
     }
 
     get available(): number {
-        return this.data.length - this.pos;
+        return this.length - this.pos;
     }
 
     static alloc = (type: number): Packet => {
         let cached: Packet | null = null;
         if (type === 0 && Packet.cacheMinCount > 0) {
             Packet.cacheMinCount--;
-            cached = Packet.cacheMin.pollFront() as Packet | null;
+            cached = Packet.cacheMin.removeHead() as Packet | null;
         } else if (type === 1 && Packet.cacheMidCount > 0) {
             Packet.cacheMidCount--;
-            cached = Packet.cacheMid.pollFront() as Packet | null;
+            cached = Packet.cacheMid.removeHead() as Packet | null;
         } else if (type === 2 && Packet.cacheMaxCount > 0) {
             Packet.cacheMaxCount--;
-            cached = Packet.cacheMax.pollFront() as Packet | null;
+            cached = Packet.cacheMax.removeHead() as Packet | null;
         }
 
         if (cached) {
@@ -101,169 +102,182 @@ export default class Packet extends Hashable {
         return new Packet(new Uint8Array(30000));
     };
 
-    release = (): void => {
+    release(): void {
         this.pos = 0;
-        if (this.data.length === 100 && Packet.cacheMinCount < 1000) {
-            Packet.cacheMin.pushBack(this);
+        if (this.view.byteLength === 100 && Packet.cacheMinCount < 1000) {
+            Packet.cacheMin.addTail(this);
             Packet.cacheMinCount++;
-        } else if (this.data.length === 5000 && Packet.cacheMidCount < 250) {
-            Packet.cacheMid.pushBack(this);
+        } else if (this.view.byteLength === 5000 && Packet.cacheMidCount < 250) {
+            Packet.cacheMid.addTail(this);
             Packet.cacheMidCount++;
-        } else if (this.data.length === 30000 && Packet.cacheMaxCount < 50) {
-            Packet.cacheMax.pushBack(this);
+        } else if (this.view.byteLength === 30000 && Packet.cacheMaxCount < 50) {
+            Packet.cacheMax.addTail(this);
             Packet.cacheMaxCount++;
         }
-    };
+    }
 
     get g1(): number {
-        return this.data[this.pos++];
+        return this.view.getUint8(this.pos++);
     }
 
     // signed
     get g1b(): number {
-        return (this.data[this.pos++] << 24) >> 24;
+        return this.view.getInt8(this.pos++);
     }
 
     get g2(): number {
-        return (this.data[this.pos++] << 8) | this.data[this.pos++];
+        const result: number = this.view.getUint16(this.pos);
+        this.pos += 2;
+        return result;
     }
 
     // signed
     get g2b(): number {
-        let value: number = (this.data[this.pos++] << 8) | this.data[this.pos++];
-        if (value > 0x7fff) {
-            value -= 0x10000;
-        }
-        return value;
+        const result: number = this.view.getInt16(this.pos);
+        this.pos += 2;
+        return result;
     }
 
     get g3(): number {
-        return (this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++];
+        const result: number = (this.view.getUint8(this.pos++) << 16) | this.view.getUint16(this.pos);
+        this.pos += 2;
+        return result;
     }
 
     get g4(): number {
-        return (this.data[this.pos++] << 24) | (this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++];
+        const result: number = this.view.getInt32(this.pos);
+        this.pos += 4;
+        return result;
     }
 
     get g8(): bigint {
-        return ((BigInt(this.g4) & 0xffffffffn) << 32n) | (BigInt(this.g4) & 0xffffffffn);
+        const result: bigint = this.view.getBigInt64(this.pos);
+        this.pos += 8;
+        return result;
     }
 
     get gsmart(): number {
-        return this.data[this.pos] < 0x80 ? this.g1 - 0x40 : this.g2 - 0xc000;
+        return this.view.getUint8(this.pos) < 0x80 ? this.g1 - 0x40 : this.g2 - 0xc000;
     }
 
     // signed
     get gsmarts(): number {
-        return this.data[this.pos] < 0x80 ? this.g1 : this.g2 - 0x8000;
+        return this.view.getUint8(this.pos) < 0x80 ? this.g1 : this.g2 - 0x8000;
     }
 
     get gjstr(): string {
+        const view: DataView = this.view;
+        const length: number = view.byteLength;
         let str: string = '';
-        while (this.data[this.pos] !== 10 && this.pos < this.data.length) {
-            str += String.fromCharCode(this.data[this.pos++]);
+        let b: number;
+        while ((b = view.getUint8(this.pos++)) !== 10 && this.pos < length) {
+            str += String.fromCharCode(b);
         }
-        this.pos++;
         return str;
     }
 
-    gdata = (length: number, offset: number, dest: Uint8Array | Int8Array): void => {
-        for (let i: number = offset; i < offset + length; i++) {
-            dest[i] = this.data[this.pos++];
+    gdata(length: number, offset: number, dest: Uint8Array | Int8Array): void {
+        const view: DataView = this.view;
+        const total: number = offset + length;
+        for (let i: number = offset; i < total; i++) {
+            dest[i] = view.getUint8(this.pos++);
         }
-    };
+    }
 
-    p1isaac = (opcode: number): void => {
-        this.data[this.pos++] = (opcode + (this.random?.nextInt ?? 0)) & 0xff;
-    };
+    p1isaac(opcode: number): void {
+        this.view.setUint8(this.pos++, (opcode + (this.random?.nextInt ?? 0)) & 0xff);
+    }
 
-    p1 = (value: number): void => {
-        this.data[this.pos++] = value;
-    };
+    p1(value: number): void {
+        this.view.setUint8(this.pos++, value);
+    }
 
-    p2 = (value: number): void => {
-        this.data[this.pos++] = value >>> 8;
-        this.data[this.pos++] = value;
-    };
+    p2(value: number): void {
+        this.view.setUint16(this.pos, value);
+        this.pos += 2;
+    }
 
-    ip2 = (value: number): void => {
-        this.data[this.pos++] = value;
-        this.data[this.pos++] = value >>> 8;
-    };
+    ip2(value: number): void {
+        this.view.setUint16(this.pos, value, true);
+        this.pos += 2;
+    }
 
-    p3 = (value: number): void => {
-        this.data[this.pos++] = value >>> 16;
-        this.data[this.pos++] = value >>> 8;
-        this.data[this.pos++] = value;
-    };
+    p3(value: number): void {
+        this.view.setUint8(this.pos++, value >> 16);
+        this.view.setUint16(this.pos, value);
+        this.pos += 2;
+    }
 
-    p4 = (value: number): void => {
-        this.data[this.pos++] = value >>> 24;
-        this.data[this.pos++] = value >>> 16;
-        this.data[this.pos++] = value >>> 8;
-        this.data[this.pos++] = value;
-    };
+    p4(value: number): void {
+        this.view.setInt32(this.pos, value);
+        this.pos += 4;
+    }
 
-    ip4 = (value: number): void => {
-        this.data[this.pos++] = value;
-        this.data[this.pos++] = value >>> 8;
-        this.data[this.pos++] = value >>> 16;
-        this.data[this.pos++] = value >>> 24;
-    };
+    ip4(value: number): void {
+        this.view.setInt32(this.pos, value, true);
+        this.pos += 4;
+    }
 
-    p8 = (value: bigint): void => {
-        this.p4(Number(value >> 32n));
-        this.p4(Number(value & 0xffffffffn));
-    };
+    p8(value: bigint): void {
+        this.view.setBigInt64(this.pos, value);
+        this.pos += 8;
+    }
 
-    pjstr = (str: string): void => {
-        for (let i: number = 0; i < str.length; i++) {
-            this.data[this.pos++] = str.charCodeAt(i);
+    pjstr(str: string): void {
+        const view: DataView = this.view;
+        const length: number = str.length;
+        for (let i: number = 0; i < length; i++) {
+            view.setUint8(this.pos++, str.charCodeAt(i));
         }
-        this.data[this.pos++] = 10;
-    };
+        view.setUint8(this.pos++, 10);
+    }
 
-    pdata = (src: Uint8Array, length: number, offset: number): void => {
-        for (let i: number = offset; i < offset + length; i++) {
-            this.data[this.pos++] = src[i];
+    pdata(src: Uint8Array, length: number, offset: number): void {
+        const view: DataView = this.view;
+        const total: number = offset + length;
+        for (let i: number = offset; i < total; i++) {
+            view.setUint8(this.pos++, src[i]);
         }
-    };
+    }
 
-    psize1 = (size: number): void => {
-        this.data[this.pos - size - 1] = size;
-    };
+    psize1(size: number): void {
+        this.view.setUint8(this.pos - size - 1, size);
+    }
 
-    bits = (): void => {
+    bits(): void {
         this.bitPos = this.pos * 8;
-    };
+    }
 
-    bytes = (): void => {
+    bytes(): void {
         this.pos = ((this.bitPos + 7) / 8) | 0;
-    };
+    }
 
-    gBit = (n: number): number => {
+    gBit(n: number): number {
         let bytePos: number = this.bitPos >>> 3;
         let remaining: number = 8 - (this.bitPos & 7);
         let value: number = 0;
         this.bitPos += n;
 
         for (; n > remaining; remaining = 8) {
-            value += (this.data[bytePos++] & Packet.bitmask[remaining]) << (n - remaining);
+            value += (this.view.getUint8(bytePos++) & Packet.bitmask[remaining]) << (n - remaining);
             n -= remaining;
         }
 
         if (n === remaining) {
-            value += this.data[bytePos] & Packet.bitmask[remaining];
+            value += this.view.getUint8(bytePos) & Packet.bitmask[remaining];
         } else {
-            value += (this.data[bytePos] >>> (remaining - n)) & Packet.bitmask[n];
+            value += (this.view.getUint8(bytePos) >>> (remaining - n)) & Packet.bitmask[n];
         }
 
         return value;
-    };
+    }
 
-    rsaenc = (mod: bigint, exp: bigint): void => {
-        const temp: Uint8Array = new Uint8Array(this.pos);
-        arraycopy(this.data, 0, temp, 0, this.pos);
+    rsaenc(mod: bigint, exp: bigint): void {
+        const length: number = this.pos;
+        this.pos = 0;
+
+        const temp: Uint8Array = new Uint8Array(length);
+        this.gdata(length, 0, temp);
 
         const bigRaw: bigint = bytesToBigInt(temp);
         const bigEnc: bigint = bigIntModPow(bigRaw, exp, mod);
@@ -272,5 +286,5 @@ export default class Packet extends Hashable {
         this.pos = 0;
         this.p1(rawEnc.length);
         this.pdata(rawEnc, rawEnc.length, 0);
-    };
+    }
 }

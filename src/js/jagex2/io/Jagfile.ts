@@ -55,16 +55,16 @@ export default class Jagfile {
         }
     }
 
-    read = (name: string): Uint8Array | null => {
+    read(name: string): Uint8Array | null {
         const hash: number = Jagfile.genHash(name);
         const index: number = this.fileHash.indexOf(hash);
         if (index === -1) {
             return null;
         }
         return this.readIndex(index);
-    };
+    }
 
-    readIndex = (index: number): Uint8Array | null => {
+    readIndex(index: number): Uint8Array | null {
         if (index < 0 || index >= this.fileCount) {
             return null;
         }
@@ -84,5 +84,5 @@ export default class Jagfile {
             this.fileUnpacked[index] = data;
             return data;
         }
-    };
+    }
 }

@@ -86,6 +86,14 @@ async function getWorldInfo(secured: boolean, id: number, retries: number = 0): 
         await sleep(1000);
         return getWorldInfo(secured, id, ++retries);
     }
+    worldlist.push({
+        id: 0,
+        region: 'Local Development',
+        address: 'http://localhost',
+        portOffset: 0,
+        members: true,
+        players: 0
+    });
     const world: WorldList | undefined = worldlist.find((x): boolean => x.id === id);
     if (!world) {
         return getWorldInfo(secured, id, 10);

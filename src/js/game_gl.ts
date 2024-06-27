@@ -5,7 +5,7 @@ import NpcType from './jagex2/config/NpcType';
 import IdkType from './jagex2/config/IdkType';
 import SpotAnimType from './jagex2/config/SpotAnimType';
 import VarpType from './jagex2/config/VarpType';
-import ComType from './jagex2/config/ComType';
+import Component from './jagex2/config/Component';
 
 import PixMap from './jagex2/graphics/PixMap';
 import Draw2D from './jagex2/graphics/Draw2D';
@@ -58,8 +58,8 @@ import {playMidi, playWave, setMidiVolume, setWaveVolume, stopMidi} from './jage
 import {arraycopy, downloadUrl, sleep} from './jagex2/util/JsUtil';
 import {Int32Array3d, TypedArray1d, Uint8Array3d} from './jagex2/util/Arrays';
 import {Client} from './client';
-import SeqBase from './jagex2/graphics/SeqBase';
-import SeqFrame from './jagex2/graphics/SeqFrame';
+import AnimBase from './jagex2/graphics/AnimBase';
+import AnimFrame from './jagex2/graphics/AnimFrame';
 import FloType from './jagex2/config/FloType';
 import {setupConfiguration} from './configuration';
 import DrawGL from './jagex2/graphics/DrawGL';
@@ -246,8 +246,8 @@ class Game extends Client {
 
             await this.showProgress(83, 'Unpacking models');
             Model.unpack(models);
-            SeqBase.unpack(models);
-            SeqFrame.unpack(models);
+            AnimBase.unpack(models);
+            AnimFrame.unpack(models);
 
             await this.showProgress(86, 'Unpacking config');
             SeqType.unpack(config);
@@ -265,7 +265,7 @@ class Game extends Client {
             }
 
             await this.showProgress(92, 'Unpacking interfaces');
-            ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+            Component.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
             await this.showProgress(97, 'Preparing game engine');
             for (let y: number = 0; y < 33; y++) {
@@ -949,15 +949,15 @@ class Game extends Client {
                 for (let i: number = 0; i < 5; i++) {
                     this.designColors[i] = 0;
                 }
-                Client.opLoc4Counter = 0;
-                Client.opNpc3Counter = 0;
-                Client.opHeld4Counter = 0;
-                Client.opNpc5Counter = 0;
-                Client.opHeld1Counter = 0;
-                Client.opLoc5Counter = 0;
-                Client.ifButton5Counter = 0;
-                Client.opPlayer2Counter = 0;
-                Client.opHeld9Counter = 0;
+                Client.oplogic1 = 0;
+                Client.oplogic2 = 0;
+                Client.oplogic3 = 0;
+                Client.oplogic4 = 0;
+                Client.oplogic5 = 0;
+                Client.oplogic6 = 0;
+                Client.oplogic7 = 0;
+                Client.oplogic8 = 0;
+                Client.oplogic9 = 0;
                 this.prepareGameScreen();
                 return;
             }
@@ -1186,7 +1186,7 @@ class Game extends Client {
                         this.hoveredSlotParentId = -1;
                         this.handleInput();
                         if (this.hoveredSlotParentId === this.objDragInterfaceId && this.hoveredSlot !== this.objDragSlot) {
-                            const com: ComType = ComType.instances[this.objDragInterfaceId];
+                            const com: Component = Component.instances[this.objDragInterfaceId];
                             if (com.invSlotObjId) {
                                 const obj: number = com.invSlotObjId[this.hoveredSlot];
                                 com.invSlotObjId[this.hoveredSlot] = com.invSlotObjId[this.objDragSlot];
@@ -1215,9 +1215,9 @@ class Game extends Client {
                 }
             }
 
-            Client.updateCounter++;
-            if (Client.updateCounter > 127) {
-                Client.updateCounter = 0;
+            Client.cyclelogic3++;
+            if (Client.cyclelogic3 > 127) {
+                Client.cyclelogic3 = 0;
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC3);
                 this.out.p3(4991788);
             }
@@ -1332,9 +1332,9 @@ class Game extends Client {
                 this.minimapZoomModifier = -1;
             }
 
-            Client.update2Counter++;
-            if (Client.update2Counter > 110) {
-                Client.update2Counter = 0;
+            Client.cyclelogic4++;
+            if (Client.cyclelogic4 > 110) {
+                Client.cyclelogic4 = 0;
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC4);
                 this.out.p4(0);
             }
@@ -1649,9 +1649,9 @@ class Game extends Client {
                 this.orbitCamera(this.orbitCameraX, this.getHeightmapY(this.currentLevel, this.localPlayer.x, this.localPlayer.z) - 50, this.orbitCameraZ, yaw, pitch, pitch * 3 + 600);
             }
 
-            Client.drawCounter++;
-            if (Client.drawCounter > 1802) {
-                Client.drawCounter = 0;
+            Client.cyclelogic2++;
+            if (Client.cyclelogic2 > 1802) {
+                Client.cyclelogic2 = 0;
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC2);
                 this.out.p1(0);
                 const start: number = this.out.pos;
@@ -2011,7 +2011,7 @@ class Game extends Client {
 
         if (this.viewportInterfaceId !== -1) {
             this.updateInterfaceAnimation(this.viewportInterfaceId, this.sceneDelta);
-            this.drawInterface(ComType.instances[this.viewportInterfaceId], 0, 0, 0);
+            this.drawInterface(Component.instances[this.viewportInterfaceId], 0, 0, 0);
         }
 
         this.drawWildyLevel();
@@ -2166,9 +2166,9 @@ class Game extends Client {
         }
         this.imageInvback?.draw(0, 0);
         if (this.sidebarInterfaceId !== -1) {
-            this.drawInterface(ComType.instances[this.sidebarInterfaceId], 0, 0, 0);
+            this.drawInterface(Component.instances[this.sidebarInterfaceId], 0, 0, 0);
         } else if (this.tabInterfaceId[this.selectedTab] !== -1) {
-            this.drawInterface(ComType.instances[this.tabInterfaceId[this.selectedTab]], 0, 0, 0);
+            this.drawInterface(Component.instances[this.tabInterfaceId[this.selectedTab]], 0, 0, 0);
         }
         if (this.menuVisible && this.menuArea === 1) {
             this.drawMenu();
@@ -2196,7 +2196,7 @@ class Game extends Client {
             this.fontBold12?.drawStringCenter(239, 40, this.modalMessage, Colors.BLACK);
             this.fontBold12?.drawStringCenter(239, 60, 'Click to continue', Colors.DARKBLUE);
         } else if (this.chatInterfaceId !== -1) {
-            this.drawInterface(ComType.instances[this.chatInterfaceId], 0, 0, 0);
+            this.drawInterface(Component.instances[this.chatInterfaceId], 0, 0, 0);
         } else if (this.stickyChatInterfaceId === -1) {
             const font: PixFont | null = this.fontPlain12;
             let line: number = 0;
@@ -2271,7 +2271,7 @@ class Game extends Client {
             font?.drawString(font.stringWidth(this.username + ': ') + 6, 90, this.chatTyped + '*', Colors.BLUE);
             Draw2D.drawHorizontalLine(0, 77, Colors.BLACK, 479);
         } else {
-            this.drawInterface(ComType.instances[this.stickyChatInterfaceId], 0, 0, 0);
+            this.drawInterface(Component.instances[this.stickyChatInterfaceId], 0, 0, 0);
         }
         if (this.menuVisible && this.menuArea === 2) {
             this.drawMenu();
@@ -2314,7 +2314,7 @@ class Game extends Client {
 
         for (let i: number = 0; i < this.npcCount; i++) {
             const npc: NpcEntity | null = this.npcs[this.npcIds[i]];
-            if (npc && npc.isVisible() && npc.type && npc.type.visonmap) {
+            if (npc && npc.isVisible() && npc.type && npc.type.minimap) {
                 anchorX = ((npc.x / 32) | 0) - ((this.localPlayer.x / 32) | 0);
                 anchorY = ((npc.z / 32) | 0) - ((this.localPlayer.z / 32) | 0);
                 this.drawOnMinimap(anchorY, this.imageMapdot1, anchorX);
@@ -2764,7 +2764,7 @@ class Game extends Client {
                 if (action === 602 || action === 596 || action === 22 || action === 892 || action === 415 || action === 405 || action === 38 || action === 422 || action === 478 || action === 347 || action === 188) {
                     const slot: number = this.menuParamB[this.menuSize - 1];
                     const comId: number = this.menuParamC[this.menuSize - 1];
-                    const com: ComType = ComType.instances[comId];
+                    const com: Component = Component.instances[comId];
 
                     if (com.draggable) {
                         this.objGrabThreshold = false;
@@ -2775,11 +2775,11 @@ class Game extends Client {
                         this.objGrabX = this.mouseClickX;
                         this.objGrabY = this.mouseClickY;
 
-                        if (ComType.instances[comId].layer === this.viewportInterfaceId) {
+                        if (Component.instances[comId].layer === this.viewportInterfaceId) {
                             this.objDragArea = 1;
                         }
 
-                        if (ComType.instances[comId].layer === this.chatInterfaceId) {
+                        if (Component.instances[comId].layer === this.chatInterfaceId) {
                             this.objDragArea = 3;
                         }
 
@@ -2915,10 +2915,10 @@ class Game extends Client {
         } else if (action === 405 || action === 38 || action === 422 || action === 478 || action === 347) {
             if (action === 478) {
                 if ((b & 0x3) === 0) {
-                    Client.opHeld1Counter++;
+                    Client.oplogic5++;
                 }
 
-                if (Client.opHeld1Counter >= 90) {
+                if (Client.oplogic5 >= 90) {
                     // ANTICHEAT_OPLOGIC5
                     this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC5);
                 }
@@ -2932,8 +2932,8 @@ class Game extends Client {
                 // OPHELD3
                 this.out.p1isaac(ClientProt.OPHELD3);
             } else if (action === 405) {
-                Client.opHeld4Counter += a;
-                if (Client.opHeld4Counter >= 97) {
+                Client.oplogic3 += a;
+                if (Client.oplogic3 >= 97) {
                     // ANTICHEAT_OPLOGIC3
                     this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC3);
                     this.out.p3(14953816);
@@ -2954,11 +2954,11 @@ class Game extends Client {
             this.selectedItem = b;
             this.selectedArea = 2;
 
-            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+            if (Component.instances[c].layer === this.viewportInterfaceId) {
                 this.selectedArea = 1;
             }
 
-            if (ComType.instances[c].layer === this.chatInterfaceId) {
+            if (Component.instances[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
         } else if (action === 728 || action === 542 || action === 6 || action === 963 || action === 245) {
@@ -2976,10 +2976,10 @@ class Game extends Client {
                     this.out.p1isaac(ClientProt.OPNPC2);
                 } else if (action === 6) {
                     if ((a & 0x3) === 0) {
-                        Client.opNpc3Counter++;
+                        Client.oplogic2++;
                     }
 
-                    if (Client.opNpc3Counter >= 124) {
+                    if (Client.oplogic2 >= 124) {
                         // ANTICHEAT_OPLOGIC2
                         this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC2);
                         this.out.p4(0);
@@ -2995,10 +2995,10 @@ class Game extends Client {
                     this.out.p1isaac(ClientProt.OPNPC1);
                 } else if (action === 245) {
                     if ((a & 0x3) === 0) {
-                        Client.opNpc5Counter++;
+                        Client.oplogic4++;
                     }
 
-                    if (Client.opNpc5Counter >= 85) {
+                    if (Client.oplogic4 >= 85) {
                         // ANTICHEAT_OPLOGIC4
                         this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC4);
                         this.out.p2(39596);
@@ -3062,11 +3062,11 @@ class Game extends Client {
             this.selectedItem = b;
             this.selectedArea = 2;
 
-            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+            if (Component.instances[c].layer === this.viewportInterfaceId) {
                 this.selectedArea = 1;
             }
 
-            if (ComType.instances[c].layer === this.chatInterfaceId) {
+            if (Component.instances[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
         } else if (action === 391) {
@@ -3082,11 +3082,11 @@ class Game extends Client {
             this.selectedItem = b;
             this.selectedArea = 2;
 
-            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+            if (Component.instances[c].layer === this.viewportInterfaceId) {
                 this.selectedArea = 1;
             }
 
-            if (ComType.instances[c].layer === this.chatInterfaceId) {
+            if (Component.instances[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
         } else if (action === 660) {
@@ -3154,8 +3154,8 @@ class Game extends Client {
                     // OPPLAYER1
                     this.out.p1isaac(ClientProt.OPPLAYER1);
                 } else if (action === 151) {
-                    Client.opPlayer2Counter++;
-                    if (Client.opPlayer2Counter >= 90) {
+                    Client.oplogic8++;
+                    if (Client.oplogic8 >= 90) {
                         // ANTICHEAT_OPLOGIC8
                         this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC8);
                         this.out.p2(31114);
@@ -3268,7 +3268,7 @@ class Game extends Client {
             // OPLOC2
             this.interactWithLoc(ClientProt.OPLOC2, b, c, a);
         } else if (action === 930) {
-            const com: ComType = ComType.instances[c];
+            const com: Component = Component.instances[c];
             this.spellSelected = 1;
             this.activeSpellId = c;
             this.activeSpellFlags = com.actionTarget;
@@ -3293,7 +3293,7 @@ class Game extends Client {
 
             return;
         } else if (action === 951) {
-            const com: ComType = ComType.instances[c];
+            const com: Component = Component.instances[c];
             let notify: boolean = true;
 
             if (com.clientCode > 0) {
@@ -3311,10 +3311,10 @@ class Game extends Client {
                 this.out.p1isaac(ClientProt.INV_BUTTON3);
             } else if (action === 415) {
                 if ((c & 0x3) === 0) {
-                    Client.ifButton5Counter++;
+                    Client.oplogic7++;
                 }
 
-                if (Client.ifButton5Counter >= 55) {
+                if (Client.oplogic7 >= 55) {
                     // ANTICHEAT_OPLOGIC7
                     this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC7);
                     this.out.p4(0);
@@ -3327,10 +3327,10 @@ class Game extends Client {
                 this.out.p1isaac(ClientProt.INV_BUTTON1);
             } else if (action === 892) {
                 if ((b & 0x3) === 0) {
-                    Client.opHeld9Counter++;
+                    Client.oplogic9++;
                 }
 
-                if (Client.opHeld9Counter >= 130) {
+                if (Client.oplogic9 >= 130) {
                     // ANTICHEAT_OPLOGIC9
                     this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC9);
                     this.out.p1(177);
@@ -3352,19 +3352,19 @@ class Game extends Client {
             this.selectedItem = b;
             this.selectedArea = 2;
 
-            if (ComType.instances[c].layer === this.viewportInterfaceId) {
+            if (Component.instances[c].layer === this.viewportInterfaceId) {
                 this.selectedArea = 1;
             }
 
-            if (ComType.instances[c].layer === this.chatInterfaceId) {
+            if (Component.instances[c].layer === this.chatInterfaceId) {
                 this.selectedArea = 3;
             }
         } else if (action === 581) {
             if ((a & 0x3) === 0) {
-                Client.opLoc4Counter++;
+                Client.oplogic1++;
             }
 
-            if (Client.opLoc4Counter >= 99) {
+            if (Client.oplogic1 >= 99) {
                 // ANTICHEAT_OPLOGIC1
                 this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC1);
                 this.out.p4(0);
@@ -3391,8 +3391,8 @@ class Game extends Client {
                 this.out.p2(this.activeSpellId);
             }
         } else if (action === 1501) {
-            Client.opLoc5Counter += this.sceneBaseTileZ;
-            if (Client.opLoc5Counter >= 92) {
+            Client.oplogic6 += this.sceneBaseTileZ;
+            if (Client.oplogic6 >= 92) {
                 // ANTICHEAT_OPLOGIC6
                 this.out.p1isaac(ClientProt.ANTICHEAT_OPLOGIC6);
                 this.out.p4(0);
@@ -3419,7 +3419,7 @@ class Game extends Client {
             this.out.p1isaac(ClientProt.IF_BUTTON);
             this.out.p2(c);
 
-            const com: ComType = ComType.instances[c];
+            const com: Component = Component.instances[c];
             if (com.scripts && com.scripts[0] && com.scripts[0][0] === 5) {
                 const varp: number = com.scripts[0][1];
                 if (com.scriptOperand && this.varps[varp] !== com.scriptOperand[0]) {
@@ -3439,9 +3439,9 @@ class Game extends Client {
                 this.reportAbuseInput = option.substring(tag + 5).trim();
                 this.reportAbuseMuteOption = false;
 
-                for (let i: number = 0; i < ComType.instances.length; i++) {
-                    if (ComType.instances[i] && ComType.instances[i].clientCode === ComType.CC_REPORT_INPUT) {
-                        this.reportAbuseInterfaceID = this.viewportInterfaceId = ComType.instances[i].layer;
+                for (let i: number = 0; i < Component.instances.length; i++) {
+                    if (Component.instances[i] && Component.instances[i].clientCode === Component.CC_REPORT_INPUT) {
+                        this.reportAbuseInterfaceID = this.viewportInterfaceId = Component.instances[i].layer;
                         break;
                     }
                 }
@@ -3471,7 +3471,7 @@ class Game extends Client {
             this.out.p1isaac(ClientProt.IF_BUTTON);
             this.out.p2(c);
 
-            const com: ComType = ComType.instances[c];
+            const com: Component = Component.instances[c];
             if (com.scripts && com.scripts[0] && com.scripts[0][0] === 5) {
                 const varp: number = com.scripts[0][1];
                 this.varps[varp] = 1 - this.varps[varp];
@@ -3516,9 +3516,9 @@ class Game extends Client {
         this.spellSelected = 0;
     };
 
-    private handleInterfaceAction = (com: ComType): boolean => {
+    private handleInterfaceAction = (com: Component): boolean => {
         const clientCode: number = com.clientCode;
-        if (clientCode === ComType.CC_ADD_FRIEND) {
+        if (clientCode === Component.CC_ADD_FRIEND) {
             this.redrawChatback = true;
             this.chatbackInputOpen = false;
             this.showSocialInput = true;
@@ -3527,7 +3527,7 @@ class Game extends Client {
             this.socialMessage = 'Enter name of friend to add to list';
         }
 
-        if (clientCode === ComType.CC_DEL_FRIEND) {
+        if (clientCode === Component.CC_DEL_FRIEND) {
             this.redrawChatback = true;
             this.chatbackInputOpen = false;
             this.showSocialInput = true;
@@ -3536,12 +3536,12 @@ class Game extends Client {
             this.socialMessage = 'Enter name of friend to delete from list';
         }
 
-        if (clientCode === ComType.CC_LOGOUT) {
+        if (clientCode === Component.CC_LOGOUT) {
             this.idleTimeout = 250;
             return true;
         }
 
-        if (clientCode === ComType.CC_ADD_IGNORE) {
+        if (clientCode === Component.CC_ADD_IGNORE) {
             this.redrawChatback = true;
             this.chatbackInputOpen = false;
             this.showSocialInput = true;
@@ -3550,7 +3550,7 @@ class Game extends Client {
             this.socialMessage = 'Enter name of player to add to list';
         }
 
-        if (clientCode === ComType.CC_DEL_IGNORE) {
+        if (clientCode === Component.CC_DEL_IGNORE) {
             this.redrawChatback = true;
             this.chatbackInputOpen = false;
             this.showSocialInput = true;
@@ -3560,7 +3560,7 @@ class Game extends Client {
         }
 
         // physical parts
-        if (clientCode >= ComType.CC_CHANGE_HEAD_L && clientCode <= ComType.CC_CHANGE_FEET_R) {
+        if (clientCode >= Component.CC_CHANGE_HEAD_L && clientCode <= Component.CC_CHANGE_FEET_R) {
             const part: number = ((clientCode - 300) / 2) | 0;
             const direction: number = clientCode & 0x1;
             let kit: number = this.designIdentikits[part];
@@ -3592,7 +3592,7 @@ class Game extends Client {
         }
 
         // recoloring parts
-        if (clientCode >= ComType.CC_RECOLOUR_HAIR_L && clientCode <= ComType.CC_RECOLOUR_SKIN_R) {
+        if (clientCode >= Component.CC_RECOLOUR_HAIR_L && clientCode <= Component.CC_RECOLOUR_SKIN_R) {
             const part: number = ((clientCode - 314) / 2) | 0;
             const direction: number = clientCode & 0x1;
             let color: number = this.designColors[part];
@@ -3600,13 +3600,13 @@ class Game extends Client {
             if (direction === 0) {
                 color--;
                 if (color < 0) {
-                    color = PlayerEntity.DESIGN_BODY_COLOR[part].length - 1;
+                    color = PlayerEntity.DESIGN_IDK_COLORS[part].length - 1;
                 }
             }
 
             if (direction === 1) {
                 color++;
-                if (color >= PlayerEntity.DESIGN_BODY_COLOR[part].length) {
+                if (color >= PlayerEntity.DESIGN_IDK_COLORS[part].length) {
                     color = 0;
                 }
             }
@@ -3615,17 +3615,17 @@ class Game extends Client {
             this.updateDesignModel = true;
         }
 
-        if (clientCode === ComType.CC_SWITCH_TO_MALE && !this.designGenderMale) {
+        if (clientCode === Component.CC_SWITCH_TO_MALE && !this.designGenderMale) {
             this.designGenderMale = true;
             this.validateCharacterDesign();
         }
 
-        if (clientCode === ComType.CC_SWITCH_TO_FEMALE && this.designGenderMale) {
+        if (clientCode === Component.CC_SWITCH_TO_FEMALE && this.designGenderMale) {
             this.designGenderMale = false;
             this.validateCharacterDesign();
         }
 
-        if (clientCode === ComType.CC_ACCEPT_DESIGN) {
+        if (clientCode === Component.CC_ACCEPT_DESIGN) {
             this.out.p1isaac(ClientProt.IF_PLAYERDESIGN);
             this.out.p1(this.designGenderMale ? 0 : 1);
             for (let i: number = 0; i < 7; i++) {
@@ -3637,12 +3637,12 @@ class Game extends Client {
             return true;
         }
 
-        if (clientCode === ComType.CC_MOD_MUTE) {
+        if (clientCode === Component.CC_MOD_MUTE) {
             this.reportAbuseMuteOption = !this.reportAbuseMuteOption;
         }
 
         // reportabuse rules options
-        if (clientCode >= ComType.CC_REPORT_RULE1 && clientCode <= ComType.CC_REPORT_RULE12) {
+        if (clientCode >= Component.CC_REPORT_RULE1 && clientCode <= Component.CC_REPORT_RULE12) {
             this.closeInterfaces();
 
             if (this.reportAbuseInput.length > 0) {
@@ -3778,9 +3778,9 @@ class Game extends Client {
                 this.redrawSideicons = true;
             }
 
-            Client.sidebarInputCounter++;
-            if (Client.sidebarInputCounter > 150) {
-                Client.sidebarInputCounter = 0;
+            Client.cyclelogic1++;
+            if (Client.cyclelogic1 > 150) {
+                Client.cyclelogic1 = 0;
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC1);
                 this.out.p1(43);
             }
@@ -4054,9 +4054,9 @@ class Game extends Client {
                 this.reportAbuseInput = '';
                 this.reportAbuseMuteOption = false;
 
-                for (let i: number = 0; i < ComType.instances.length; i++) {
-                    if (ComType.instances[i] && ComType.instances[i].clientCode === 600) {
-                        this.reportAbuseInterfaceID = this.viewportInterfaceId = ComType.instances[i].layer;
+                for (let i: number = 0; i < Component.instances.length; i++) {
+                    if (Component.instances[i] && Component.instances[i].clientCode === 600) {
+                        this.reportAbuseInterfaceID = this.viewportInterfaceId = Component.instances[i].layer;
                         return;
                     }
                 }
@@ -4064,7 +4064,7 @@ class Game extends Client {
         }
     };
 
-    private handleScrollInput = (mouseX: number, mouseY: number, scrollableHeight: number, height: number, redraw: boolean, left: number, top: number, component: ComType): void => {
+    private handleScrollInput = (mouseX: number, mouseY: number, scrollableHeight: number, height: number, redraw: boolean, left: number, top: number, component: Component): void => {
         if (this.scrollGrabbed) {
             this.scrollInputPadding = 32;
         } else {
@@ -4268,7 +4268,7 @@ class Game extends Client {
         let topCost: number = -99999999;
         let topObj: ObjStackEntity | null = null;
 
-        for (let obj: ObjStackEntity | null = objStacks.peekFront() as ObjStackEntity | null; obj; obj = objStacks.prev() as ObjStackEntity | null) {
+        for (let obj: ObjStackEntity | null = objStacks.head() as ObjStackEntity | null; obj; obj = objStacks.prev() as ObjStackEntity | null) {
             const type: ObjType = ObjType.get(obj.index);
             let cost: number = type.cost;
 
@@ -4286,13 +4286,13 @@ class Game extends Client {
             return; // custom
         }
 
-        objStacks.pushFront(topObj);
+        objStacks.addHead(topObj);
 
         let bottomObjId: number = -1;
         let middleObjId: number = -1;
         let bottomObjCount: number = 0;
         let middleObjCount: number = 0;
-        for (let obj: ObjStackEntity | null = objStacks.peekFront() as ObjStackEntity | null; obj; obj = objStacks.prev() as ObjStackEntity | null) {
+        for (let obj: ObjStackEntity | null = objStacks.head() as ObjStackEntity | null; obj; obj = objStacks.prev() as ObjStackEntity | null) {
             if (obj.index !== topObj.index && bottomObjId === -1) {
                 bottomObjId = obj.index;
                 bottomObjCount = obj.count;
@@ -4763,7 +4763,7 @@ class Game extends Client {
                         }
                     }
                 }
-                for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
+                for (let loc: LocTemporary | null = this.spawnedLocations.head() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
                     loc.x -= dx;
                     loc.z -= dz;
                     if (loc.x < 0 || loc.z < 0 || loc.x >= CollisionMap.SIZE || loc.z >= CollisionMap.SIZE) {
@@ -4780,7 +4780,7 @@ class Game extends Client {
             }
             if (this.packetType === ServerProt.IF_SETPLAYERHEAD) {
                 // IF_SETPLAYERHEAD
-                ComType.instances[this.in.g2].model = this.localPlayer?.getHeadModel() || null;
+                Component.instances[this.in.g2].model = this.localPlayer?.getHeadModel() || null;
                 this.packetType = -1;
                 return true;
             }
@@ -4935,7 +4935,7 @@ class Game extends Client {
             if (this.packetType === ServerProt.IF_SETANIM) {
                 // IF_SETANIM
                 const com: number = this.in.g2;
-                ComType.instances[com].anim = this.in.g2;
+                Component.instances[com].anim = this.in.g2;
                 this.packetType = -1;
                 return true;
             }
@@ -4994,7 +4994,7 @@ class Game extends Client {
                 // UPDATE_INV_FULL
                 this.redrawSidebar = true;
                 const com: number = this.in.g2;
-                const inv: ComType = ComType.instances[com];
+                const inv: Component = Component.instances[com];
                 const size: number = this.in.g1;
                 if (inv.invSlotObjId && inv.invSlotObjCount) {
                     for (let i: number = 0; i < size; i++) {
@@ -5037,7 +5037,7 @@ class Game extends Client {
             }
             if (this.packetType === ServerProt.UPDATE_INV_STOP_TRANSMIT) {
                 // UPDATE_INV_STOP_TRANSMIT
-                const inv: ComType = ComType.instances[this.in.g2];
+                const inv: Component = Component.instances[this.in.g2];
                 if (inv.invSlotObjId) {
                     for (let i: number = 0; i < inv.invSlotObjId.length; i++) {
                         inv.invSlotObjId[i] = -1;
@@ -5062,9 +5062,9 @@ class Game extends Client {
                     }
                     this.reportAbuseInput = '';
                     this.reportAbuseMuteOption = false;
-                    for (let i: number = 0; i < ComType.instances.length; i++) {
-                        if (ComType.instances[i] && ComType.instances[i].clientCode === contentType) {
-                            this.viewportInterfaceId = ComType.instances[i].layer;
+                    for (let i: number = 0; i < Component.instances.length; i++) {
+                        if (Component.instances[i] && Component.instances[i].clientCode === contentType) {
+                            this.viewportInterfaceId = Component.instances[i].layer;
                             break;
                         }
                     }
@@ -5124,7 +5124,7 @@ class Game extends Client {
                 const com: number = this.in.g2;
                 const npcId: number = this.in.g2;
                 const npc: NpcType = NpcType.get(npcId);
-                ComType.instances[com].model = npc.getHeadModel();
+                Component.instances[com].model = npc.getHeadModel();
                 this.packetType = -1;
                 return true;
             }
@@ -5140,7 +5140,7 @@ class Game extends Client {
                 const com: number = this.in.g2;
                 const src: number = this.in.g2;
                 const dst: number = this.in.g2;
-                const inter: ComType = ComType.instances[com];
+                const inter: Component = Component.instances[com];
                 const model: Model | null = inter.model;
                 model?.recolor(src, dst);
                 this.packetType = -1;
@@ -5197,7 +5197,7 @@ class Game extends Client {
                 const com: number = this.in.g2;
                 const x: number = this.in.g2b;
                 const z: number = this.in.g2b;
-                const inter: ComType = ComType.instances[com];
+                const inter: Component = Component.instances[com];
                 inter.x = x;
                 inter.y = z;
                 this.packetType = -1;
@@ -5231,7 +5231,7 @@ class Game extends Client {
                         }
                     }
                 }
-                for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
+                for (let loc: LocTemporary | null = this.spawnedLocations.head() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
                     if (loc.x >= this.baseX && loc.x < this.baseX + 8 && loc.z >= this.baseZ && loc.z < this.baseZ + 8 && loc.plane === this.currentLevel) {
                         this.addLoc(loc.plane, loc.x, loc.z, loc.lastLocIndex, loc.lastAngle, loc.lastShape, loc.layer);
                         loc.unlink();
@@ -5320,7 +5320,7 @@ class Game extends Client {
                 // IF_SETMODEL
                 const com: number = this.in.g2;
                 const model: number = this.in.g2;
-                ComType.instances[com].model = Model.model(model);
+                Component.instances[com].model = Model.model(model);
                 this.packetType = -1;
                 return true;
             }
@@ -5418,10 +5418,10 @@ class Game extends Client {
                 const objId: number = this.in.g2;
                 const zoom: number = this.in.g2;
                 const obj: ObjType = ObjType.get(objId);
-                ComType.instances[com].model = obj.getInterfaceModel(50);
-                ComType.instances[com].xan = obj.xan2d;
-                ComType.instances[com].yan = obj.yan2d;
-                ComType.instances[com].zoom = ((obj.zoom2d * 100) / zoom) | 0;
+                Component.instances[com].model = obj.getInterfaceModel(50);
+                Component.instances[com].xan = obj.xan2d;
+                Component.instances[com].yan = obj.yan2d;
+                Component.instances[com].zoom = ((obj.zoom2d * 100) / zoom) | 0;
                 this.packetType = -1;
                 return true;
             }
@@ -5454,7 +5454,7 @@ class Game extends Client {
                 const r: number = (color >> 10) & 0x1f;
                 const g: number = (color >> 5) & 0x1f;
                 const b: number = color & 0x1f;
-                ComType.instances[com].colour = (r << 19) + (g << 11) + (b << 3);
+                Component.instances[com].colour = (r << 19) + (g << 11) + (b << 3);
                 this.packetType = -1;
                 return true;
             }
@@ -5480,7 +5480,7 @@ class Game extends Client {
             if (this.packetType === ServerProt.IF_SETHIDE) {
                 // IF_SETHIDE
                 const com: number = this.in.g2;
-                ComType.instances[com].hide = this.in.g1 === 1;
+                Component.instances[com].hide = this.in.g1 === 1;
                 this.packetType = -1;
                 return true;
             }
@@ -5525,8 +5525,8 @@ class Game extends Client {
             if (this.packetType === ServerProt.IF_SETTEXT) {
                 // IF_SETTEXT
                 const com: number = this.in.g2;
-                ComType.instances[com].text = this.in.gjstr;
-                if (ComType.instances[com].layer === this.tabInterfaceId[this.selectedTab]) {
+                Component.instances[com].text = this.in.gjstr;
+                if (Component.instances[com].layer === this.tabInterfaceId[this.selectedTab]) {
                     this.redrawSidebar = true;
                 }
                 this.packetType = -1;
@@ -5587,7 +5587,7 @@ class Game extends Client {
                 // UPDATE_INV_PARTIAL
                 this.redrawSidebar = true;
                 const com: number = this.in.g2;
-                const inv: ComType = ComType.instances[com];
+                const inv: Component = Component.instances[com];
                 while (this.in.pos < this.packetSize) {
                     const slot: number = this.in.g1;
                     const id: number = this.in.g2;
@@ -5712,7 +5712,7 @@ class Game extends Client {
 
             // NO_TIMEOUT
             this.out.p1isaac(ClientProt.NO_TIMEOUT);
-            for (let loc: LocEntity | null = this.locList.peekFront() as LocEntity | null; loc; loc = this.locList.prev() as LocEntity | null) {
+            for (let loc: LocEntity | null = this.locList.head() as LocEntity | null; loc; loc = this.locList.prev() as LocEntity | null) {
                 if ((this.levelTileFlags && this.levelTileFlags[1][loc.heightmapNE][loc.heightmapNW] & 0x2) === 2) {
                     loc.heightmapSW--;
                     if (loc.heightmapSW < 0) {
@@ -5727,7 +5727,7 @@ class Game extends Client {
                 }
             }
 
-            for (let loc: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
+            for (let loc: LocTemporary | null = this.spawnedLocations.head() as LocTemporary | null; loc; loc = this.spawnedLocations.prev() as LocTemporary | null) {
                 this.addLoc(loc.plane, loc.x, loc.z, loc.locIndex, loc.angle, loc.shape, loc.layer);
             }
         } catch (e) {
@@ -5738,12 +5738,12 @@ class Game extends Client {
     };
 
     private resetInterfaceAnimation = (id: number): void => {
-        const parent: ComType = ComType.instances[id];
+        const parent: Component = Component.instances[id];
         if (!parent.childId) {
             return;
         }
         for (let i: number = 0; i < parent.childId.length && parent.childId[i] !== -1; i++) {
-            const child: ComType = ComType.instances[parent.childId[i]];
+            const child: Component = Component.instances[parent.childId[i]];
             if (child.type === 1) {
                 this.resetInterfaceAnimation(child.id);
             }
@@ -5998,7 +5998,7 @@ class Game extends Client {
         }
     };
 
-    private handleInterfaceInput = (com: ComType, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): void => {
+    private handleInterfaceInput = (com: Component, mouseX: number, mouseY: number, x: number, y: number, scrollPosition: number): void => {
         if (com.type !== 0 || !com.childId || com.hide || mouseX < x || mouseY < y || mouseX > x + com.width || mouseY > y + com.height || !com.childX || !com.childY) {
             return;
         }
@@ -6007,7 +6007,7 @@ class Game extends Client {
         for (let i: number = 0; i < children; i++) {
             let childX: number = com.childX[i] + x;
             let childY: number = com.childY[i] + y - scrollPosition;
-            const child: ComType = ComType.instances[com.childId[i]];
+            const child: Component = Component.instances[com.childId[i]];
 
             childX += child.x;
             childY += child.y;
@@ -6058,7 +6058,7 @@ class Game extends Client {
                             if (child.id !== this.objSelectedInterface || slot !== this.objSelectedSlot) {
                                 this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @lre@' + obj.name;
                                 this.menuAction[this.menuSize] = 881;
-                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamA[this.menuSize] = obj.id;
                                 this.menuParamB[this.menuSize] = slot;
                                 this.menuParamC[this.menuSize] = child.id;
                                 this.menuSize++;
@@ -6067,7 +6067,7 @@ class Game extends Client {
                             if ((this.activeSpellFlags & 0x10) === 16) {
                                 this.menuOption[this.menuSize] = this.spellCaption + ' @lre@' + obj.name;
                                 this.menuAction[this.menuSize] = 391;
-                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamA[this.menuSize] = obj.id;
                                 this.menuParamB[this.menuSize] = slot;
                                 this.menuParamC[this.menuSize] = child.id;
                                 this.menuSize++;
@@ -6075,21 +6075,21 @@ class Game extends Client {
                         } else {
                             if (child.interactable) {
                                 for (let op: number = 4; op >= 3; op--) {
-                                    if (obj.iops && obj.iops[op]) {
-                                        this.menuOption[this.menuSize] = obj.iops[op] + ' @lre@' + obj.name;
+                                    if (obj.iop && obj.iop[op]) {
+                                        this.menuOption[this.menuSize] = obj.iop[op] + ' @lre@' + obj.name;
                                         if (op === 3) {
                                             this.menuAction[this.menuSize] = 478;
                                         } else if (op === 4) {
                                             this.menuAction[this.menuSize] = 347;
                                         }
-                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamA[this.menuSize] = obj.id;
                                         this.menuParamB[this.menuSize] = slot;
                                         this.menuParamC[this.menuSize] = child.id;
                                         this.menuSize++;
                                     } else if (op === 4) {
                                         this.menuOption[this.menuSize] = 'Drop @lre@' + obj.name;
                                         this.menuAction[this.menuSize] = 347;
-                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamA[this.menuSize] = obj.id;
                                         this.menuParamB[this.menuSize] = slot;
                                         this.menuParamC[this.menuSize] = child.id;
                                         this.menuSize++;
@@ -6100,16 +6100,16 @@ class Game extends Client {
                             if (child.usable) {
                                 this.menuOption[this.menuSize] = 'Use @lre@' + obj.name;
                                 this.menuAction[this.menuSize] = 188;
-                                this.menuParamA[this.menuSize] = obj.index;
+                                this.menuParamA[this.menuSize] = obj.id;
                                 this.menuParamB[this.menuSize] = slot;
                                 this.menuParamC[this.menuSize] = child.id;
                                 this.menuSize++;
                             }
 
-                            if (child.interactable && obj.iops) {
+                            if (child.interactable && obj.iop) {
                                 for (let op: number = 2; op >= 0; op--) {
-                                    if (obj.iops[op]) {
-                                        this.menuOption[this.menuSize] = obj.iops[op] + ' @lre@' + obj.name;
+                                    if (obj.iop[op]) {
+                                        this.menuOption[this.menuSize] = obj.iop[op] + ' @lre@' + obj.name;
                                         if (op === 0) {
                                             this.menuAction[this.menuSize] = 405;
                                         } else if (op === 1) {
@@ -6117,7 +6117,7 @@ class Game extends Client {
                                         } else if (op === 2) {
                                             this.menuAction[this.menuSize] = 422;
                                         }
-                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamA[this.menuSize] = obj.id;
                                         this.menuParamB[this.menuSize] = slot;
                                         this.menuParamC[this.menuSize] = child.id;
                                         this.menuSize++;
@@ -6140,7 +6140,7 @@ class Game extends Client {
                                         } else if (op === 4) {
                                             this.menuAction[this.menuSize] = 415;
                                         }
-                                        this.menuParamA[this.menuSize] = obj.index;
+                                        this.menuParamA[this.menuSize] = obj.id;
                                         this.menuParamB[this.menuSize] = slot;
                                         this.menuParamC[this.menuSize] = child.id;
                                         this.menuSize++;
@@ -6150,7 +6150,7 @@ class Game extends Client {
 
                             this.menuOption[this.menuSize] = 'Examine @lre@' + obj.name;
                             this.menuAction[this.menuSize] = 1773;
-                            this.menuParamA[this.menuSize] = obj.index;
+                            this.menuParamA[this.menuSize] = obj.id;
                             if (child.invSlotObjCount) {
                                 this.menuParamC[this.menuSize] = child.invSlotObjCount[slot];
                             }
@@ -6161,7 +6161,7 @@ class Game extends Client {
                     }
                 }
             } else if (mouseX >= childX && mouseY >= childY && mouseX < childX + child.width && mouseY < childY + child.height) {
-                if (child.buttonType === ComType.BUTTON_OK) {
+                if (child.buttonType === Component.BUTTON_OK) {
                     let override: boolean = false;
                     if (child.clientCode !== 0) {
                         override = this.handleSocialMenuOption(child);
@@ -6173,7 +6173,7 @@ class Game extends Client {
                         this.menuParamC[this.menuSize] = child.id;
                         this.menuSize++;
                     }
-                } else if (child.buttonType === ComType.BUTTON_TARGET && this.spellSelected === 0) {
+                } else if (child.buttonType === Component.BUTTON_TARGET && this.spellSelected === 0) {
                     let prefix: string | null = child.actionVerb;
                     if (prefix && prefix.indexOf(' ') !== -1) {
                         prefix = prefix.substring(0, prefix.indexOf(' '));
@@ -6183,22 +6183,22 @@ class Game extends Client {
                     this.menuAction[this.menuSize] = 930;
                     this.menuParamC[this.menuSize] = child.id;
                     this.menuSize++;
-                } else if (child.buttonType === ComType.BUTTON_CLOSE) {
+                } else if (child.buttonType === Component.BUTTON_CLOSE) {
                     this.menuOption[this.menuSize] = 'Close';
                     this.menuAction[this.menuSize] = 947;
                     this.menuParamC[this.menuSize] = child.id;
                     this.menuSize++;
-                } else if (child.buttonType === ComType.BUTTON_TOGGLE && child.option) {
+                } else if (child.buttonType === Component.BUTTON_TOGGLE && child.option) {
                     this.menuOption[this.menuSize] = child.option;
                     this.menuAction[this.menuSize] = 465;
                     this.menuParamC[this.menuSize] = child.id;
                     this.menuSize++;
-                } else if (child.buttonType === ComType.BUTTON_SELECT && child.option) {
+                } else if (child.buttonType === Component.BUTTON_SELECT && child.option) {
                     this.menuOption[this.menuSize] = child.option;
                     this.menuAction[this.menuSize] = 960;
                     this.menuParamC[this.menuSize] = child.id;
                     this.menuSize++;
-                } else if (child.buttonType === ComType.BUTTON_CONTINUE && !this.pressedContinueOption && child.option) {
+                } else if (child.buttonType === Component.BUTTON_CONTINUE && !this.pressedContinueOption && child.option) {
                     this.menuOption[this.menuSize] = child.option;
                     this.menuAction[this.menuSize] = 44;
                     this.menuParamC[this.menuSize] = child.id;
@@ -6208,11 +6208,11 @@ class Game extends Client {
         }
     };
 
-    private handleSocialMenuOption = (component: ComType): boolean => {
+    private handleSocialMenuOption = (component: Component): boolean => {
         let type: number = component.clientCode;
-        if (type >= ComType.CC_FRIENDS_START && type <= ComType.CC_FRIENDS_UPDATE_END) {
-            if (type >= ComType.CC_FRIENDS_UPDATE_START) {
-                type -= ComType.CC_FRIENDS_UPDATE_START;
+        if (type >= Component.CC_FRIENDS_START && type <= Component.CC_FRIENDS_UPDATE_END) {
+            if (type >= Component.CC_FRIENDS_UPDATE_START) {
+                type -= Component.CC_FRIENDS_UPDATE_START;
             } else {
                 type--;
             }
@@ -6223,7 +6223,7 @@ class Game extends Client {
             this.menuAction[this.menuSize] = 679;
             this.menuSize++;
             return true;
-        } else if (type >= ComType.CC_IGNORES_START && type <= ComType.CC_IGNORES_END) {
+        } else if (type >= Component.CC_IGNORES_START && type <= Component.CC_IGNORES_END) {
             this.menuOption[this.menuSize] = 'Remove @whi@' + component.text;
             this.menuAction[this.menuSize] = 556;
             this.menuSize++;
@@ -6265,10 +6265,10 @@ class Game extends Client {
                     this.menuParamC[this.menuSize] = z;
                     this.menuSize++;
                 } else if (this.spellSelected !== 1) {
-                    if (loc.ops) {
+                    if (loc.op) {
                         for (let op: number = 4; op >= 0; op--) {
-                            if (loc.ops[op]) {
-                                this.menuOption[this.menuSize] = loc.ops[op] + ' @cya@' + loc.name;
+                            if (loc.op[op]) {
+                                this.menuOption[this.menuSize] = loc.op[op] + ' @cya@' + loc.name;
                                 if (op === 0) {
                                     this.menuAction[this.menuSize] = 285;
                                 }
@@ -6361,7 +6361,7 @@ class Game extends Client {
                     continue;
                 }
 
-                for (let obj: ObjStackEntity | null = objs.peekBack() as ObjStackEntity | null; obj; obj = objs.next() as ObjStackEntity | null) {
+                for (let obj: ObjStackEntity | null = objs.tail() as ObjStackEntity | null; obj; obj = objs.next() as ObjStackEntity | null) {
                     const type: ObjType = ObjType.get(obj.index);
                     if (this.objSelected === 1) {
                         this.menuOption[this.menuSize] = 'Use ' + this.objSelectedName + ' with @lre@' + type.name;
@@ -6372,8 +6372,8 @@ class Game extends Client {
                         this.menuSize++;
                     } else if (this.spellSelected !== 1) {
                         for (let op: number = 4; op >= 0; op--) {
-                            if (type.ops && type.ops[op]) {
-                                this.menuOption[this.menuSize] = type.ops[op] + ' @lre@' + type.name;
+                            if (type.op && type.op[op]) {
+                                this.menuOption[this.menuSize] = type.op[op] + ' @lre@' + type.name;
                                 if (op === 0) {
                                     this.menuAction[this.menuSize] = 224;
                                 }
@@ -6446,10 +6446,10 @@ class Game extends Client {
             this.menuSize++;
         } else if (this.spellSelected !== 1) {
             let type: number;
-            if (npc.ops) {
+            if (npc.op) {
                 for (type = 4; type >= 0; type--) {
-                    if (npc.ops[type] && npc.ops[type]?.toLowerCase() !== 'attack') {
-                        this.menuOption[this.menuSize] = npc.ops[type] + ' @yel@' + tooltip;
+                    if (npc.op[type] && npc.op[type]?.toLowerCase() !== 'attack') {
+                        this.menuOption[this.menuSize] = npc.op[type] + ' @yel@' + tooltip;
 
                         if (type === 0) {
                             this.menuAction[this.menuSize] = 728;
@@ -6471,15 +6471,15 @@ class Game extends Client {
                 }
             }
 
-            if (npc.ops) {
+            if (npc.op) {
                 for (type = 4; type >= 0; type--) {
-                    if (npc.ops[type] && npc.ops[type]?.toLowerCase() === 'attack') {
+                    if (npc.op[type] && npc.op[type]?.toLowerCase() === 'attack') {
                         let action: number = 0;
                         if (this.localPlayer && npc.vislevel > this.localPlayer.combatLevel) {
                             action = 2000;
                         }
 
-                        this.menuOption[this.menuSize] = npc.ops[type] + ' @yel@' + tooltip;
+                        this.menuOption[this.menuSize] = npc.op[type] + ' @yel@' + tooltip;
 
                         if (type === 0) {
                             this.menuAction[this.menuSize] = action + 728;
@@ -6633,7 +6633,7 @@ class Game extends Client {
                 if (this.viewportInterfaceId === -1) {
                     this.handleViewportOptions();
                 } else {
-                    this.handleInterfaceInput(ComType.instances[this.viewportInterfaceId], this.mouseX, this.mouseY, 8, 11, 0);
+                    this.handleInterfaceInput(Component.instances[this.viewportInterfaceId], this.mouseX, this.mouseY, 8, 11, 0);
                 }
             }
 
@@ -6646,9 +6646,9 @@ class Game extends Client {
             // the sidebar/tabs area
             if (this.mouseX > 562 && this.mouseY > 231 && this.mouseX < 752 && this.mouseY < 492) {
                 if (this.sidebarInterfaceId !== -1) {
-                    this.handleInterfaceInput(ComType.instances[this.sidebarInterfaceId], this.mouseX, this.mouseY, 562, 231, 0);
+                    this.handleInterfaceInput(Component.instances[this.sidebarInterfaceId], this.mouseX, this.mouseY, 562, 231, 0);
                 } else if (this.tabInterfaceId[this.selectedTab] !== -1) {
-                    this.handleInterfaceInput(ComType.instances[this.tabInterfaceId[this.selectedTab]], this.mouseX, this.mouseY, 562, 231, 0);
+                    this.handleInterfaceInput(Component.instances[this.tabInterfaceId[this.selectedTab]], this.mouseX, this.mouseY, 562, 231, 0);
                 }
             }
 
@@ -6664,7 +6664,7 @@ class Game extends Client {
                 if (this.chatInterfaceId === -1) {
                     this.handleChatMouseInput(this.mouseX - 22, this.mouseY - 375);
                 } else {
-                    this.handleInterfaceInput(ComType.instances[this.chatInterfaceId], this.mouseX, this.mouseY, 22, 375, 0);
+                    this.handleInterfaceInput(Component.instances[this.chatInterfaceId], this.mouseX, this.mouseY, 22, 375, 0);
                 }
             }
 
@@ -7613,9 +7613,9 @@ class Game extends Client {
             }
         }
 
-        Client.updatePlayersCounter++;
-        if (Client.updatePlayersCounter > 1406) {
-            Client.updatePlayersCounter = 0;
+        Client.cyclelogic6++;
+        if (Client.cyclelogic6 > 1406) {
+            Client.cyclelogic6 = 0;
             // ANTICHEAT_CYCLELOGIC6
             this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC6);
             this.out.p1(0);
@@ -7762,7 +7762,7 @@ class Game extends Client {
     };
 
     private pushProjectiles = (): void => {
-        for (let proj: ProjectileEntity | null = this.projectiles.peekFront() as ProjectileEntity | null; proj; proj = this.projectiles.prev() as ProjectileEntity | null) {
+        for (let proj: ProjectileEntity | null = this.projectiles.head() as ProjectileEntity | null; proj; proj = this.projectiles.prev() as ProjectileEntity | null) {
             if (proj.level !== this.currentLevel || this.loopCycle > proj.lastCycle) {
                 proj.unlink();
             } else if (this.loopCycle >= proj.startCycle) {
@@ -7793,7 +7793,7 @@ class Game extends Client {
     };
 
     private pushSpotanims = (): void => {
-        for (let entity: SpotAnimEntity | null = this.spotanims.peekFront() as SpotAnimEntity | null; entity; entity = this.spotanims.prev() as SpotAnimEntity | null) {
+        for (let entity: SpotAnimEntity | null = this.spotanims.head() as SpotAnimEntity | null; entity; entity = this.spotanims.prev() as SpotAnimEntity | null) {
             if (entity.level !== this.currentLevel || entity.seqComplete) {
                 entity.unlink();
             } else if (this.loopCycle >= entity.startCycle) {
@@ -7808,7 +7808,7 @@ class Game extends Client {
     };
 
     private pushLocs = (): void => {
-        for (let loc: LocEntity | null = this.locList.peekFront() as LocEntity | null; loc; loc = this.locList.prev() as LocEntity | null) {
+        for (let loc: LocEntity | null = this.locList.head() as LocEntity | null; loc; loc = this.locList.prev() as LocEntity | null) {
             let append: boolean = false;
             loc.seqCycle += this.sceneDelta;
             if (loc.seqFrame === -1) {
@@ -7939,16 +7939,16 @@ class Game extends Client {
 
     private updateTemporaryLocs = (): void => {
         if (this.sceneState === 2) {
-            for (let loc: LocSpawned | null = this.temporaryLocs.peekFront() as LocSpawned | null; loc; loc = this.temporaryLocs.prev() as LocSpawned | null) {
+            for (let loc: LocSpawned | null = this.temporaryLocs.head() as LocSpawned | null; loc; loc = this.temporaryLocs.prev() as LocSpawned | null) {
                 if (this.loopCycle >= loc.lastCycle) {
                     this.addLoc(loc.plane, loc.x, loc.z, loc.locIndex, loc.angle, loc.shape, loc.layer);
                     loc.unlink();
                 }
             }
 
-            Client.updateLocCounter++;
-            if (Client.updateLocCounter > 85) {
-                Client.updateLocCounter = 0;
+            Client.cyclelogic5++;
+            if (Client.cyclelogic5 > 85) {
+                Client.cyclelogic5 = 0;
                 // ANTICHEAT_CYCLELOGIC5
                 this.out.p1isaac(ClientProt.ANTICHEAT_CYCLELOGIC5);
             }
@@ -8154,7 +8154,7 @@ class Game extends Client {
 
         if (entity.primarySeqId !== -1 && entity.primarySeqDelay === 0) {
             const seq: SeqType = SeqType.instances[entity.primarySeqId];
-            if (!seq.labelGroups) {
+            if (!seq.walkmerge) {
                 entity.seqTrigger++;
                 return;
             }
@@ -8617,7 +8617,7 @@ class Game extends Client {
             }
             if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
                 let loc: LocTemporary | null = null;
-                for (let next: LocTemporary | null = this.spawnedLocations.peekFront() as LocTemporary | null; next; next = this.spawnedLocations.prev() as LocTemporary | null) {
+                for (let next: LocTemporary | null = this.spawnedLocations.head() as LocTemporary | null; next; next = this.spawnedLocations.prev() as LocTemporary | null) {
                     if (next.plane === this.currentLevel && next.x === x && next.z === z && next.layer === layer) {
                         loc = next;
                         break;
@@ -8644,7 +8644,7 @@ class Game extends Client {
                         otherAngle = otherInfo >> 6;
                     }
                     loc = new LocTemporary(this.currentLevel, layer, x, z, 0, LocAngle.WEST, LocShape.WALL_STRAIGHT.id, otherId, otherAngle, otherShape);
-                    this.spawnedLocations.pushBack(loc);
+                    this.spawnedLocations.addTail(loc);
                 }
                 if (loc) {
                     loc.locIndex = id;
@@ -8672,7 +8672,7 @@ class Game extends Client {
                 }
                 if (bitset !== 0) {
                     const loc: LocEntity = new LocEntity((bitset >> 14) & 0x7fff, this.currentLevel, layer, x, z, SeqType.instances[id], false);
-                    this.locList.pushBack(loc);
+                    this.locList.addTail(loc);
                 }
             }
         } else if (opcode === ServerProt.OBJ_ADD) {
@@ -8684,7 +8684,7 @@ class Game extends Client {
                 if (!this.levelObjStacks[this.currentLevel][x][z]) {
                     this.levelObjStacks[this.currentLevel][x][z] = new LinkList();
                 }
-                this.levelObjStacks[this.currentLevel][x][z]?.pushBack(obj);
+                this.levelObjStacks[this.currentLevel][x][z]?.addTail(obj);
                 this.sortObjStacks(x, z);
             }
         } else if (opcode === ServerProt.OBJ_DEL) {
@@ -8693,13 +8693,13 @@ class Game extends Client {
             if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
                 const list: LinkList | null = this.levelObjStacks[this.currentLevel][x][z];
                 if (list) {
-                    for (let next: ObjStackEntity | null = list.peekFront() as ObjStackEntity | null; next; next = list.prev() as ObjStackEntity | null) {
+                    for (let next: ObjStackEntity | null = list.head() as ObjStackEntity | null; next; next = list.prev() as ObjStackEntity | null) {
                         if (next.index === (id & 0x7fff)) {
                             next.unlink();
                             break;
                         }
                     }
-                    if (!list.peekFront()) {
+                    if (!list.head()) {
                         this.levelObjStacks[this.currentLevel][x][z] = null;
                     }
                     this.sortObjStacks(x, z);
@@ -8724,7 +8724,7 @@ class Game extends Client {
                 dz = dz * 128 + 64;
                 const proj: ProjectileEntity = new ProjectileEntity(spotanim, this.currentLevel, x, this.getHeightmapY(this.currentLevel, x, z) - srcHeight, z, startDelay + this.loopCycle, endDelay + this.loopCycle, peak, arc, target, dstHeight);
                 proj.updateVelocity(dx, this.getHeightmapY(this.currentLevel, dx, dz) - dstHeight, dz, startDelay + this.loopCycle);
-                this.projectiles.pushBack(proj);
+                this.projectiles.addTail(proj);
             }
         } else if (opcode === ServerProt.MAP_ANIM) {
             // MAP_ANIM
@@ -8735,7 +8735,7 @@ class Game extends Client {
                 x = x * 128 + 64;
                 z = z * 128 + 64;
                 const spotanim: SpotAnimEntity = new SpotAnimEntity(id, this.currentLevel, x, z, this.getHeightmapY(this.currentLevel, x, z) - height, this.loopCycle, delay);
-                this.spotanims.pushBack(spotanim);
+                this.spotanims.addTail(spotanim);
             }
         } else if (opcode === ServerProt.OBJ_REVEAL) {
             // OBJ_REVEAL
@@ -8747,7 +8747,7 @@ class Game extends Client {
                 if (!this.levelObjStacks[this.currentLevel][x][z]) {
                     this.levelObjStacks[this.currentLevel][x][z] = new LinkList();
                 }
-                this.levelObjStacks[this.currentLevel][x][z]?.pushBack(obj);
+                this.levelObjStacks[this.currentLevel][x][z]?.addTail(obj);
                 this.sortObjStacks(x, z);
             }
         } else if (opcode === ServerProt.LOC_MERGE) {
@@ -8774,10 +8774,10 @@ class Game extends Client {
 
             if (player && this.levelHeightmap) {
                 const loc1: LocSpawned = new LocSpawned(this.currentLevel, layer, x, z, -1, angle, shape, start + this.loopCycle);
-                this.temporaryLocs.pushBack(loc1);
+                this.temporaryLocs.addTail(loc1);
 
                 const loc2: LocSpawned = new LocSpawned(this.currentLevel, layer, x, z, id, angle, shape, end + this.loopCycle);
-                this.temporaryLocs.pushBack(loc2);
+                this.temporaryLocs.addTail(loc2);
 
                 const y0: number = this.levelHeightmap[this.currentLevel][x][z];
                 const y1: number = this.levelHeightmap[this.currentLevel][x + 1][z];
@@ -8826,7 +8826,7 @@ class Game extends Client {
             if (x >= 0 && z >= 0 && x < CollisionMap.SIZE && z < CollisionMap.SIZE) {
                 const list: LinkList | null = this.levelObjStacks[this.currentLevel][x][z];
                 if (list) {
-                    for (let next: ObjStackEntity | null = list.peekFront() as ObjStackEntity | null; next; next = list.prev() as ObjStackEntity | null) {
+                    for (let next: ObjStackEntity | null = list.head() as ObjStackEntity | null; next; next = list.prev() as ObjStackEntity | null) {
                         if (next.index === (id & 0x7fff) && next.count === oldCount) {
                             next.count = newCount;
                             break;

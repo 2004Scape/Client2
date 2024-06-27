@@ -2,48 +2,48 @@ import Linkable from './Linkable';
 
 export default class HashTable {
     // constructor
-    readonly size: number;
-    readonly nodes: Linkable[];
+    readonly bucketCount: number;
+    readonly buckets: Linkable[];
 
     constructor(size: number) {
-        this.size = size;
-        this.nodes = [];
+        this.buckets = [];
+        this.bucketCount = size;
         for (let i: number = 0; i < size; i++) {
-            this.nodes[i] = new Linkable();
+            this.buckets[i] = new Linkable();
         }
     }
 
-    get = (key: bigint): Linkable | null => {
-        const start: Linkable = this.nodes[Number(key & BigInt(this.size - 1))];
-        const prev: Linkable | null = start.prev;
-        if (!prev) {
+    get(key: bigint): Linkable | null {
+        const start: Linkable = this.buckets[Number(key & BigInt(this.bucketCount - 1))];
+        const next: Linkable | null = start.next;
+        if (!next) {
             return null;
         }
 
-        for (let node: Linkable | null = start.prev; node !== start; node = node.prev) {
+        for (let node: Linkable | null = start.next; node !== start; node = node.next) {
             if (!node) {
                 continue;
             }
-            if (node.id === key) {
+            if (node.key === key) {
                 return node;
             }
         }
 
         return null;
-    };
+    }
 
-    put = (key: bigint, value: Linkable): void => {
-        if (value.next) {
+    put(key: bigint, value: Linkable): void {
+        if (value.prev) {
             value.unlink();
         }
 
-        const node: Linkable = this.nodes[Number(key & BigInt(this.size - 1))];
-        value.next = node.next;
-        value.prev = node;
-        if (value.next) {
-            value.next.prev = value;
+        const sentinel: Linkable = this.buckets[Number(key & BigInt(this.bucketCount - 1))];
+        value.prev = sentinel.prev;
+        value.next = sentinel;
+        if (value.prev) {
+            value.prev.next = value;
         }
-        value.prev.next = value;
-        value.id = key;
-    };
+        value.next.prev = value;
+        value.key = key;
+    }
 }

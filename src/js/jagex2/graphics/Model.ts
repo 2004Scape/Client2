@@ -3,8 +3,8 @@ import Packet from '../io/Packet';
 
 import Draw2D from './Draw2D';
 import Draw3D from './Draw3D';
-import SeqFrame from './SeqFrame';
-import SeqBase from './SeqBase';
+import AnimFrame from './AnimFrame';
+import AnimBase from './AnimBase';
 
 import Hashable from '../datastruct/Hashable';
 import {Int32Array2d, TypedArray1d} from '../util/Arrays';
@@ -1558,7 +1558,7 @@ export default class Model extends Hashable {
         this.vertexNormalOriginal = type.vertexNormalOriginal ?? null;
     }
 
-    calculateBoundsCylinder = (): void => {
+    calculateBoundsCylinder(): void {
         this.maxY = 0;
         this.radius = 0;
         this.minY = 0;
@@ -1585,9 +1585,9 @@ export default class Model extends Hashable {
         this.radius = (Math.sqrt(this.radius) + 0.99) | 0;
         this.minDepth = (Math.sqrt(this.radius * this.radius + this.maxY * this.maxY) + 0.99) | 0;
         this.maxDepth = this.minDepth + ((Math.sqrt(this.radius * this.radius + this.minY * this.minY) + 0.99) | 0);
-    };
+    }
 
-    calculateBoundsY = (): void => {
+    calculateBoundsY(): void {
         this.maxY = 0;
         this.minY = 0;
 
@@ -1605,9 +1605,9 @@ export default class Model extends Hashable {
 
         this.minDepth = (Math.sqrt(this.radius * this.radius + this.maxY * this.maxY) + 0.99) | 0;
         this.maxDepth = this.minDepth + ((Math.sqrt(this.radius * this.radius + this.minY * this.minY) + 0.99) | 0);
-    };
+    }
 
-    createLabelReferences = (): void => {
+    createLabelReferences(): void {
         if (this.vertexLabel) {
             const labelVertexCount: Int32Array = new Int32Array(256);
             let count: number = 0;
@@ -1663,9 +1663,9 @@ export default class Model extends Hashable {
             }
             this.faceLabel = null;
         }
-    };
+    }
 
-    applyTransforms = (primaryId: number, secondaryId: number, mask: Int32Array | null): void => {
+    applyTransforms(primaryId: number, secondaryId: number, mask: Int32Array | null): void {
         if (primaryId === -1) {
             return;
         }
@@ -1673,9 +1673,9 @@ export default class Model extends Hashable {
         if (!mask || secondaryId === -1) {
             this.applyTransform(primaryId);
         } else {
-            const primary: SeqFrame = SeqFrame.instances[primaryId];
-            const secondary: SeqFrame = SeqFrame.instances[secondaryId];
-            const skeleton: SeqBase | null = primary.base;
+            const primary: AnimFrame = AnimFrame.instances[primaryId];
+            const secondary: AnimFrame = AnimFrame.instances[secondaryId];
+            const skeleton: AnimBase | null = primary.base;
 
             Model.baseX = 0;
             Model.baseY = 0;
@@ -1719,15 +1719,15 @@ export default class Model extends Hashable {
                 }
             }
         }
-    };
+    }
 
-    applyTransform = (id: number): void => {
-        if (!this.labelVertices || id === -1 || !SeqFrame.instances[id]) {
+    applyTransform(id: number): void {
+        if (!this.labelVertices || id === -1 || !AnimFrame.instances[id]) {
             return;
         }
 
-        const transform: SeqFrame = SeqFrame.instances[id];
-        const skeleton: SeqBase | null = transform.base;
+        const transform: AnimFrame = AnimFrame.instances[id];
+        const skeleton: AnimBase | null = transform.base;
 
         Model.baseX = 0;
         Model.baseY = 0;
@@ -1741,17 +1741,17 @@ export default class Model extends Hashable {
             const base: number = transform.bases[i];
             this.applyTransform2(transform.x[i], transform.y[i], transform.z[i], skeleton.labels[base], skeleton.types[base]);
         }
-    };
+    }
 
-    rotateY90 = (): void => {
+    rotateY90(): void {
         for (let v: number = 0; v < this.vertexCount; v++) {
             const tmp: number = this.vertexX[v];
             this.vertexX[v] = this.vertexZ[v];
             this.vertexZ[v] = -tmp;
         }
-    };
+    }
 
-    rotateX = (angle: number): void => {
+    rotateX(angle: number): void {
         const sin: number = Draw3D.sin[angle];
         const cos: number = Draw3D.cos[angle];
 
@@ -1760,17 +1760,17 @@ export default class Model extends Hashable {
             this.vertexZ[v] = (this.vertexY[v] * sin + this.vertexZ[v] * cos) >> 16;
             this.vertexY[v] = tmp;
         }
-    };
+    }
 
-    translate = (y: number, x: number, z: number): void => {
+    translate(y: number, x: number, z: number): void {
         for (let v: number = 0; v < this.vertexCount; v++) {
             this.vertexX[v] += x;
             this.vertexY[v] += y;
             this.vertexZ[v] += z;
         }
-    };
+    }
 
-    recolor = (src: number, dst: number): void => {
+    recolor(src: number, dst: number): void {
         if (!this.faceColor) {
             return;
         }
@@ -1780,9 +1780,9 @@ export default class Model extends Hashable {
                 this.faceColor[f] = dst;
             }
         }
-    };
+    }
 
-    rotateY180 = (): void => {
+    rotateY180(): void {
         for (let v: number = 0; v < this.vertexCount; v++) {
             this.vertexZ[v] = -this.vertexZ[v];
         }
@@ -1792,17 +1792,17 @@ export default class Model extends Hashable {
             this.faceVertexA[f] = this.faceVertexC[f];
             this.faceVertexC[f] = temp;
         }
-    };
+    }
 
-    scale = (x: number, y: number, z: number): void => {
+    scale(x: number, y: number, z: number): void {
         for (let v: number = 0; v < this.vertexCount; v++) {
             this.vertexX[v] = ((this.vertexX[v] * x) / 128) | 0;
             this.vertexY[v] = ((this.vertexY[v] * y) / 128) | 0;
             this.vertexZ[v] = ((this.vertexZ[v] * z) / 128) | 0;
         }
-    };
+    }
 
-    calculateNormals = (lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number, applyLighting: boolean): void => {
+    calculateNormals(lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number, applyLighting: boolean): void {
         const lightMagnitude: number = Math.sqrt(lightSrcX * lightSrcX + lightSrcY * lightSrcY + lightSrcZ * lightSrcZ) | 0;
         const attenuation: number = (lightAttenuation * lightMagnitude) >> 8;
 
@@ -1909,9 +1909,9 @@ export default class Model extends Hashable {
         } else {
             this.calculateBoundsAABB();
         }
-    };
+    }
 
-    applyLighting = (lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number): void => {
+    applyLighting(lightAmbient: number, lightAttenuation: number, lightSrcX: number, lightSrcY: number, lightSrcZ: number): void {
         for (let f: number = 0; f < this.faceCount; f++) {
             const a: number = this.faceVertexA[f];
             const b: number = this.faceVertexB[f];
@@ -1969,11 +1969,11 @@ export default class Model extends Hashable {
         }
 
         this.faceColor = null;
-    };
+    }
 
     // todo: better name, Java relies on overloads
     // this function is NOT near-clipped (helps with performance) so be careful how you use it!
-    drawSimple = (pitch: number, yaw: number, roll: number, eyePitch: number, eyeX: number, eyeY: number, eyeZ: number): void => {
+    drawSimple(pitch: number, yaw: number, roll: number, eyePitch: number, eyeX: number, eyeY: number, eyeZ: number): void {
         const sinPitch: number = Draw3D.sin[pitch];
         const cosPitch: number = Draw3D.cos[pitch];
 
@@ -2039,7 +2039,7 @@ export default class Model extends Hashable {
         } catch (err) {
             /* empty */
         }
-    };
+    }
 
     // todo: better name, Java relies on overloads
     draw = (yaw: number, sinEyePitch: number, cosEyePitch: number, sinEyeYaw: number, cosEyeYaw: number, relativeX: number, relativeY: number, relativeZ: number, bitset: number, renderMode: RenderMode = RenderMode.CPU): number => {
@@ -2898,7 +2898,7 @@ export default class Model extends Hashable {
         }
     };
 
-    private applyTransform2 = (x: number, y: number, z: number, labels: Uint8Array | null, type: number): void => {
+    private applyTransform2(x: number, y: number, z: number, labels: Uint8Array | null, type: number): void {
         if (!labels) {
             return;
         }
@@ -3055,9 +3055,9 @@ export default class Model extends Hashable {
                 }
             }
         }
-    };
+    }
 
-    private calculateBoundsAABB = (): void => {
+    private calculateBoundsAABB(): void {
         this.maxY = 0;
         this.radius = 0;
         this.minY = 0;
@@ -3104,9 +3104,9 @@ export default class Model extends Hashable {
         this.radius = Math.sqrt(this.radius) | 0;
         this.minDepth = Math.sqrt(this.radius * this.radius + this.maxY * this.maxY) | 0;
         this.maxDepth = this.minDepth + (Math.sqrt(this.radius * this.radius + this.minY * this.minY) | 0);
-    };
+    }
 
-    private pointWithinTriangle = (x: number, y: number, yA: number, yB: number, yC: number, xA: number, xB: number, xC: number): boolean => {
+    private pointWithinTriangle(x: number, y: number, yA: number, yB: number, yC: number, xA: number, xB: number, xC: number): boolean {
         if (y < yA && y < yB && y < yC) {
             return false;
         } else if (y > yA && y > yB && y > yC) {
@@ -3116,9 +3116,9 @@ export default class Model extends Hashable {
         } else {
             return x <= xA || x <= xB || x <= xC;
         }
-    };
+    }
 
-    drawFaceOutline = (face: number): void => {
+    drawFaceOutline(face: number): void {
         if (!Model.vertexScreenX || !Model.vertexScreenY || !this.faceColorA || !this.faceColorB || !this.faceColorC) {
             return;
         }
@@ -3130,5 +3130,5 @@ export default class Model extends Hashable {
         Draw3D.drawLine(Model.vertexScreenX[a], Model.vertexScreenY[a], Model.vertexScreenX[b], Model.vertexScreenY[b], Draw3D.palette[1000]);
         Draw3D.drawLine(Model.vertexScreenX[b], Model.vertexScreenY[b], Model.vertexScreenX[c], Model.vertexScreenY[c], Draw3D.palette[1000]);
         Draw3D.drawLine(Model.vertexScreenX[c], Model.vertexScreenY[c], Model.vertexScreenX[a], Model.vertexScreenY[a], Draw3D.palette[1000]);
-    };
+    }
 }

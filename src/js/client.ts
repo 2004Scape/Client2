@@ -1,4 +1,4 @@
-import ComType from './jagex2/config/ComType';
+import Component from './jagex2/config/Component';
 
 import PixMap from './jagex2/graphics/PixMap';
 import Draw3D from './jagex2/graphics/Draw3D';
@@ -40,8 +40,9 @@ import NpcType from './jagex2/config/NpcType';
 import FloType from './jagex2/config/FloType';
 import SpotAnimType from './jagex2/config/SpotAnimType';
 import VarpType from './jagex2/config/VarpType';
-import SeqBase from './jagex2/graphics/SeqBase';
-import SeqFrame from './jagex2/graphics/SeqFrame';
+import AnimBase from './jagex2/graphics/AnimBase';
+import AnimFrame from './jagex2/graphics/AnimFrame';
+import Tile from './jagex2/dash3d/type/Tile';
 
 // noinspection JSSuspiciousNameCombination
 export abstract class Client extends GameShell {
@@ -53,26 +54,30 @@ export abstract class Client extends GameShell {
     static serverAddress: string = '';
     static httpAddress: string = '';
     static showDebug: boolean = false;
+    static chatEra: number = 2; // 0 - early beta, 1 - late beta, 2 - launch
+    static cameraEditor: boolean = false;
     static githubRepository: string = 'https://raw.githubusercontent.com/2004scape/Server/main';
 
-    protected static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
-    protected static readonly modulus: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
+    // original keys:
+    static readonly exponent: bigint = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
+    static readonly modulus: bigint = 7162900525229798032761816791230527296329313291232324290237849263501208207972894053929065636522363163621000728841182238772712427862772219676577293600221789n;
 
-    protected static updateCounter: number = 0;
-    protected static update2Counter: number = 0;
-    protected static sidebarInputCounter: number = 0;
-    protected static opHeld1Counter: number = 0;
-    protected static opLoc4Counter: number = 0;
-    protected static opNpc5Counter: number = 0;
-    protected static drawCounter: number = 0;
-    protected static opHeld4Counter: number = 0;
-    protected static opLoc5Counter: number = 0;
-    protected static opNpc3Counter: number = 0;
-    protected static opHeld9Counter: number = 0;
-    protected static opPlayer2Counter: number = 0;
-    protected static updatePlayersCounter: number = 0;
-    protected static ifButton5Counter: number = 0;
-    protected static updateLocCounter: number = 0;
+    static cyclelogic1: number = 0;
+    static cyclelogic2: number = 0;
+    static cyclelogic3: number = 0;
+    static cyclelogic4: number = 0;
+    static cyclelogic5: number = 0;
+    static cyclelogic6: number = 0;
+
+    static oplogic1: number = 0;
+    static oplogic2: number = 0;
+    static oplogic3: number = 0;
+    static oplogic4: number = 0;
+    static oplogic5: number = 0;
+    static oplogic6: number = 0;
+    static oplogic7: number = 0;
+    static oplogic8: number = 0;
+    static oplogic9: number = 0;
 
     static setHighMemory = (): void => {
         World3D.lowMemory = false;
@@ -247,7 +252,7 @@ export abstract class Client extends GameShell {
     protected menuOption: string[] = [];
     protected sidebarInterfaceId: number = -1;
     protected chatInterfaceId: number = -1;
-    protected chatInterface: ComType = new ComType();
+    protected chatInterface: Component = new Component();
     protected chatScrollHeight: number = 78;
     protected chatScrollOffset: number = 0;
     protected ignoreCount: number = 0;
@@ -478,6 +483,12 @@ export abstract class Client extends GameShell {
     protected midiSize: number = 0;
     protected midiVolume: number = 192;
 
+    // debug
+    // alt+shift click to add a tile overlay
+    protected userTileMarkers: (Tile | null)[] = new TypedArray1d(16, null);
+    protected userTileMarkerIndex: number = 0;
+    protected lastTickFlag: boolean = false;
+
     // ---- override functions
 
     unload = (): void => {
@@ -636,7 +647,7 @@ export abstract class Client extends GameShell {
         // @ts-expect-error Force unload. This happens when the browser reloads entirely.
         IdkType.instances = null;
         // @ts-expect-error Force unload. This happens when the browser reloads entirely.
-        ComType.instances = null;
+        Component.instances = null;
         // @ts-expect-error Force unload. This happens when the browser reloads entirely.
         SeqType.instances = null;
         // @ts-expect-error Force unload. This happens when the browser reloads entirely.
@@ -649,8 +660,8 @@ export abstract class Client extends GameShell {
         Draw3D.unload();
         World3D.unload();
         Model.unload();
-        SeqBase.instances = [];
-        SeqFrame.instances = [];
+        AnimBase.instances = [];
+        AnimFrame.instances = [];
     };
 
     getTitleScreenState(): number {
@@ -826,7 +837,7 @@ export abstract class Client extends GameShell {
         }
     };
 
-    protected executeInterfaceScript = (com: ComType): boolean => {
+    protected executeInterfaceScript = (com: Component): boolean => {
         if (!com.scriptComparator) {
             return false;
         }
@@ -886,12 +897,12 @@ export abstract class Client extends GameShell {
 
     protected updateInterfaceAnimation = (id: number, delta: number): boolean => {
         let updated: boolean = false;
-        const parent: ComType = ComType.instances[id];
+        const parent: Component = Component.instances[id];
         if (!parent.childId) {
             return false;
         }
         for (let i: number = 0; i < parent.childId.length && parent.childId[i] !== -1; i++) {
-            const child: ComType = ComType.instances[parent.childId[i]];
+            const child: Component = Component.instances[parent.childId[i]];
             if (child.type === 1) {
                 updated ||= this.updateInterfaceAnimation(child.id, delta);
             }
@@ -925,7 +936,7 @@ export abstract class Client extends GameShell {
         return updated;
     };
 
-    protected drawInterface = (com: ComType, x: number, y: number, scrollY: number, outline: boolean = false): void => {
+    protected drawInterface = (com: Component, x: number, y: number, scrollY: number, outline: boolean = false): void => {
         if (com.type !== 0 || !com.childId || (com.hide && this.viewportHoveredInterfaceIndex !== com.id && this.sidebarHoveredInterfaceIndex !== com.id && this.chatHoveredInterfaceIndex !== com.id)) {
             return;
         }
@@ -946,7 +957,7 @@ export abstract class Client extends GameShell {
             let childX: number = com.childX[i] + x;
             let childY: number = com.childY[i] + y - scrollY;
 
-            const child: ComType = ComType.instances[com.childId[i]];
+            const child: Component = Component.instances[com.childId[i]];
             childX += child.x;
             childY += child.y;
 
@@ -958,7 +969,7 @@ export abstract class Client extends GameShell {
                 this.updateInterfaceContent(child);
             }
 
-            if (child.type === ComType.TYPE_LAYER) {
+            if (child.type === Component.TYPE_LAYER) {
                 if (child.scrollPosition > child.scroll - child.height) {
                     child.scrollPosition = child.scroll - child.height;
                 }
@@ -972,7 +983,7 @@ export abstract class Client extends GameShell {
                 if (child.scroll > child.height) {
                     this.drawScrollbar(childX + child.width, childY, child.scrollPosition, child.scroll, child.height);
                 }
-            } else if (child.type === ComType.TYPE_INV) {
+            } else if (child.type === Component.TYPE_INV) {
                 let slot: number = 0;
 
                 for (let row: number = 0; row < child.height; row++) {
@@ -1034,13 +1045,13 @@ export abstract class Client extends GameShell {
                         slot++;
                     }
                 }
-            } else if (child.type === ComType.TYPE_RECT) {
+            } else if (child.type === Component.TYPE_RECT) {
                 if (child.fill) {
                     Draw2D.fillRect(childX, childY, child.width, child.height, child.colour);
                 } else {
                     Draw2D.drawRect(childX, childY, child.width, child.height, child.colour);
                 }
-            } else if (child.type === ComType.TYPE_TEXT) {
+            } else if (child.type === Component.TYPE_TEXT) {
                 const font: PixFont | null = child.font;
                 let color: number = child.colour;
                 let text: string | null = child.text;
@@ -1057,7 +1068,7 @@ export abstract class Client extends GameShell {
                     }
                 }
 
-                if (child.buttonType === ComType.BUTTON_CONTINUE && this.pressedContinueOption) {
+                if (child.buttonType === Component.BUTTON_CONTINUE && this.pressedContinueOption) {
                     text = 'Please wait...';
                     color = child.colour;
                 }
@@ -1135,7 +1146,7 @@ export abstract class Client extends GameShell {
                         font.drawStringTaggable(childX, lineY, split, color, child.shadowed);
                     }
                 }
-            } else if (child.type === ComType.TYPE_GRAPHIC) {
+            } else if (child.type === Component.TYPE_GRAPHIC) {
                 let image: Pix24 | null;
                 if (this.executeInterfaceScript(child)) {
                     image = child.activeGraphic;
@@ -1144,7 +1155,7 @@ export abstract class Client extends GameShell {
                 }
 
                 image?.draw(childX, childY);
-            } else if (child.type === ComType.TYPE_MODEL) {
+            } else if (child.type === Component.TYPE_MODEL) {
                 const tmpX: number = Draw3D.centerX;
                 const tmpY: number = Draw3D.centerY;
 
@@ -1178,7 +1189,7 @@ export abstract class Client extends GameShell {
 
                 Draw3D.centerX = tmpX;
                 Draw3D.centerY = tmpY;
-            } else if (child.type === ComType.TYPE_INV_TEXT) {
+            } else if (child.type === Component.TYPE_INV_TEXT) {
                 const font: PixFont | null = child.font;
                 if (!font || !child.invSlotObjId || !child.invSlotObjCount) {
                     continue;
@@ -1216,10 +1227,10 @@ export abstract class Client extends GameShell {
         Draw2D.setBounds(left, top, right, bottom);
     };
 
-    private updateInterfaceContent = (component: ComType): void => {
+    private updateInterfaceContent = (component: Component): void => {
         let clientCode: number = component.clientCode;
 
-        if (clientCode >= ComType.CC_FRIENDS_START && clientCode <= ComType.CC_FRIENDS_END) {
+        if (clientCode >= Component.CC_FRIENDS_START && clientCode <= Component.CC_FRIENDS_END) {
             clientCode--;
             if (clientCode >= this.friendCount) {
                 component.text = '';
@@ -1228,8 +1239,8 @@ export abstract class Client extends GameShell {
                 component.text = this.friendName[clientCode];
                 component.buttonType = 1;
             }
-        } else if (clientCode >= ComType.CC_FRIENDS_UPDATE_START && clientCode <= ComType.CC_FRIENDS_UPDATE_END) {
-            clientCode -= ComType.CC_FRIENDS_UPDATE_START;
+        } else if (clientCode >= Component.CC_FRIENDS_UPDATE_START && clientCode <= Component.CC_FRIENDS_UPDATE_END) {
+            clientCode -= Component.CC_FRIENDS_UPDATE_START;
             if (clientCode >= this.friendCount) {
                 component.text = '';
                 component.buttonType = 0;
@@ -1243,13 +1254,13 @@ export abstract class Client extends GameShell {
                 }
                 component.buttonType = 1;
             }
-        } else if (clientCode === ComType.CC_FRIENDS_SIZE) {
+        } else if (clientCode === Component.CC_FRIENDS_SIZE) {
             component.scroll = this.friendCount * 15 + 20;
             if (component.scroll <= component.height) {
                 component.scroll = component.height + 1;
             }
-        } else if (clientCode >= ComType.CC_IGNORES_START && clientCode <= ComType.CC_IGNORES_END) {
-            clientCode -= ComType.CC_IGNORES_START;
+        } else if (clientCode >= Component.CC_IGNORES_START && clientCode <= Component.CC_IGNORES_END) {
+            clientCode -= Component.CC_IGNORES_START;
             if (clientCode >= this.ignoreCount) {
                 component.text = '';
                 component.buttonType = 0;
@@ -1257,12 +1268,12 @@ export abstract class Client extends GameShell {
                 component.text = JString.formatName(JString.fromBase37(this.ignoreName37[clientCode]));
                 component.buttonType = 1;
             }
-        } else if (clientCode === ComType.CC_IGNORES_SIZE) {
+        } else if (clientCode === Component.CC_IGNORES_SIZE) {
             component.scroll = this.ignoreCount * 15 + 20;
             if (component.scroll <= component.height) {
                 component.scroll = component.height + 1;
             }
-        } else if (clientCode === ComType.CC_DESIGN_PREVIEW) {
+        } else if (clientCode === Component.CC_DESIGN_PREVIEW) {
             component.xan = 150;
             component.yan = ((Math.sin(this.loopCycle / 40.0) * 256.0) | 0) & 0x7ff;
             if (this.updateDesignModel) {
@@ -1280,9 +1291,9 @@ export abstract class Client extends GameShell {
                 const model: Model = Model.modelFromModels(models, modelCount);
                 for (let part: number = 0; part < 5; part++) {
                     if (this.designColors[part] !== 0) {
-                        model.recolor(PlayerEntity.DESIGN_BODY_COLOR[part][0], PlayerEntity.DESIGN_BODY_COLOR[part][this.designColors[part]]);
+                        model.recolor(PlayerEntity.DESIGN_IDK_COLORS[part][0], PlayerEntity.DESIGN_IDK_COLORS[part][this.designColors[part]]);
                         if (part === 1) {
-                            model.recolor(PlayerEntity.DESIGN_HAIR_COLOR[0], PlayerEntity.DESIGN_HAIR_COLOR[this.designColors[part]]);
+                            model.recolor(PlayerEntity.TORSO_RECOLORS[0], PlayerEntity.TORSO_RECOLORS[this.designColors[part]]);
                         }
                     }
                 }
@@ -1297,7 +1308,7 @@ export abstract class Client extends GameShell {
                     }
                 }
             }
-        } else if (clientCode === ComType.CC_SWITCH_TO_MALE) {
+        } else if (clientCode === Component.CC_SWITCH_TO_MALE) {
             if (!this.genderButtonImage0) {
                 this.genderButtonImage0 = component.graphic;
                 this.genderButtonImage1 = component.activeGraphic;
@@ -1307,7 +1318,7 @@ export abstract class Client extends GameShell {
             } else {
                 component.graphic = this.genderButtonImage0;
             }
-        } else if (clientCode === ComType.CC_SWITCH_TO_FEMALE) {
+        } else if (clientCode === Component.CC_SWITCH_TO_FEMALE) {
             if (!this.genderButtonImage0) {
                 this.genderButtonImage0 = component.graphic;
                 this.genderButtonImage1 = component.activeGraphic;
@@ -1317,14 +1328,14 @@ export abstract class Client extends GameShell {
             } else {
                 component.graphic = this.genderButtonImage1;
             }
-        } else if (clientCode === ComType.CC_REPORT_INPUT) {
+        } else if (clientCode === Component.CC_REPORT_INPUT) {
             component.text = this.reportAbuseInput;
             if (this.loopCycle % 20 < 10) {
                 component.text = component.text + '|';
             } else {
                 component.text = component.text + ' ';
             }
-        } else if (clientCode === ComType.CC_MOD_MUTE) {
+        } else if (clientCode === Component.CC_MOD_MUTE) {
             if (!this.rights) {
                 component.text = '';
             } else if (this.reportAbuseMuteOption) {
@@ -1334,7 +1345,7 @@ export abstract class Client extends GameShell {
                 component.colour = Colors.WHITE;
                 component.text = 'Moderator option: Mute player for 48 hours: <OFF>';
             }
-        } else if (clientCode === ComType.CC_LAST_LOGIN_INFO || clientCode === ComType.CC_LAST_LOGIN_INFO2) {
+        } else if (clientCode === Component.CC_LAST_LOGIN_INFO || clientCode === Component.CC_LAST_LOGIN_INFO2) {
             if (this.lastAddress === 0) {
                 component.text = '';
             } else {
@@ -1348,7 +1359,7 @@ export abstract class Client extends GameShell {
                 }
                 component.text = 'You last logged in ' + text + ' from: ' + JString.formatIPv4(this.lastAddress); // TODO dns lookup??
             }
-        } else if (clientCode === ComType.CC_UNREAD_MESSAGES) {
+        } else if (clientCode === Component.CC_UNREAD_MESSAGES) {
             if (this.unreadMessages === 0) {
                 component.text = '0 unread messages';
                 component.colour = Colors.YELLOW;
@@ -1361,7 +1372,7 @@ export abstract class Client extends GameShell {
                 component.text = this.unreadMessages + ' unread messages';
                 component.colour = Colors.GREEN;
             }
-        } else if (clientCode === ComType.CC_RECOVERY1) {
+        } else if (clientCode === Component.CC_RECOVERY1) {
             if (this.daysSinceRecoveriesChanged === 201) {
                 component.text = '';
             } else if (this.daysSinceRecoveriesChanged === 200) {
@@ -1377,7 +1388,7 @@ export abstract class Client extends GameShell {
                 }
                 component.text = text + ' you changed your recovery questions';
             }
-        } else if (clientCode === ComType.CC_RECOVERY2) {
+        } else if (clientCode === Component.CC_RECOVERY2) {
             if (this.daysSinceRecoveriesChanged === 201) {
                 component.text = '';
             } else if (this.daysSinceRecoveriesChanged === 200) {
@@ -1385,7 +1396,7 @@ export abstract class Client extends GameShell {
             } else {
                 component.text = 'If you do not remember making this change then cancel it immediately';
             }
-        } else if (clientCode === ComType.CC_RECOVERY3) {
+        } else if (clientCode === Component.CC_RECOVERY3) {
             if (this.daysSinceRecoveriesChanged === 201) {
                 component.text = '';
             } else if (this.daysSinceRecoveriesChanged === 200) {
@@ -1396,7 +1407,7 @@ export abstract class Client extends GameShell {
         }
     };
 
-    private executeClientscript1 = (component: ComType, scriptId: number): number => {
+    private executeClientscript1 = (component: Component, scriptId: number): number => {
         if (!component.scripts || scriptId >= component.scripts.length) {
             return -2;
         }
@@ -1428,7 +1439,7 @@ export abstract class Client extends GameShell {
                     register += this.skillExperience[script[pc++]];
                 } else if (opcode === 4) {
                     // load_inv_count {interface id} {obj id}
-                    const com: ComType = ComType.instances[script[pc++]];
+                    const com: Component = Component.instances[script[pc++]];
                     const obj: number = script[pc++] + 1;
 
                     if (com.invSlotObjId && com.invSlotObjCount) {
@@ -1463,7 +1474,7 @@ export abstract class Client extends GameShell {
                     }
                 } else if (opcode === 10) {
                     // load_inv_contains {interface id} {obj id}
-                    const com: ComType = ComType.instances[script[pc++]];
+                    const com: Component = Component.instances[script[pc++]];
                     const obj: number = script[pc++] + 1;
 
                     for (let i: number = 0; i < com.invSlotObjId!.length; i++) {

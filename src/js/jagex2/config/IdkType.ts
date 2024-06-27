@@ -12,8 +12,7 @@ export default class IdkType extends ConfigType {
         const dat: Packet = new Packet(config.read('idk.dat'));
         this.count = dat.g2;
         for (let i: number = 0; i < this.count; i++) {
-            this.instances[i] = new IdkType();
-            this.instances[i].decodeType(i, dat);
+            this.instances[i] = new IdkType(i).decodeType(dat);
         }
     };
 
@@ -26,7 +25,7 @@ export default class IdkType extends ConfigType {
     recol_d: Int32Array = new Int32Array(6);
     disable: boolean = false;
 
-    decode = (_index: number, code: number, dat: Packet): void => {
+    decode(code: number, dat: Packet): void {
         if (code === 1) {
             this.type = dat.g1;
         } else if (code === 2) {
@@ -47,9 +46,9 @@ export default class IdkType extends ConfigType {
         } else {
             throw new Error(`Unrecognized idk config code: ${code}`);
         }
-    };
+    }
 
-    getModel = (): Model | null => {
+    getModel(): Model | null {
         if (!this.models) {
             return null;
         }
@@ -70,9 +69,9 @@ export default class IdkType extends ConfigType {
             model?.recolor(this.recol_s[i], this.recol_d[i]);
         }
         return model;
-    };
+    }
 
-    getHeadModel = (): Model => {
+    getHeadModel(): Model {
         let count: number = 0;
 
         const models: (Model | null)[] = new TypedArray1d(5, null);
@@ -88,5 +87,5 @@ export default class IdkType extends ConfigType {
         }
 
         return model;
-    };
+    }
 }

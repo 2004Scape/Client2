@@ -1,21 +1,24 @@
 import Packet from '../io/Packet';
 
 export abstract class ConfigType {
-    id: number = -1;
+    id: number;
     debugname: string | null = null;
 
-    abstract decode(index: number, code: number, dat: Packet): void;
+    constructor(id: number) {
+        this.id = id;
+    }
 
-    decodeType = (index: number, dat: Packet): void => {
-        this.id = index;
+    abstract decode(code: number, dat: Packet): void;
 
+    decodeType(dat: Packet): this {
         // eslint-disable-next-line no-constant-condition
         while (true) {
             const opcode: number = dat.g1;
             if (opcode === 0) {
                 break;
             }
-            this.decode(index, opcode, dat);
+            this.decode(opcode, dat);
         }
-    };
+        return this;
+    }
 }

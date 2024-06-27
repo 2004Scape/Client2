@@ -8,13 +8,13 @@ import NpcType from './jagex2/config/NpcType';
 import IdkType from './jagex2/config/IdkType';
 import SpotAnimType from './jagex2/config/SpotAnimType';
 import VarpType from './jagex2/config/VarpType';
-import ComType from './jagex2/config/ComType';
+import Component from './jagex2/config/Component';
 
 import Draw3D from './jagex2/graphics/Draw3D';
 import PixFont from './jagex2/graphics/PixFont';
 import Model from './jagex2/graphics/Model';
-import SeqBase from './jagex2/graphics/SeqBase';
-import SeqFrame from './jagex2/graphics/SeqFrame';
+import AnimBase from './jagex2/graphics/AnimBase';
+import AnimFrame from './jagex2/graphics/AnimFrame';
 
 import Jagfile from './jagex2/io/Jagfile';
 
@@ -89,8 +89,8 @@ class Playground extends Client {
 
         await this.showProgress(83, 'Unpacking models');
         Model.unpack(models);
-        SeqBase.unpack(models);
-        SeqFrame.unpack(models);
+        AnimBase.unpack(models);
+        AnimFrame.unpack(models);
 
         await this.showProgress(86, 'Unpacking config');
         SeqType.unpack(config);
@@ -106,7 +106,7 @@ class Playground extends Client {
         Wave.unpack(sounds);
 
         await this.showProgress(92, 'Unpacking interfaces');
-        ComType.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
+        Component.unpack(interfaces, media, [this.fontPlain11, this.fontPlain12, this.fontBold12, this.fontQuill8]);
 
         await this.showProgress(97, 'Preparing game engine');
         WordFilter.unpack(wordenc);

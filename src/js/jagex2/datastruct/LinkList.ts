@@ -2,99 +2,99 @@ import Linkable from './Linkable';
 
 export default class LinkList {
     // constructor
-    private readonly head: Linkable;
+    private readonly sentinel: Linkable;
 
     // runtime
-    private peeked: Linkable | null = null;
+    private cursor: Linkable | null = null;
 
     constructor() {
         const head: Linkable = new Linkable();
-        head.prev = head;
         head.next = head;
-        this.head = head;
+        head.prev = head;
+        this.sentinel = head;
     }
 
-    pushBack = (node: Linkable): void => {
-        if (node.next) {
+    addTail(node: Linkable): void {
+        if (node.prev) {
             node.unlink();
         }
-        node.next = this.head.next;
-        node.prev = this.head;
-        if (node.next) {
-            node.next.prev = node;
-        }
-        node.prev.next = node;
-    };
-
-    pushFront = (node: Linkable): void => {
-        if (node.next) {
-            node.unlink();
-        }
-        node.next = this.head;
-        node.prev = this.head.prev;
-        node.next.prev = node;
+        node.prev = this.sentinel.prev;
+        node.next = this.sentinel;
         if (node.prev) {
             node.prev.next = node;
         }
-    };
+        node.next.prev = node;
+    }
 
-    pollFront = (): Linkable | null => {
-        const node: Linkable | null = this.head.prev;
-        if (node === this.head) {
+    addHead(node: Linkable): void {
+        if (node.prev) {
+            node.unlink();
+        }
+        node.prev = this.sentinel;
+        node.next = this.sentinel.next;
+        node.prev.next = node;
+        if (node.next) {
+            node.next.prev = node;
+        }
+    }
+
+    removeHead(): Linkable | null {
+        const node: Linkable | null = this.sentinel.next;
+        if (node === this.sentinel) {
             return null;
         }
         node?.unlink();
         return node;
-    };
+    }
 
-    peekFront = (): Linkable | null => {
-        const node: Linkable | null = this.head.prev;
-        if (node === this.head) {
-            this.peeked = null;
+    head(): Linkable | null {
+        const node: Linkable | null = this.sentinel.next;
+        if (node === this.sentinel) {
+            this.cursor = null;
             return null;
         }
-        this.peeked = node?.prev || null;
+        this.cursor = node?.next || null;
         return node;
-    };
+    }
 
-    peekBack = (): Linkable | null => {
-        const node: Linkable | null = this.head.next;
-        if (node === this.head) {
-            this.peeked = null;
+    tail(): Linkable | null {
+        const node: Linkable | null = this.sentinel.prev;
+        if (node === this.sentinel) {
+            this.cursor = null;
             return null;
         }
-        this.peeked = node?.next || null;
+        this.cursor = node?.prev || null;
         return node;
-    };
+    }
 
-    prev = (): Linkable | null => {
-        const node: Linkable | null = this.peeked;
-        if (node === this.head) {
-            this.peeked = null;
+    next(): Linkable | null {
+        const node: Linkable | null = this.cursor;
+        if (node === this.sentinel) {
+            this.cursor = null;
             return null;
         }
-        this.peeked = node?.prev || null;
+        this.cursor = node?.next || null;
         return node;
-    };
+    }
 
-    next = (): Linkable | null => {
-        const node: Linkable | null = this.peeked;
-        if (node === this.head) {
-            this.peeked = null;
+    prev(): Linkable | null {
+        const node: Linkable | null = this.cursor;
+        if (node === this.sentinel) {
+            this.cursor = null;
             return null;
         }
-        this.peeked = node?.next || null;
+        this.cursor = node?.prev || null;
         return node;
-    };
+    }
 
-    clear = (): void => {
+    clear(): void {
         // eslint-disable-next-line no-constant-condition
         while (true) {
-            const node: Linkable | null = this.head.prev;
-            if (node === this.head) {
+            const node: Linkable | null = this.sentinel.next;
+            if (node === this.sentinel) {
                 return;
             }
             node?.unlink();
         }
-    };
+    }
 }

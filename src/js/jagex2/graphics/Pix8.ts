@@ -53,7 +53,7 @@ export default class Pix8 extends Hashable {
             index.pos += 1;
         }
 
-        if (dat.pos > dat.data.length || index.pos > index.data.length) {
+        if (dat.pos > dat.length || index.pos > index.length) {
             throw new Error();
         }
 
@@ -89,7 +89,7 @@ export default class Pix8 extends Hashable {
         return image;
     };
 
-    draw = (x: number, y: number): void => {
+    draw(x: number, y: number): void {
         x |= 0;
         y |= 0;
 
@@ -135,9 +135,9 @@ export default class Pix8 extends Hashable {
         if (w > 0 && h > 0) {
             this.copyImage(w, h, this.pixels, srcOff, srcStep, Draw2D.pixels, dstOff, dstStep);
         }
-    };
+    }
 
-    flipHorizontally = (): void => {
+    flipHorizontally(): void {
         const pixels: Int8Array = this.pixels;
         const width: number = this.width;
         const height: number = this.height;
@@ -153,9 +153,9 @@ export default class Pix8 extends Hashable {
                 pixels[off2] = tmp;
             }
         }
-    };
+    }
 
-    flipVertically = (): void => {
+    flipVertically(): void {
         const pixels: Int8Array = this.pixels;
         const width: number = this.width;
         const height: number = this.height;
@@ -170,9 +170,9 @@ export default class Pix8 extends Hashable {
                 pixels[off2] = tmp;
             }
         }
-    };
+    }
 
-    translate = (r: number, g: number, b: number): void => {
+    translate(r: number, g: number, b: number): void {
         for (let i: number = 0; i < this.palette.length; i++) {
             let red: number = (this.palette[i] >> 16) & 0xff;
             red += r;
@@ -200,9 +200,9 @@ export default class Pix8 extends Hashable {
 
             this.palette[i] = (red << 16) + (green << 8) + blue;
         }
-    };
+    }
 
-    shrink = (): void => {
+    shrink(): void {
         this.cropW |= 0;
         this.cropH |= 0;
         this.cropW /= 2;
@@ -222,9 +222,9 @@ export default class Pix8 extends Hashable {
         this.height = this.cropH;
         this.cropX = 0;
         this.cropY = 0;
-    };
+    }
 
-    crop = (): void => {
+    crop(): void {
         if (this.width === this.cropW && this.height === this.cropH) {
             return;
         }
@@ -241,9 +241,9 @@ export default class Pix8 extends Hashable {
         this.height = this.cropH;
         this.cropX = 0;
         this.cropY = 0;
-    };
+    }
 
-    private copyImage = (w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void => {
+    private copyImage(w: number, h: number, src: Int8Array, srcOff: number, srcStep: number, dst: Int32Array, dstOff: number, dstStep: number): void {
         const qw: number = -(w >> 2);
         w = -(w & 0x3);
 
@@ -290,5 +290,82 @@ export default class Pix8 extends Hashable {
             dstOff += dstStep;
             srcOff += srcStep;
         }
-    };
+    }
+
+    clip(arg0: number, arg1: number, arg2: number, arg3: number): void {
+        try {
+            const local2: number = this.width;
+            const local5: number = this.height;
+            let local7: number = 0;
+            let local9: number = 0;
+            const local15: number = ((local2 << 16) / arg2) | 0;
+            const local21: number = ((local5 << 16) / arg3) | 0;
+            const local24: number = this.cropW;
+            const local27: number = this.cropH;
+            const local33: number = ((local24 << 16) / arg2) | 0;
+            const local39: number = ((local27 << 16) / arg3) | 0;
+            arg0 = (arg0 + (this.cropX * arg2 + local24 - 1) / local24) | 0;
+            arg1 = (arg1 + (this.cropY * arg3 + local27 - 1) / local27) | 0;
+            if ((this.cropX * arg2) % local24 != 0) {
+                local7 = (((local24 - ((this.cropX * arg2) % local24)) << 16) / arg2) | 0;
+            }
+            if ((this.cropY * arg3) % local27 != 0) {
+                local9 = (((local27 - ((this.cropY * arg3) % local27)) << 16) / arg3) | 0;
+            }
+            arg2 = ((arg2 * (this.width - (local7 >> 16))) / local24) | 0;
+            arg3 = ((arg3 * (this.height - (local9 >> 16))) / local27) | 0;
+            let local133: number = arg0 + arg1 * Draw2D.width2d;
+            let local137: number = Draw2D.width2d - arg2;
+            let local144: number;
+            if (arg1 < Draw2D.top) {
+                local144 = Draw2D.top - arg1;
+                arg3 -= local144;
+                arg1 = 0;
+                local133 += local144 * Draw2D.width2d;
+                local9 += local39 * local144;
+            }
+            if (arg1 + arg3 > Draw2D.bottom) {
+                arg3 -= arg1 + arg3 - Draw2D.bottom;
+            }
+            if (arg0 < Draw2D.left) {
+                local144 = Draw2D.left - arg0;
+                arg2 -= local144;
+                arg0 = 0;
+                local133 += local144;
+                local7 += local33 * local144;
+                local137 += local144;
+            }
+            if (arg0 + arg2 > Draw2D.right) {
+                local144 = arg0 + arg2 - Draw2D.right;
+                arg2 -= local144;
+                local137 += local144;
+            }
+            this.plot_scale(Draw2D.pixels, this.pixels, this.palette, local7, local9, local133, local137, arg2, arg3, local33, local39, local2);
+        } catch (ignore) {
+            console.log('error in sprite clipping routine');
+        }
+    }
+
+    private plot_scale(arg0: Int32Array, arg1: Int8Array, arg2: Int32Array, arg3: number, arg4: number, arg5: number, arg6: number, arg7: number, arg8: number, arg9: number, arg10: number, arg11: number): void {
+        try {
+            const local3: number = arg3;
+            for (let local6: number = -arg8; local6 < 0; local6++) {
+                const local14: number = (arg4 >> 16) * arg11;
+                for (let local17: number = -arg7; local17 < 0; local17++) {
+                    const local27: number = arg1[(arg3 >> 16) + local14];
+                    if (local27 == 0) {
+                        arg5++;
+                    } else {
+                        arg0[arg5++] = arg2[local27 & 0xff];
+                    }
+                    arg3 += arg9;
+                }
+                arg4 += arg10;
+                arg3 = local3;
+                arg5 += arg6;
+            }
+        } catch (ignore) {
+            console.log('error in plot_scale');
+        }
+    }
 }

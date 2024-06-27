@@ -48,7 +48,7 @@ export default class SoundTone {
         this.buffer = new Int32Array(220500); // 10s * 22050 KHz
     };
 
-    generate = (sampleCount: number, length: number): Int32Array => {
+    generate(sampleCount: number, length: number): Int32Array {
         for (let sample: number = 0; sample < sampleCount; sample++) {
             SoundTone.buffer![sample] = 0;
         }
@@ -175,9 +175,9 @@ export default class SoundTone {
         }
 
         return SoundTone.buffer!;
-    };
+    }
 
-    generate2 = (amplitude: number, phase: number, form: number): number => {
+    generate2(amplitude: number, phase: number, form: number): number {
         if (form === 1) {
             return (phase & 0x7fff) < 16384 ? amplitude : -amplitude;
         } else if (form === 2) {
@@ -189,9 +189,9 @@ export default class SoundTone {
         } else {
             return 0;
         }
-    };
+    }
 
-    read = (dat: Packet): void => {
+    read(dat: Packet): void {
         this.frequencyBase = new SoundEnvelope();
         this.frequencyBase.read(dat);
 
@@ -243,5 +243,5 @@ export default class SoundTone {
         this.reverbVolume = dat.gsmarts;
         this.length = dat.g2;
         this.start = dat.g2;
-    };
+    }
 }
