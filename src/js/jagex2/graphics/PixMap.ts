@@ -1,5 +1,6 @@
 import Draw2D from './Draw2D';
 import {canvas2d} from './Canvas';
+import DrawGL from './DrawGL';
 
 export default class PixMap {
     // constructor
@@ -30,7 +31,9 @@ export default class PixMap {
 
     draw(x: number, y: number): void {
         this.#setPixels();
-        this.ctx.putImageData(this.image, x, y);
+        if (!DrawGL.GL_ENABLED)
+            // if not using WebGL
+            this.ctx.putImageData(this.image, x, y);
     }
 
     #setPixels(): void {
