@@ -27,7 +27,6 @@ import Database from './jagex2/io/Database';
 import Bzip from './vendor/bzip';
 import Colors from './jagex2/graphics/Colors';
 import {Client} from './client';
-import {setupConfiguration} from './configuration';
 import Pix8 from './jagex2/graphics/Pix8';
 
 // noinspection JSSuspiciousNameCombination
@@ -317,6 +316,3 @@ class InterfaceEditor extends Client {
         return active;
     };
 }
-
-await setupConfiguration();
-new InterfaceEditor().run().then((): void => {});

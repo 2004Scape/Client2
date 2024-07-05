@@ -8,7 +8,6 @@ import Jagfile from './jagex2/io/Jagfile';
 
 import {downloadUrl, sleep} from './jagex2/util/JsUtil';
 import Packet from './jagex2/io/Packet';
-import {setupConfiguration} from './configuration';
 import GameShell from './jagex2/client/GameShell';
 import {TypedArray1d, TypedArray2d} from './jagex2/util/Arrays';
 import Pix8 from './jagex2/graphics/Pix8';
@@ -1513,11 +1512,3 @@ class MapView extends GameShell {
         return -1;
     }
 }
-
-await setupConfiguration();
-new MapView().run().then((): void => {});
-
-// prevent space from scrolling page
-window.onkeydown = function (e): boolean {
-    return !(e.key === ' ' && e.target === document.body);
-};

@@ -135,11 +135,6 @@ export default abstract class GameShell {
             e.preventDefault();
         };
 
-        // force set mobile on low detail mode to 30 fps as default.
-        if (this.isMobile && GameShell.getParameter('detail') === 'low') {
-            this.tfps = 30;
-        }
-
         await this.showProgress(0, 'Loading...');
         await this.load();
 
@@ -766,7 +761,7 @@ export default abstract class GameShell {
         this.my = this.ny;
     };
 
-    private get isMobile(): boolean {
+    protected get isMobile(): boolean {
         const keywords: string[] = ['Android', 'webOS', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'Windows Phone'];
         return keywords.some((keyword: string): boolean => navigator.userAgent.includes(keyword));
     }

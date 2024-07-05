@@ -61,13 +61,50 @@ import {Client} from './client';
 import AnimBase from './jagex2/graphics/AnimBase';
 import AnimFrame from './jagex2/graphics/AnimFrame';
 import FloType from './jagex2/config/FloType';
-import {setupConfiguration} from './configuration';
 import Tile from './jagex2/dash3d/type/Tile';
 import DirectionFlag from './jagex2/dash3d/DirectionFlag';
 
 // noinspection JSSuspiciousNameCombination
-class Game extends Client {
+export default class Game extends Client {
+    constructor(nodeid?: number, portoff?: number, lowmem?: boolean, members?: boolean) {
+        super();
+
+        console.log(`RS2 user client - release #${Client.clientversion}`);
+
+        if (typeof nodeid !== 'undefined') {
+            Client.nodeId = nodeid;
+
+            // this way so we dont keep the port if address has one
+            const url: URL = new URL(window.location.href);
+            Client.serverAddress = `${url.protocol}//${url.hostname}`;
+            Client.httpAddress = `${url.protocol}//${url.hostname}:${url.port}`;
+        }
+
+        if (typeof portoff !== 'undefined') {
+            Client.portOffset = portoff;
+        }
+
+        if (typeof members !== 'undefined') {
+            Client.members = members;
+        }
+
+        if (typeof lowmem !== 'undefined') {
+            if (lowmem) {
+                Client.setLowMemory();
+            } else {
+                Client.setHighMemory();
+            }
+        }
+
+        this.run();
+    }
+
     load = async (): Promise<void> => {
+        if (this.isMobile && Client.lowMemory) {
+            // force mobile on low detail mode to 30 fps
+            this.tfps = 30;
+        }
+
         if (this.alreadyStarted) {
             this.errorStarted = true;
             return;
@@ -9447,7 +9484,3 @@ class Game extends Client {
         this.imageTitle1?.draw(661, 0);
     };
 }
-
-console.log(`RS2 user client - release #${Client.clientversion}`);
-await setupConfiguration();
-new Game().run().then((): void => {});

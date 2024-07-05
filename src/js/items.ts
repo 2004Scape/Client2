@@ -21,7 +21,6 @@ import Bzip from './vendor/bzip';
 import Pix24 from './jagex2/graphics/Pix24';
 import PixMap from './jagex2/graphics/PixMap';
 import {Client} from './client';
-import {setupConfiguration} from './configuration';
 
 class Items extends Client {
     // id -> name for cache files
@@ -223,11 +222,3 @@ class Items extends Client {
         }
     }
 }
-
-await setupConfiguration();
-new Items().run().then((): void => {});
-
-// prevent space from scrolling page
-window.onkeydown = function (e): boolean {
-    return !(e.key === ' ' && e.target === document.body);
-};

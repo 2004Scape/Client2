@@ -27,7 +27,6 @@ import Database from './jagex2/io/Database';
 import Bzip from './vendor/bzip';
 import Colors from './jagex2/graphics/Colors';
 import {Client} from './client';
-import {setupConfiguration} from './configuration';
 
 // noinspection JSSuspiciousNameCombination
 class Playground extends Client {
@@ -249,6 +248,3 @@ class Playground extends Client {
         this.model.yaw = this.model.yaw & 2047;
     }
 }
-
-await setupConfiguration();
-new Playground().run().then((): void => {});

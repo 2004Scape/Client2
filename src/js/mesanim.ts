@@ -29,7 +29,6 @@ import {canvas} from './jagex2/graphics/Canvas';
 import Pix8 from './jagex2/graphics/Pix8';
 import Bzip from './vendor/bzip';
 import {Client} from './client';
-import {setupConfiguration} from './configuration';
 
 // noinspection JSSuspiciousNameCombination
 class Mesanim extends Client {
@@ -540,11 +539,3 @@ class Mesanim extends Client {
         }
     }
 }
-
-await setupConfiguration();
-new Mesanim().run().then((): void => {});
-
-// prevent space from scrolling page
-window.onkeydown = function (e): boolean {
-    return !(e.key === ' ' && (e.target === document.body || e.target === canvas));
-};

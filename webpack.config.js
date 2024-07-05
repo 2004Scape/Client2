@@ -25,15 +25,7 @@ const htmlPlugins = pages.map(name => {
 
 const config = {
     entry: {
-        index: './src/js/game.ts',
-        playground: './src/js/playground.js',
-        viewer: './src/js/viewer.ts',
-        mesanim: './src/js/mesanim.ts',
-        items: './src/js/items.ts',
-        sounds: './src/js/sounds.ts',
-        ['interface-editor']: './src/js/interface-editor.ts',
-        JagEd: './src/js/JagEd.ts',
-        mapview: './src/js/mapview.ts'
+        client: './src/js/game.ts'
     },
 
     plugins: [
@@ -56,7 +48,13 @@ const config = {
 
     output: {
         path: path.resolve(__dirname, 'public'),
-        publicPath: isProduction ? '/Client2/' : '/' // used for GitHub Pages, maybe control via env var?
+        publicPath: '/', // used for GitHub Pages, maybe control via env var?
+        library: [
+            'Game'
+        ],
+        libraryTarget: 'umd',
+        umdNamedDefine: true,
+        libraryExport: 'default'
     },
 
     devServer: {
@@ -71,6 +69,10 @@ const config = {
         asyncWebAssembly: true,
         syncWebAssembly: true
     },
+
+    // optimization: {
+    //     minimize: false
+    // },
 
     module: {
         rules: [

@@ -10,7 +10,6 @@ import Bzip from './vendor/bzip';
 
 import {playWave} from './jagex2/util/AudioUtil';
 import './vendor/midi.js';
-import {setupConfiguration} from './configuration';
 import {Client} from './client';
 
 class Sounds extends Client {
@@ -143,11 +142,3 @@ class Sounds extends Client {
         }
     }
 }
-
-await setupConfiguration();
-new Sounds().run().then((): void => {});
-
-// prevent space from scrolling page
-window.onkeydown = function (e): boolean {
-    return !(e.key === ' ' && e.target === document.body);
-};
