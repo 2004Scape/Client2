@@ -48,7 +48,7 @@
     "prepare": "husky install",
     "test": "npm run asc && jest",
     "asc": "asc --target release --optimizeLevel 3 --converge",
-    "local": "npm run asc && npm run build:dev && npx serve public"
+    "local": "npm run build:dev && npx serve public"
   },
   "repository": {
     "type": "git",
