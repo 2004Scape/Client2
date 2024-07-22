@@ -22,7 +22,7 @@ async function world(): Promise<void> {
     if (GameShell.getParameter('world').length === 0) {
         GameShell.setParameter('world', '1');
     }
-    if (window.location.hostname === 'localhost' && GameShell.getParameter('world') === '0') {
+    if (GameShell.getParameter('world') === '0') {
         localConfiguration();
     } else {
         await liveConfiguration(window.location.protocol.startsWith('https'));
