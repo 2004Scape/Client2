@@ -26,14 +26,14 @@ const htmlPlugins = pages.map(name => {
 const config = {
     entry: {
         index: './src/js/game.ts',
-        // playground: './src/js/playground.js',
-        // viewer: './src/js/viewer.ts',
-        // mesanim: './src/js/mesanim.ts',
-        // items: './src/js/items.ts',
-        // sounds: './src/js/sounds.ts',
-        // ['interface-editor']: './src/js/interface-editor.ts',
-        // JagEd: './src/js/JagEd.ts',
-        // mapview: './src/js/mapview.ts'
+        playground: './src/js/playground.js',
+        viewer: './src/js/viewer.ts',
+        mesanim: './src/js/mesanim.ts',
+        items: './src/js/items.ts',
+        sounds: './src/js/sounds.ts',
+        ['interface-editor']: './src/js/interface-editor.ts',
+        JagEd: './src/js/JagEd.ts',
+        mapview: './src/js/mapview.ts'
     },
 
     plugins: [
