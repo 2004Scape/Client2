@@ -177,11 +177,8 @@ export default class Packet extends Hashable {
     }
 
     gdata(length: number, offset: number, dest: Uint8Array | Int8Array): void {
-        const view: DataView = this.view;
-        const total: number = offset + length;
-        for (let i: number = offset; i < total; i++) {
-            dest[i] = view.getUint8(this.pos++);
-        }
+        dest.set(this.data.subarray(this.pos, this.pos + length), offset);
+        this.pos += length;
     }
 
     p1isaac(opcode: number): void {
@@ -233,11 +230,8 @@ export default class Packet extends Hashable {
     }
 
     pdata(src: Uint8Array, length: number, offset: number): void {
-        const view: DataView = this.view;
-        const total: number = offset + length;
-        for (let i: number = offset; i < total; i++) {
-            view.setUint8(this.pos++, src[i]);
-        }
+        this.data.set(src.subarray(offset, offset + length), this.pos);
+        this.pos += length - offset;
     }
 
     psize1(size: number): void {
@@ -245,11 +239,11 @@ export default class Packet extends Hashable {
     }
 
     bits(): void {
-        this.bitPos = this.pos * 8;
+        this.bitPos = this.pos << 3;
     }
 
     bytes(): void {
-        this.pos = ((this.bitPos + 7) / 8) | 0;
+        this.pos = (this.bitPos + 7) >>> 3;
     }
 
     gBit(n: number): number {
