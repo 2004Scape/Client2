@@ -500,7 +500,7 @@ export abstract class Client extends GameShell {
             /* empty */
         }
         this.stream = null;
-        stopMidi();
+        stopMidi(false);
         // this.midiThreadActive = false;
         // @ts-expect-error Force unload. This happens when the browser reloads entirely.
         this.out = null;
@@ -739,7 +739,7 @@ export abstract class Client extends GameShell {
         return new Jagfile(data);
     };
 
-    protected setMidi = async (name: string, crc: number, length: number): Promise<void> => {
+    protected setMidi = async (name: string, crc: number, length: number, fade: boolean): Promise<void> => {
         let data: Int8Array | undefined = await this.db?.cacheload(name + '.mid');
         if (data && crc !== 12345678 && Packet.crc32(data) !== crc) {
             data = undefined;
@@ -762,7 +762,7 @@ export abstract class Client extends GameShell {
         await this.db?.cachesave(name + '.mid', data);
         const uncompressedLength: number = new Packet(Uint8Array.from(data)).g4;
         const uncompressed: Int8Array = Bzip.read(uncompressedLength, data, length, 4);
-        playMidi(uncompressed, this.midiVolume);
+        playMidi(uncompressed, this.midiVolume, fade);
     };
 
     protected drawError = (): void => {

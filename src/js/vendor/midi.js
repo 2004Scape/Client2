@@ -43,6 +43,7 @@ import TinyMidiPCM from './tinymidipcm/index.js';
     const sampleRate = 44100;
     const flushTime = 250;
     const renderInterval = 30;
+    const fadeseconds = 2;
 
     // let renderEndSeconds = 0;
     // let currentMidiBuffer = null;
@@ -125,7 +126,15 @@ import TinyMidiPCM from './tinymidipcm/index.js';
 
     let flushInterval;
 
-    window._tinyMidiStop = async () => {
+    function fadeGain(tovolume, callback) {
+        const currentTime = window.audioContext.currentTime;
+        gainNode.gain.cancelScheduledValues(currentTime);
+        gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
+        gainNode.gain.linearRampToValueAtTime(tovolume, currentTime + fadeseconds);
+        setTimeout(callback, fadeseconds * 1000);
+    }
+
+    function stop() {
         if (flushInterval) {
             clearInterval(flushInterval);
         }
@@ -142,21 +151,11 @@ import TinyMidiPCM from './tinymidipcm/index.js';
             bufferSources = [];
             gainNode.gain.value = temp;
         }
-    };
+    }
 
-    window._tinyMidiVolume = (vol = 1) => {
-        gainNode.gain.value = vol;
-    };
-
-    window._tinyMidiPlay = async (midiBuffer, vol = 1) => {
-        if (!midiBuffer) {
-            return;
-        }
-
-        await window._tinyMidiStop();
-
+    function start(vol, midiBuffer) {
         // vol -1 = reuse last volume level
-        if (vol != -1) {
+        if (vol !== -1) {
             window._tinyMidiVolume(vol);
         }
 
@@ -165,5 +164,35 @@ import TinyMidiPCM from './tinymidipcm/index.js';
         lastTime = window.audioContext.currentTime;
         flushInterval = setInterval(flush, flushTime);
         tinyMidiPCM.render(midiBuffer);
+    }
+
+    window._tinyMidiStop = async fade => {
+        if (fade) {
+            fadeGain(0, () => {
+                stop();
+            });
+        } else {
+            stop();
+        }
+    };
+
+    window._tinyMidiVolume = (vol = 1) => {
+        gainNode.gain.value = vol;
+    };
+
+    window._tinyMidiPlay = async (midiBuffer, vol, fade) => {
+        if (!midiBuffer) {
+            return;
+        }
+
+        await window._tinyMidiStop(fade);
+
+        if (fade) {
+            setTimeout(() => {
+                start(vol, midiBuffer);
+            }, fadeseconds * 1000);
+        } else {
+            start(vol, midiBuffer);
+        }
     };
 })();
