@@ -94,7 +94,7 @@ export default class FloType extends ConfigType {
         } else if (code === 6) {
             this.debugname = dat.gjstr;
         } else {
-            console.log('Error unrecognised config code: ', code);
+            throw new Error(`Unrecognised config code: ${code}`);
         }
     }
 

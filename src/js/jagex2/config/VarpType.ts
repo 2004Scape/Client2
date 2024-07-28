@@ -48,7 +48,7 @@ export default class VarpType extends ConfigType {
         } else if (code === 10) {
             this.debugname = dat.gjstr;
         } else {
-            throw new Error(`Error unrecognised config code: ${code}`);
+            throw new Error(`Unrecognised config code: ${code}`);
         }
     }
 }

@@ -58,7 +58,7 @@ export default class SpotAnimType extends ConfigType {
         } else if (code >= 50 && code < 60) {
             this.recol_d[code - 50] = dat.g2;
         } else {
-            throw new Error(`Unrecognized spotanim config code: ${code}`);
+            throw new Error(`Unrecognised spotanim config code: ${code}`);
         }
     }
 
