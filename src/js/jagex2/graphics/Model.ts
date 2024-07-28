@@ -2342,53 +2342,65 @@ export default class Model extends Hashable {
 
             for (let priority: number = 0; priority < 10; priority++) {
                 while (priority === 0 && priorityDepth > averagePriorityDepthSum1_2) {
-                    this.drawFace(priorityFaces[priorityFace++], wireframe);
+                    try {
+                        this.drawFace(priorityFaces[priorityFace++], wireframe);
 
-                    if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
-                        priorityFace = 0;
-                        priorityFaceCount = Model.tmpPriorityFaceCount[11];
-                        priorityFaces = Model.tmpPriorityFaces[11];
-                        priorityFaceDepths = Model.tmpPriority11FaceDepth;
-                    }
+                        if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
+                            priorityFace = 0;
+                            priorityFaceCount = Model.tmpPriorityFaceCount[11];
+                            priorityFaces = Model.tmpPriorityFaces[11];
+                            priorityFaceDepths = Model.tmpPriority11FaceDepth;
+                        }
 
-                    if (priorityFace < priorityFaceCount && priorityFaceDepths) {
-                        priorityDepth = priorityFaceDepths[priorityFace];
-                    } else {
-                        priorityDepth = -1000;
+                        if (priorityFace < priorityFaceCount && priorityFaceDepths) {
+                            priorityDepth = priorityFaceDepths[priorityFace];
+                        } else {
+                            priorityDepth = -1000;
+                        }
+                    } catch (e) {
+                        // chrome's V8 optimizer hates us
                     }
                 }
 
                 while (priority === 3 && priorityDepth > averagePriorityDepthSum3_4) {
-                    this.drawFace(priorityFaces[priorityFace++], wireframe);
+                    try {
+                        this.drawFace(priorityFaces[priorityFace++], wireframe);
 
-                    if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
-                        priorityFace = 0;
-                        priorityFaceCount = Model.tmpPriorityFaceCount[11];
-                        priorityFaces = Model.tmpPriorityFaces[11];
-                        priorityFaceDepths = Model.tmpPriority11FaceDepth;
-                    }
+                        if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
+                            priorityFace = 0;
+                            priorityFaceCount = Model.tmpPriorityFaceCount[11];
+                            priorityFaces = Model.tmpPriorityFaces[11];
+                            priorityFaceDepths = Model.tmpPriority11FaceDepth;
+                        }
 
-                    if (priorityFace < priorityFaceCount && priorityFaceDepths) {
-                        priorityDepth = priorityFaceDepths[priorityFace];
-                    } else {
-                        priorityDepth = -1000;
+                        if (priorityFace < priorityFaceCount && priorityFaceDepths) {
+                            priorityDepth = priorityFaceDepths[priorityFace];
+                        } else {
+                            priorityDepth = -1000;
+                        }
+                    } catch (e) {
+                        // chrome's V8 optimizer hates us
                     }
                 }
 
                 while (priority === 5 && priorityDepth > averagePriorityDepthSum6_8) {
-                    this.drawFace(priorityFaces[priorityFace++], wireframe);
+                    try {
+                        this.drawFace(priorityFaces[priorityFace++], wireframe);
 
-                    if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
-                        priorityFace = 0;
-                        priorityFaceCount = Model.tmpPriorityFaceCount[11];
-                        priorityFaces = Model.tmpPriorityFaces[11];
-                        priorityFaceDepths = Model.tmpPriority11FaceDepth;
-                    }
+                        if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
+                            priorityFace = 0;
+                            priorityFaceCount = Model.tmpPriorityFaceCount[11];
+                            priorityFaces = Model.tmpPriorityFaces[11];
+                            priorityFaceDepths = Model.tmpPriority11FaceDepth;
+                        }
 
-                    if (priorityFace < priorityFaceCount && priorityFaceDepths) {
-                        priorityDepth = priorityFaceDepths[priorityFace];
-                    } else {
-                        priorityDepth = -1000;
+                        if (priorityFace < priorityFaceCount && priorityFaceDepths) {
+                            priorityDepth = priorityFaceDepths[priorityFace];
+                        } else {
+                            priorityDepth = -1000;
+                        }
+                    } catch (e) {
+                        // chrome's V8 optimizer hates us
                     }
                 }
 
@@ -2401,19 +2413,23 @@ export default class Model extends Hashable {
             }
 
             while (priorityDepth !== -1000) {
-                this.drawFace(priorityFaces[priorityFace++], wireframe);
+                try {
+                    this.drawFace(priorityFaces[priorityFace++], wireframe);
 
-                if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
-                    priorityFace = 0;
-                    priorityFaces = Model.tmpPriorityFaces[11];
-                    priorityFaceCount = Model.tmpPriorityFaceCount[11];
-                    priorityFaceDepths = Model.tmpPriority11FaceDepth;
-                }
+                    if (priorityFace === priorityFaceCount && priorityFaces !== Model.tmpPriorityFaces[11]) {
+                        priorityFace = 0;
+                        priorityFaces = Model.tmpPriorityFaces[11];
+                        priorityFaceCount = Model.tmpPriorityFaceCount[11];
+                        priorityFaceDepths = Model.tmpPriority11FaceDepth;
+                    }
 
-                if (priorityFace < priorityFaceCount && priorityFaceDepths) {
-                    priorityDepth = priorityFaceDepths[priorityFace];
-                } else {
-                    priorityDepth = -1000;
+                    if (priorityFace < priorityFaceCount && priorityFaceDepths) {
+                        priorityDepth = priorityFaceDepths[priorityFace];
+                    } else {
+                        priorityDepth = -1000;
+                    }
+                } catch (e) {
+                    // chrome's V8 optimizer hates us
                 }
             }
         }
