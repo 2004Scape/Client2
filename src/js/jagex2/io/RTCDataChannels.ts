@@ -68,7 +68,7 @@ export class Host {
 }
 
 export class Peer {
-    private pc: RTCPeerConnection;
+    public pc: RTCPeerConnection;
     public dc: RTCDataChannel | undefined = undefined;
 
     constructor() {

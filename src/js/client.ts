@@ -780,6 +780,11 @@ export abstract class Client extends GameShell {
             }
         } else if (+Client.getParameter('world') === 998) {
             if (this.peer) {
+                if (this.peer.pc.iceGatheringState === 'complete') {
+                    console.log('You are already connected.');
+                    return;
+                }
+
                 let offer: string | null;
                 try {
                     while ((offer = prompt('Paste offer here, answer will be copied to clipboard')) === null);
