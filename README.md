@@ -76,7 +76,7 @@ http://localhost/client?world=0&detail=high&method=0 (Java)
 
 ## Web Worker server and WebRTC peer to peer connections
 
-A web worker server will start when loading world 999. This works as a no install, offline, singleplayer version of the server.
+A web worker server will start when loading world 999. This works as a no install, offline, singleplayer version of the server. You will need to self host in order to load saves.
 
 The following files are required from the server:
 1. `npm run build`, then copy data directory from the server to `src/public` in client
@@ -86,4 +86,4 @@ The following files are required from the server:
 
 Combined with WebRTC connections you'll be able to host servers using just your browser by manually exchanging a message for each peer. Players that want to join will have to be on world 998 which won't start a web worker server.
 
-Clicking `New user` on login screen or additionally `::peer` ingame for hosts will open a prompt and write either an offer (host) or answer (peer) to clipboard automatically. Pass the offer to the peer, peer returns the answer and you'll be connected! Closing the prompt will reset the process and allows for any amount of peers.
+Clicking `New user` on login screen or additionally `::peer` ingame for hosts will open a prompt and write either an offer (host) or answer (peer) to clipboard automatically. This message will contain your public IP. Pass the offer to the peer, peer returns the answer and you'll be connected! Closing the prompt will reset the process and allows for any amount of peers.
