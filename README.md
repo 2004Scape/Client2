@@ -79,9 +79,9 @@ http://localhost/client?world=0&detail=high&method=0 (Java)
 A web worker server will start when loading world 999. This works as a no install, offline, singleplayer version of the server. You will need to self host in order to load saves.
 
 The following files are required from the server:
-1. `npm run build`, then copy data directory from the server to `Client2/src/public` in client
+1. `npm run build`, then copy data directory from the server to `/src/public` in client
 2. `npm run bundle`, this copies worker.js and LoginThread.js to `../Client2/public`
-3. Saves will load from `data/players` and a save dialog will open on logout, but you should save them to `src/public/data/players` instead.
+3. Saves will load from `/public/data/players` and a save dialog will open on logout, but you should save them to `/src/public/data/players` instead.
 4. Optional: To host on github see [.gitignore](.gitignore#L15).
 
 Combined with WebRTC connections you'll be able to host servers using just your browser by manually exchanging a message for each peer. Players that want to join will have to be on world 998 which won't start a web worker server.
