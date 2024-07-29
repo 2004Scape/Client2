@@ -1,6 +1,6 @@
 /node_modules/
 
-/public/
+/public/*
 /.idea/
 
 bz2.d.ts
@@ -12,8 +12,8 @@ bz2.wasm
 /src/public/data/players
 /src/public/data/src
 
-# comment lines and provide files below to host webworker on github
+# swap lines below and provide files to host a webworker server on github
 
 /src/public/data/*
-/src/public/LoginThread.js
-/src/public/worker.js
+# !/public/LoginThread.js
+# !/public/worker.js

@@ -1,6 +1,5 @@
 const webpack = require('webpack');
 const path = require('path');
-const fs = require('fs');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -8,7 +7,6 @@ const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
-const isWebWorker = fs.existsSync('src/public/worker.js') || fs.existsSync('src/public/LoginThread.js')
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
 
 const pages = [
@@ -126,8 +124,7 @@ module.exports = () => {
               minify: TerserPlugin.terserMinify,
               parallel: true,
               terserOptions: {
-                  module: isWebWorker,
-                  mangle: isWebWorker ? true : {
+                  mangle: {
                       properties: {
                           keep_quoted: true, // needed for tinymidipcm.mjs
                           reserved: [
