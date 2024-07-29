@@ -857,6 +857,11 @@ class Game extends Client {
                 await this.drawTitleScreen();
             }
             if (Game.getParameter('world') === '998') {
+                if (this.peer && this.peer.pc.iceGatheringState !== 'complete') {
+                    this.loginMessage0 = 'You are not connected to a host.';
+                    this.loginMessage1 = 'Try world 999.';
+                    return;
+                }
                 this.stream = new ClientWorkerStream(this.setDataChannel()!);
             } else if (Game.getParameter('world') === '999') {
                 this.stream = new ClientWorkerStream(this.worker!);
