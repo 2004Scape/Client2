@@ -758,7 +758,7 @@ export abstract class Client extends GameShell {
 
     protected onmessage = (e: MessageEvent): void => {
         switch (e.data.type) {
-            case 'loaded':
+            case 'ready':
                 this.workerReady = true;
                 return;
             case 'save':
