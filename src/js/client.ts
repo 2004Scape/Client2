@@ -728,8 +728,8 @@ export abstract class Client extends GameShell {
             this.worker = {
                 onmessage: null,
                 postMessage: (e: MessageEvent): void => {
-                    if (this.peer?.dc && this.peer?.dc.readyState === 'open') {
-                        this.peer?.dc.send(JSON.stringify(e));
+                    if (this.peer && this.peer.dc && this.peer.dc.readyState === 'open') {
+                        this.peer.dc.send(JSON.stringify(e));
                     }
                 },
                 onerror: null,
