@@ -222,7 +222,7 @@ class WebSocketReader {
                 new Promise((resolve): ((value: PromiseLike<((data: WebSocketEvent | null) => void) | null>) => void) => (this.callback = resolve)),
                 sleep(2000).then((): void => {
                     if (this.closed) {
-                        throw new Error('WebSocketReader timed out or closed while reading.');
+                        throw new Error('WebSocketReader closed while reading.');
                     }
                 })
             ]);
