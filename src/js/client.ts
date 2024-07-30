@@ -726,7 +726,9 @@ export abstract class Client extends GameShell {
             this.host = new Host(this.worker);
         } else if (Client.getParameter('world') === '998') {
             this.worker = {
-                onmessage: null,
+                onmessage: (e: MessageEvent): void => {
+                    (this.stream as ClientWorkerStream).wwin.onmessage(e);
+                },
                 postMessage: (e: MessageEvent): void => {
                     if (this.peer && this.peer.dc && this.peer.dc.readyState === 'open') {
                         this.peer.dc.send(JSON.stringify(e));

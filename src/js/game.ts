@@ -851,13 +851,7 @@ class Game extends Client {
                     this.loginMessage1 = 'Please try using world 999.';
                     return;
                 }
-                if (!this.peer?.uniqueId) {
-                    return;
-                }
-                this.stream = new ClientWorkerStream(this.worker!, this.peer!.uniqueId);
-                this.worker!.onmessage = (e: MessageEvent): void => {
-                    (this.stream as ClientWorkerStream).wwin.onmessage(e);
-                };
+                this.stream = new ClientWorkerStream(this.worker!, this.peer!.uniqueId!);
             } else if (Game.getParameter('world') === '999') {
                 if (!this.workerReady) {
                     this.loginMessage0 = 'The server is starting up.';
