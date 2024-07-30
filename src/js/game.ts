@@ -859,11 +859,16 @@ class Game extends Client {
             if (Game.getParameter('world') === '998') {
                 if (this.peer && this.peer.pc.iceGatheringState !== 'complete') {
                     this.loginMessage0 = 'You are not connected to a host.';
-                    this.loginMessage1 = 'Try world 999.';
+                    this.loginMessage1 = 'Please try using world 999.';
                     return;
                 }
                 this.stream = new ClientWorkerStream(this.setDataChannel()!);
             } else if (Game.getParameter('world') === '999') {
+                if (!this.workerReady) {
+                    this.loginMessage0 = 'The server is starting up.';
+                    this.loginMessage1 = 'Please try again in a moment.';
+                    return;
+                }
                 this.stream = new ClientWorkerStream(this.worker!);
             } else {
                 this.stream = new ClientStream(await ClientStream.openSocket({host: Client.serverAddress, port: 43594 + Client.portOffset}));

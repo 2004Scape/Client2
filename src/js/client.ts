@@ -488,6 +488,7 @@ export abstract class Client extends GameShell {
 
     // webworker + webrtc
     protected worker: Worker | undefined = undefined;
+    protected workerReady: boolean = false;
     protected host: Host | null = null;
     protected peer: Peer | null = null;
 
@@ -757,6 +758,9 @@ export abstract class Client extends GameShell {
 
     protected onmessage = (e: MessageEvent): void => {
         switch (e.data.type) {
+            case 'loaded':
+                this.workerReady = true;
+                return;
             case 'save':
                 downloadURL(e.data.value, e.data.path.split('/').pop().split('\\').pop());
                 URL.revokeObjectURL(e.data.value);
