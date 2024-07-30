@@ -53,11 +53,12 @@ function method(): void {
 function localConfiguration(): void {
     if (+GameShell.getParameter('world') >= 998) {
         Client.httpAddress = 'data/pack/client';
-    } else {
-        Client.serverAddress = 'http://localhost';
-        Client.httpAddress = 'http://localhost';
-        Client.portOffset = 0;
+        return;
     }
+
+    Client.serverAddress = 'http://localhost';
+    Client.httpAddress = 'http://localhost';
+    Client.portOffset = 0;
 }
 
 async function liveConfiguration(secured: boolean): Promise<void> {
