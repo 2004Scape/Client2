@@ -1,6 +1,7 @@
 export class Host {
     private peers: Map<string, RTCDataChannel> = new Map();
     private worker: Worker;
+    public uniqueId: string = self.isSecureContext ? self.crypto.randomUUID() : '0';
 
     constructor(worker: Worker) {
         this.worker = worker;
@@ -16,8 +17,11 @@ export class Host {
 
         pc.onicegatheringstatechange = async (): Promise<void> => {
             if (pc.iceGatheringState === 'complete') {
-                // console.log(JSON.stringify(pc.localDescription));
-                await navigator.clipboard.writeText(JSON.stringify(pc.localDescription));
+                if (self.isSecureContext) {
+                    await navigator.clipboard.writeText(JSON.stringify(pc.localDescription));
+                } else {
+                    console.log(JSON.stringify(pc.localDescription));
+                }
 
                 let answer: string | null;
                 try {
@@ -30,6 +34,7 @@ export class Host {
         };
 
         dc.onopen = (): void => {
+            dc.send(JSON.stringify({type: 'id', id: id}));
             console.log('Connected to peer!');
         };
 
@@ -42,10 +47,6 @@ export class Host {
 
             if (msg.data) {
                 msg.data = Object.values(msg.data);
-            }
-
-            if (!this.peers.get(msg.id)) {
-                this.peers.set(msg.id, dc);
             }
 
             if (this.worker) {
@@ -70,8 +71,9 @@ export class Host {
 export class Peer {
     public pc: RTCPeerConnection;
     public dc: RTCDataChannel | undefined = undefined;
+    public uniqueId: string | undefined;
 
-    constructor() {
+    constructor(worker: Worker) {
         this.pc = new RTCPeerConnection({iceServers: [{urls: 'stun:stun.l.google.com:19302'}]});
 
         this.pc.ondatachannel = (e: RTCDataChannelEvent): void => {
@@ -84,12 +86,27 @@ export class Peer {
             this.dc.onerror = (e): void => {
                 console.error(e);
             };
+
+            this.dc.onmessage = (e: MessageEvent): void => {
+                if (!this.uniqueId) {
+                    const msg: {type: string; data: Array<number>; id: string} = JSON.parse(e.data);
+                    if (msg.type === 'id') {
+                        this.uniqueId = msg.id;
+                        return;
+                    }
+                }
+
+                if (worker.onmessage) worker.onmessage(e);
+            };
         };
 
         this.pc.onicegatheringstatechange = async (): Promise<void> => {
             if (this.pc.iceGatheringState === 'complete') {
-                // console.log(JSON.stringify(this.pc.localDescription));
-                await navigator.clipboard.writeText(JSON.stringify(this.pc.localDescription));
+                if (self.isSecureContext) {
+                    await navigator.clipboard.writeText(JSON.stringify(this.pc.localDescription));
+                } else {
+                    console.log(JSON.stringify(this.pc.localDescription));
+                }
             }
         };
     }

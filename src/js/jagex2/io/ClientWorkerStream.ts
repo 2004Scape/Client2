@@ -7,19 +7,18 @@ export default class ClientWorkerStream {
     private readonly worker: Worker;
     public wwin: WorkerReader;
     private readonly wwout: WorkerWriter;
-    public uniqueId: string = self.isSecureContext ? self.crypto.randomUUID() : '0';
 
     // runtime
     private closed: boolean = false;
     private ioerror: boolean = false;
 
-    constructor(worker: Worker) {
+    constructor(worker: Worker, uniqueId: string) {
         this.worker = worker;
         this.worker.onerror = this.onerror;
         this.worker.onmessageerror = this.onmessageerror;
         this.wwin = new WorkerReader(5000);
-        this.wwout = new WorkerWriter(this.worker, 5000, this.uniqueId);
-        this.worker.postMessage({type: 'connection', id: this.uniqueId});
+        this.wwout = new WorkerWriter(this.worker, 5000, uniqueId);
+        this.worker.postMessage({type: 'connection', id: uniqueId});
     }
 
     get available(): number {

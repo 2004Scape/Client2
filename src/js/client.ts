@@ -509,7 +509,7 @@ export abstract class Client extends GameShell {
             /* empty */
         }
         if (this.peer && Client.getParameter('world') === '998') {
-            this.peer.dc?.send(JSON.stringify({type: 'close', id: (this.stream as ClientWorkerStream).uniqueId}));
+            this.peer.dc?.send(JSON.stringify({type: 'close', id: this.peer.uniqueId}));
         }
         this.stream = null;
         stopMidi(false);
@@ -719,44 +719,36 @@ export abstract class Client extends GameShell {
         this.imageFlamesRight = null;
     };
 
-    protected setDataChannel = (): Worker | undefined => {
-        if (!this.peer || !this.peer.dc) {
-            return;
-        }
-
-        const dc: RTCDataChannel = this.peer?.dc;
-
-        const worker: Worker = {
-            onmessage: (e: MessageEvent): void => {
-                (this.stream as ClientWorkerStream).wwin.onmessage(e);
-            },
-
-            postMessage: (e: MessageEvent): void => {
-                if (dc && dc.readyState === 'open') {
-                    dc.send(JSON.stringify(e));
+    protected initWorkerP2P = (): void => {
+        if (Client.getParameter('world') === '999') {
+            this.worker = new Worker('worker.js', {type: 'module'});
+            this.worker.onmessage = this.onmessage;
+            this.host = new Host(this.worker);
+        } else if (Client.getParameter('world') === '998') {
+            this.worker = {
+                onmessage: null,
+                postMessage: (e: MessageEvent): void => {
+                    if (this.peer?.dc && this.peer?.dc.readyState === 'open') {
+                        this.peer?.dc.send(JSON.stringify(e));
+                    }
+                },
+                onerror: null,
+                onmessageerror: null,
+                terminate: (): void => {
+                    throw new Error();
+                },
+                addEventListener: (): void => {
+                    throw new Error();
+                },
+                removeEventListener: (): void => {
+                    throw new Error();
+                },
+                dispatchEvent: (): boolean => {
+                    throw new Error();
                 }
-            },
-            onerror: null,
-            onmessageerror: null,
-            terminate: (): void => {
-                throw new Error();
-            },
-            addEventListener: (): void => {
-                throw new Error();
-            },
-            removeEventListener: (): void => {
-                throw new Error();
-            },
-            dispatchEvent: (): boolean => {
-                throw new Error();
-            }
-        };
-
-        dc.onmessage = (e: MessageEvent): void => {
-            if (worker.onmessage) worker.onmessage(e);
-        };
-
-        return worker;
+            };
+            this.peer = new Peer(this.worker);
+        }
     };
 
     protected onmessage = (e: MessageEvent): void => {
@@ -773,7 +765,7 @@ export abstract class Client extends GameShell {
                 return;
         }
 
-        if (this.stream && (this.stream as ClientWorkerStream).uniqueId === e.data.id) {
+        if (this.host?.uniqueId === e.data.id) {
             (this.stream as ClientWorkerStream).wwin.onmessage(e.data);
         } else {
             this.host?.postMessage(e);
@@ -787,7 +779,7 @@ export abstract class Client extends GameShell {
             }
         } else if (+Client.getParameter('world') === 998) {
             if (this.peer) {
-                if (this.peer.pc.iceGatheringState === 'complete') {
+                if (this.peer.dc) {
                     console.log('You are already connected.');
                     return;
                 }

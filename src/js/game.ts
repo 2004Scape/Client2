@@ -78,13 +78,7 @@ class Game extends Client {
         this.alreadyStarted = true;
 
         try {
-            if (Game.getParameter('world') === '999') {
-                this.worker = new Worker('worker.js', {type: 'module'});
-                this.worker.onmessage = this.onmessage;
-                this.host = new Host(this.worker);
-            } else if (Game.getParameter('world') === '998') {
-                this.peer = new Peer();
-            }
+            this.initWorkerP2P();
 
             await this.showProgress(10, 'Connecting to fileserver');
 
@@ -857,14 +851,20 @@ class Game extends Client {
                     this.loginMessage1 = 'Please try using world 999.';
                     return;
                 }
-                this.stream = new ClientWorkerStream(this.setDataChannel()!);
+                if (!this.peer?.uniqueId) {
+                    return;
+                }
+                this.stream = new ClientWorkerStream(this.worker!, this.peer!.uniqueId);
+                this.worker!.onmessage = (e: MessageEvent): void => {
+                    (this.stream as ClientWorkerStream).wwin.onmessage(e);
+                };
             } else if (Game.getParameter('world') === '999') {
                 if (!this.workerReady) {
                     this.loginMessage0 = 'The server is starting up.';
                     this.loginMessage1 = 'Please try again in a moment.';
                     return;
                 }
-                this.stream = new ClientWorkerStream(this.worker!);
+                this.stream = new ClientWorkerStream(this.worker!, this.host!.uniqueId);
             } else {
                 this.stream = new ClientStream(await ClientStream.openSocket({host: Client.serverAddress, port: 43594 + Client.portOffset}));
             }
