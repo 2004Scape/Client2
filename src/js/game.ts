@@ -846,7 +846,7 @@ class Game extends Client {
                 await this.drawTitleScreen();
             }
             if (Game.getParameter('world') === '998') {
-                if (this.peer && this.peer.pc.iceGatheringState !== 'complete') {
+                if (this.peer && !this.peer.dc) {
                     this.loginMessage0 = 'You are not connected to a host.';
                     this.loginMessage1 = 'Please try using world 999.';
                     return;
