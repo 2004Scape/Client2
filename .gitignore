@@ -17,3 +17,5 @@ bz2.wasm
 /src/public/data/*
 # !/public/LoginThread.js
 # !/public/worker.js
+# !/public/bzip2.wasm
+# !/public/rsmod-pathfinder.wasm

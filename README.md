@@ -80,7 +80,7 @@ A web worker server will start when loading world 999. This works as a no instal
 
 The following files are required from the server:
 1. `npm run build`, then copy data directory from the server to `/src/public` in client
-2. `npm run bundle`, this copies worker.js and LoginThread.js to `../Client2/public`
+2. `npm run bundle`, this copies worker.js, LoginThread.js, and wasm dependencies to `../Client2/public`
 3. Saves will load from `/public/data/players` and a save dialog will open on logout, but you should save them to `/src/public/data/players` instead.
 4. Optional: To host on github see [.gitignore](.gitignore#L15).
 
