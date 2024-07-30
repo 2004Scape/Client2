@@ -78,25 +78,21 @@ class Game extends Client {
         this.alreadyStarted = true;
 
         try {
+            if (Game.getParameter('world') === '999') {
+                this.worker = new Worker('worker.js', {type: 'module'});
+                this.worker.onmessage = this.onmessage;
+                this.host = new Host(this.worker);
+            } else if (Game.getParameter('world') === '998') {
+                this.peer = new Peer();
+            }
+
             await this.showProgress(10, 'Connecting to fileserver');
 
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
             this.db = new Database(await Database.openDatabase());
 
-            let checksums: Packet;
-            if (+Client.getParameter('world') < 998) {
-                checksums = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/crc`)));
-            } else {
-                checksums = new Packet(new Uint8Array(await downloadUrl('data/pack/client/crc')));
+            const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/crc`)));
 
-                if (Game.getParameter('world') === '999') {
-                    this.worker = new Worker('worker.js', {type: 'module'});
-                    this.worker.onmessage = this.onmessage;
-                    this.host = new Host(this.worker);
-                } else if (Game.getParameter('world') === '998') {
-                    this.peer = new Peer();
-                }
-            }
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }

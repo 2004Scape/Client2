@@ -9,12 +9,9 @@ bz2.wasm
 
 !/test/resources/*
 
-/src/public/data/players
-/src/public/data/src
+public/data/players/
 
-# swap lines below and provide files to host a webworker server on github
-
-/src/public/data/*
+# !/public/data/
 # !/public/LoginThread.js
 # !/public/worker.js
 # !/public/bzip2.wasm

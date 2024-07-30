@@ -818,7 +818,7 @@ export abstract class Client extends GameShell {
                 if (+Client.getParameter('world') < 998) {
                     data = await downloadUrl(`${Client.httpAddress}/${filename}${crc}`);
                 } else {
-                    data = await downloadUrl(`data/pack/client/${filename}`);
+                    data = await downloadUrl(`${Client.httpAddress}/${filename}`);
                 }
             } catch (e) {
                 data = undefined;
@@ -847,7 +847,7 @@ export abstract class Client extends GameShell {
                 if (+Client.getParameter('world') < 998) {
                     data = await downloadUrl(`${Client.httpAddress}/${name}_${crc}.mid`);
                 } else {
-                    data = await downloadUrl(`data/pack/client/songs/${name}.mid`);
+                    data = await downloadUrl(`${Client.httpAddress}/songs/${name}.mid`);
                 }
                 if (length !== data.length) {
                     data = data.slice(0, length);
