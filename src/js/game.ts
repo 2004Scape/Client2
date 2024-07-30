@@ -92,7 +92,6 @@ class Game extends Client {
             this.db = new Database(await Database.openDatabase());
 
             const checksums: Packet = new Packet(new Uint8Array(await downloadUrl(`${Client.httpAddress}/crc`)));
-
             for (let i: number = 0; i < 9; i++) {
                 this.archiveChecksums[i] = checksums.g4;
             }
