@@ -508,6 +508,9 @@ export abstract class Client extends GameShell {
         } catch (e) {
             /* empty */
         }
+        if (this.peer && Client.getParameter('world') === '998') {
+            this.peer.dc?.send(JSON.stringify({type: 'close', id: (this.stream as ClientWorkerStream).uniqueId}));
+        }
         this.stream = null;
         stopMidi(false);
         // this.midiThreadActive = false;
