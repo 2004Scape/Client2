@@ -81,7 +81,7 @@ A web worker server will start when loading world 999. This works as a no instal
 How to use:
 1. Run `npm run build` and then `npm run bundle` in the server, this copies all required files to `../Client2/public`.
 2. A save dialog will open on logout, you should save to `/public/data/players`.
-3. Optional: To host on github uncomment the lines starting with `!/public` marks in the [.gitignore](.gitignore).
+3. Optional: To host on github uncomment the lines starting with `!/public` in the [.gitignore](.gitignore).
 
 Combined with WebRTC connections you'll be able to host servers using just your browser by manually exchanging a message for each peer. Players that want to join will have to be on world 998 which won't start a web worker server.
 
