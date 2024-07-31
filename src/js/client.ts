@@ -786,12 +786,13 @@ export abstract class Client extends GameShell {
                     return;
                 }
 
-                let offer: string | null;
-                try {
-                    while ((offer = prompt('Paste offer here, answer will be copied to clipboard')) === null);
-                    await this.peer.handleOffer(offer);
-                } catch (e) {
-                    console.error(e);
+                const offer: string | null = prompt('Paste offer here, answer will be copied to clipboard');
+                if (offer) {
+                    try {
+                        await this.peer.handleOffer(offer);
+                    } catch (e) {
+                        console.error(e);
+                    }
                 }
             }
         }
