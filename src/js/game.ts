@@ -64,6 +64,8 @@ import FloType from './jagex2/config/FloType';
 import {setupConfiguration} from './configuration';
 import Tile from './jagex2/dash3d/type/Tile';
 import DirectionFlag from './jagex2/dash3d/DirectionFlag';
+import ClientWorkerStream from './jagex2/io/ClientWorkerStream';
+import {Host, Peer} from './jagex2/io/RTCDataChannels';
 
 // noinspection JSSuspiciousNameCombination
 class Game extends Client {
@@ -76,6 +78,8 @@ class Game extends Client {
         this.alreadyStarted = true;
 
         try {
+            this.initWorkerP2P();
+
             await this.showProgress(10, 'Connecting to fileserver');
 
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
@@ -647,6 +651,11 @@ class Game extends Client {
 
             y += 20;
             if (this.mouseClickButton === 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
+                if (+Client.getParameter('world') >= 998) {
+                    this.exchangeSDP();
+                    return;
+                }
+
                 this.titleScreenState = 3;
                 this.titleLoginField = 0;
             }
@@ -836,8 +845,24 @@ class Game extends Client {
                 this.loginMessage1 = 'Connecting to server...';
                 await this.drawTitleScreen();
             }
-            this.stream = new ClientStream(await ClientStream.openSocket({host: Client.serverAddress, port: 43594 + Client.portOffset}));
-            await this.stream?.readBytes(this.in.data, 0, 8);
+            if (Game.getParameter('world') === '998') {
+                if (this.peer && !this.peer.dc) {
+                    this.loginMessage0 = 'You are not connected to a host.';
+                    this.loginMessage1 = 'Please try using world 999.';
+                    return;
+                }
+                this.stream = new ClientWorkerStream(this.worker!, this.peer!.uniqueId!);
+            } else if (Game.getParameter('world') === '999') {
+                if (!this.workerReady) {
+                    this.loginMessage0 = 'The server is starting up.';
+                    this.loginMessage1 = 'Please try again in a moment.';
+                    return;
+                }
+                this.stream = new ClientWorkerStream(this.worker!, this.host!.uniqueId);
+            } else {
+                this.stream = new ClientStream(await ClientStream.openSocket({host: Client.serverAddress, port: 43594 + Client.portOffset}));
+            }
+            await this.stream.readBytes(this.in.data, 0, 8);
             this.in.pos = 0;
             this.serverSeed = this.in.g8;
             const seed: Int32Array = new Int32Array([Math.floor(Math.random() * 99999999), Math.floor(Math.random() * 99999999), Number(this.serverSeed >> 32n), Number(this.serverSeed & BigInt(0xffffffff))]);
@@ -4245,6 +4270,10 @@ class Game extends Client {
                                 Client.showDebug = !Client.showDebug;
                             } else if (this.chatTyped === '::chat') {
                                 Client.chatEra = (Client.chatEra + 1) % 3;
+                            } else if (this.chatTyped === '::peer') {
+                                if (+Client.getParameter('world') === 999) {
+                                    this.exchangeSDP();
+                                }
                             } else if (this.chatTyped.startsWith('::fps ')) {
                                 try {
                                     this.setTargetedFramerate(parseInt(this.chatTyped.substring(6), 10));

@@ -10,10 +10,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
 
 const pages = [
-    'index', 'playground', 'viewer', 'mesanim', 'items', 'sounds',
-    'interface-editor',
-    'JagEd',
-    'mapview'
+    'index',
+    'playground', 'viewer', 'mesanim', 'items', 'sounds',
+    'interface-editor', 'JagEd', 'mapview'
 ];
 const htmlPlugins = pages.map(name => {
     return new HtmlWebpackPlugin({
@@ -389,7 +388,9 @@ module.exports = () => {
                               'ALLOC_NORMAL',
                               'ALLOC_STACK',
                               'allocate',
-                              'grow'
+                              'grow',
+                              'iceServers',
+                              'urls',
                           ]
                       }
                   },
