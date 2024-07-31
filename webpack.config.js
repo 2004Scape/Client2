@@ -388,7 +388,9 @@ module.exports = () => {
                               'ALLOC_NORMAL',
                               'ALLOC_STACK',
                               'allocate',
-                              'grow'
+                              'grow',
+                              'iceServers',
+                              'urls',
                           ]
                       }
                   },
