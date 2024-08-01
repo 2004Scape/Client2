@@ -391,6 +391,13 @@ module.exports = () => {
                               'grow',
                               'iceServers',
                               'urls',
+                              'malloc_u8',
+                              'free_u8',
+                              'gzip_decompress',
+                              'gzip_compress',
+                              'error_message',
+                              'error_message_len',
+                              'deallocate_buffer',
                           ]
                       }
                   },
