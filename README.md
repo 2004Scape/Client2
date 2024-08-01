@@ -79,7 +79,7 @@ http://localhost/client?world=0&detail=high&method=0 (Java)
 A web worker server will start when loading world 999. This works as a no install, offline, singleplayer version of the server. You will need to self host in order to load saves.
 
 How to use:
-1. Run `npm run build` and then `npm run bundle` in the server, this copies all required files to `../Client2/public`.
+1. Run `npm run build` and then `npm run bundle` in the server, this copies all required files to `../Client2/public`. Start client with `npm run prod`.
 2. A save dialog will open on logout, you should save to `/public/data/players`.
 3. Optional: To host on github uncomment the lines starting with `!/public` in the [.gitignore](.gitignore).
 
