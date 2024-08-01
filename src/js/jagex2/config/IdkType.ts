@@ -44,7 +44,7 @@ export default class IdkType extends ConfigType {
         } else if (code >= 60 && code < 70) {
             this.heads[code - 60] = dat.g2;
         } else {
-            throw new Error(`Unrecognised config code: ${code}`);
+            console.log('Error unrecognised config code: ', code);
         }
     }
 
