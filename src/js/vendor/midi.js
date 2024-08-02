@@ -50,7 +50,7 @@ import TinyMidiPCM from './tinymidipcm/index.js';
     let samples = new Float32Array();
 
     let gainNode = window.audioContext.createGain();
-    gainNode.gain.value = 0.1;
+    gainNode.gain.setValueAtTime(0.1, window.audioContext.currentTime);
     gainNode.connect(window.audioContext.destination);
 
     // let startTime = 0;
@@ -126,11 +126,10 @@ import TinyMidiPCM from './tinymidipcm/index.js';
 
     let flushInterval;
 
-    function fadeGain(tovolume, callback) {
+    function fadeOut(callback) {
         const currentTime = window.audioContext.currentTime;
         gainNode.gain.cancelScheduledValues(currentTime);
-        gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
-        gainNode.gain.linearRampToValueAtTime(tovolume, currentTime + fadeseconds);
+        gainNode.gain.setTargetAtTime(0, currentTime, 0.5);
         setTimeout(callback, fadeseconds * 1000);
     }
 
@@ -144,12 +143,12 @@ import TinyMidiPCM from './tinymidipcm/index.js';
 
         if (bufferSources.length) {
             let temp = gainNode.gain.value;
-            gainNode.gain.value = 0;
+            gainNode.gain.setValueAtTime(0, window.audioContext.currentTime);
             bufferSources.forEach(bufferSource => {
                 bufferSource.stop(window.audioContext.currentTime);
             });
             bufferSources = [];
-            gainNode.gain.value = temp;
+            gainNode.gain.setValueAtTime(temp, window.audioContext.currentTime);
         }
     }
 
@@ -168,7 +167,7 @@ import TinyMidiPCM from './tinymidipcm/index.js';
 
     window._tinyMidiStop = async fade => {
         if (fade) {
-            fadeGain(0, () => {
+            fadeOut(() => {
                 stop();
             });
         } else {
@@ -177,7 +176,7 @@ import TinyMidiPCM from './tinymidipcm/index.js';
     };
 
     window._tinyMidiVolume = (vol = 1) => {
-        gainNode.gain.value = vol;
+        gainNode.gain.setValueAtTime(vol, window.audioContext.currentTime);
     };
 
     window._tinyMidiPlay = async (midiBuffer, vol, fade) => {
