@@ -919,7 +919,7 @@ class Game extends Client {
                 this.hintType = 0;
                 this.menuSize = 0;
                 this.menuVisible = false;
-                this.idleCycles = 0;
+                this.idleCycles = Date.now();
                 for (let i: number = 0; i < 100; i++) {
                     this.messageText[i] = null;
                 }
@@ -1296,12 +1296,24 @@ class Game extends Client {
             }
 
             await this.handleInputKey();
-            this.idleCycles++;
-            if (this.idleCycles > 4500) {
+            // idlecycles refactored to use date to circumvent browser throttling the
+            // timers when a different tab is active, or the window has been minimized.
+            // afk logout has to still happen after 90s of no activity (if allowed).
+            // https://developer.chrome.com/blog/timer-throttling-in-chrome-88/
+            if (Date.now() - this.idleCycles > 90_000) {
+                // 4500 ticks * 20ms = 90000ms
                 this.idleTimeout = 250;
-                this.idleCycles -= 500;
+                // 500 ticks * 20ms = 10000ms
+                this.idleCycles = Date.now() - 10_000;
                 this.out.p1isaac(ClientProt.IDLE_TIMER);
             }
+            // === original code ===
+            // this.idleCycles++;
+            // if (this.idleCycles > 4500) {
+            //     this.idleTimeout = 250;
+            //     this.idleCycles -= 500;
+            //     this.out.p1isaac(ClientProt.IDLE_TIMER);
+            // }
 
             this.cameraOffsetCycle++;
             if (this.cameraOffsetCycle > 500) {
