@@ -22,7 +22,7 @@ async function world(): Promise<void> {
     if (GameShell.getParameter('world').length === 0) {
         GameShell.setParameter('world', '1');
     }
-    if (window.location.hostname === 'localhost' && GameShell.getParameter('world') === '0') {
+    if (['0', '998', '999'].includes(GameShell.getParameter('world'))) {
         localConfiguration();
     } else {
         await liveConfiguration(window.location.protocol.startsWith('https'));
@@ -51,6 +51,11 @@ function method(): void {
 // ---
 
 function localConfiguration(): void {
+    if (+GameShell.getParameter('world') >= 998) {
+        Client.httpAddress = 'data/pack/client';
+        return;
+    }
+
     Client.serverAddress = 'http://localhost';
     Client.httpAddress = 'http://localhost';
     Client.portOffset = 0;

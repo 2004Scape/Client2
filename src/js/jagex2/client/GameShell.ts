@@ -37,7 +37,7 @@ export default abstract class GameShell {
 
     protected ingame: boolean = false;
 
-    protected idleCycles: number = 0;
+    protected idleCycles: number = Date.now();
     protected mouseButton: number = 0;
     protected mouseX: number = 0;
     protected mouseY: number = 0;
@@ -335,7 +335,7 @@ export default abstract class GameShell {
     private onkeydown = (e: KeyboardEvent): void => {
         const key: string = e.key;
 
-        this.idleCycles = 0;
+        this.idleCycles = Date.now();
 
         const keyCode: {code: number; ch: number} = KeyCodes[key];
         if (!keyCode || (e.code.length === 0 && !e.isTrusted)) {
@@ -413,7 +413,7 @@ export default abstract class GameShell {
     private onkeyup = (e: KeyboardEvent): void => {
         const key: string = e.key;
 
-        this.idleCycles = 0;
+        this.idleCycles = Date.now();
 
         const keyCode: {code: number; ch: number} = KeyCodes[key];
         if (!keyCode || (e.code.length === 0 && !e.isTrusted)) {
@@ -480,7 +480,7 @@ export default abstract class GameShell {
         //Don't 'reset' position (This fixes right click in Android)
         if (e.clientX > 0 || e.clientY > 0) this.setMousePosition(e);
 
-        this.idleCycles = 0;
+        this.idleCycles = Date.now();
         this.mouseClickX = this.mouseX;
         this.mouseClickY = this.mouseY;
 
@@ -516,7 +516,7 @@ export default abstract class GameShell {
 
     private onmouseup = (e: MouseEvent): void => {
         this.setMousePosition(e);
-        this.idleCycles = 0;
+        this.idleCycles = Date.now();
         this.mouseButton = 0;
 
         if (InputTracking.enabled) {
@@ -536,7 +536,7 @@ export default abstract class GameShell {
         this.setMousePosition(e);
 
         // mapview applet
-        this.idleCycles = 0;
+        this.idleCycles = Date.now();
         this.mouseX = -1;
         this.mouseY = -1;
 
@@ -552,7 +552,7 @@ export default abstract class GameShell {
 
     private onmousemove = (e: MouseEvent): void => {
         this.setMousePosition(e);
-        this.idleCycles = 0;
+        this.idleCycles = Date.now();
 
         if (InputTracking.enabled) {
             InputTracking.mouseMoved(this.mouseX, this.mouseY);

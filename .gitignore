@@ -1,6 +1,6 @@
 /node_modules/
 
-/public/
+/public/*
 /.idea/
 
 bz2.d.ts
@@ -8,3 +8,11 @@ bz2.js
 bz2.wasm
 
 !/test/resources/*
+
+public/data/players/
+
+# !/public/data/
+# !/public/LoginThread.js
+# !/public/worker.js
+# !/public/bzip2.wasm
+# !/public/rsmod-pathfinder.wasm

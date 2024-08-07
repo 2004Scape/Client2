@@ -43,13 +43,14 @@ import TinyMidiPCM from './tinymidipcm/index.js';
     const sampleRate = 44100;
     const flushTime = 250;
     const renderInterval = 30;
+    const fadeseconds = 2;
 
     // let renderEndSeconds = 0;
     // let currentMidiBuffer = null;
     let samples = new Float32Array();
 
     let gainNode = window.audioContext.createGain();
-    gainNode.gain.value = 0.1;
+    gainNode.gain.setValueAtTime(0.1, window.audioContext.currentTime);
     gainNode.connect(window.audioContext.destination);
 
     // let startTime = 0;
@@ -125,7 +126,14 @@ import TinyMidiPCM from './tinymidipcm/index.js';
 
     let flushInterval;
 
-    window._tinyMidiStop = async () => {
+    function fadeOut(callback) {
+        const currentTime = window.audioContext.currentTime;
+        gainNode.gain.cancelScheduledValues(currentTime);
+        gainNode.gain.setTargetAtTime(0, currentTime, 0.5);
+        setTimeout(callback, fadeseconds * 1000);
+    }
+
+    function stop() {
         if (flushInterval) {
             clearInterval(flushInterval);
         }
@@ -135,28 +143,18 @@ import TinyMidiPCM from './tinymidipcm/index.js';
 
         if (bufferSources.length) {
             let temp = gainNode.gain.value;
-            gainNode.gain.value = 0;
+            gainNode.gain.setValueAtTime(0, window.audioContext.currentTime);
             bufferSources.forEach(bufferSource => {
                 bufferSource.stop(window.audioContext.currentTime);
             });
             bufferSources = [];
-            gainNode.gain.value = temp;
+            gainNode.gain.setValueAtTime(temp, window.audioContext.currentTime);
         }
-    };
+    }
 
-    window._tinyMidiVolume = (vol = 1) => {
-        gainNode.gain.value = vol;
-    };
-
-    window._tinyMidiPlay = async (midiBuffer, vol = 1) => {
-        if (!midiBuffer) {
-            return;
-        }
-
-        await window._tinyMidiStop();
-
+    function start(vol, midiBuffer) {
         // vol -1 = reuse last volume level
-        if (vol != -1) {
+        if (vol !== -1) {
             window._tinyMidiVolume(vol);
         }
 
@@ -165,5 +163,35 @@ import TinyMidiPCM from './tinymidipcm/index.js';
         lastTime = window.audioContext.currentTime;
         flushInterval = setInterval(flush, flushTime);
         tinyMidiPCM.render(midiBuffer);
+    }
+
+    window._tinyMidiStop = async fade => {
+        if (fade) {
+            fadeOut(() => {
+                stop();
+            });
+        } else {
+            stop();
+        }
+    };
+
+    window._tinyMidiVolume = (vol = 1) => {
+        gainNode.gain.setValueAtTime(vol, window.audioContext.currentTime);
+    };
+
+    window._tinyMidiPlay = async (midiBuffer, vol, fade) => {
+        if (!midiBuffer) {
+            return;
+        }
+
+        await window._tinyMidiStop(fade);
+
+        if (fade) {
+            setTimeout(() => {
+                start(vol, midiBuffer);
+            }, fadeseconds * 1000);
+        } else {
+            start(vol, midiBuffer);
+        }
     };
 })();

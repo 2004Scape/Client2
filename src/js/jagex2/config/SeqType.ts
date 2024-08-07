@@ -93,7 +93,7 @@ export default class SeqType extends ConfigType {
         } else if (code === 8) {
             this.replaycount = dat.g1;
         } else {
-            throw new Error(`Unrecognized seq config code: ${code}`);
+            console.log('Error unrecognised seq config code: ', code);
         }
     }
 }

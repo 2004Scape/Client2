@@ -23,9 +23,9 @@ export function setWaveVolume(vol) {
     waveGain.gain.value = vol / 256;
 }
 
-export function playMidi(data, vol) {
+export function playMidi(data, vol, fade) {
     if (window._tinyMidiPlay) {
-        window._tinyMidiPlay(data, vol / 256);
+        window._tinyMidiPlay(data, vol / 256, fade);
     }
 }
 
@@ -35,8 +35,8 @@ export function setMidiVolume(vol) {
     }
 }
 
-export function stopMidi() {
+export function stopMidi(fade) {
     if (window._tinyMidiStop) {
-        window._tinyMidiStop();
+        window._tinyMidiStop(fade);
     }
 }

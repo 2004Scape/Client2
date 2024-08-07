@@ -24,7 +24,7 @@ export default class MesAnimType extends ConfigType {
         } else if (code === 250) {
             this.debugname = dat.gjstr;
         } else {
-            throw new Error(`Unrecognized mesanim config code: ${code}`);
+            console.log('Error unrecognised mesanim config code: ', code);
         }
     }
 }

@@ -63,6 +63,8 @@ import AnimFrame from './jagex2/graphics/AnimFrame';
 import FloType from './jagex2/config/FloType';
 import Tile from './jagex2/dash3d/type/Tile';
 import DirectionFlag from './jagex2/dash3d/DirectionFlag';
+import ClientWorkerStream from './jagex2/io/ClientWorkerStream';
+import {Host, Peer} from './jagex2/io/RTCDataChannels';
 
 // noinspection JSSuspiciousNameCombination
 export default class Game extends Client {
@@ -113,6 +115,8 @@ export default class Game extends Client {
         this.alreadyStarted = true;
 
         try {
+            this.initWorkerP2P();
+
             await this.showProgress(10, 'Connecting to fileserver');
 
             await Bzip.load(await (await fetch('bz2.wasm')).arrayBuffer());
@@ -124,7 +128,7 @@ export default class Game extends Client {
             }
 
             if (!Client.lowMemory) {
-                await this.setMidi('scape_main', 12345678, 40000);
+                await this.setMidi('scape_main', 12345678, 40000, false);
             }
 
             const title: Jagfile = await this.loadArchive('title', 'title screen', this.archiveChecksums[1], 10);
@@ -684,6 +688,11 @@ export default class Game extends Client {
 
             y += 20;
             if (this.mouseClickButton === 1 && this.mouseClickX >= x - 75 && this.mouseClickX <= x + 75 && this.mouseClickY >= y - 20 && this.mouseClickY <= y + 20) {
+                if (+Client.getParameter('world') >= 998) {
+                    this.exchangeSDP();
+                    return;
+                }
+
                 this.titleScreenState = 3;
                 this.titleLoginField = 0;
             }
@@ -873,8 +882,24 @@ export default class Game extends Client {
                 this.loginMessage1 = 'Connecting to server...';
                 await this.drawTitleScreen();
             }
-            this.stream = new ClientStream(await ClientStream.openSocket({host: Client.serverAddress, port: 43594 + Client.portOffset}));
-            await this.stream?.readBytes(this.in.data, 0, 8);
+            if (Game.getParameter('world') === '998') {
+                if (this.peer && !this.peer.dc) {
+                    this.loginMessage0 = 'You are not connected to a host.';
+                    this.loginMessage1 = 'Please try using world 999.';
+                    return;
+                }
+                this.stream = new ClientWorkerStream(this.worker!, this.peer!.uniqueId!);
+            } else if (Game.getParameter('world') === '999') {
+                if (!this.workerReady) {
+                    this.loginMessage0 = 'The server is starting up.';
+                    this.loginMessage1 = 'Please try again in a moment.';
+                    return;
+                }
+                this.stream = new ClientWorkerStream(this.worker!, this.host!.uniqueId);
+            } else {
+                this.stream = new ClientStream(await ClientStream.openSocket({host: Client.serverAddress, port: 43594 + Client.portOffset}));
+            }
+            await this.stream.readBytes(this.in.data, 0, 8);
             this.in.pos = 0;
             this.serverSeed = this.in.g8;
             const seed: Int32Array = new Int32Array([Math.floor(Math.random() * 99999999), Math.floor(Math.random() * 99999999), Number(this.serverSeed >> 32n), Number(this.serverSeed & BigInt(0xffffffff))]);
@@ -931,7 +956,7 @@ export default class Game extends Client {
                 this.hintType = 0;
                 this.menuSize = 0;
                 this.menuVisible = false;
-                this.idleCycles = 0;
+                this.idleCycles = Date.now();
                 for (let i: number = 0; i < 100; i++) {
                     this.messageText[i] = null;
                 }
@@ -987,7 +1012,7 @@ export default class Game extends Client {
                 for (let i: number = 0; i < 5; i++) {
                     this.designColors[i] = 0;
                 }
-                stopMidi(); // custom fix :-)
+                stopMidi(true); // custom fix :-)
                 Client.oplogic1 = 0;
                 Client.oplogic2 = 0;
                 Client.oplogic3 = 0;
@@ -1154,7 +1179,7 @@ export default class Game extends Client {
                 }
 
                 if (this.nextMusicDelay === 0 && this.midiActive && !Client.lowMemory && this.currentMidi) {
-                    await this.setMidi(this.currentMidi, this.midiCrc, this.midiSize);
+                    await this.setMidi(this.currentMidi, this.midiCrc, this.midiSize, false);
                 }
             }
 
@@ -1308,12 +1333,24 @@ export default class Game extends Client {
             }
 
             await this.handleInputKey();
-            this.idleCycles++;
-            if (this.idleCycles > 4500) {
+            // idlecycles refactored to use date to circumvent browser throttling the
+            // timers when a different tab is active, or the window has been minimized.
+            // afk logout has to still happen after 90s of no activity (if allowed).
+            // https://developer.chrome.com/blog/timer-throttling-in-chrome-88/
+            if (Date.now() - this.idleCycles > 90_000) {
+                // 4500 ticks * 20ms = 90000ms
                 this.idleTimeout = 250;
-                this.idleCycles -= 500;
+                // 500 ticks * 20ms = 10000ms
+                this.idleCycles = Date.now() - 10_000;
                 this.out.p1isaac(ClientProt.IDLE_TIMER);
             }
+            // === original code ===
+            // this.idleCycles++;
+            // if (this.idleCycles > 4500) {
+            //     this.idleTimeout = 250;
+            //     this.idleCycles -= 500;
+            //     this.out.p1isaac(ClientProt.IDLE_TIMER);
+            // }
 
             this.cameraOffsetCycle++;
             if (this.cameraOffsetCycle > 500) {
@@ -4282,6 +4319,10 @@ export default class Game extends Client {
                                 Client.showDebug = !Client.showDebug;
                             } else if (this.chatTyped === '::chat') {
                                 Client.chatEra = (Client.chatEra + 1) % 3;
+                            } else if (this.chatTyped === '::peer') {
+                                if (+Client.getParameter('world') === 999) {
+                                    this.exchangeSDP();
+                                }
                             } else if (this.chatTyped.startsWith('::fps ')) {
                                 try {
                                     this.setTargetedFramerate(parseInt(this.chatTyped.substring(6), 10));
@@ -4862,11 +4903,11 @@ export default class Game extends Client {
             this.levelCollisionMap[level]?.reset();
         }
 
-        stopMidi();
+        stopMidi(false);
         this.currentMidi = null;
         this.nextMusicDelay = 0;
         if (!Client.lowMemory) {
-            await this.setMidi('scape_main', 12345678, 40000);
+            await this.setMidi('scape_main', 12345678, 40000, false);
         }
     };
 
@@ -5227,7 +5268,7 @@ export default class Game extends Client {
                 const crc: number = this.in.g4;
                 const length: number = this.in.g4;
                 if (!(name === this.currentMidi) && this.midiActive && !Client.lowMemory) {
-                    await this.setMidi(name, crc, length);
+                    await this.setMidi(name, crc, length, true);
                 }
                 this.currentMidi = name;
                 this.midiCrc = crc;
@@ -5493,7 +5534,7 @@ export default class Game extends Client {
                     const length: number = this.in.g4;
                     const remaining: number = this.packetSize - 6;
                     const uncompressed: Int8Array = Bzip.read(length, Int8Array.from(this.in.data), remaining, this.in.pos);
-                    playMidi(uncompressed, this.midiVolume);
+                    playMidi(uncompressed, this.midiVolume, false);
                     this.nextMusicDelay = delay;
                 }
                 this.packetType = -1;
@@ -6231,9 +6272,9 @@ export default class Game extends Client {
                 }
                 if (this.midiActive !== lastMidiActive) {
                     if (this.midiActive && this.currentMidi) {
-                        await this.setMidi(this.currentMidi, this.midiCrc, this.midiSize);
+                        await this.setMidi(this.currentMidi, this.midiCrc, this.midiSize, false);
                     } else {
-                        stopMidi();
+                        stopMidi(false);
                     }
                     this.nextMusicDelay = 0;
                 }
