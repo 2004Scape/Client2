@@ -508,9 +508,9 @@ export abstract class Client extends GameShell {
         } catch (e) {
             /* empty */
         }
-        if (this.peer && Client.getParameter('world') === '998') {
-            this.peer.dc?.send(JSON.stringify({type: 'close', id: this.peer.uniqueId}));
-        }
+        // if (this.peer && Client.getParameter('world') === '998') {
+        //     this.peer.dc?.send(JSON.stringify({type: 'close', id: this.peer.uniqueId}));
+        // }
         this.stream = null;
         stopMidi(false);
         // this.midiThreadActive = false;
@@ -813,11 +813,11 @@ export abstract class Client extends GameShell {
             await this.showProgress(progress, `Requesting ${displayName}`);
 
             try {
-                if (+Client.getParameter('world') < 998) {
-                    data = await downloadUrl(`${Client.httpAddress}/${filename}${crc}`);
-                } else {
-                    data = await downloadUrl(`${Client.httpAddress}/${filename}`);
-                }
+                // if (+Client.getParameter('world') < 998) {
+                data = await downloadUrl(`${Client.httpAddress}/${filename}${crc}`);
+                // } else {
+                //     data = await downloadUrl(`${Client.httpAddress}/${filename}`);
+                // }
             } catch (e) {
                 data = undefined;
                 for (let i: number = retry; i > 0; i--) {
@@ -842,11 +842,11 @@ export abstract class Client extends GameShell {
 
         if (!data) {
             try {
-                if (+Client.getParameter('world') < 998) {
-                    data = await downloadUrl(`${Client.httpAddress}/${name}_${crc}.mid`);
-                } else {
-                    data = await downloadUrl(`${Client.httpAddress}/songs/${name}.mid`);
-                }
+                // if (+Client.getParameter('world') < 998) {
+                data = await downloadUrl(`${Client.httpAddress}/${name}_${crc}.mid`);
+                // } else {
+                //     data = await downloadUrl(`${Client.httpAddress}/songs/${name}.mid`);
+                // }
                 if (length !== data.length) {
                     data = data.slice(0, length);
                 }
