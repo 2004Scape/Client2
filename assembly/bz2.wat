@@ -19,7 +19,7 @@
  (global $assembly/bz2/state (mut i32) (i32.const 0))
  (global $~lib/rt/tcms/pinSpace (mut i32) (i32.const 0))
  (global $~lib/rt/tcms/toSpace (mut i32) (i32.const 0))
- (global $~lib/rt/__rtti_base i32 (i32.const 1792))
+ (global $~lib/rt/__rtti_base i32 (i32.const 1856))
  (memory $0 1)
  (data $0 (i32.const 1036) ",")
  (data $0.1 (i32.const 1048) "\02\00\00\00\1c\00\00\00I\00n\00v\00a\00l\00i\00d\00 \00l\00e\00n\00g\00t\00h")
@@ -46,10 +46,12 @@
  (data $12 (i32.const 1564) "\1c")
  (data $12.1 (i32.const 1576) "\04")
  (data $13 (i32.const 1596) "<")
- (data $13.1 (i32.const 1608) "\02\00\00\00*\00\00\00O\00b\00j\00e\00c\00t\00 \00a\00l\00r\00e\00a\00d\00y\00 \00p\00i\00n\00n\00e\00d")
- (data $15 (i32.const 1692) "<")
- (data $15.1 (i32.const 1704) "\02\00\00\00(\00\00\00O\00b\00j\00e\00c\00t\00 \00i\00s\00 \00n\00o\00t\00 \00p\00i\00n\00n\00e\00d")
- (data $17 (i32.const 1792) "\10\00\00\00 \00\00\00 \00\00\00 \00\00\00\00\00\00\00$\t\00\00\00\00\00\00d\08\00\00d\00\00\00d\00\00\00\02A\00\00\02A\00\00\04A\00\00\00\00\00\00\02\t\00\00\04A")
+ (data $13.1 (i32.const 1608) "\02\00\00\00$\00\00\00I\00n\00d\00e\00x\00 \00o\00u\00t\00 \00o\00f\00 \00r\00a\00n\00g\00e")
+ (data $14 (i32.const 1660) "<")
+ (data $14.1 (i32.const 1672) "\02\00\00\00*\00\00\00O\00b\00j\00e\00c\00t\00 \00a\00l\00r\00e\00a\00d\00y\00 \00p\00i\00n\00n\00e\00d")
+ (data $16 (i32.const 1756) "<")
+ (data $16.1 (i32.const 1768) "\02\00\00\00(\00\00\00O\00b\00j\00e\00c\00t\00 \00i\00s\00 \00n\00o\00t\00 \00p\00i\00n\00n\00e\00d")
+ (data $18 (i32.const 1856) "\10\00\00\00 \00\00\00 \00\00\00 \00\00\00\00\00\00\00$\t\00\00\00\00\00\00d\08\00\00d\00\00\00d\00\00\00\02A\00\00\02A\00\00\04A\00\00\00\00\00\00\02\t\00\00\04A")
  (table $0 5 5 funcref)
  (elem $0 (i32.const 1) $assembly/bz2/BZip2State#constructor~anonymous|0 $assembly/bz2/BZip2State#constructor~anonymous|1 $assembly/bz2/BZip2State#constructor~anonymous|1 $assembly/bz2/BZip2State#constructor~anonymous|1)
  (export "read" (func $assembly/bz2/read))
@@ -431,10 +433,10 @@
   if
    unreachable
   end
-  i32.const 1872
+  i32.const 1936
   i32.const 0
   i32.store
-  i32.const 3440
+  i32.const 3504
   i32.const 0
   i32.store
   loop $for-loop|0
@@ -445,7 +447,7 @@
     local.get $1
     i32.const 2
     i32.shl
-    i32.const 1872
+    i32.const 1936
     i32.add
     i32.const 0
     i32.store offset=4
@@ -463,7 +465,7 @@
       i32.add
       i32.const 2
       i32.shl
-      i32.const 1872
+      i32.const 1936
       i32.add
       i32.const 0
       i32.store offset=96
@@ -481,14 +483,14 @@
     br $for-loop|0
    end
   end
-  i32.const 1872
-  i32.const 3444
+  i32.const 1936
+  i32.const 3508
   memory.size
   i64.extend_i32_s
   i64.const 16
   i64.shl
   call $~lib/rt/tlsf/addMemory
-  i32.const 1872
+  i32.const 1936
   global.set $~lib/rt/tlsf/ROOT
  )
  (func $~lib/rt/tlsf/searchBlock (param $0 i32) (param $1 i32) (result i32)
@@ -2222,13 +2224,27 @@
      local.get $5
      i32.lt_s
      if
-      local.get $4
       global.get $assembly/bz2/state
       i32.load offset=124
       local.get $0
       i32.add
       i32.load8_u
       local.tee $2
+      local.get $4
+      i32.const 20
+      i32.sub
+      i32.load offset=16
+      i32.ge_u
+      if
+       i32.const 1616
+       i32.const 1104
+       i32.const 78
+       i32.const 41
+       call $~lib/builtins/abort
+       unreachable
+      end
+      local.get $2
+      local.get $4
       i32.add
       i32.load8_u
       local.set $3
@@ -3479,7 +3495,7 @@
    i32.const 3
    i32.eq
    if
-    i32.const 1616
+    i32.const 1680
     i32.const 1232
     i32.const 181
     i32.const 7
@@ -3557,7 +3573,7 @@
   i32.const 3
   i32.ne
   if
-   i32.const 1712
+   i32.const 1776
    i32.const 1232
    i32.const 195
    i32.const 5
@@ -3755,7 +3771,7 @@
    end
   end
   global.get $~lib/rt/tcms/white
-  i32.const 1040
+  i32.const 1600
   i32.load
   local.tee $0
   i32.const 3
@@ -3769,10 +3785,69 @@
     local.tee $1
     i32.eqz
     if
-     i32.const 1044
+     i32.const 1604
      i32.load
      drop
      br $__inlined_func$~lib/rt/tcms/Object#unlink$61
+    end
+    local.get $1
+    i32.const 1604
+    i32.load
+    local.tee $0
+    i32.store offset=8
+    local.get $0
+    local.get $1
+    local.get $0
+    i32.load offset=4
+    i32.const 3
+    i32.and
+    i32.or
+    i32.store offset=4
+   end
+   global.get $~lib/rt/tcms/toSpace
+   local.tee $1
+   i32.load offset=8
+   local.set $0
+   i32.const 1600
+   local.get $1
+   global.get $~lib/rt/tcms/white
+   i32.eqz
+   i32.or
+   i32.store
+   i32.const 1604
+   local.get $0
+   i32.store
+   local.get $0
+   local.get $0
+   i32.load offset=4
+   i32.const 3
+   i32.and
+   i32.const 1596
+   i32.or
+   i32.store offset=4
+   local.get $1
+   i32.const 1596
+   i32.store offset=8
+  end
+  global.get $~lib/rt/tcms/white
+  i32.const 1040
+  i32.load
+  local.tee $0
+  i32.const 3
+  i32.and
+  i32.eq
+  if
+   block $__inlined_func$~lib/rt/tcms/Object#unlink$62
+    local.get $0
+    i32.const -4
+    i32.and
+    local.tee $1
+    i32.eqz
+    if
+     i32.const 1044
+     i32.load
+     drop
+     br $__inlined_func$~lib/rt/tcms/Object#unlink$62
     end
     local.get $1
     i32.const 1044
@@ -3821,7 +3896,7 @@
   i32.and
   i32.eq
   if
-   block $__inlined_func$~lib/rt/tcms/Object#unlink$62
+   block $__inlined_func$~lib/rt/tcms/Object#unlink$63
     local.get $0
     i32.const -4
     i32.and
@@ -3831,7 +3906,7 @@
      i32.const 1156
      i32.load
      drop
-     br $__inlined_func$~lib/rt/tcms/Object#unlink$62
+     br $__inlined_func$~lib/rt/tcms/Object#unlink$63
     end
     local.get $1
     i32.const 1156
@@ -3873,66 +3948,7 @@
    i32.store offset=8
   end
   global.get $~lib/rt/tcms/white
-  i32.const 1600
-  i32.load
-  local.tee $0
-  i32.const 3
-  i32.and
-  i32.eq
-  if
-   block $__inlined_func$~lib/rt/tcms/Object#unlink$63
-    local.get $0
-    i32.const -4
-    i32.and
-    local.tee $1
-    i32.eqz
-    if
-     i32.const 1604
-     i32.load
-     drop
-     br $__inlined_func$~lib/rt/tcms/Object#unlink$63
-    end
-    local.get $1
-    i32.const 1604
-    i32.load
-    local.tee $0
-    i32.store offset=8
-    local.get $0
-    local.get $1
-    local.get $0
-    i32.load offset=4
-    i32.const 3
-    i32.and
-    i32.or
-    i32.store offset=4
-   end
-   global.get $~lib/rt/tcms/toSpace
-   local.tee $1
-   i32.load offset=8
-   local.set $0
-   i32.const 1600
-   local.get $1
-   global.get $~lib/rt/tcms/white
-   i32.eqz
-   i32.or
-   i32.store
-   i32.const 1604
-   local.get $0
-   i32.store
-   local.get $0
-   local.get $0
-   i32.load offset=4
-   i32.const 3
-   i32.and
-   i32.const 1596
-   i32.or
-   i32.store offset=4
-   local.get $1
-   i32.const 1596
-   i32.store offset=8
-  end
-  global.get $~lib/rt/tcms/white
-  i32.const 1696
+  i32.const 1664
   i32.load
   local.tee $0
   i32.const 3
@@ -3946,13 +3962,13 @@
     local.tee $1
     i32.eqz
     if
-     i32.const 1700
+     i32.const 1668
      i32.load
      drop
      br $__inlined_func$~lib/rt/tcms/Object#unlink$64
     end
     local.get $1
-    i32.const 1700
+    i32.const 1668
     i32.load
     local.tee $0
     i32.store offset=8
@@ -3969,13 +3985,13 @@
    local.tee $1
    i32.load offset=8
    local.set $0
-   i32.const 1696
+   i32.const 1664
    local.get $1
    global.get $~lib/rt/tcms/white
    i32.eqz
    i32.or
    i32.store
-   i32.const 1700
+   i32.const 1668
    local.get $0
    i32.store
    local.get $0
@@ -3983,11 +3999,70 @@
    i32.load offset=4
    i32.const 3
    i32.and
-   i32.const 1692
+   i32.const 1660
    i32.or
    i32.store offset=4
    local.get $1
-   i32.const 1692
+   i32.const 1660
+   i32.store offset=8
+  end
+  global.get $~lib/rt/tcms/white
+  i32.const 1760
+  i32.load
+  local.tee $0
+  i32.const 3
+  i32.and
+  i32.eq
+  if
+   block $__inlined_func$~lib/rt/tcms/Object#unlink$65
+    local.get $0
+    i32.const -4
+    i32.and
+    local.tee $1
+    i32.eqz
+    if
+     i32.const 1764
+     i32.load
+     drop
+     br $__inlined_func$~lib/rt/tcms/Object#unlink$65
+    end
+    local.get $1
+    i32.const 1764
+    i32.load
+    local.tee $0
+    i32.store offset=8
+    local.get $0
+    local.get $1
+    local.get $0
+    i32.load offset=4
+    i32.const 3
+    i32.and
+    i32.or
+    i32.store offset=4
+   end
+   global.get $~lib/rt/tcms/toSpace
+   local.tee $1
+   i32.load offset=8
+   local.set $0
+   i32.const 1760
+   local.get $1
+   global.get $~lib/rt/tcms/white
+   i32.eqz
+   i32.or
+   i32.store
+   i32.const 1764
+   local.get $0
+   i32.store
+   local.get $0
+   local.get $0
+   i32.load offset=4
+   i32.const 3
+   i32.and
+   i32.const 1756
+   i32.or
+   i32.store offset=4
+   local.get $1
+   i32.const 1756
    i32.store offset=8
   end
   global.get $~lib/rt/tcms/pinSpace
@@ -4062,7 +4137,7 @@
     i32.and
     local.set $0
     local.get $1
-    i32.const 1860
+    i32.const 1924
     i32.lt_u
     if
      local.get $1
@@ -4085,7 +4160,7 @@
      i32.const 4
      i32.add
      local.tee $1
-     i32.const 1860
+     i32.const 1924
      i32.ge_u
      if
       global.get $~lib/rt/tlsf/ROOT
@@ -5741,21 +5816,21 @@
   global.set $assembly/bz2/BZip2State.tt
   call $assembly/bz2/BZip2State#constructor
   global.set $assembly/bz2/state
-  i32.const 1668
-  i32.const 1664
+  i32.const 1732
+  i32.const 1728
   i32.store
-  i32.const 1672
-  i32.const 1664
+  i32.const 1736
+  i32.const 1728
   i32.store
-  i32.const 1664
+  i32.const 1728
   global.set $~lib/rt/tcms/pinSpace
-  i32.const 1764
-  i32.const 1760
+  i32.const 1828
+  i32.const 1824
   i32.store
-  i32.const 1768
-  i32.const 1760
+  i32.const 1832
+  i32.const 1824
   i32.store
-  i32.const 1760
+  i32.const 1824
   global.set $~lib/rt/tcms/toSpace
  )
 )

@@ -858,10 +858,14 @@ export abstract class Client extends GameShell {
         if (!data) {
             return;
         }
-        await this.db?.cachesave(name + '.mid', data);
-        const uncompressedLength: number = new Packet(Uint8Array.from(data)).g4;
-        const uncompressed: Int8Array = Bzip.read(uncompressedLength, data, length, 4);
-        playMidi(uncompressed, this.midiVolume, fade);
+        try {
+            await this.db?.cachesave(name + '.mid', data);
+            const uncompressedLength: number = new Packet(Uint8Array.from(data)).g4;
+            const uncompressed: Int8Array = Bzip.read(uncompressedLength, data, length, 4);
+            playMidi(uncompressed, this.midiVolume, fade);
+        } catch (e) {
+            /* empty */
+        }
     };
 
     protected drawError = (): void => {

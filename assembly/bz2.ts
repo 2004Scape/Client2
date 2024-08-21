@@ -173,7 +173,7 @@ function decompress(): void {
 
         for (let i: i32 = 0; i < nSelectors; i++) {
             let v: u8 = unchecked(state.selectorMtf[i]);
-            const tmp: u8 = unchecked(pos[v]);
+            const tmp: u8 = pos[v];
             while (v > 0) {
                 unchecked((pos[v] = pos[v - 1]));
                 v--;
