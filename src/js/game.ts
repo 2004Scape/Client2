@@ -2136,7 +2136,7 @@ class Game extends Client {
                 if (this.chatStyles[i] === 2) {
                     const w: number = this.fontBold12?.stringWidth(message) ?? 0;
                     const offsetX: number = ((150 - this.chatTimers[i]) * (w + 100)) / 150;
-                    Draw2D.setBounds(334, this.projectX + 50, 0, this.projectX - 50);
+                    Draw2D.setBounds(this.projectX - 50, 0, this.projectX + 50, 334);
                     this.fontBold12?.drawString(this.projectX + 50 - offsetX, this.projectY + 1, message, Colors.BLACK);
                     this.fontBold12?.drawString(this.projectX + 50 - offsetX, this.projectY, message, color);
                     Draw2D.resetBounds();
