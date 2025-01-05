@@ -65,7 +65,7 @@ import {setupConfiguration} from './configuration';
 import Tile from './jagex2/dash3d/type/Tile';
 import DirectionFlag from './jagex2/dash3d/DirectionFlag';
 import ClientWorkerStream from './jagex2/io/ClientWorkerStream';
-import {Host, Peer} from './jagex2/io/RTCDataChannels';
+import {setupManifest} from './manifest';
 
 // noinspection JSSuspiciousNameCombination
 class Game extends Client {
@@ -860,7 +860,12 @@ class Game extends Client {
                 }
                 this.stream = new ClientWorkerStream(this.worker!, this.host!.uniqueId);
             } else {
-                this.stream = new ClientStream(await ClientStream.openSocket({host: Client.serverAddress, port: 43594 + Client.portOffset}));
+                this.stream = new ClientStream(
+                    await ClientStream.openSocket({
+                        host: Client.serverAddress,
+                        port: 43594 + Client.portOffset
+                    })
+                );
             }
             await this.stream.readBytes(this.in.data, 0, 8);
             this.in.pos = 0;
@@ -9490,5 +9495,6 @@ class Game extends Client {
 }
 
 console.log(`RS2 user client - release #${Client.clientversion}`);
+setupManifest();
 await setupConfiguration();
 new Game().run().then((): void => {});
